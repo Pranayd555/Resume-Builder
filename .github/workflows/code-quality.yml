@@ -19,7 +19,6 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
-        cache: 'npm'
 
     # Backend Code Quality
     - name: Install backend dependencies
@@ -70,6 +69,8 @@ jobs:
 
     - name: Run frontend tests with coverage
       working-directory: ./resume-builder
+      env:
+        CI: false
       run: npm test -- --coverage --watchAll=false --passWithNoTests
 
     # Upload coverage reports

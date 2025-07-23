@@ -51,7 +51,7 @@ function AuthCallback() {
     };
 
     handleCallback();
-  }, []); // Empty dependency array to run only once
+  }, [loginWithToken, navigate, searchParams]); // Include all dependencies
 
   if (loading) {
     return (

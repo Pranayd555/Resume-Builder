@@ -10,7 +10,7 @@
     "test:templates": "node scripts/testTemplates.js",
     "generate-thumbnails": "node scripts/generatePuppeteerThumbnails.js",
     "update-thumbnails": "node scripts/updateTemplatesWithPuppeteerThumbnails.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
     "seed": "node scripts/seedDatabase.js"
   },
