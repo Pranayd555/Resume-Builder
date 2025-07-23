@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 
 // Import app after setting up test environment
 let app;
+
 beforeAll(async () => {
   // Set test environment variables
   process.env.NODE_ENV = 'test';
