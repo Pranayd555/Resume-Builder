@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Cancelled</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f7f7f7;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        h1 {
+            color: #1f2937;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .cancellation-badge {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #2563eb;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        .btn:hover {
+            background-color: #1d4ed8;
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        .info-box {
+            background-color: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        .support {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9fafb;
+            border-radius: 6px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">{{appName}}</div>
+        </div>
+        
+        <h1>Subscription Cancelled</h1>
+        
+        <div class="cancellation-badge">
+            <h2 style="margin: 0;">📝 Subscription Cancelled</h2>
+            <p style="margin: 10px 0 0 0;">Your {{planName}} subscription has been cancelled</p>
+        </div>
+        
+        <p>Hello {{name}},</p>
+        
+        <p>We've successfully cancelled your {{planName}} subscription as requested. While we're sad to see you go, we understand that circumstances change.</p>
+        
+        <div class="info-box">
+            <strong>📅 Important Information:</strong>
+            <ul>
+                <li>Your subscription remains active until the end of your current billing period</li>
+                <li>You'll continue to have access to all premium features until then</li>
+                <li>No further charges will be made to your account</li>
+                <li>You can reactivate your subscription anytime before it expires</li>
+            </ul>
+        </div>
+        
+        <h3>What happens next?</h3>
+        <ol>
+            <li>Continue using all premium features until your billing period ends</li>
+            <li>After expiration, your account will revert to the free plan</li>
+            <li>Your resumes and data will remain safe and accessible</li>
+            <li>You can upgrade again anytime to regain premium access</li>
+        </ol>
+        
+        <div style="text-align: center;">
+            <a href="{{accountUrl}}" class="btn btn-secondary">View Account</a>
+        </div>
+        
+        <h3>We'd love your feedback</h3>
+        <p>To help us improve {{appName}}, would you mind sharing why you decided to cancel? Your feedback helps us serve our users better.</p>
+        
+        <p><strong>Common reasons for cancellation:</strong></p>
+        <ul>
+            <li>Found a job and no longer need the service</li>
+            <li>Cost/budget considerations</li>
+            <li>Missing features or functionality</li>
+            <li>Technical issues or difficulties</li>
+            <li>Using a different service</li>
+        </ul>
+        
+        <h3>Come back anytime!</h3>
+        <p>If you change your mind, you can reactivate your subscription with just a few clicks. All your previous resumes and settings will be waiting for you.</p>
+        
+        <div class="support">
+            <p><strong>Need help or have questions?</strong> Contact our support team at <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
+        </div>
+        
+        <div class="footer">
+            <p>Best regards,<br>
+            The {{appName}} Team</p>
+            
+            <p style="font-size: 12px; color: #9ca3af;">
+                This email was sent from {{appName}}. You can update your email preferences in your account settings.
+            </p>
+        </div>
+    </div>
+</body>
+</html> 

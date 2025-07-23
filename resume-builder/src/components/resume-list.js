@@ -1,0 +1,1050 @@
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { createPortal } from 'react-dom';
+import { resumeAPI, apiHelpers } from '../services/api';
+import { createResumeModel } from '../models/dataModels';
+import { toast } from 'react-toastify';
+
+function ResumeList() {
+  const navigate = useNavigate();
+  const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [resumes, setResumes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    pages: 0
+  });
+  const [filters, setFilters] = useState({
+    status: '',
+    search: ''
+  });
+  
+  // Track if we're already fetching to prevent duplicate calls
+  const isFetchingRef = useRef(false);
+  // Ref for status dropdown to handle click outside
+  const statusDropdownRef = useRef(null);
+  // Ref to track dropdown button positions
+  const dropdownButtonRefs = useRef({});
+  // Track downloading resumes to show loaders
+  const [downloadingResumes, setDownloadingResumes] = useState(new Set());
+
+  // Handle click outside to close status dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Only handle clicks if dropdown is open
+      if (!showStatusDropdown) return;
+      
+      // Check if click is on the dropdown button itself
+      if (statusDropdownRef.current && statusDropdownRef.current.contains(event.target)) {
+        return;
+      }
+      
+      // Check if click is inside the dropdown content
+      const dropdownElement = document.querySelector('[data-dropdown="status"]');
+      if (dropdownElement && dropdownElement.contains(event.target)) {
+        return;
+      }
+      
+      // If we get here, the click is outside both the button and dropdown
+      setShowStatusDropdown(false);
+    };
+
+    const handleEscapeKey = (event) => {
+      if (event.key === 'Escape' && showStatusDropdown) {
+        setShowStatusDropdown(false);
+      }
+    };
+
+    const handleScroll = () => {
+      if (showStatusDropdown) {
+        setShowStatusDropdown(false);
+      }
+      if (openDropdownId) {
+        setOpenDropdownId(null);
+      }
+    };
+
+    if (showStatusDropdown || openDropdownId) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+      document.addEventListener('keydown', handleEscapeKey);
+      window.addEventListener('scroll', handleScroll, { passive: true });
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('keydown', handleEscapeKey);
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [showStatusDropdown, openDropdownId]);
+
+  const statusOptions = [
+    { 
+      value: '', 
+      label: 'All Status', 
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+        </svg>
+      ),
+      color: 'text-gray-600'
+    },
+    { 
+      value: 'active', 
+      label: 'Active', 
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      color: 'text-green-600'
+    },
+    { 
+      value: 'published', 
+      label: 'Published', 
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      color: 'text-blue-600'
+    },
+    { 
+      value: 'draft', 
+      label: 'Draft', 
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      color: 'text-yellow-600'
+    }
+  ];
+
+  const getSelectedOption = () => {
+    return statusOptions.find(option => option.value === filters.status) || statusOptions[0];
+  };
+
+  const handleStatusSelect = (value) => {
+    handleFilterChange('status', value);
+    setShowStatusDropdown(false);
+  };
+
+  const fetchResumes = useCallback(async () => {
+    // Prevent duplicate calls
+    if (isFetchingRef.current) {
+      return;
+    }
+    
+    try {
+      isFetchingRef.current = true;
+      setLoading(true);
+      setError(null);
+      
+      const params = {
+        page: pagination.page,
+        limit: pagination.limit,
+        ...filters
+      };
+      
+      const response = await resumeAPI.getResumes(params);
+      
+      if (response.success) {
+        const resumeModels = response.data.resumes.map(resume => createResumeModel(resume));
+        setResumes(resumeModels);
+        setPagination(prev => ({
+          ...prev,
+          total: resumeModels.length,
+          pages: response.data.pagination.pages
+        }));
+      } else {
+        throw new Error(response.error || 'Failed to fetch resumes');
+      }
+    } catch (err) {
+      const errorMessage = apiHelpers.formatError(err);
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+      isFetchingRef.current = false;
+    }
+  }, [pagination.page, pagination.limit, filters]);
+
+  // Load resumes on component mount
+  useEffect(() => {
+    fetchResumes();
+  }, [fetchResumes]);
+
+  const handleCreateNew = () => {
+    // Clear any existing form data from localStorage to ensure fresh form
+    localStorage.removeItem('resume_form_data');
+    // Navigate to resume form with fresh start state
+    navigate('/resume-form', { 
+      state: { freshStart: true },
+      replace: true 
+    });
+  };
+
+  const handleResumeClick = (resumeId) => {
+    navigate(`/resume-preview/${resumeId}`);
+  };
+
+  const handleMenuClick = (e, resumeId) => {
+    e.stopPropagation();
+    // Store the button position for dropdown positioning
+    dropdownButtonRefs.current[resumeId] = e.currentTarget;
+    setOpenDropdownId(openDropdownId === resumeId ? null : resumeId);
+  };
+
+  const handleEditResume = (resumeId) => {
+    navigate('/resume-form', { state: { resumeId, editMode: true } });
+    setOpenDropdownId(null);
+  };
+
+  const handleDuplicateResume = async (resumeId) => {
+    try {
+      const response = await resumeAPI.duplicateResume(resumeId);
+      if (response.success) {
+        toast.success('Resume duplicated successfully!');
+        fetchResumes(); // Refresh the list
+      } else {
+        throw new Error(response.error || 'Failed to duplicate resume');
+      }
+    } catch (err) {
+      const errorMessage = apiHelpers.formatError(err);
+      toast.error(errorMessage);
+    }
+    setOpenDropdownId(null);
+  };
+
+  const handleDeleteResume = async (resumeId) => {
+    if (window.confirm('Are you sure you want to delete this resume? This action cannot be undone.')) {
+      try {
+        const response = await resumeAPI.deleteResume(resumeId);
+        if (response.success) {
+          toast.success('Resume deleted successfully!');
+          fetchResumes(); // Refresh the list
+        } else {
+          throw new Error(response.error || 'Failed to delete resume');
+        }
+      } catch (err) {
+        const errorMessage = apiHelpers.formatError(err);
+        toast.error(errorMessage);
+      }
+    }
+    setOpenDropdownId(null);
+  };
+
+  const handleFeedback = () => {
+    navigate('/feedback');
+  };
+
+  const handleUpgradeToPremium = () => {
+    navigate('/subscription');
+  };
+
+  const handleDownload = async (resumeId) => {
+    // Find the resume to check its status
+    const resume = resumes.find(r => r.id === resumeId);
+    if (!resume) {
+      toast.error('Resume not found');
+      return;
+    }
+
+    // Check if resume is in draft status
+    if (resume.status === 'draft') {
+      toast.error('Cannot download draft resumes. Please publish the resume first.');
+      setOpenDropdownId(null);
+      return;
+    }
+
+    // Add resume to downloading set to show loader
+    setDownloadingResumes(prev => new Set(prev).add(resumeId));
+
+    try {
+      const response = await resumeAPI.downloadPDF(resumeId);
+      
+      // Create blob and download
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `resume-${resumeId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Resume downloaded successfully!');
+    } catch (err) {
+      const errorMessage = apiHelpers.formatError(err);
+      
+      // Handle specific subscription-related errors
+      if (errorMessage.includes('upgrade to Pro') || errorMessage.includes('subscription plan')) {
+        toast.error(
+          <div>
+            <div className="font-semibold">Upgrade Required</div>
+            <div className="text-sm">{errorMessage}</div>
+            <button 
+              onClick={() => navigate('/subscription')}
+              className="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700"
+            >
+              Upgrade Now
+            </button>
+          </div>,
+          { duration: 5000 }
+        );
+      } else if (errorMessage.includes('Export limit reached')) {
+        toast.error(
+          <div>
+            <div className="font-semibold">Export Limit Reached</div>
+            <div className="text-sm">{errorMessage}</div>
+            <button 
+              onClick={() => navigate('/subscription')}
+              className="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700"
+            >
+              Upgrade for Unlimited Exports
+            </button>
+          </div>,
+          { duration: 5000 }
+        );
+      } else {
+        toast.error(errorMessage);
+      }
+    } finally {
+      // Remove resume from downloading set
+      setDownloadingResumes(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(resumeId);
+        return newSet;
+      });
+    }
+    setOpenDropdownId(null);
+  };
+
+  const handleDownloadDOCX = async (resumeId) => {
+    // Find the resume to check its status
+    const resume = resumes.find(r => r.id === resumeId);
+    if (!resume) {
+      toast.error('Resume not found');
+      return;
+    }
+
+    // Check if resume is in draft status
+    if (resume.status === 'draft') {
+      toast.error('Cannot download draft resumes. Please publish the resume first.');
+      setOpenDropdownId(null);
+      return;
+    }
+
+    // Add resume to downloading set to show loader
+    setDownloadingResumes(prev => new Set(prev).add(resumeId));
+
+    try {
+      const response = await resumeAPI.downloadDOCX(resumeId);
+      
+      // Create blob and download
+      const blob = new Blob([response.data], { 
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `resume-${resumeId}.docx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Resume downloaded as DOCX successfully!');
+    } catch (err) {
+      const errorMessage = apiHelpers.formatError(err);
+      
+      // Handle specific subscription-related errors
+      if (errorMessage.includes('upgrade to Pro') || errorMessage.includes('subscription plan')) {
+        toast.error(
+          <div>
+            <div className="font-semibold">Upgrade Required</div>
+            <div className="text-sm">{errorMessage}</div>
+            <button 
+              onClick={() => navigate('/subscription')}
+              className="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700"
+            >
+              Upgrade Now
+            </button>
+          </div>,
+          { duration: 5000 }
+        );
+      } else if (errorMessage.includes('Export limit reached')) {
+        toast.error(
+          <div>
+            <div className="font-semibold">Export Limit Reached</div>
+            <div className="text-sm">{errorMessage}</div>
+            <button 
+              onClick={() => navigate('/subscription')}
+              className="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700"
+            >
+              Upgrade for Unlimited Exports
+            </button>
+          </div>,
+          { duration: 5000 }
+        );
+      } else {
+        toast.error(errorMessage);
+      }
+    } finally {
+      // Remove resume from downloading set
+      setDownloadingResumes(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(resumeId);
+        return newSet;
+      });
+    }
+    setOpenDropdownId(null);
+  };
+
+  const handleToggleActive = async (resumeId, currentStatus) => {
+    try {
+      const response = await resumeAPI.toggleActive(resumeId);
+      if (response.success) {
+        toast.success(response.data.message);
+        fetchResumes(); // Refresh the list
+      } else {
+        throw new Error(response.error || 'Failed to toggle resume status');
+      }
+    } catch (err) {
+      const errorMessage = apiHelpers.formatError(err);
+      toast.error(errorMessage);
+    }
+    setOpenDropdownId(null);
+  };
+
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({
+      ...prev,
+      page: newPage
+    }));
+  };
+
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value
+    }));
+    setPagination(prev => ({
+      ...prev,
+      page: 1 // Reset to first page when filters change
+    }));
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    fetchResumes();
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'published':
+        return 'bg-green-100 text-green-800';
+      case 'draft':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'archived':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusDisplayText = (resume) => {
+    if (resume.status === 'published') {
+      return resume.isActive ? 'Active' : 'Published';
+    }
+    return resume.status.charAt(0).toUpperCase() + resume.status.slice(1);
+  };
+
+  const getTemplateColor = (template) => {
+    switch (template) {
+      case 'Professional':
+        return 'from-blue-400 to-blue-600';
+      case 'Modern':
+        return 'from-purple-400 to-purple-600';
+      case 'Creative':
+        return 'from-pink-400 to-pink-600';
+      case 'Classic':
+        return 'from-gray-400 to-gray-600';
+      default:
+        return 'from-blue-400 to-blue-600';
+    }
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen pt-16 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Loading Resumes...</h3>
+          <p className="text-gray-600">Please wait while we fetch your resumes.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error && resumes.length === 0) {
+    return (
+      <div className="min-h-screen pt-16 flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Resumes</h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={fetchResumes}
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen pt-16">
+      <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              My Resumes
+            </h1>
+            <p className="text-gray-600 text-base sm:text-lg">Create and manage your professional resumes</p>
+          </div>
+          <button
+            onClick={handleCreateNew}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2 sm:gap-3 font-semibold text-sm sm:text-base min-w-[140px] sm:min-w-auto"
+          >
+            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            <span className="whitespace-nowrap">Create New</span>
+          </button>
+        </div>
+        
+        {/* Search and Filter */}
+        <div className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-4 sm:p-6 mb-8">
+          <div className="flex flex-col gap-4">
+            <div className="w-full">
+              <form onSubmit={handleSearch} className="flex gap-3">
+                <div className="flex-1 relative group">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search resumes..."
+                    value={filters.search}
+                    onChange={(e) => handleFilterChange('search', e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 backdrop-blur-md bg-white/80 border border-white/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-sm sm:text-base placeholder-gray-400 shadow-lg hover:shadow-xl transition-all duration-200"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 sm:px-6 py-2.5 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center min-w-[80px] sm:min-w-[120px] font-semibold"
+                >
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <span className="hidden sm:flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    Search
+                  </span>
+                </button>
+              </form>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                <span className="text-sm font-medium text-gray-600 hidden sm:inline">Filter by:</span>
+              </div>
+              <div 
+                ref={statusDropdownRef}
+                className="relative"
+              >
+                <button
+                  onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+                  className="flex items-center justify-between gap-3 px-4 py-2.5 backdrop-blur-md bg-white/70 border border-white/20 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm sm:text-base min-w-[160px] group"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className={`${getSelectedOption().color} flex items-center transition-colors duration-200`}>
+                      {getSelectedOption().icon}
+                    </span>
+                    <span className="font-medium text-gray-700">{getSelectedOption().label}</span>
+                  </div>
+                  <svg 
+                    className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${showStatusDropdown ? 'rotate-180' : ''}`} 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {showStatusDropdown && createPortal(
+                  <div 
+                    data-dropdown="status"
+                    className="fixed z-[9999] backdrop-blur-md bg-white/90 rounded-xl shadow-xl border border-white/20 ring-1 ring-black/5 overflow-hidden animate-in slide-in-from-top-2 duration-200"
+                    style={{
+                      top: statusDropdownRef.current ? statusDropdownRef.current.getBoundingClientRect().bottom + 8 : 0,
+                      left: statusDropdownRef.current ? statusDropdownRef.current.getBoundingClientRect().left : 0,
+                      width: statusDropdownRef.current ? statusDropdownRef.current.offsetWidth : 'auto',
+                      minWidth: '160px'
+                    }}
+                  >
+                    <div className="py-2">
+                      {statusOptions.map((option, index) => (
+                        <button
+                          key={option.value}
+                          onClick={() => handleStatusSelect(option.value)}
+                          className={`w-full text-left px-4 py-3 text-sm flex items-center gap-3 transition-all duration-150 hover:bg-white/60 hover:backdrop-blur-sm group ${
+                            option.value === filters.status 
+                              ? 'bg-gradient-to-r from-blue-50 to-purple-50 border-l-4 border-blue-500 font-semibold' 
+                              : 'hover:translate-x-1'
+                          }`}
+                          style={{
+                            animationDelay: `${index * 50}ms`
+                          }}
+                        >
+                          <span className={`${option.color} flex items-center transition-all duration-200 ${
+                            option.value === filters.status ? 'scale-110' : 'group-hover:scale-110'
+                          }`}>
+                            {option.icon}
+                          </span>
+                          <span className={`${
+                            option.value === filters.status 
+                              ? 'text-blue-700' 
+                              : 'text-gray-700 group-hover:text-gray-900'
+                          } transition-colors duration-200`}>
+                            {option.label}
+                          </span>
+                          {option.value === filters.status && (
+                            <svg className="w-4 h-4 text-blue-500 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>,
+                  document.body
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium">Total Resumes</p>
+                <p className="text-3xl font-bold text-gray-900">{resumes.length}</p>
+              </div>
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+          
+          <div className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium">Active Resumes</p>
+                <p className="text-3xl font-bold text-gray-900">{resumes.filter(r => r.isActive === true).length}</p>
+              </div>
+              <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+          
+          <div className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium">Draft Resumes</p>
+                <p className="text-3xl font-bold text-gray-900">{resumes.filter(r => r.status === 'draft').length}</p>
+              </div>
+              <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-xl flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Resume List */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {resumes.length > 0 ? (
+            resumes.map((resume, index) => (
+              <div 
+                key={resume.id}
+                className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 overflow-hidden cursor-pointer hover:bg-white/80 transition-all duration-200 hover:shadow-2xl hover:scale-105 group"
+                onClick={() => handleResumeClick(resume.id)}
+              >
+                {/* Card Header */}
+                <div className="p-6 pb-4">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className={`w-12 h-12 bg-gradient-to-br ${getTemplateColor(resume.template?.name || 'Default')} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200`}>
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(resume.status)}`}>
+                        {getStatusDisplayText(resume)}
+                      </span>
+                      <div className="relative">
+                        <button
+                          onClick={(e) => handleMenuClick(e, resume.id)}
+                          className="p-1.5 bg-gray-100/80 text-gray-600 rounded-lg hover:bg-gray-200/80 transition-colors opacity-0 group-hover:opacity-100"
+                          title="More Actions"
+                        >
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                          </svg>
+                        </button>
+                        
+                        {/* Dropdown Menu */}
+                        {openDropdownId === resume.id && createPortal(
+                          <div 
+                            className="fixed z-[9999] bg-white rounded-lg shadow-lg border border-gray-200"
+                            style={{
+                              top: dropdownButtonRefs.current[resume.id] ? dropdownButtonRefs.current[resume.id].getBoundingClientRect().bottom + 8 : 0,
+                              right: dropdownButtonRefs.current[resume.id] ? window.innerWidth - dropdownButtonRefs.current[resume.id].getBoundingClientRect().right : 0,
+                              width: '192px'
+                            }}
+                          >
+                            <div className="py-1">
+                              <button
+                                onClick={() => handleEditResume(resume.id)}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Edit Resume
+                              </button>
+                              {resume.status === 'published' && (
+                                <button
+                                  onClick={() => handleToggleActive(resume.id, resume.status)}
+                                  className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
+                                    resume.isActive 
+                                      ? 'text-red-600 hover:bg-red-50' 
+                                      : 'text-green-600 hover:bg-green-50'
+                                  }`}
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    {resume.isActive ? (
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
+                                    ) : (
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    )}
+                                  </svg>
+                                  {resume.isActive ? 'Deactivate' : 'Activate'}
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleDuplicateResume(resume.id)}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                                Duplicate
+                              </button>
+                              <button
+                                onClick={() => handleDownload(resume.id)}
+                                disabled={resume.status === 'draft' || downloadingResumes.has(resume.id)}
+                                className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
+                                  resume.status === 'draft' || downloadingResumes.has(resume.id)
+                                    ? 'text-gray-400 cursor-not-allowed'
+                                    : 'text-gray-700 hover:bg-gray-100'
+                                }`}
+                                title={resume.status === 'draft' ? 'Publish resume to download' : 'Download PDF'}
+                              >
+                                {downloadingResumes.has(resume.id) ? (
+                                  <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                  </svg>
+                                ) : (
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                  </svg>
+                                )}
+                                {downloadingResumes.has(resume.id) ? 'Downloading...' : 'Download PDF'}
+                              </button>
+                              <button
+                                onClick={() => handleDownloadDOCX(resume.id)}
+                                disabled={resume.status === 'draft' || downloadingResumes.has(resume.id)}
+                                className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
+                                  resume.status === 'draft' || downloadingResumes.has(resume.id)
+                                    ? 'text-gray-400 cursor-not-allowed'
+                                    : 'text-gray-700 hover:bg-gray-100'
+                                }`}
+                                title={resume.status === 'draft' ? 'Publish resume to download' : 'Download DOCX'}
+                              >
+                                {downloadingResumes.has(resume.id) ? (
+                                  <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                  </svg>
+                                ) : (
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                  </svg>
+                                )}
+                                {downloadingResumes.has(resume.id) ? 'Downloading...' : 'Download DOCX'}
+                              </button>
+                              <button
+                                onClick={() => handleDeleteResume(resume.id)}
+                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Delete
+                              </button>
+                            </div>
+                          </div>,
+                          document.body
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Resume Title */}
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200 mb-3 line-clamp-2">
+                    {resume.title}
+                  </h3>
+                  
+                  {/* Template Info */}
+                  <div className="flex items-center gap-2 mb-4">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17v4a2 2 0 002 2h4M15 7l3-3m0 0l-3-3m3 3H9" />
+                    </svg>
+                    <span className="text-sm text-gray-600 font-medium">{resume.template?.name || 'Default'}</span>
+                  </div>
+                </div>
+                
+                {/* Card Footer */}
+                <div className="px-6 pb-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>{new Date(resume.updatedAt).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        <span>{resume.analytics?.views || 0}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span>{resume.analytics?.downloads || 0}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Action Buttons */}
+                  <div className={`grid gap-2 ${resume.status === 'published' ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditResume(resume.id);
+                      }}
+                      className="bg-blue-100 text-blue-600 px-3 py-2.5 rounded-lg hover:bg-blue-200 transition-colors font-medium text-xs flex items-center justify-center gap-1"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      Edit
+                    </button>
+                    {resume.status === 'published' && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleActive(resume.id, resume.status);
+                        }}
+                        className={`px-3 py-2.5 rounded-lg transition-colors font-medium text-xs flex items-center justify-center gap-1 ${
+                          resume.isActive 
+                            ? 'bg-red-100 text-red-600 hover:bg-red-200' 
+                            : 'bg-green-100 text-green-600 hover:bg-green-200'
+                        }`}
+                      >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          {resume.isActive ? (
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
+                          ) : (
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          )}
+                        </svg>
+                        {resume.isActive ? 'Off' : 'On'}
+                      </button>
+                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownload(resume.id);
+                      }}
+                      disabled={resume.status === 'draft' || downloadingResumes.has(resume.id)}
+                      className={`px-3 py-2.5 rounded-lg transition-colors font-medium text-xs flex items-center justify-center gap-1 ${
+                        resume.status === 'draft' || downloadingResumes.has(resume.id)
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                          : 'bg-green-100 text-green-600 hover:bg-green-200'
+                      }`}
+                      title={resume.status === 'draft' ? 'Publish resume to download' : 'Download PDF'}
+                    >
+                      {downloadingResumes.has(resume.id) ? (
+                        <svg className="w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                      ) : (
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      )}
+                      {downloadingResumes.has(resume.id) ? '...' : 'PDF'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="col-span-full">
+              <div className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 text-center py-16">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No resumes found</h3>
+                <p className="text-gray-600 mb-6">Get started by creating your first professional resume.</p>
+                <button
+                  onClick={handleCreateNew}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
+                >
+                  Create Your First Resume
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {/* Pagination */}
+        {pagination.pages > 1 && (
+          <div className="flex items-center justify-center mt-8 space-x-2">
+            <button
+              onClick={() => handlePageChange(pagination.page - 1)}
+              disabled={pagination.page === 1}
+              className="px-3 py-2 rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            
+            {Array.from({ length: pagination.pages }, (_, i) => i + 1).map(page => (
+              <button
+                key={page}
+                onClick={() => handlePageChange(page)}
+                className={`px-3 py-2 rounded-lg border ${
+                  page === pagination.page
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'border-gray-300 text-gray-500 hover:bg-gray-50'
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+            
+            <button
+              onClick={() => handlePageChange(pagination.page + 1)}
+              disabled={pagination.page === pagination.pages}
+              className="px-3 py-2 rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        )}
+
+        {/* Quick Actions */}
+        {resumes.length > 0 && (
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <button
+              onClick={handleFeedback}
+              className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-6 hover:bg-white/80 transition-all duration-200 hover:shadow-2xl hover:scale-105 cursor-pointer text-left group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-green-600 transition-colors duration-200">Share Feedback</h3>
+                  <p className="text-gray-600 text-sm">Help us improve by sharing your experience</p>
+                </div>
+              </div>
+            </button>
+            
+            <button
+              onClick={handleUpgradeToPremium}
+              className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-6 hover:bg-white/80 transition-all duration-200 hover:shadow-2xl hover:scale-105 cursor-pointer text-left group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors duration-200">Upgrade to Premium</h3>
+                  <p className="text-gray-600 text-sm">Unlock unlimited templates and advanced features</p>
+                </div>
+              </div>
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default ResumeList;

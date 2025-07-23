@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Form Submission</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f7f7f7;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        h1 {
+            color: #1f2937;
+            margin-bottom: 20px;
+        }
+        .contact-badge {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .details-box {
+            background-color: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #e2e8f0;
+        }
+        .details-row {
+            display: flex;
+            margin-bottom: 10px;
+            align-items: flex-start;
+        }
+        .details-label {
+            font-weight: 600;
+            color: #374151;
+            min-width: 80px;
+            margin-right: 15px;
+        }
+        .details-value {
+            color: #1f2937;
+            word-break: break-word;
+        }
+        .message-box {
+            background-color: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #2563eb;
+        }
+        .message-box h3 {
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+        .message-content {
+            color: #374151;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            .details-row {
+                flex-direction: column;
+            }
+            .details-label {
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">{{appName}}</div>
+        </div>
+        
+        <h1>New Contact Form Submission</h1>
+        
+        <div class="contact-badge">
+            <h2 style="margin: 0;">📧 Contact Form</h2>
+            <p style="margin: 10px 0 0 0;">New message received from website</p>
+        </div>
+        
+        <p>A new contact form submission has been received from the {{appName}} website.</p>
+        
+        <div class="details-box">
+            <h3>Contact Details</h3>
+            <div class="details-row">
+                <div class="details-label">Name:</div>
+                <div class="details-value">{{fromName}}</div>
+            </div>
+            <div class="details-row">
+                <div class="details-label">Email:</div>
+                <div class="details-value">{{fromEmail}}</div>
+            </div>
+            <div class="details-row">
+                <div class="details-label">Subject:</div>
+                <div class="details-value">{{subject}}</div>
+            </div>
+            <div class="details-row">
+                <div class="details-label">Submitted:</div>
+                <div class="details-value">{{timestamp}}</div>
+            </div>
+        </div>
+        
+        <div class="message-box">
+            <h3>Message</h3>
+            <div class="message-content">{{message}}</div>
+        </div>
+        
+        <h3>Response Instructions</h3>
+        <ol>
+            <li>Reply directly to this email to respond to {{fromName}}</li>
+            <li>Review the message for urgency and priority</li>
+            <li>Provide helpful and professional assistance</li>
+            <li>Follow up if additional information is needed</li>
+        </ol>
+        
+        <div class="footer">
+            <p>This email was automatically generated from the {{appName}} contact form.</p>
+            <p style="font-size: 12px; color: #9ca3af;">
+                Timestamp: {{timestamp}}<br>
+                Source: {{appName}} Contact Form
+            </p>
+        </div>
+    </div>
+</body>
+</html> 
