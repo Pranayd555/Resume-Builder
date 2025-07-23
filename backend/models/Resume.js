@@ -1,0 +1,521 @@
+const mongoose = require('mongoose');
+
+const resumeSchema = new mongoose.Schema({
+  // Owner
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  
+  // Basic Info
+  title: {
+    type: String,
+    required: [true, 'Resume title is required'],
+    trim: true,
+    maxlength: [100, 'Title cannot exceed 100 characters']
+  },
+  
+  // Personal Information
+  personalInfo: {
+    fullName: {
+      type: String,
+      required: [true, 'Full name is required'],
+      trim: true,
+      maxlength: [100, 'Full name cannot exceed 100 characters']
+    },
+    email: {
+      type: String,
+      required: [true, 'Email is required'],
+      trim: true,
+      lowercase: true,
+      match: [
+        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+        'Please provide a valid email'
+      ]
+    },
+    phone: {
+      type: String,
+      trim: true,
+      maxlength: [20, 'Phone number cannot exceed 20 characters']
+    },
+    address: {
+      type: String,
+      trim: true,
+      maxlength: [200, 'Address cannot exceed 200 characters']
+    },
+    website: {
+      type: String,
+      trim: true,
+      maxlength: [200, 'Website URL cannot exceed 200 characters']
+    },
+    linkedin: {
+      type: String,
+      trim: true,
+      maxlength: [200, 'LinkedIn URL cannot exceed 200 characters']
+    },
+    github: {
+      type: String,
+      trim: true,
+      maxlength: [200, 'GitHub URL cannot exceed 200 characters']
+    }
+  },
+  
+  // Professional Summary
+  summary: {
+    type: String,
+    trim: true,
+    maxlength: [1000, 'Summary cannot exceed 1000 characters']
+  },
+  
+  // Work Experience
+  workExperience: [{
+    jobTitle: {
+      type: String,
+      required: [true, 'Job title is required'],
+      trim: true,
+      maxlength: [100, 'Job title cannot exceed 100 characters']
+    },
+    company: {
+      type: String,
+      required: [true, 'Company name is required'],
+      trim: true,
+      maxlength: [100, 'Company name cannot exceed 100 characters']
+    },
+    location: {
+      type: String,
+      trim: true,
+      maxlength: [100, 'Location cannot exceed 100 characters']
+    },
+    startDate: {
+      type: Date,
+      required: [true, 'Start date is required']
+    },
+    endDate: {
+      type: Date,
+      validate: {
+        validator: function(value) {
+          return !value || value > this.startDate;
+        },
+        message: 'End date must be after start date'
+      }
+    },
+    isCurrentJob: {
+      type: Boolean,
+      default: false
+    },
+    description: {
+      type: String,
+      trim: true,
+      maxlength: [2000, 'Description cannot exceed 2000 characters']
+    },
+    achievements: [{
+      type: String,
+      trim: true,
+      maxlength: [500, 'Achievement cannot exceed 500 characters']
+    }]
+  }],
+  
+  // Education
+  education: [{
+    degree: {
+      type: String,
+      required: [true, 'Degree is required'],
+      trim: true,
+      maxlength: [100, 'Degree cannot exceed 100 characters']
+    },
+    institution: {
+      type: String,
+      required: [true, 'Institution is required'],
+      trim: true,
+      maxlength: [100, 'Institution cannot exceed 100 characters']
+    },
+    location: {
+      type: String,
+      trim: true,
+      maxlength: [100, 'Location cannot exceed 100 characters']
+    },
+    startDate: {
+      type: Date,
+      required: [true, 'Start date is required']
+    },
+    endDate: {
+      type: Date,
+      validate: {
+        validator: function(value) {
+          return !value || value > this.startDate;
+        },
+        message: 'End date must be after start date'
+      }
+    },
+    isCurrentlyStudying: {
+      type: Boolean,
+      default: false
+    },
+    gpa: {
+      type: Number,
+      min: [0, 'GPA cannot be negative'],
+      max: [10.0, 'GPA cannot exceed 10.0']
+    },
+    description: {
+      type: String,
+      trim: true,
+      maxlength: [1000, 'Description cannot exceed 1000 characters']
+    }
+  }],
+  
+  // Skills
+  skills: [{
+    category: {
+      type: String,
+      required: [true, 'Skill category is required'],
+      trim: true,
+      maxlength: [50, 'Category cannot exceed 50 characters']
+    },
+    items: [{
+      name: {
+        type: String,
+        required: [true, 'Skill name is required'],
+        trim: true,
+        maxlength: [50, 'Skill name cannot exceed 50 characters']
+      },
+      level: {
+        type: String,
+        enum: ['beginner', 'intermediate', 'advanced', 'expert'],
+        default: 'intermediate'
+      }
+    }]
+  }],
+  
+  // Projects
+  projects: [{
+    name: {
+      type: String,
+      required: [true, 'Project name is required'],
+      trim: true,
+      maxlength: [100, 'Project name cannot exceed 100 characters']
+    },
+    description: {
+      type: String,
+      trim: true,
+      maxlength: [1000, 'Description cannot exceed 1000 characters']
+    },
+    technologies: [{
+      type: String,
+      trim: true,
+      maxlength: [50, 'Technology cannot exceed 50 characters']
+    }],
+    url: {
+      type: String,
+      trim: true,
+      maxlength: [200, 'URL cannot exceed 200 characters']
+    },
+    githubUrl: {
+      type: String,
+      trim: true,
+      maxlength: [200, 'GitHub URL cannot exceed 200 characters']
+    },
+    startDate: Date,
+    endDate: Date
+  }],
+  
+  // Achievements/Awards
+  achievements: [{
+    title: {
+      type: String,
+      required: [true, 'Achievement title is required'],
+      trim: true,
+      maxlength: [100, 'Title cannot exceed 100 characters']
+    },
+    description: {
+      type: String,
+      trim: true,
+      maxlength: [500, 'Description cannot exceed 500 characters']
+    },
+    date: Date,
+    issuer: {
+      type: String,
+      trim: true,
+      maxlength: [100, 'Issuer cannot exceed 100 characters']
+    }
+  }],
+  
+  // Certifications
+  certifications: [{
+    name: {
+      type: String,
+      required: [true, 'Certification name is required'],
+      trim: true,
+      maxlength: [100, 'Name cannot exceed 100 characters']
+    },
+    issuer: {
+      type: String,
+      required: [true, 'Issuer is required'],
+      trim: true,
+      maxlength: [100, 'Issuer cannot exceed 100 characters']
+    },
+    date: Date,
+    expiryDate: Date,
+    credentialId: {
+      type: String,
+      trim: true,
+      maxlength: [100, 'Credential ID cannot exceed 100 characters']
+    },
+    url: {
+      type: String,
+      trim: true,
+      maxlength: [200, 'URL cannot exceed 200 characters']
+    }
+  }],
+  
+  // Languages
+  languages: [{
+    name: {
+      type: String,
+      required: [true, 'Language name is required'],
+      trim: true,
+      maxlength: [50, 'Language name cannot exceed 50 characters']
+    },
+    proficiency: {
+      type: String,
+      enum: ['basic', 'conversational', 'fluent', 'native'],
+      required: [true, 'Proficiency level is required']
+    }
+  }],
+  
+  // Custom Fields
+  customFields: [{
+    title: {
+      type: String,
+      required: [true, 'Custom field title is required'],
+      trim: true,
+      maxlength: [100, 'Title cannot exceed 100 characters']
+    },
+    content: {
+      type: String,
+      trim: true,
+      maxlength: [2000, 'Content cannot exceed 2000 characters']
+    },
+    type: {
+      type: String,
+      enum: ['text', 'list', 'date'],
+      default: 'text'
+    }
+  }],
+  
+  // Template and Styling
+  template: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Template',
+    required: false // Will be set when user selects template
+  },
+  styling: {
+    primaryColor: {
+      type: String,
+      default: '#2563eb'
+    },
+    secondaryColor: {
+      type: String,
+      default: '#64748b'
+    },
+    fontFamily: {
+      type: String,
+      default: 'Inter'
+    },
+    fontSize: {
+      type: Number,
+      default: 12,
+      min: 8,
+      max: 18
+    },
+    // Template editing options
+    template: {
+      headerLevel: {
+        type: String,
+        enum: ['h1', 'h2', 'h3', 'h4', 'h5'],
+        default: 'h1'
+      },
+      fontSize: {
+        type: Number,
+        min: 1,
+        max: 30,
+        default: 16
+      },
+      lineSpacing: {
+        type: Number,
+        min: 1,
+        max: 10,
+        default: 1.5
+      },
+      sectionSpacing: {
+        type: Number,
+        min: 1,
+        max: 10,
+        default: 5
+      }
+    },
+    // Header styling options (keeping for backward compatibility)
+    header: {
+      size: {
+        type: String,
+        enum: ['small', 'medium', 'large', 'extra-large'],
+        default: 'medium'
+      },
+      textSize: {
+        type: String,
+        enum: ['small', 'medium', 'large'],
+        default: 'medium'
+      },
+      labelSize: {
+        type: String,
+        enum: ['small', 'medium', 'large'],
+        default: 'medium'
+      },
+      spacing: {
+        type: String,
+        enum: ['compact', 'normal', 'spacious'],
+        default: 'normal'
+      }
+    }
+  },
+  
+  // Status and Visibility
+  status: {
+    type: String,
+    enum: ['draft', 'published'],
+    default: 'draft'
+  },
+  isActive: {
+    type: Boolean,
+    default: false
+  },
+  isPublic: {
+    type: Boolean,
+    default: false
+  },
+  
+  // Export History
+  exports: [{
+    format: {
+      type: String,
+      enum: ['pdf', 'docx', 'html'],
+      required: true
+    },
+    exportedAt: {
+      type: Date,
+      default: Date.now
+    },
+    downloadCount: {
+      type: Number,
+      default: 0
+    }
+  }],
+  
+  // Analytics
+  analytics: {
+    views: {
+      type: Number,
+      default: 0
+    },
+    lastViewed: Date,
+    downloads: {
+      type: Number,
+      default: 0
+    },
+    lastDownloaded: Date,
+    shares: {
+      type: Number,
+      default: 0
+    }
+  }
+}, {
+  timestamps: true,
+  toJSON: { 
+    virtuals: true,
+    transform: function(doc, ret) {
+      // Transform dates to YYYY-MM-DD format for frontend
+      if (ret.workExperience) {
+        ret.workExperience = ret.workExperience.map(exp => ({
+          ...exp,
+          startDate: exp.startDate ? exp.startDate.toISOString().split('T')[0] : null,
+          endDate: exp.endDate ? exp.endDate.toISOString().split('T')[0] : null
+        }));
+      }
+      if (ret.education) {
+        ret.education = ret.education.map(edu => ({
+          ...edu,
+          startDate: edu.startDate ? edu.startDate.toISOString().split('T')[0] : null,
+          endDate: edu.endDate ? edu.endDate.toISOString().split('T')[0] : null
+        }));
+      }
+      if (ret.projects) {
+        ret.projects = ret.projects.map(proj => ({
+          ...proj,
+          startDate: proj.startDate ? proj.startDate.toISOString().split('T')[0] : null,
+          endDate: proj.endDate ? proj.endDate.toISOString().split('T')[0] : null
+        }));
+      }
+      if (ret.achievements) {
+        ret.achievements = ret.achievements.map(ach => ({
+          ...ach,
+          date: ach.date ? ach.date.toISOString().split('T')[0] : null
+        }));
+      }
+      if (ret.certifications) {
+        ret.certifications = ret.certifications.map(cert => ({
+          ...cert,
+          date: cert.date ? cert.date.toISOString().split('T')[0] : null,
+          expiryDate: cert.expiryDate ? cert.expiryDate.toISOString().split('T')[0] : null
+        }));
+      }
+      return ret;
+    }
+  },
+  toObject: { virtuals: true }
+});
+
+// Virtual for total work experience
+resumeSchema.virtual('totalExperience').get(function() {
+  if (!this.workExperience || this.workExperience.length === 0) return 0;
+  
+  const totalMs = this.workExperience.reduce((total, job) => {
+    const startDate = new Date(job.startDate);
+    const endDate = job.endDate ? new Date(job.endDate) : new Date();
+    return total + (endDate - startDate);
+  }, 0);
+  
+  return Math.floor(totalMs / (1000 * 60 * 60 * 24 * 365)); // Convert to years
+});
+
+// Virtual for completion percentage
+resumeSchema.virtual('completionPercentage').get(function() {
+  let completed = 0;
+  let total = 8; // Total sections to check
+  
+  if (this.personalInfo.fullName) completed++;
+  if (this.personalInfo.email) completed++;
+  if (this.summary) completed++;
+  if (this.workExperience && this.workExperience.length > 0) completed++;
+  if (this.education && this.education.length > 0) completed++;
+  if (this.skills && this.skills.length > 0) completed++;
+  if (this.projects && this.projects.length > 0) completed++;
+  if (this.achievements && this.achievements.length > 0) completed++;
+  
+  return Math.round((completed / total) * 100);
+});
+
+// Index for performance
+resumeSchema.index({ user: 1, status: 1 });
+resumeSchema.index({ user: 1, updatedAt: -1 });
+resumeSchema.index({ template: 1 });
+resumeSchema.index({ status: 1, isPublic: 1 });
+
+// Pre-save middleware to update analytics
+resumeSchema.pre('save', function(next) {
+  if (this.isModified('analytics.views')) {
+    this.analytics.lastViewed = new Date();
+  }
+  next();
+});
+
+module.exports = mongoose.model('Resume', resumeSchema); 

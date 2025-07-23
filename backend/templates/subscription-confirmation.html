@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Confirmed</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f7f7f7;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        h1 {
+            color: #1f2937;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .confirmation-badge {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #2563eb;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        .btn:hover {
+            background-color: #1d4ed8;
+        }
+        .plan-details {
+            background-color: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #e2e8f0;
+        }
+        .plan-details h3 {
+            color: #1f2937;
+            margin-bottom: 15px;
+        }
+        .plan-feature {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .plan-feature .checkmark {
+            color: #10b981;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 14px;
+            color: #6b7280;
+        }
+        .support {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9fafb;
+            border-radius: 6px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">{{appName}}</div>
+        </div>
+        
+        <h1>Subscription Confirmed! 🎉</h1>
+        
+        <div class="confirmation-badge">
+            <h2 style="margin: 0;">✓ Payment Successful</h2>
+            <p style="margin: 10px 0 0 0;">Your {{planName}} subscription is now active</p>
+        </div>
+        
+        <p>Hello {{name}},</p>
+        
+        <p>Thank you for subscribing to {{appName}}! Your payment has been processed successfully, and your {{planName}} subscription is now active.</p>
+        
+        <div class="plan-details">
+            <h3>{{planName}} - ${{amount}}</h3>
+            <div class="plan-feature">
+                <span class="checkmark">✓</span>
+                <span>Unlimited resume downloads</span>
+            </div>
+            <div class="plan-feature">
+                <span class="checkmark">✓</span>
+                <span>Access to all premium templates</span>
+            </div>
+            <div class="plan-feature">
+                <span class="checkmark">✓</span>
+                <span>Priority customer support</span>
+            </div>
+            <div class="plan-feature">
+                <span class="checkmark">✓</span>
+                <span>Advanced customization options</span>
+            </div>
+        </div>
+        
+        <div style="text-align: center;">
+            <a href="{{accountUrl}}" class="btn">Access Your Account</a>
+        </div>
+        
+        <h3>What's Next?</h3>
+        <ol>
+            <li>Start creating professional resumes with premium templates</li>
+            <li>Download unlimited resumes in PDF format</li>
+            <li>Customize your resumes with advanced editing tools</li>
+            <li>Get priority support when you need help</li>
+        </ol>
+        
+        <p><strong>Billing Information:</strong></p>
+        <ul>
+            <li>Plan: {{planName}}</li>
+            <li>Amount: ${{amount}}</li>
+            <li>Billing Cycle: Monthly</li>
+            <li>Next Billing Date: One month from today</li>
+        </ul>
+        
+        <p>You can manage your subscription, update payment methods, or cancel anytime from your account settings.</p>
+        
+        <div class="support">
+            <p><strong>Need help?</strong> Contact our support team at <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
+        </div>
+        
+        <div class="footer">
+            <p>Best regards,<br>
+            The {{appName}} Team</p>
+            
+            <p style="font-size: 12px; color: #9ca3af;">
+                This email was sent from {{appName}}. You can update your email preferences in your account settings.
+            </p>
+        </div>
+    </div>
+</body>
+</html> 
