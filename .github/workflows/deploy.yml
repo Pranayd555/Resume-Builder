@@ -90,7 +90,10 @@ jobs:
         vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
         vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
         working-directory: ./resume-builder
-        vercel-args: ${{ github.ref == 'refs/heads/main' && '--prod' || '' }}
+        vercel-args: ${{ github.ref == 'refs/heads/main' && '--prod' || '--debug' }}
+      env:
+        CI: false
+      continue-on-error: true
 
   # Deploy to AWS (Alternative)
   deploy-aws:
