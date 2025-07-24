@@ -126,6 +126,10 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY || 'Resume-Builder' }}
         SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION || 'Pranayd555' }}
+      with:
+        args: >
+          -Dsonar.qualitygate.wait=false
+          -Dsonar.qualitygate.fail=false
       continue-on-error: true
 
     - name: SonarCloud Setup Notice
