@@ -130,7 +130,9 @@ jobs:
         args: >
           -Dsonar.qualitygate.wait=false
           -Dsonar.qualitygate.fail=false
+          -Dsonar.analysis.mode=preview
       continue-on-error: true
+      if: always()
 
     - name: SonarCloud Setup Notice
       run: |
