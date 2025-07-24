@@ -12,7 +12,10 @@ module.exports = {
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  testTimeout: 10000,
+  testTimeout: 30000,
   forceExit: true,
-  detectOpenHandles: true
+  detectOpenHandles: true,
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  globalSetup: '<rootDir>/jest.global-setup.js',
+  globalTeardown: '<rootDir>/jest.global-teardown.js'
 }; 

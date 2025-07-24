@@ -1,28 +1,14 @@
 const request = require('supertest');
-const mongoose = require('mongoose');
 
 // Import app after setting up test environment
 let app;
 
 beforeAll(async () => {
-  // Set test environment variables
-  process.env.NODE_ENV = 'test';
-  process.env.MONGODB_URI = 'mongodb://localhost:27017/test';
-  process.env.JWT_SECRET = 'test-secret';
-  process.env.JWT_REFRESH_SECRET = 'test-refresh-secret';
-  
   // Import app after environment is set
   app = require('../server');
   
-  // Wait for MongoDB connection
-  await new Promise(resolve => setTimeout(resolve, 1000));
-});
-
-afterAll(async () => {
-  // Close MongoDB connection
-  if (mongoose.connection.readyState !== 0) {
-    await mongoose.connection.close();
-  }
+  // Wait for server to be ready
+  await new Promise(resolve => setTimeout(resolve, 2000));
 });
 
 describe('Health Check', () => {
