@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ main, develop ]
 
+permissions:
+  security-events: write
+  actions: read
+  contents: read
+
 env:
   NODE_VERSION: '18'
   MONGODB_VERSION: '6.0'
@@ -139,6 +144,19 @@ jobs:
       if: always()
       with:
         sarif_file: 'trivy-results.sarif'
+      continue-on-error: true
+
+    - name: Display Trivy results summary
+      if: always()
+      run: |
+        echo "=== Trivy Security Scan Results ==="
+        if [ -f "trivy-results.sarif" ]; then
+          echo "Scan completed successfully. Results saved to trivy-results.sarif"
+          echo "Note: To view results in GitHub Security tab, enable Code Scanning in repository settings."
+          echo "Go to: Settings > Security & analysis > Code scanning > Set up"
+        else
+          echo "No scan results found."
+        fi
 
   # Integration Tests
   integration-test:
