@@ -93,7 +93,9 @@ jobs:
         vercel-args: ${{ github.ref == 'refs/heads/main' && '--prod' || '--debug' }}
       env:
         CI: false
+        NODE_ENV: production
       continue-on-error: true
+      if: always()
 
   # Deploy to AWS (Alternative)
   deploy-aws:
