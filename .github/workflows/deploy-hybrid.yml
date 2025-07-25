@@ -1,4 +1,4 @@
-name: Deploy
+name: Deploy to Render (Backend) and Vercel (Frontend)
 
 on:
   push:
@@ -14,13 +14,15 @@ on:
         - staging
         - production
 
+env:
+  NODE_VERSION: '18'
+
 jobs:
   # Deploy Backend to Render
   deploy-backend-render:
     name: Deploy Backend to Render
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
-    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
 
     steps:
     - name: Checkout code
@@ -29,7 +31,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: ${{ env.NODE_VERSION }}
 
     - name: Install backend dependencies
       working-directory: ./backend
@@ -64,7 +66,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: ${{ env.NODE_VERSION }}
 
     - name: Install frontend dependencies
       working-directory: ./resume-builder
@@ -95,77 +97,6 @@ jobs:
         CI: false
       continue-on-error: true
 
-  # Deploy to AWS (Alternative)
-  deploy-aws:
-    name: Deploy to AWS
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && false # Set to true when ready to use AWS
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
-
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2
-
-    - name: Build, tag, and push backend image to Amazon ECR
-      working-directory: ./backend
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: resume-builder-backend
-        IMAGE_TAG: ${{ github.sha }}
-      run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
-    - name: Deploy to ECS
-      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-      with:
-        task-definition: task-definition.json
-        service: resume-builder-service
-        cluster: resume-builder-cluster
-        wait-for-service-stability: true
-
-  # Deploy to DigitalOcean App Platform
-  deploy-digitalocean:
-    name: Deploy to DigitalOcean
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && false # Set to true when ready to use DigitalOcean
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Deploy to DigitalOcean App Platform
-      uses: digitalocean/app_action@main
-      with:
-        app_name: resume-builder
-        token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-
-  # Deploy to Railway
-  deploy-railway:
-    name: Deploy to Railway
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && false # Set to true when ready to use Railway
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Deploy to Railway
-      uses: bervProject/railway-deploy@v1.0.0
-      with:
-        railway_token: ${{ secrets.RAILWAY_TOKEN }}
-        service: resume-builder-backend
-
   # Health Check
   health-check:
     name: Health Check
@@ -190,7 +121,7 @@ jobs:
         sleep 30
         
         # Check frontend availability
-        FRONTEND_URL=${{ github.ref == 'refs/heads/main' && 'https://resume-builder-pranay-das-projects.vercel.app' || 'https://resume-builder-dev-pranay-das.vercel.app' }}
+        FRONTEND_URL=${{ github.ref == 'refs/heads/main' && secrets.FRONTEND_URL_PROD || secrets.FRONTEND_URL_STAGING }}
         echo "Checking frontend health at: $FRONTEND_URL"
         curl -f $FRONTEND_URL || echo "Frontend health check failed"
 

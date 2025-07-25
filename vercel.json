@@ -1,16 +1,9 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "build",
-        "installCommand": "npm ci",
-        "buildCommand": "npm run vercel-build"
-      }
-    }
-  ],
+  "buildCommand": "cd resume-builder && npm ci && npm run build",
+  "outputDirectory": "resume-builder/build",
+  "installCommand": "cd resume-builder && npm ci",
+  "framework": "create-react-app",
   "routes": [
     {
       "src": "/static/(.*)",
@@ -47,6 +40,12 @@
   "build": {
     "env": {
       "CI": "false"
+    }
+  },
+  "git": {
+    "deploymentEnabled": {
+      "main": true,
+      "develop": true
     }
   }
 } 
