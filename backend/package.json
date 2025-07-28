@@ -4,6 +4,7 @@
   "description": "Backend API for Resume Builder - Mobile and Web Ready",
   "main": "server.js",
   "scripts": {
+    "build": "echo 'No build step required'",
     "start": "node server.js",
     "dev": "nodemon server.js",
     "seed:all-templates": "node scripts/seedAllTemplates.js",
