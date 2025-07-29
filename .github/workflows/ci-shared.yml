@@ -1,0 +1,172 @@
+name: Reusable CI Workflow
+
+on:
+  workflow_call:
+    inputs:
+      run_security_scan:
+        description: 'Whether to run security scans'
+        required: false
+        type: boolean
+        default: true
+      upload_coverage:
+        description: 'Whether to upload coverage reports'
+        required: false
+        type: boolean
+        default: true
+    secrets:
+      SONAR_TOKEN:
+        required: false
+      SONAR_PROJECT_KEY:
+        required: false
+      SONAR_ORGANIZATION:
+        required: false
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # Backend CI
+  backend-ci:
+    name: 🟢 Backend CI
+    runs-on: ubuntu-latest
+    outputs:
+      test-result: ${{ steps.test.outcome }}
+
+    services:
+      mongodb:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ping: 1})'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: 📦 Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: 🧹 Lint & format check
+        working-directory: ./backend
+        run: |
+          npm install --save-dev eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin prettier
+          npx eslint . --ext .js,.jsx,.ts,.tsx || echo "Linting issues found"
+          npx prettier --check . || echo "Formatting issues found"
+
+      - name: 🧪 Run tests
+        id: test
+        working-directory: ./backend
+        env:
+          NODE_ENV: test
+          MONGODB_URI: mongodb://localhost:27017/test
+          JWT_SECRET: test-secret
+          JWT_REFRESH_SECRET: test-refresh-secret
+        run: |
+          timeout 30s bash -c 'until mongosh --host localhost:27017 --eval "db.runCommand({ping: 1})" > /dev/null 2>&1; do sleep 1; done' || echo "MongoDB timeout"
+          npm test -- --coverage --watchAll=false --testTimeout=30000
+
+      - name: 📊 Upload coverage
+        if: inputs.upload_coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./backend/coverage/lcov.info
+          flags: backend
+          fail_ci_if_error: false
+
+  # Frontend CI
+  frontend-ci:
+    name: ⚡ Frontend CI
+    runs-on: ubuntu-latest
+    outputs:
+      test-result: ${{ steps.test.outcome }}
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: resume-builder/package-lock.json
+
+      - name: 📦 Install dependencies
+        working-directory: ./resume-builder
+        run: npm ci
+
+      - name: 🧹 Lint & format check
+        working-directory: ./resume-builder
+        run: |
+          npm install --save-dev eslint prettier
+          npx eslint src --ext .js,.jsx,.ts,.tsx || echo "Linting issues found"
+          npx prettier --check src/ || echo "Formatting issues found"
+
+      - name: 🧪 Run tests & build
+        id: test
+        working-directory: ./resume-builder
+        env:
+          CI: false
+        run: |
+          npm test -- --coverage --watchAll=false --passWithNoTests
+          npm run build
+
+      - name: 📊 Upload coverage
+        if: inputs.upload_coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./resume-builder/coverage/lcov.info
+          flags: frontend
+          fail_ci_if_error: false
+
+  # Security & Quality
+  security-quality:
+    name: 🔒 Security & Quality
+    runs-on: ubuntu-latest
+    needs: [backend-ci, frontend-ci]
+    if: inputs.run_security_scan
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Security scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: 📊 Upload security results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+        continue-on-error: true
+
+      - name: 🔐 Dependency security
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+        continue-on-error: true
+
+      - name: ℹ️ SonarCloud status
+        run: |
+          if [ -z "${{ secrets.SONAR_TOKEN }}" ]; then
+            echo "ℹ️ SonarCloud skipped - SONAR_TOKEN not configured"
+          else
+            echo "ℹ️ SonarCloud would run here with proper configuration"
+          fi

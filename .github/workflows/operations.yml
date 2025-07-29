@@ -1,0 +1,219 @@
+name: 🔧 Operations
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 'Operation to perform'
+        required: true
+        type: choice
+        options:
+          - deploy
+          - rollback
+          - dependency-update
+        default: deploy
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options: [staging, production]
+        default: staging
+      branch:
+        description: 'Branch to deploy (for deploy operation)'
+        required: false
+        type: string
+        default: dev
+      commit_sha:
+        description: 'Commit SHA to rollback to'
+        required: false
+        type: string
+      reason:
+        description: 'Reason for operation'
+        required: false
+        type: string
+  schedule:
+    - cron: '0 9 * * 1' # Weekly dependency check
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # Manual Deployment
+  manual-deploy:
+    name: 🚀 Manual Deploy
+    runs-on: ubuntu-latest
+    if: github.event.inputs.operation == 'deploy'
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: 🧪 Quick tests
+        uses: ./.github/workflows/ci-shared.yml
+        with:
+          run_security_scan: false
+          upload_coverage: false
+
+      - name: 🚀 Deploy services
+        run: |
+          echo "🎯 Manual deployment to ${{ github.event.inputs.environment }}"
+          echo "Branch: ${{ github.event.inputs.branch }}"
+          echo "Reason: ${{ github.event.inputs.reason }}"
+
+      # Deploy backend
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🚢 Deploy backend
+        working-directory: ./backend
+        run: |
+          npm ci --only=production
+          
+      - name: 🚢 Render deploy
+        uses: johnbeynon/render-deploy-action@v1.0.0
+        with:
+          service-id: ${{ secrets.RENDER_SERVICE_ID }}
+          api-key: ${{ secrets.RENDER_API_KEY }}
+          wait-for-success: true
+
+      # Deploy frontend
+      - name: 🏗️ Build frontend
+        working-directory: ./resume-builder
+        env:
+          CI: false
+          REACT_APP_API_URL: ${{ github.event.inputs.environment == 'production' && secrets.PROD_API_URL || secrets.STAGING_API_URL }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: 🚀 Vercel deploy
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./
+          vercel-args: ${{ github.event.inputs.environment == 'production' && '--prod' || '' }}
+        env:
+          CI: false
+
+  # Rollback Operation
+  rollback:
+    name: 🔄 Rollback
+    runs-on: ubuntu-latest
+    if: github.event.inputs.operation == 'rollback'
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+      - name: 🚨 Rollback validation
+        run: |
+          if [[ -z "${{ github.event.inputs.commit_sha }}" ]]; then
+            echo "❌ Commit SHA required for rollback"
+            exit 1
+          fi
+          echo "🔄 Rolling back to: ${{ github.event.inputs.commit_sha }}"
+          echo "Environment: ${{ github.event.inputs.environment }}"
+          echo "Reason: ${{ github.event.inputs.reason }}"
+
+      - name: 📥 Checkout target commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.commit_sha }}
+          fetch-depth: 0
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # Rollback backend
+      - name: 🔄 Rollback backend
+        working-directory: ./backend
+        run: npm ci --only=production
+
+      - name: 🚢 Deploy rollback to Render
+        uses: johnbeynon/render-deploy-action@v1.0.0
+        with:
+          service-id: ${{ secrets.RENDER_SERVICE_ID }}
+          api-key: ${{ secrets.RENDER_API_KEY }}
+          wait-for-success: true
+
+      # Rollback frontend
+      - name: 🔄 Rollback frontend
+        working-directory: ./resume-builder
+        env:
+          CI: false
+          REACT_APP_API_URL: ${{ github.event.inputs.environment == 'production' && secrets.PROD_API_URL || secrets.STAGING_API_URL }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: 🚀 Deploy rollback to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./
+          vercel-args: ${{ github.event.inputs.environment == 'production' && '--prod' || '' }}
+        env:
+          CI: false
+
+      - name: 🩺 Verify rollback
+        run: |
+          sleep 60
+          BACKEND_URL=${{ github.event.inputs.environment == 'production' && secrets.PROD_API_URL || secrets.STAGING_API_URL }}
+          FRONTEND_URL=${{ github.event.inputs.environment == 'production' && secrets.FRONTEND_URL_PROD || secrets.FRONTEND_URL_STAGING }}
+          
+          curl -f "$BACKEND_URL/health" && echo "✅ Backend healthy" || echo "❌ Backend failed"
+          curl -f "$FRONTEND_URL" && echo "✅ Frontend healthy" || echo "❌ Frontend failed"
+
+  # Dependency Updates
+  dependency-update:
+    name: 📦 Dependencies
+    runs-on: ubuntu-latest
+    if: github.event.inputs.operation == 'dependency-update' || github.event_name == 'schedule'
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 🔍 Audit dependencies
+        run: |
+          echo "🔍 Backend dependencies:"
+          cd backend && npm audit --audit-level moderate || echo "Backend audit completed"
+          cd ../resume-builder && npm audit --audit-level moderate || echo "Frontend audit completed"
+
+      - name: 🔄 Update dependencies
+        if: github.event.inputs.operation == 'dependency-update'
+        run: |
+          cd backend && npm update && npm audit fix --force || echo "Backend updates completed"
+          cd ../resume-builder && npm update && npm audit fix --force || echo "Frontend updates completed"
+
+      - name: 🔀 Create PR
+        if: github.event.inputs.operation == 'dependency-update'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: update dependencies'
+          title: '📦 chore: automated dependency updates'
+          body: |
+            🤖 **Automated dependency updates**
+            
+            - Updated backend dependencies
+            - Updated frontend dependencies  
+            - Applied security fixes
+            
+            **⚠️ Please review and test before merging!**
+          branch: dependency-updates
+          delete-branch: true

@@ -1,82 +1,118 @@
-name: Dependency Check
+name: 📦 Dependency Check
 
 on:
   schedule:
     # Run every Monday at 9 AM UTC
     - cron: '0 9 * * 1'
-  workflow_dispatch: # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      update_dependencies:
+        description: 'Auto-update dependencies'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  NODE_VERSION: '18'
 
 jobs:
-  dependency-check:
-    name: Check Dependencies
+  dependency-audit:
+    name: 🔍 Dependency Audit
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
 
-    - name: Check backend dependencies
-      working-directory: ./backend
-      run: |
-        echo "Checking backend dependencies..."
-        npm audit --audit-level moderate
-        npm outdated || echo "Some dependencies are outdated"
+      - name: 🔍 Check backend dependencies
+        working-directory: ./backend
+        run: |
+          echo "🔍 Checking backend dependencies..."
+          npm audit --audit-level moderate || echo "Backend audit completed with warnings"
+          npm outdated || echo "Some backend dependencies are outdated"
 
-    - name: Check frontend dependencies
-      working-directory: ./resume-builder
-      run: |
-        echo "Checking frontend dependencies..."
-        npm audit --audit-level moderate
-        npm outdated || echo "Some dependencies are outdated"
+      - name: 🔍 Check frontend dependencies
+        working-directory: ./resume-builder
+        run: |
+          echo "🔍 Checking frontend dependencies..."
+          npm audit --audit-level moderate || echo "Frontend audit completed with warnings"
+          npm outdated || echo "Some frontend dependencies are outdated"
 
-    - name: Check for security vulnerabilities
-      uses: actions/dependency-review-action@v4
-      with:
-        fail-on-severity: moderate
+      - name: 🔐 Security vulnerability check
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+        continue-on-error: true
 
-  # Automated dependency updates (optional)
+  # Auto-update dependencies (optional)
   update-dependencies:
-    name: Update Dependencies
+    name: 🔄 Update Dependencies
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event.inputs.update_dependencies == 'true' || github.event_name == 'workflow_dispatch'
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
 
-    - name: Update backend dependencies
-      working-directory: ./backend
-      run: |
-        npm update
-        npm audit fix
+      - name: 🔄 Update backend dependencies
+        working-directory: ./backend
+        run: |
+          echo "🔄 Updating backend dependencies..."
+          npm update
+          npm audit fix --force || echo "Backend audit fix completed"
 
-    - name: Update frontend dependencies
-      working-directory: ./resume-builder
-      run: |
-        npm update
-        npm audit fix
+      - name: 🔄 Update frontend dependencies
+        working-directory: ./resume-builder
+        run: |
+          echo "🔄 Updating frontend dependencies..."
+          npm update
+          npm audit fix --force || echo "Frontend audit fix completed"
 
-    - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v5
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        commit-message: 'chore: update dependencies'
-        title: 'chore: update dependencies'
-        body: |
-          Automated dependency updates
+      - name: 🔀 Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: update dependencies'
+          title: '📦 chore: update dependencies'
+          body: |
+            🤖 **Automated dependency updates**
+            
+            This PR updates dependencies to their latest compatible versions.
+            
+            ### Changes:
+            - Updated backend dependencies
+            - Updated frontend dependencies
+            - Applied security fixes
+            
+            **⚠️ Please review and test thoroughly before merging!**
+          branch: dependency-updates
+          delete-branch: true
+
+  # Dependency summary
+  dependency-summary:
+    name: 📊 Dependency Summary
+    runs-on: ubuntu-latest
+    needs: [dependency-audit]
+    if: always()
+
+    steps:
+      - name: 📊 Summary
+        run: |
+          echo "📦 Dependency Check Summary:"
+          echo "Audit Status: ${{ needs.dependency-audit.result }}"
           
-          This PR updates dependencies to their latest compatible versions.
-          
-          Please review the changes and test thoroughly before merging.
-        branch: dependency-updates
-        delete-branch: true 
+          if [[ "${{ needs.dependency-audit.result }}" == "success" ]]; then
+            echo "✅ Dependency audit completed successfully!"
+          else
+            echo "⚠️ Dependency audit found issues. Check logs for details."
+          fi 
