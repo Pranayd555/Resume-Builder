@@ -18,6 +18,12 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: read
+  actions: read
+  security-events: write
+  pull-requests: write
+
 env:
   NODE_VERSION: '18'
 
@@ -34,17 +40,13 @@ jobs:
       SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
       SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
 
-  # Deployment (only for pushes to main/dev, not PRs)
-  deploy:
-    name: 🚀 Deploy
+  # Backend Deployment
+  deploy-backend:
+    name: 🚢 Deploy Backend
     runs-on: ubuntu-latest
     needs: ci
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
-    
-    strategy:
-      matrix:
-        service: [backend, frontend]
     
     steps:
       - name: 📥 Checkout
@@ -55,76 +57,159 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: ${{ matrix.service == 'backend' && 'backend/package-lock.json' || 'resume-builder/package-lock.json' }}
+          cache-dependency-path: 'backend/package-lock.json'
 
-      - name: 🏗️ Build & Deploy Backend
-        if: matrix.service == 'backend'
+      - name: 🏗️ Build Backend
         working-directory: ./backend
         run: |
-          npm ci --only=production
-          echo "🚢 Deploying backend..."
-        
-      - name: 🚢 Deploy to Render
-        if: matrix.service == 'backend'
-        uses: johnbeynon/render-deploy-action@v1.0.0
-        with:
-          service-id: ${{ secrets.RENDER_SERVICE_ID }}
-          api-key: ${{ secrets.RENDER_API_KEY }}
-          wait-for-success: true
-        timeout-minutes: 10
+          npm ci --production
+          echo "🚢 Backend build completed"
 
-      - name: 🏗️ Build & Deploy Frontend
-        if: matrix.service == 'frontend'
+      - name: 🚀 Deploy to Render
+        run: |
+          echo "🚀 Deploying backend to Render..."
+          
+          # Use Render API to trigger deployment
+          curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "clearCache": "clear"
+            }'
+          
+          echo "✅ Render deployment triggered"
+
+      - name: ⏳ Wait for Render deployment
+        run: |
+          echo "⏳ Waiting for Render deployment to complete..."
+          sleep 120
+          
+          # Check deployment status
+          BACKEND_URL="${{ github.ref == 'refs/heads/main' && secrets.PROD_API_URL || secrets.STAGING_API_URL }}"
+          
+          for i in {1..10}; do
+            echo "🔍 Checking backend health (attempt $i/10)"
+            if curl -f -s "$BACKEND_URL/health" > /dev/null; then
+              echo "✅ Backend is healthy!"
+              exit 0
+            fi
+            sleep 30
+          done
+          
+          echo "❌ Backend health check failed"
+          exit 1
+
+  # Frontend Deployment  
+  deploy-frontend:
+    name: 🎨 Deploy Frontend
+    runs-on: ubuntu-latest
+    needs: ci
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'resume-builder/package-lock.json'
+
+      - name: 🏗️ Build Frontend
         working-directory: ./resume-builder
         env:
           CI: false
           REACT_APP_API_URL: ${{ github.ref == 'refs/heads/main' && secrets.PROD_API_URL || secrets.STAGING_API_URL }}
+          GENERATE_SOURCEMAP: false
         run: |
           npm ci
           npm run build
-          echo "🚀 Deploying frontend..."
+          echo "🏗️ Frontend build completed"
 
       - name: 🚀 Deploy to Vercel
-        if: matrix.service == 'frontend'
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: ./
+          working-directory: ./resume-builder
           vercel-args: ${{ github.ref == 'refs/heads/main' && '--prod' || '' }}
         env:
           CI: false
 
-  # Health check after deployment
+      - name: ⏳ Wait for Vercel deployment
+        run: |
+          echo "⏳ Waiting for Vercel deployment to complete..."
+          sleep 60
+          
+          # Check frontend deployment
+          FRONTEND_URL="${{ github.ref == 'refs/heads/main' && secrets.FRONTEND_URL_PROD || secrets.FRONTEND_URL_STAGING }}"
+          
+          for i in {1..5}; do
+            echo "🔍 Checking frontend (attempt $i/5)"
+            if curl -f -s "$FRONTEND_URL" > /dev/null; then
+              echo "✅ Frontend is accessible!"
+              exit 0
+            fi
+            sleep 30
+          done
+          
+          echo "❌ Frontend accessibility check failed"
+          exit 1
+
+  # Health Check
   health-check:
     name: 🩺 Health Check
     runs-on: ubuntu-latest
-    needs: deploy
+    needs: [deploy-backend, deploy-frontend]
     if: always() && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     
     steps:
-      - name: 🔍 Check services
+      - name: 🔍 Comprehensive Health Check
         run: |
-          sleep 60
-          BACKEND_URL=${{ github.ref == 'refs/heads/main' && secrets.PROD_API_URL || secrets.STAGING_API_URL }}
-          FRONTEND_URL=${{ github.ref == 'refs/heads/main' && secrets.FRONTEND_URL_PROD || secrets.FRONTEND_URL_STAGING }}
+          echo "🩺 Running comprehensive health checks..."
           
+          BACKEND_URL="${{ github.ref == 'refs/heads/main' && secrets.PROD_API_URL || secrets.STAGING_API_URL }}"
+          FRONTEND_URL="${{ github.ref == 'refs/heads/main' && secrets.FRONTEND_URL_PROD || secrets.FRONTEND_URL_STAGING }}"
+          
+          # Backend health check
           echo "🔍 Backend: $BACKEND_URL/health"
-          curl -f -s "$BACKEND_URL/health" && echo "✅ Backend OK" || echo "❌ Backend failed"
+          if curl -f -s "$BACKEND_URL/health"; then
+            echo "✅ Backend is healthy"
+            BACKEND_STATUS="✅ Healthy"
+          else
+            echo "❌ Backend health check failed"
+            BACKEND_STATUS="❌ Failed"
+          fi
           
-          echo "🔍 Frontend: $FRONTEND_URL"  
-          curl -f -s "$FRONTEND_URL" && echo "✅ Frontend OK" || echo "❌ Frontend failed"
+          # Frontend health check
+          echo "🔍 Frontend: $FRONTEND_URL"
+          if curl -f -s "$FRONTEND_URL" > /dev/null; then
+            echo "✅ Frontend is accessible"
+            FRONTEND_STATUS="✅ Accessible"
+          else
+            echo "❌ Frontend accessibility check failed"
+            FRONTEND_STATUS="❌ Failed"
+          fi
+          
+          # Summary
+          echo ""
+          echo "🎯 Health Check Summary:"
+          echo "Backend: $BACKEND_STATUS"
+          echo "Frontend: $FRONTEND_STATUS"
 
   # Summary
   summary:
     name: 📊 Summary
     runs-on: ubuntu-latest
-    needs: [ci, deploy, health-check]
+    needs: [ci, deploy-backend, deploy-frontend, health-check]
     if: always()
     
     steps:
-      - name: 📊 Report
+      - name: 📊 Pipeline Report
         run: |
           echo "🎯 Pipeline Summary"
           echo "=================="
@@ -132,16 +217,39 @@ jobs:
           echo "Branch: ${{ github.ref_name }}"
           echo "Environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}"
           echo ""
-          echo "📋 Results:"
+          echo "📋 Job Results:"
           echo "CI: ${{ needs.ci.result }}"
-          echo "Deploy: ${{ needs.deploy.result }}"
-          echo "Health: ${{ needs.health-check.result }}"
+          echo "Backend Deploy: ${{ needs.deploy-backend.result }}"  
+          echo "Frontend Deploy: ${{ needs.deploy-frontend.result }}"
+          echo "Health Check: ${{ needs.health-check.result }}"
+          echo ""
           
+          # Determine overall status
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            echo "✅ PR ready for review"
-          elif [[ "${{ needs.ci.result }}" == "success" && "${{ needs.deploy.result }}" == "success" ]]; then
-            echo "🎉 Deployment successful!"
+            if [[ "${{ needs.ci.result }}" == "success" ]]; then
+              echo "✅ PR is ready for review!"
+            else
+              echo "❌ PR has CI failures"
+              exit 1
+            fi
           else
-            echo "❌ Pipeline failed"
-            exit 1
+            if [[ "${{ needs.ci.result }}" == "success" && "${{ needs.deploy-backend.result }}" == "success" && "${{ needs.deploy-frontend.result }}" == "success" ]]; then
+              echo "🎉 Deployment completed successfully!"
+            else
+              echo "❌ Pipeline has failures"
+              echo ""
+              echo "🔧 Troubleshooting:"
+              if [[ "${{ needs.ci.result }}" != "success" ]]; then
+                echo "- Check CI job logs for test failures"
+              fi
+              if [[ "${{ needs.deploy-backend.result }}" != "success" ]]; then
+                echo "- Check backend deployment logs"
+                echo "- Verify RENDER_API_KEY and RENDER_SERVICE_ID secrets"
+              fi
+              if [[ "${{ needs.deploy-frontend.result }}" != "success" ]]; then
+                echo "- Check frontend deployment logs"  
+                echo "- Verify VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID secrets"
+              fi
+              exit 1
+            fi
           fi
