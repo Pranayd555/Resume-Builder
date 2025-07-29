@@ -1,0 +1,147 @@
+name: 🚀 Main Pipeline
+
+on:
+  push:
+    branches: [main, dev]
+    paths-ignore: ['**.md', 'docs/**', '.gitignore']
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        type: choice
+        options: [staging, production]
+        default: staging
+      skip_tests:
+        description: 'Skip tests and deploy'
+        type: boolean
+        default: false
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # Run CI for all triggers
+  ci:
+    name: 🧪 Continuous Integration
+    uses: ./.github/workflows/ci-shared.yml
+    with:
+      run_security_scan: ${{ github.event_name == 'push' }}
+      upload_coverage: true
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
+      SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
+
+  # Deployment (only for pushes to main/dev, not PRs)
+  deploy:
+    name: 🚀 Deploy
+    runs-on: ubuntu-latest
+    needs: ci
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    
+    strategy:
+      matrix:
+        service: [backend, frontend]
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.service == 'backend' && 'backend/package-lock.json' || 'resume-builder/package-lock.json' }}
+
+      - name: 🏗️ Build & Deploy Backend
+        if: matrix.service == 'backend'
+        working-directory: ./backend
+        run: |
+          npm ci --only=production
+          echo "🚢 Deploying backend..."
+        
+      - name: 🚢 Deploy to Render
+        if: matrix.service == 'backend'
+        uses: johnbeynon/render-deploy-action@v1.0.0
+        with:
+          service-id: ${{ secrets.RENDER_SERVICE_ID }}
+          api-key: ${{ secrets.RENDER_API_KEY }}
+          wait-for-success: true
+        timeout-minutes: 10
+
+      - name: 🏗️ Build & Deploy Frontend
+        if: matrix.service == 'frontend'
+        working-directory: ./resume-builder
+        env:
+          CI: false
+          REACT_APP_API_URL: ${{ github.ref == 'refs/heads/main' && secrets.PROD_API_URL || secrets.STAGING_API_URL }}
+        run: |
+          npm ci
+          npm run build
+          echo "🚀 Deploying frontend..."
+
+      - name: 🚀 Deploy to Vercel
+        if: matrix.service == 'frontend'
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./
+          vercel-args: ${{ github.ref == 'refs/heads/main' && '--prod' || '' }}
+        env:
+          CI: false
+
+  # Health check after deployment
+  health-check:
+    name: 🩺 Health Check
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: always() && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    
+    steps:
+      - name: 🔍 Check services
+        run: |
+          sleep 60
+          BACKEND_URL=${{ github.ref == 'refs/heads/main' && secrets.PROD_API_URL || secrets.STAGING_API_URL }}
+          FRONTEND_URL=${{ github.ref == 'refs/heads/main' && secrets.FRONTEND_URL_PROD || secrets.FRONTEND_URL_STAGING }}
+          
+          echo "🔍 Backend: $BACKEND_URL/health"
+          curl -f -s "$BACKEND_URL/health" && echo "✅ Backend OK" || echo "❌ Backend failed"
+          
+          echo "🔍 Frontend: $FRONTEND_URL"  
+          curl -f -s "$FRONTEND_URL" && echo "✅ Frontend OK" || echo "❌ Frontend failed"
+
+  # Summary
+  summary:
+    name: 📊 Summary
+    runs-on: ubuntu-latest
+    needs: [ci, deploy, health-check]
+    if: always()
+    
+    steps:
+      - name: 📊 Report
+        run: |
+          echo "🎯 Pipeline Summary"
+          echo "=================="
+          echo "Trigger: ${{ github.event_name }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}"
+          echo ""
+          echo "📋 Results:"
+          echo "CI: ${{ needs.ci.result }}"
+          echo "Deploy: ${{ needs.deploy.result }}"
+          echo "Health: ${{ needs.health-check.result }}"
+          
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "✅ PR ready for review"
+          elif [[ "${{ needs.ci.result }}" == "success" && "${{ needs.deploy.result }}" == "success" ]]; then
+            echo "🎉 Deployment successful!"
+          else
+            echo "❌ Pipeline failed"
+            exit 1
+          fi

@@ -1,0 +1,147 @@
+# Render Infrastructure as Code - Continuous Deployment Configuration
+services:
+  # Production Backend Service
+  - type: web
+    name: resume-builder-backend-prod
+    runtime: node
+    repo: https://github.com/Pranayd555/Resume-Builder
+    branch: main
+    plan: starter  # Upgrade to starter for production
+    region: oregon
+    buildCommand: cd backend && npm ci --only=production && npm run build || npm ci
+    startCommand: cd backend && npm start
+    autoDeployTrigger: commit
+    
+    # Health Check Configuration
+    healthCheckPath: /health
+    
+    # Environment Variables
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"
+      - key: LOG_LEVEL
+        value: info
+      - key: LOG_FILE
+        value: /var/log/app.log
+      - key: BCRYPT_SALT_ROUNDS
+        value: "12"
+      - key: APP_NAME
+        value: "Resume Builder"
+      
+      # Secrets (sync: false means they're managed in Render dashboard)
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: LINKEDIN_CLIENT_ID
+        sync: false
+      - key: LINKEDIN_CLIENT_SECRET
+        sync: false
+      - key: EMAIL_HOST
+        sync: false
+      - key: EMAIL_PORT
+        sync: false
+      - key: EMAIL_SECURE
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: EMAIL_SERVICE
+        sync: false
+      - key: EMAIL_FROM_NAME
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: SUPPORT_EMAIL
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: RATE_LIMIT_WINDOW_MS
+        sync: false
+      - key: RATE_LIMIT_MAX_REQUESTS
+        sync: false
+
+  # Staging Backend Service
+  - type: web
+    name: resume-builder-backend-staging
+    runtime: node
+    repo: https://github.com/Pranayd555/Resume-Builder
+    branch: dev
+    plan: free
+    region: oregon
+    buildCommand: cd backend && npm ci && npm run build || npm ci
+    startCommand: cd backend && npm start
+    autoDeployTrigger: commit
+    
+    # Health Check Configuration
+    healthCheckPath: /health
+    
+    # Environment Variables for Staging
+    envVars:
+      - key: NODE_ENV
+        value: staging
+      - key: PORT
+        value: "10000"
+      - key: LOG_LEVEL
+        value: debug
+      - key: LOG_FILE
+        value: /var/log/app.log
+      - key: BCRYPT_SALT_ROUNDS
+        value: "10"
+      - key: APP_NAME
+        value: "Resume Builder (Staging)"
+      
+      # Staging Secrets
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: LINKEDIN_CLIENT_ID
+        sync: false
+      - key: LINKEDIN_CLIENT_SECRET
+        sync: false
+      - key: EMAIL_HOST
+        sync: false
+      - key: EMAIL_PORT
+        sync: false
+      - key: EMAIL_SECURE
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: EMAIL_SERVICE
+        sync: false
+      - key: EMAIL_FROM_NAME
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: SUPPORT_EMAIL
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: RATE_LIMIT_WINDOW_MS
+        sync: false
+      - key: RATE_LIMIT_MAX_REQUESTS
+        sync: false
+
+version: "1" 
