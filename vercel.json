@@ -106,7 +106,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://resume-builder-backend-prod.onrender.com/api/$1"
+      "destination": "https://resume-builder-m5ef.onrender.com/api/$1"
     }
   ],
   
