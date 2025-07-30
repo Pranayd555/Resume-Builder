@@ -73,6 +73,7 @@ const corsOptions = {
     const allowedOrigins = [
       'http://localhost:3000',
       'http://localhost:3001',
+      'https://resume-builder-pranayd555-pranay-das-projects.vercel.app',
       'https://resume-builder-pranay-das-projects.vercel.app',
       'https://resume-builder-dev-pranay-das.vercel.app',
       'capacitor://localhost',

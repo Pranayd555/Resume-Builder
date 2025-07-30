@@ -139,6 +139,7 @@ jobs:
           vercel-args: ${{ github.ref == 'refs/heads/main' && '--prod' || '' }}
         env:
           CI: false
+          REACT_APP_API_URL: ${{ github.ref == 'refs/heads/main' && secrets.PROD_API_URL || secrets.STAGING_API_URL }}
 
       - name: ⏳ Wait for Vercel deployment
         run: |
