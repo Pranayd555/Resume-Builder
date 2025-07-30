@@ -8,9 +8,9 @@ services:
     branch: main
     plan: starter  # Upgrade to starter for production
     region: oregon
-    buildCommand: cd backend && npm ci --only=production && npm run build || npm ci
+    buildCommand: cd backend && npm ci --only=production
     startCommand: cd backend && npm start
-    autoDeployTrigger: commit
+    autoDeployTrigger: manual
     
     # Health Check Configuration
     healthCheckPath: /health
@@ -80,9 +80,9 @@ services:
     branch: dev
     plan: free
     region: oregon
-    buildCommand: cd backend && npm ci && npm run build || npm ci
+    buildCommand: cd backend && npm ci --only=production
     startCommand: cd backend && npm start
-    autoDeployTrigger: commit
+    autoDeployTrigger: manual
     
     # Health Check Configuration
     healthCheckPath: /health
