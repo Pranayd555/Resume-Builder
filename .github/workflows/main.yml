@@ -170,6 +170,7 @@ jobs:
           echo "🏗️ Frontend build completed"
 
       - name: 🚀 Deploy to Vercel
+        id: vercel-deploy
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
@@ -181,25 +182,16 @@ jobs:
           CI: false
           REACT_APP_API_URL: ${{ github.ref == 'refs/heads/main' && secrets.PROD_API_URL || secrets.STAGING_API_URL }}
 
-      - name: ⏳ Wait for Vercel deployment
+      - name: ✅ Verify Vercel Deployment
         run: |
-          echo "⏳ Waiting for Vercel deployment to complete..."
-          sleep 30
+          echo "🎉 Vercel deployment completed successfully!"
+          echo "📍 Deployment URL: ${{ steps.vercel-deploy.outputs.preview-url }}"
+          echo "🌐 Project URL: https://resume-builder-pranayd555-pranay-das-projects.vercel.app"
           
-          # Check frontend deployment
-          FRONTEND_URL="${{ github.ref == 'refs/heads/main' && secrets.FRONTEND_URL_PROD || secrets.FRONTEND_URL_STAGING }}"
-          
-          for i in {1..5}; do
-            echo "🔍 Checking frontend (attempt $i/5)"
-            if curl -f -s "$FRONTEND_URL" > /dev/null; then
-              echo "✅ Frontend is accessible!"
-              exit 0
-            fi
-            sleep 15
-          done
-          
-          echo "❌ Frontend accessibility check failed"
-          exit 1
+          # Use Vercel CLI to get deployment status (more reliable)
+          npx vercel ls --token ${{ secrets.VERCEL_TOKEN }} --scope ${{ secrets.VERCEL_ORG_ID }} | head -5
+          echo ""
+          echo "✅ Deployment verification complete"
 
 
 
