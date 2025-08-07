@@ -1,10 +1,10 @@
-# Use Node.js 18 Alpine for smaller image size
-FROM node:18-alpine
+# Multi-stage build for optimization
+FROM node:18-alpine AS builder
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies for build
 RUN apk add --no-cache \
     chromium \
     nss \
@@ -18,11 +18,34 @@ RUN apk add --no-cache \
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
-# Copy package files
-COPY package*.json ./
+# Copy package files first for better caching
+COPY package*.json .npmrc ./
 
-# Install dependencies
-RUN npm ci --only=production && npm cache clean --force
+# Install dependencies with optimization
+RUN npm ci --only=production --prefer-offline --no-audit --no-optional && \
+    npm cache clean --force
+
+# Production stage
+FROM node:18-alpine AS production
+
+WORKDIR /app
+
+# Install only runtime system dependencies
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont
+
+# Set environment variables for Puppeteer
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
+    NODE_ENV=production
+
+# Copy dependencies from builder stage
+COPY --from=builder /app/node_modules ./node_modules
 
 # Copy application code
 COPY . .
@@ -31,8 +54,8 @@ COPY . .
 RUN mkdir -p logs
 
 # Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
 
 # Change ownership of the app directory
 RUN chown -R nodejs:nodejs /app
