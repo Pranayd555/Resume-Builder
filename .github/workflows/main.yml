@@ -90,8 +90,8 @@ jobs:
           NPM_CONFIG_NO_AUDIT: true
           NPM_CONFIG_NO_OPTIONAL: true
         run: |
-          chmod +x render-build.sh
-          ./render-build.sh
+          chmod +x build.sh
+          ./build.sh
           echo "🚢 Backend build completed"
 
       - name: 🚀 Deploy to Render

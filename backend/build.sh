@@ -1,33 +1,47 @@
 #!/bin/bash
 
-# Render-optimized build script
+# Optimized build script for Render deployments
 set -e
 
 echo "🚀 Starting optimized build for Render..."
 
-# Set environment variables for faster builds
+# Set environment variables
 export NODE_ENV=production
-export NPM_CONFIG_PREFER_OFFLINE=true
 export NPM_CONFIG_NO_AUDIT=true
-export NPM_CONFIG_NO_OPTIONAL=true
 export NPM_CONFIG_PROGRESS=false
 
-# Clean any existing node_modules
+echo "📦 Installing dependencies..."
+
+# Clean existing node_modules
 if [ -d "node_modules" ]; then
     echo "🧹 Cleaning existing node_modules..."
     rm -rf node_modules
 fi
 
-# Install dependencies with optimization
-echo "📦 Installing dependencies..."
-npm ci --only=production --prefer-offline --no-audit --no-optional --progress=false
-
-# Clean npm cache
-echo "🧹 Cleaning npm cache..."
+# Clear npm cache
+echo "🧹 Clearing npm cache..."
 npm cache clean --force
 
-# Create logs directory if it doesn't exist
+# Install dependencies with optimized settings
+echo "🔄 Installing dependencies..."
+npm install --only=production --no-audit --progress=false
+
+# Verify installation
+echo "✅ Verifying installation..."
+if [ ! -d "node_modules" ]; then
+    echo "❌ node_modules directory not found!"
+    exit 1
+fi
+
+# Check critical dependencies
+if [ ! -d "node_modules/express" ]; then
+    echo "❌ Express not found in node_modules!"
+    exit 1
+fi
+
+# Create logs directory
 mkdir -p logs
 
-echo "✅ Build completed successfully!"
+echo "📊 Build completed successfully!"
+echo "📊 Node version: $(node -v)"
 echo "📊 Build size: $(du -sh . | cut -f1)" 
