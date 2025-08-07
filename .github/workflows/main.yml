@@ -84,8 +84,14 @@ jobs:
       - name: 🏗️ Build Backend
         if: steps.backend-changes.outputs.backend-changed == 'true'
         working-directory: ./backend
+        env:
+          NODE_ENV: production
+          NPM_CONFIG_PREFER_OFFLINE: true
+          NPM_CONFIG_NO_AUDIT: true
+          NPM_CONFIG_NO_OPTIONAL: true
         run: |
-          npm ci --production
+          chmod +x render-build.sh
+          ./render-build.sh
           echo "🚢 Backend build completed"
 
       - name: 🚀 Deploy to Render
