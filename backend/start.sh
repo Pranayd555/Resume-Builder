@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Render-optimized start script
+# Optimized start script for Render
 set -e
 
 echo "🚀 Starting application on Render..."
@@ -9,7 +9,7 @@ echo "🚀 Starting application on Render..."
 export NODE_ENV=production
 export PORT=${PORT:-5000}
 
-# Create logs directory if it doesn't exist
+# Create logs directory
 mkdir -p logs
 
 # Start the application
