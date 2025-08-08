@@ -1,29 +1,28 @@
 #!/bin/bash
 
-# Optimized build script for Render deployments
+# Optimized build script for Render - Fast & Reliable
 set -e
 
 echo "🚀 Starting optimized build for Render..."
 
-# Set environment variables
+# Set environment variables for maximum performance
 export NODE_ENV=production
+export NPM_CONFIG_PREFER_OFFLINE=true
 export NPM_CONFIG_NO_AUDIT=true
+export NPM_CONFIG_NO_OPTIONAL=true
 export NPM_CONFIG_PROGRESS=false
+export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 
-echo "📦 Installing dependencies..."
+echo "📦 Installing production dependencies..."
 
-# Clean existing node_modules
+# Clean existing node_modules only if it exists
 if [ -d "node_modules" ]; then
     echo "🧹 Cleaning existing node_modules..."
     rm -rf node_modules
 fi
 
-# Clear npm cache
-echo "🧹 Clearing npm cache..."
-npm cache clean --force
-
-# Install dependencies with optimized settings
-echo "🔄 Installing dependencies..."
+# Install only production dependencies (much faster)
+echo "🔄 Installing dependencies with optimizations..."
 npm install --only=production --no-audit --progress=false
 
 # Verify installation
@@ -44,4 +43,6 @@ mkdir -p logs
 
 echo "📊 Build completed successfully!"
 echo "📊 Node version: $(node -v)"
-echo "📊 Build size: $(du -sh . | cut -f1)" 
+echo "📊 npm version: $(npm -v)"
+echo "📊 Build size: $(du -sh . | cut -f1)"
+echo "📊 Dependencies installed: $(ls node_modules | wc -l)" 
