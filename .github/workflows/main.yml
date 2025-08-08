@@ -90,8 +90,7 @@ jobs:
           NPM_CONFIG_NO_AUDIT: true
           NPM_CONFIG_NO_OPTIONAL: true
         run: |
-          chmod +x build.sh
-          ./build.sh
+          npm run build
           echo "🚢 Backend build completed"
 
       - name: 🚀 Deploy to Render

@@ -4,8 +4,11 @@
   "description": "Backend API for Resume Builder - Mobile and Web Ready",
   "main": "server.js",
   "scripts": {
-    "build": "chmod +x build.sh && ./build.sh",
-    "start": "chmod +x start.sh && ./start.sh",
+    "build": "node scripts/build.js",
+    "build:fast": "npm install --only=production --no-audit --progress=false",
+    "build:win": "build.bat",
+    "start": "node scripts/start.js",
+    "start:win": "start.bat",
     "dev": "nodemon server.js",
     "test": "echo 'No tests configured - API endpoints tested via integration tests'",
     "seed:all-templates": "node scripts/seedAllTemplates.js",
@@ -50,9 +53,6 @@
     "npm": ">=8.0.0"
   },
   "npmConfig": {
-    "maxsockets": "1",
-    "timeout": "300000",
-    "cache-max": "0",
     "prefer-offline": true,
     "no-audit": true,
     "no-optional": true
