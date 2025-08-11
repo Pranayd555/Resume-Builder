@@ -93,6 +93,9 @@ public
 tmp/
 temp/
 
+# Build artifacts (keep deploy/ but allow render-deployment.zip)
+deploy/
+
 # Editor directories and files
 .vscode/
 .idea/
