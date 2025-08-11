@@ -15,28 +15,16 @@ console.log('🚀 Building for Render deployment...');
 const DEPLOY_DIR = path.join(__dirname, '..', 'deploy');
 const PACKAGE_NAME = 'render-deployment.zip';
 
-// Copy directory function for older Node.js versions
+// Copy directory function using modern Node.js fs.cpSync
 function copyDirectory(src, dest) {
     if (!fs.existsSync(dest)) {
         fs.mkdirSync(dest, { recursive: true });
     }
-    
-    const items = fs.readdirSync(src);
-    
-    for (const item of items) {
-        const srcPath = path.join(src, item);
-        const destPath = path.join(dest, item);
-        
-        if (fs.statSync(srcPath).isDirectory()) {
-            copyDirectory(srcPath, destPath);
-        } else {
-            fs.copyFileSync(srcPath, destPath);
-        }
-    }
+    fs.cpSync(src, dest, { recursive: true });
 }
 
 // Clean and install
-function build() {
+async function build() {
     console.log('🧹 Cleaning previous builds...');
     
     // Clean deploy directory
@@ -156,7 +144,7 @@ function cleanup() {
 // Main process
 async function main() {
     try {
-        build();
+        await build();
         createPackage();
         await createZip();
         cleanup();

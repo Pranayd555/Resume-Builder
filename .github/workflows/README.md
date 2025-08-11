@@ -1,97 +1,105 @@
-# 🚀 Optimized Workflows
+# GitHub Actions Workflows
 
-This directory contains the streamlined GitHub Actions workflows for the Resume Builder project.
+## 🚀 Deploy to Render & Vercel
 
-## 📁 Workflow Structure
+**File:** `deploy.yml`
 
-| File | Purpose | Triggers | Status |
-|------|---------|----------|--------|
-| **`main.yml`** | Primary CI/CD pipeline | Push to main/dev, PRs | ✅ Active |
-| **`ci-shared.yml`** | Reusable CI workflow | Called by other workflows | ✅ Active |
-| **`operations.yml`** | Manual operations | Manual trigger, schedule | ✅ Active |
-| **`dependency-check.yml`** | Legacy dependency management | Schedule | ⚠️ Consider removal |
+### Purpose
+Automated deployment pipeline for both backend (Render) and frontend (Vercel) based on file changes.
 
-## 🎯 Key Improvements
+### Triggers
+- **Push to main branch** → Deploys to production
+- **Push to dev branch** → Deploys to staging
+- **Manual trigger** via GitHub Actions UI
 
-### **Before Optimization**
-- 5 workflow files (~37KB)
-- Significant code duplication
-- Complex 456-line main pipeline
-- Separate CI and CD workflows
+### Smart Deployment Logic
+The workflow intelligently detects what has changed and deploys accordingly:
 
-### **After Optimization**
-- 3 main workflow files (~15KB)
-- Reusable CI workflow eliminates duplication
-- Matrix strategy for parallel deployments
-- Consolidated operations workflow
+- **🔍 Backend changes only** → Deploy to Render only
+- **🎨 Frontend changes only** → Deploy to Vercel only  
+- **🔄 Both changed** → Deploy to both platforms
+- **📝 No relevant changes** → Skip deployment
 
-## 🚀 How It Works
+### Environment Mapping
+- **main branch** → Production environment
+- **dev branch** → Staging environment
 
-### **Push to main/dev**
+### What it does
+
+#### 1. **🔍 Detect Changes**
+- Compares current commit with previous commit
+- Identifies changes in `backend/` and `resume-builder/` directories
+- Sets deployment flags for each platform
+
+#### 2. **🚀 Backend Deployment (Render)**
+- **🟢 Setup Node.js 22** - Configures environment
+- **📦 Install dependencies** - Installs npm packages
+- **🏗️ Build package** - Creates `render-deployment.zip`
+- **📝 Commit & Push** - Adds zip to repository
+- **🚀 Deploy to Render** - Triggers Render deployment
+
+#### 3. **🎨 Frontend Deployment (Vercel)**
+- **🟢 Setup Node.js 22** - Configures environment
+- **📦 Install dependencies** - Installs npm packages
+- **🏗️ Build frontend** - Creates production build
+- **🚀 Deploy to Vercel** - Deploys to Vercel platform
+
+#### 4. **📊 Summary**
+- Reports what was deployed and results
+- Shows success/failure status for each platform
+
+### Required Secrets
+
+#### For Backend (Render):
+- `RENDER_TOKEN` - Render API token
+- `RENDER_SERVICE_ID` - Render service ID
+
+#### For Frontend (Vercel):
+- `VERCEL_TOKEN` - Vercel API token
+- `VERCEL_ORG_ID` - Vercel organization ID
+- `VERCEL_PROJECT_ID` - Vercel project ID
+- `PROD_API_URL` - Production API URL for frontend
+- `STAGING_API_URL` - Staging API URL for frontend
+
+### Benefits
+- **Smart detection** - Only deploys what changed
+- **Fully automated** - Just push to Git
+- **Fast deployments** - Parallel execution when possible
+- **Reliable** - Pre-built packages for backend
+- **Modern** - Uses Node.js 22+ features
+- **Clear reporting** - Summary of all deployments
+
+### Example Scenarios
+
+**Scenario 1: Backend API changes (main branch)**
 ```
-main.yml → ci-shared.yml → Deploy → Health Check → Summary
-```
-
-### **Pull Request**
-```
-main.yml → ci-shared.yml → Summary (no deployment)
-```
-
-### **Manual Operations**
-```
-operations.yml → Deploy/Rollback/Dependencies → Verification
-```
-
-## 🔧 Workflow Details
-
-### **main.yml** - Primary Pipeline
-- **Triggers**: Push to main/dev, PRs, manual
-- **Features**: Uses reusable CI, matrix deployment, health checks
-- **Benefits**: Single workflow for all scenarios
-
-### **ci-shared.yml** - Reusable CI
-- **Purpose**: Eliminate code duplication
-- **Features**: Backend CI, Frontend CI, Security scans
-- **Benefits**: Consistent CI across all workflows
-
-### **operations.yml** - Manual Operations
-- **Purpose**: Deploy, rollback, maintenance
-- **Features**: Environment selection, rollback to any commit
-- **Benefits**: Consolidated operational tasks
-
-## 📊 Performance Benefits
-
-- **40% smaller** codebase (37KB → 15KB)
-- **Faster CI** with parallel jobs and caching
-- **Better maintainability** with reusable components
-- **Reduced complexity** with consolidated workflows
-
-## 🎮 Usage
-
-### **Normal Development**
-```bash
-# Automatic staging deployment
-git push origin dev
-
-# Automatic production deployment  
-git push origin main
-
-# PR testing (no deployment)
-# Create pull request
+🔍 Backend files changed: backend/routes/auth.js
+✅ Backend deployed to Render (production) successfully
+⏭️ Frontend deployment skipped (no changes detected)
 ```
 
-### **Manual Operations**
-1. Go to **GitHub Actions**
-2. Select **🔧 Operations**
-3. Choose operation: deploy, rollback, or dependency-update
-4. Configure parameters and run
+**Scenario 2: Frontend UI changes (dev branch)**
+```
+🔍 Frontend files changed: resume-builder/src/components/Header.js
+⏭️ Backend deployment skipped (no changes detected)
+✅ Frontend deployed to Vercel (staging) successfully
+```
 
-## ✅ Migration Complete
+**Scenario 3: Full-stack changes (main branch)**
+```
+🔍 Backend files changed: backend/models/User.js
+🔍 Frontend files changed: resume-builder/src/services/api.js
+✅ Backend deployed to Render (production) successfully
+✅ Frontend deployed to Vercel (production) successfully
+```
 
-Old workflows have been removed:
-- ❌ `ci-cd-pipeline.yml` (456 lines) → Replaced by `main.yml`
-- ❌ `ci.yml` (175 lines) → Merged into `main.yml`
-- ❌ `deploy.yml` (152 lines) → Merged into `operations.yml`
-- ❌ `rollback.yml` (216 lines) → Merged into `operations.yml`
+## 🧹 Cleanup Summary
 
-The new structure is more maintainable, efficient, and easier to understand while providing the same functionality with better performance.
+Removed unnecessary workflows:
+- ❌ `main.yml` - Complex multi-job pipeline
+- ❌ `ci-shared.yml` - Reusable CI workflow
+- ❌ `dependency-check.yml` - Weekly dependency audits
+- ❌ `operations.yml` - Manual operations
+
+Kept only the essential:
+- ✅ `deploy.yml` - Smart dual deployment pipeline 

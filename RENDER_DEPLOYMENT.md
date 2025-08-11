@@ -1,6 +1,6 @@
 # Render Deployment Guide
 
-## Automated Git Deployment
+## Automated Git Deployment (Node.js 22+)
 
 ### 1. Build Locally
 ```bash
@@ -10,12 +10,23 @@ npm run build:render
 
 This creates `render-deployment.zip` with all dependencies pre-built.
 
-### 2. Commit and Push to Git
+### 2. Deploy (Choose One Method)
+
+**Option A: Simple Script**
 ```bash
-git add render-deployment.zip
+./deploy-simple.sh
+```
+
+**Option B: Manual Steps**
+```bash
+git add backend/render-deployment.zip
 git commit -m "Deploy: Updated backend"
 git push origin main
 ```
+
+**Option C: GitHub Actions (Automatic)**
+- Push to `main` branch
+- CI/CD pipeline automatically builds and deploys
 
 ### 3. Render Automatically Deploys
 - Render detects the new commit
@@ -39,6 +50,18 @@ git push origin main
 2. Set up automatic deployments
 3. Render will run `npm run render:build` on each push
 
+## CI/CD Pipeline (GitHub Actions)
+
+The `.github/workflows/deploy.yml` file provides:
+- **Automatic builds** on push to main
+- **Node.js 22** with npm caching
+- **Automatic deployment** to Render
+- **Path filtering** (only triggers on backend changes)
+
+### Required Secrets:
+- `RENDER_TOKEN`: Your Render API token
+- `RENDER_SERVICE_ID`: Your Render service ID
+
 ## What Happens on Render
 
 1. **Git Push** → Render detects changes
@@ -54,6 +77,7 @@ git push origin main
 - **Fast**: No dependency downloads on Render
 - **Reliable**: Pre-built packages eliminate build issues
 - **Version Control**: Track deployment history in Git
+- **Modern**: Uses Node.js 22+ features
 
 ## Troubleshooting
 - If build fails: Check if `render-deployment.zip` exists in repository
