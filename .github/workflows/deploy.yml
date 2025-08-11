@@ -3,6 +3,9 @@ name: 🚀 Deploy to Render & Vercel
 on:
   push:
     branches: [ main, dev ]
+    paths-ignore:
+      - 'backend/render-deployment.zip'
+      - '**/*.zip'
   workflow_dispatch:
 
 jobs:
@@ -20,8 +23,8 @@ jobs:
       - name: 🔍 Detect changes
         id: changes
         run: |
-          # Check for backend changes
-          BACKEND_CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -E '^backend/' || echo "")
+          # Check for backend changes (excluding deployment files)
+          BACKEND_CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -E '^backend/' | grep -v 'render-deployment.zip' || echo "")
           if [ -n "$BACKEND_CHANGED" ]; then
             echo "backend=true" >> $GITHUB_OUTPUT
             echo "🔍 Backend files changed:"
@@ -74,8 +77,8 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add backend/render-deployment.zip
-        git commit -m "Deploy: Backend $(date +%Y-%m-%d_%H-%M-%S) [skip ci]" || exit 0
-        git push origin main
+        git commit -m "Deploy: Backend $(date +%Y-%m-%d_%H-%M-%S) [skip ci] [deployment]" || exit 0
+        git push origin ${{ github.ref_name }}
         
     - name: 🚀 Deploy to Render
       env:
