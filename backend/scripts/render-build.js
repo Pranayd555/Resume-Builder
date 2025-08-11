@@ -22,17 +22,41 @@ if (!fs.existsSync(zipPath)) {
 try {
     console.log('📦 Extracting deployment package...');
     
-    // Extract the zip file
-    execSync(`unzip -q "${zipPath}" -d .`, {
-        stdio: 'inherit',
-        cwd: path.join(__dirname, '..')
-    });
+    // Remove existing .npmrc if it exists to avoid conflicts
+    const npmrcPath = path.join(__dirname, '..', '.npmrc');
+    if (fs.existsSync(npmrcPath)) {
+        fs.unlinkSync(npmrcPath);
+        console.log('🗑️ Removed existing .npmrc to avoid conflicts');
+    }
+    
+    // Extract the zip file with better error handling
+    try {
+        execSync(`unzip -o -q "${zipPath}" -d .`, {
+            stdio: 'inherit',
+            cwd: path.join(__dirname, '..'),
+            timeout: 300000 // 5 minutes timeout
+        });
+    } catch (unzipError) {
+        console.error('❌ Unzip failed:', unzipError.message);
+        console.log('🔄 Trying alternative extraction method...');
+        
+        // Try with different unzip options
+        execSync(`unzip -o "${zipPath}" -d .`, {
+            stdio: 'inherit',
+            cwd: path.join(__dirname, '..'),
+            timeout: 300000
+        });
+    }
     
     console.log('✅ Deployment package extracted successfully');
     
     // Remove the zip file to save space
-    fs.unlinkSync(zipPath);
-    console.log('🗑️ Removed zip file to save space');
+    try {
+        fs.unlinkSync(zipPath);
+        console.log('🗑️ Removed zip file to save space');
+    } catch (error) {
+        console.log('⚠️ Could not remove zip file:', error.message);
+    }
     
     // Verify essential files exist
     const essentialFiles = ['package.json', 'server.js'];
@@ -42,10 +66,18 @@ try {
         }
     });
     
+    // Verify .npmrc was extracted properly
+    if (fs.existsSync(npmrcPath)) {
+        console.log('✅ .npmrc file extracted successfully');
+    } else {
+        console.log('⚠️ .npmrc file not found in deployment package');
+    }
+    
     console.log('✅ Build verification completed');
     console.log('🚀 Ready to start application');
     
 } catch (error) {
     console.error('❌ Build failed:', error.message);
+    console.error('📋 Full error details:', error);
     process.exit(1);
 } 
