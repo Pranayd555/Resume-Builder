@@ -65,7 +65,7 @@ function createPackage() {
     
     // Copy essential files and directories
     const items = [
-        'package.json', 'package-lock.json', 'server.js', 'Dockerfile', '.npmrc',
+        'package.json', 'package-lock.json', 'server.js', 'Dockerfile',
         'config', 'middleware', 'models', 'routes', 'utils', 'templates', 'thumbnails'
     ];
     
@@ -83,6 +83,29 @@ function createPackage() {
             }
         }
     });
+    
+    // Copy .npmrc file separately to ensure it's included
+    const npmrcSrc = path.join(__dirname, '..', '.npmrc');
+    const npmrcDest = path.join(DEPLOY_DIR, '.npmrc');
+    if (fs.existsSync(npmrcSrc)) {
+        fs.copyFileSync(npmrcSrc, npmrcDest);
+        console.log('✅ Copied .npmrc');
+    } else {
+        console.log('⚠️ .npmrc file not found, creating default one...');
+        // Create a default .npmrc file
+        const defaultNpmrc = `# Optimized npm configuration for Render
+prefer-offline=true
+no-audit=true
+no-optional=true
+progress=false
+production=true
+registry=https://registry.npmjs.org/
+fetch-retries=3
+fetch-retry-mintimeout=5000
+fetch-retry-maxtimeout=60000`;
+        fs.writeFileSync(npmrcDest, defaultNpmrc);
+        console.log('✅ Created default .npmrc');
+    }
     
     // Copy node_modules
     const nodeModulesSrc = path.join(__dirname, '..', 'node_modules');
@@ -116,15 +139,43 @@ function createZip() {
     
     return new Promise((resolve, reject) => {
         const output = fs.createWriteStream(path.join(__dirname, '..', PACKAGE_NAME));
-        const archive = archiver('zip', { zlib: { level: 9 } });
+        const archive = archiver('zip', { 
+            zlib: { level: 9 },
+            store: false
+        });
         
         output.on('close', () => {
             const sizeInMB = Math.round(archive.pointer() / 1024 / 1024);
             console.log(`✅ Created: ${PACKAGE_NAME} (${sizeInMB}MB)`);
-            resolve();
+            
+            // Verify the zip file was created and is valid
+            const zipPath = path.join(__dirname, '..', PACKAGE_NAME);
+            if (fs.existsSync(zipPath)) {
+                const stats = fs.statSync(zipPath);
+                if (stats.size > 0) {
+                    console.log(`✅ Zip file verified: ${stats.size} bytes`);
+                    resolve();
+                } else {
+                    reject(new Error('Zip file is empty'));
+                }
+            } else {
+                reject(new Error('Zip file was not created'));
+            }
         });
         
-        archive.on('error', reject);
+        archive.on('error', (err) => {
+            console.error('❌ Archive error:', err);
+            reject(err);
+        });
+        
+        archive.on('warning', (err) => {
+            if (err.code === 'ENOENT') {
+                console.warn('⚠️ Archive warning:', err.message);
+            } else {
+                reject(err);
+            }
+        });
+        
         archive.pipe(output);
         archive.directory(DEPLOY_DIR, false);
         archive.finalize();

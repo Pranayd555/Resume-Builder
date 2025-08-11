@@ -7,6 +7,7 @@
     "build": "node scripts/build.js",
     "build:render": "node scripts/local-build-for-render.js",
     "render:build": "node scripts/render-build.js",
+    "test:build": "node scripts/test-build.js",
     "start": "node scripts/start.js",
     "dev": "nodemon server.js",
     "test": "echo 'No tests configured - API endpoints tested via integration tests'",

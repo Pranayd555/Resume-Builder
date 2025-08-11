@@ -74,6 +74,11 @@ jobs:
         cd backend
         npm run build:render
         
+    - name: 🧪 Test build package
+      run: |
+        cd backend
+        npm run test:build
+        
     - name: 🚀 Deploy to Render
       env:
         RENDER_TOKEN: ${{ secrets.RENDER_TOKEN }}
