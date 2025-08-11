@@ -16,11 +16,11 @@ fi
 # Add and commit the zip file
 echo "📝 Committing deployment package..."
 git add render-deployment.zip
-git commit -m "Deploy: $(date +%Y-%m-%d_%H-%M-%S)"
+git commit -m "Deploy: Backend $(date +%Y-%m-%d_%H-%M-%S) [skip ci]"
 
 # Push to trigger Render deployment
 echo "🚀 Pushing to Git to trigger Render deployment..."
-git push origin main
+git push origin $(git branch --show-current)
 
 echo "✅ Deployment triggered!"
 echo "📊 Check Render dashboard for deployment status" 

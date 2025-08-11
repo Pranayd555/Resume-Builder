@@ -11,6 +11,7 @@ Automated deployment pipeline for both backend (Render) and frontend (Vercel) ba
 - **Push to main branch** → Deploys to production
 - **Push to dev branch** → Deploys to staging
 - **Manual trigger** via GitHub Actions UI
+- **Excludes** deployment files (`*.zip`) to prevent infinite loops
 
 ### Smart Deployment Logic
 The workflow intelligently detects what has changed and deploys accordingly:
@@ -35,7 +36,7 @@ The workflow intelligently detects what has changed and deploys accordingly:
 - **🟢 Setup Node.js 22** - Configures environment
 - **📦 Install dependencies** - Installs npm packages
 - **🏗️ Build package** - Creates `render-deployment.zip`
-- **📝 Commit & Push** - Adds zip to repository
+- **📝 Commit & Push** - Adds zip to repository (with loop prevention)
 - **🚀 Deploy to Render** - Triggers Render deployment
 
 #### 3. **🎨 Frontend Deployment (Vercel)**
@@ -68,6 +69,7 @@ The workflow intelligently detects what has changed and deploys accordingly:
 - **Reliable** - Pre-built packages for backend
 - **Modern** - Uses Node.js 22+ features
 - **Clear reporting** - Summary of all deployments
+- **Loop prevention** - Prevents infinite deployment cycles
 
 ### Example Scenarios
 
@@ -78,14 +80,21 @@ The workflow intelligently detects what has changed and deploys accordingly:
 ⏭️ Frontend deployment skipped (no changes detected)
 ```
 
-**Scenario 2: Frontend UI changes (dev branch)**
+**Scenario 2: Backend API changes (dev branch)**
+```
+🔍 Backend files changed: backend/routes/auth.js
+✅ Backend deployed to Render (staging) successfully
+⏭️ Frontend deployment skipped (no changes detected)
+```
+
+**Scenario 3: Frontend UI changes (dev branch)**
 ```
 🔍 Frontend files changed: resume-builder/src/components/Header.js
 ⏭️ Backend deployment skipped (no changes detected)
 ✅ Frontend deployed to Vercel (staging) successfully
 ```
 
-**Scenario 3: Full-stack changes (main branch)**
+**Scenario 4: Full-stack changes (main branch)**
 ```
 🔍 Backend files changed: backend/models/User.js
 🔍 Frontend files changed: resume-builder/src/services/api.js
