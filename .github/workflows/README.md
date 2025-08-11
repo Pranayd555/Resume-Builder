@@ -36,8 +36,7 @@ The workflow intelligently detects what has changed and deploys accordingly:
 - **🟢 Setup Node.js 22** - Configures environment
 - **📦 Install dependencies** - Installs npm packages
 - **🏗️ Build package** - Creates `render-deployment.zip`
-- **📝 Commit & Push** - Adds zip to repository (with loop prevention)
-- **🚀 Deploy to Render** - Triggers Render deployment
+- **🚀 Deploy to Render** - Triggers Render deployment directly
 
 #### 3. **🎨 Frontend Deployment (Vercel)**
 - **🟢 Setup Node.js 22** - Configures environment
@@ -69,7 +68,7 @@ The workflow intelligently detects what has changed and deploys accordingly:
 - **Reliable** - Pre-built packages for backend
 - **Modern** - Uses Node.js 22+ features
 - **Clear reporting** - Summary of all deployments
-- **Loop prevention** - Prevents infinite deployment cycles
+- **No permission issues** - Direct deployment without Git push
 
 ### Example Scenarios
 
