@@ -56,7 +56,7 @@
   "npmConfig": {
     "prefer-offline": true,
     "no-audit": true,
-    "no-optional": true
+    "no-optional": false
   },
   "keywords": [
     "resume",

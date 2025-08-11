@@ -74,6 +74,32 @@ try {
     }
     
     console.log('✅ Build verification completed');
+    
+    // Handle platform-specific dependencies for Linux deployment
+    console.log('🔧 Handling platform-specific dependencies...');
+    try {
+        // Rebuild sharp for Linux on Render
+        console.log('📦 Rebuilding sharp for Linux...');
+        execSync('npm rebuild sharp --platform=linux --arch=x64', {
+            stdio: 'inherit',
+            cwd: path.join(__dirname, '..'),
+            timeout: 120000
+        });
+        console.log('✅ Sharp rebuilt for Linux successfully');
+    } catch (error) {
+        console.log('⚠️ Sharp rebuild failed, trying reinstall...');
+        try {
+            execSync('npm install sharp@latest --platform=linux --arch=x64 --no-save', {
+                stdio: 'inherit',
+                cwd: path.join(__dirname, '..'),
+                timeout: 120000
+            });
+            console.log('✅ Sharp reinstalled for Linux successfully');
+        } catch (installError) {
+            console.log('⚠️ Sharp reinstall failed, continuing with existing version...');
+        }
+    }
+    
     console.log('🚀 Ready to start application');
     
 } catch (error) {
