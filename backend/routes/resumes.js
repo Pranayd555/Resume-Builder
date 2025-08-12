@@ -889,7 +889,15 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
     // Create PDF using Puppeteer
     const browser = await puppeteer.launch({
       headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: [
+        '--no-sandbox', 
+        '--disable-setuid-sandbox', 
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process'
+      ]
     });
     
     const page = await browser.newPage();
@@ -942,6 +950,14 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
     logger.info(`Resume downloaded as PDF: ${resume.title} by user ${req.user.email} (Subscription: ${subscription.plan}, Status: ${subscription.status})`);
   } catch (error) {
     logger.error('Download PDF error:', error);
+    logger.error('Error stack:', error.stack);
+    logger.error('Error details:', {
+      resumeId: req.params.id,
+      userId: req.user?.id,
+      userEmail: req.user?.email,
+      errorName: error.name,
+      errorMessage: error.message
+    });
     res.status(500).json({
       success: false,
       error: 'Server error'
