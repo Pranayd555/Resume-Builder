@@ -1,18 +1,18 @@
 // API Configuration for different environments
-const API_CONFIG = {
-  // Development (local)
-  development: {
-    baseURL: 'http://localhost:5000/api'
-  },
-  // Production (Render)
-  production: {
-    baseURL: 'https://resume-builder-m5ef.onrender.com/api'
-  },
-  // Staging (if you have a staging environment)
-  staging: {
-    baseURL: 'https://resume-builder-m5ef.onrender.com/api' // Same as production for now
-  }
-};
+// const API_CONFIG = {
+//   // Development (local)
+//   development: {
+//     baseURL: 'http://localhost:5000/api'
+//   },
+//   // Production (Render)
+//   production: {
+//     baseURL: 'https://resume-builder-m5ef.onrender.com/api'
+//   },
+//   // Staging (if you have a staging environment)
+//   staging: {
+//     baseURL: 'https://resume-builder-m5ef.onrender.com/api' // Same as production for now
+//   }
+// };
 
 // Get the current environment
 const getEnvironment = () => {
