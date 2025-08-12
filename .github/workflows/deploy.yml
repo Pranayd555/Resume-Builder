@@ -1,89 +1,124 @@
-name: Deploy
+name: 🚀 Deploy to Render & Vercel
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, dev ]
+    paths-ignore:
+      - 'backend/render-deployment.zip'
+      - '**/*.zip'
   workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Environment to deploy to'
-        required: true
-        default: 'staging'
-        type: choice
-        options:
-        - staging
-        - production
+
+
 
 jobs:
-  # Deploy Backend to Heroku
-  deploy-backend-heroku:
-    name: Deploy Backend to Heroku
+  detect-changes:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
-    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
-
+    outputs:
+      backend-changed: ${{ steps.changes.outputs.backend }}
+      frontend-changed: ${{ steps.changes.outputs.frontend }}
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      
+      - name: 🔍 Detect changes
+        id: changes
+        run: |
+          # Check for backend changes (excluding deployment files)
+          BACKEND_CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -E '^backend/' | grep -v 'render-deployment.zip' || echo "")
+          if [ -n "$BACKEND_CHANGED" ]; then
+            echo "backend=true" >> $GITHUB_OUTPUT
+            echo "🔍 Backend files changed:"
+            echo "$BACKEND_CHANGED"
+          else
+            echo "backend=false" >> $GITHUB_OUTPUT
+            echo "🔍 No backend changes detected"
+          fi
+          
+          # Check for frontend changes
+          FRONTEND_CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -E '^resume-builder/' || echo "")
+          if [ -n "$FRONTEND_CHANGED" ]; then
+            echo "frontend=true" >> $GITHUB_OUTPUT
+            echo "🔍 Frontend files changed:"
+            echo "$FRONTEND_CHANGED"
+          else
+            echo "frontend=false" >> $GITHUB_OUTPUT
+            echo "🔍 No frontend changes detected"
+          fi
 
-    - name: Setup Node.js
+  deploy-backend:
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend-changed == 'true'
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🟢 Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '22'
         cache: 'npm'
         cache-dependency-path: backend/package-lock.json
-
-    - name: Install backend dependencies
-      working-directory: ./backend
-      run: npm ci
-
-    - name: Run backend tests
-      working-directory: ./backend
+        
+    - name: 📦 Install dependencies
+      run: |
+        cd backend
+        npm ci
+        
+    - name: 🏗️ Build deployment package
+      run: |
+        cd backend
+        npm run build:render
+        
+    - name: 🧪 Test build package
+      run: |
+        cd backend
+        npm run test:build
+        
+    - name: 🚀 Deploy to Render
       env:
-        NODE_ENV: test
-        MONGODB_URI: ${{ secrets.TEST_MONGODB_URI }}
-        JWT_SECRET: test-secret
-        JWT_REFRESH_SECRET: test-refresh-secret
-      run: npm test
+        RENDER_TOKEN: ${{ secrets.RENDER_TOKEN }}
+        RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+      run: |
+        echo "📦 Deploying backend to Render..."
+        curl -X POST "https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys" \
+          -H "Authorization: Bearer $RENDER_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d '{"clearCache": "do_not_clear"}'
+        echo "✅ Backend deployment to Render triggered"
 
-    - name: Deploy to Heroku
-      uses: akhileshns/heroku-deploy@v3.12.14
-      with:
-        heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-        heroku_app_name: ${{ github.ref == 'refs/heads/main' && secrets.HEROKU_APP_NAME_PROD || secrets.HEROKU_APP_NAME_STAGING }}
-        heroku_email: ${{ secrets.HEROKU_EMAIL }}
-        appdir: "backend"
-
-  # Deploy Frontend to Vercel
-  deploy-frontend-vercel:
-    name: Deploy Frontend to Vercel
+  deploy-frontend:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
-
+    needs: detect-changes
+    if: needs.detect-changes.outputs.frontend-changed == 'true'
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    
     steps:
-    - name: Checkout code
+    - name: 📥 Checkout code
       uses: actions/checkout@v4
-
-    - name: Setup Node.js
+      
+    - name: 🟢 Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '22'
         cache: 'npm'
         cache-dependency-path: resume-builder/package-lock.json
-
-    - name: Install frontend dependencies
-      working-directory: ./resume-builder
-      run: npm ci
-
-    - name: Run frontend tests
-      working-directory: ./resume-builder
-      run: npm test -- --watchAll=false --passWithNoTests
-
-    - name: Build frontend
-      working-directory: ./resume-builder
-      run: npm run build
-
-    - name: Deploy to Vercel
+        
+    - name: 📦 Install dependencies
+      run: |
+        cd resume-builder
+        npm ci
+        
+    - name: 🏗️ Build frontend
+      run: |
+        cd resume-builder
+        npm run build
+        
+    - name: 🚀 Deploy to Vercel
       uses: amondnet/vercel-action@v25
       with:
         vercel-token: ${{ secrets.VERCEL_TOKEN }}
@@ -91,118 +126,41 @@ jobs:
         vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
         working-directory: ./resume-builder
         vercel-args: ${{ github.ref == 'refs/heads/main' && '--prod' || '' }}
-
-  # Deploy to AWS (Alternative)
-  deploy-aws:
-    name: Deploy to AWS
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && false # Set to true when ready to use AWS
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
-
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2
-
-    - name: Build, tag, and push backend image to Amazon ECR
-      working-directory: ./backend
       env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: resume-builder-backend
-        IMAGE_TAG: ${{ github.sha }}
-      run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        CI: false
+        REACT_APP_API_URL: ${{ github.ref == 'refs/heads/main' && secrets.PROD_API_URL || secrets.STAGING_API_URL }}
 
-    - name: Deploy to ECS
-      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-      with:
-        task-definition: task-definition.json
-        service: resume-builder-service
-        cluster: resume-builder-cluster
-        wait-for-service-stability: true
-
-  # Deploy to DigitalOcean App Platform
-  deploy-digitalocean:
-    name: Deploy to DigitalOcean
+  summary:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && false # Set to true when ready to use DigitalOcean
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Deploy to DigitalOcean App Platform
-      uses: digitalocean/app_action@main
-      with:
-        app_name: resume-builder
-        token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-
-  # Deploy to Railway
-  deploy-railway:
-    name: Deploy to Railway
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && false # Set to true when ready to use Railway
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Deploy to Railway
-      uses: bervProject/railway-deploy@v1.0.0
-      with:
-        railway_token: ${{ secrets.RAILWAY_TOKEN }}
-        service: resume-builder-backend
-
-  # Health Check
-  health-check:
-    name: Health Check
-    runs-on: ubuntu-latest
-    needs: [deploy-backend-heroku, deploy-frontend-vercel]
+    needs: [detect-changes, deploy-backend, deploy-frontend]
     if: always()
-
+    
     steps:
-    - name: Check backend health
+    - name: 📊 Deployment Summary
       run: |
-        # Wait for deployment to complete
-        sleep 30
+        echo "🎯 Deployment Summary"
+        echo "===================="
+        echo "Branch: ${{ github.ref_name }}"
+        echo "Environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}"
+        echo "Backend changes: ${{ needs.detect-changes.outputs.backend-changed }}"
+        echo "Frontend changes: ${{ needs.detect-changes.outputs.frontend-changed }}"
+        echo ""
+        echo "Backend deployment: ${{ needs.deploy-backend.result || 'skipped' }}"
+        echo "Frontend deployment: ${{ needs.deploy-frontend.result || 'skipped' }}"
+        echo ""
         
-        # Check backend health endpoint
-        BACKEND_URL=${{ github.ref == 'refs/heads/main' && secrets.BACKEND_URL_PROD || secrets.BACKEND_URL_STAGING }}
-        curl -f $BACKEND_URL/health || echo "Backend health check failed"
-
-    - name: Check frontend health
-      run: |
-        # Wait for deployment to complete
-        sleep 30
+        if [[ "${{ needs.detect-changes.outputs.backend-changed }}" == "true" && "${{ needs.deploy-backend.result }}" == "success" ]]; then
+          echo "✅ Backend deployed to Render successfully"
+        elif [[ "${{ needs.detect-changes.outputs.backend-changed }}" == "true" && "${{ needs.deploy-backend.result }}" != "success" ]]; then
+          echo "❌ Backend deployment failed"
+        fi
         
-        # Check frontend availability
-        FRONTEND_URL=${{ github.ref == 'refs/heads/main' && secrets.FRONTEND_URL_PROD || secrets.FRONTEND_URL_STAGING }}
-        curl -f $FRONTEND_URL || echo "Frontend health check failed"
-
-  # Notify deployment status
-  notify-deployment:
-    name: Notify Deployment Status
-    runs-on: ubuntu-latest
-    needs: [deploy-backend-heroku, deploy-frontend-vercel, health-check]
-    if: always()
-
-    steps:
-    - name: Notify Slack
-      uses: 8398a7/action-slack@v3
-      with:
-        status: ${{ job.status }}
-        channel: '#deployments'
-        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
-      env:
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-      if: always() 
+        if [[ "${{ needs.detect-changes.outputs.frontend-changed }}" == "true" && "${{ needs.deploy-frontend.result }}" == "success" ]]; then
+          echo "✅ Frontend deployed to Vercel successfully"
+        elif [[ "${{ needs.detect-changes.outputs.frontend-changed }}" == "true" && "${{ needs.deploy-frontend.result }}" != "success" ]]; then
+          echo "❌ Frontend deployment failed"
+        fi
+        
+        if [[ "${{ needs.detect-changes.outputs.backend-changed }}" == "false" && "${{ needs.detect-changes.outputs.frontend-changed }}" == "false" ]]; then
+          echo "ℹ️ No changes detected - no deployment needed"
+        fi 

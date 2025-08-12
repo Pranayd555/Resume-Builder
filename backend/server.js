@@ -73,7 +73,9 @@ const corsOptions = {
     const allowedOrigins = [
       'http://localhost:3000',
       'http://localhost:3001',
-      'https://your-domain.com',
+      'https://resume-builder-pranayd555-pranay-das-projects.vercel.app',
+      'https://resume-builder-pranay-das-projects.vercel.app',
+      'https://resume-builder-dev-pranay-das.vercel.app',
       'capacitor://localhost',
       'ionic://localhost',
       'http://localhost',
@@ -224,8 +226,12 @@ process.on('SIGINT', async () => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
-});
+
+// Only start the server if not in test mode
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    logger.info(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
+  });
+}
 
 module.exports = app; 
