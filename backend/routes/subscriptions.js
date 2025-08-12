@@ -150,6 +150,9 @@ router.get('/current', protect, async (req, res) => {
         // Refresh the subscription data after expiration
         subscription = await Subscription.findOne({ user: req.user.id });
       }
+      
+      // Recalculate actual resume count since subscription started
+      await subscription.recalculateResumeCount();
     }
 
     res.json({
@@ -436,6 +439,9 @@ router.post('/success', [
     }
 
     await subscription.save();
+
+    // Recalculate actual resume count since subscription started
+    await subscription.recalculateResumeCount();
 
     // Update user subscription info
     await User.findByIdAndUpdate(req.user.id, {
