@@ -489,31 +489,67 @@ subscriptionSchema.methods.canStartTrial = function() {
 
 // Method to increment usage
 subscriptionSchema.methods.incrementUsage = function(type) {
-  const update = {};
-  
-  // Reset monthly counters if it's a new month
   const now = new Date();
   const lastReset = new Date(this.usage.lastResetDate);
   
+  // Reset monthly counters if it's a new month
   if (now.getMonth() !== lastReset.getMonth() || now.getFullYear() !== lastReset.getFullYear()) {
-    update['usage.exportsThisMonth'] = 0;
-    update['usage.aiActionsThisMonth'] = 0;
-    update['usage.lastResetDate'] = now;
+    // Reset counters first
+    this.usage.exportsThisMonth = 0;
+    this.usage.aiActionsThisMonth = 0;
+    this.usage.lastResetDate = now;
   }
   
+  // Increment the appropriate counter
   switch (type) {
     case 'resume':
-      update['$inc'] = { 'usage.resumesCreated': 1 };
+      this.usage.resumesCreated += 1;
       break;
     case 'export':
-      update['$inc'] = { 'usage.exportsThisMonth': 1 };
+      this.usage.exportsThisMonth += 1;
       break;
     case 'aiAction':
-      update['$inc'] = { 'usage.aiActionsThisMonth': 1 };
+      this.usage.aiActionsThisMonth += 1;
       break;
   }
   
-  return this.updateOne(update);
+  return this.save();
+};
+
+// Method to get actual resume count since subscription started
+subscriptionSchema.methods.getActualResumeCount = async function() {
+  const Resume = require('./Resume');
+  
+  // Get the subscription start date
+  let startDate;
+  
+  if (this.status === 'trialing' && this.billing?.trialEnd) {
+    // For trial users, count from trial start (trialEnd - trial duration)
+    const trialDuration = this.billing.trialType === 'free' ? 3 : 7; // days
+    startDate = new Date(this.billing.trialEnd);
+    startDate.setDate(startDate.getDate() - trialDuration);
+  } else if (this.createdAt) {
+    // For regular subscriptions, count from subscription creation
+    startDate = this.createdAt;
+  } else {
+    // Fallback to current date if no start date found
+    startDate = new Date();
+  }
+  
+  // Count resumes created after the subscription/trial started
+  const resumeCount = await Resume.countDocuments({
+    user: this.user,
+    createdAt: { $gte: startDate }
+  });
+  
+  return resumeCount;
+};
+
+// Method to recalculate and update resume count
+subscriptionSchema.methods.recalculateResumeCount = async function() {
+  const actualCount = await this.getActualResumeCount();
+  this.usage.resumesCreated = actualCount;
+  return this.save();
 };
 
 // Method to add payment record
