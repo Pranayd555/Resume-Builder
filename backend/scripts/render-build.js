@@ -78,25 +78,46 @@ try {
     // Handle platform-specific dependencies for Linux deployment
     console.log('🔧 Handling platform-specific dependencies...');
     try {
-        // Rebuild sharp for Linux on Render
-        console.log('📦 Rebuilding sharp for Linux...');
-        execSync('npm rebuild sharp --platform=linux --arch=x64', {
+        // First, remove the existing sharp module completely
+        console.log('🗑️ Removing existing sharp module...');
+        const sharpPath = path.join(__dirname, '..', 'node_modules', 'sharp');
+        if (fs.existsSync(sharpPath)) {
+            fs.rmSync(sharpPath, { recursive: true, force: true });
+            console.log('✅ Removed existing sharp module');
+        }
+        
+        // Install sharp fresh for Linux
+        console.log('📦 Installing sharp for Linux...');
+        execSync('npm install sharp@latest --platform=linux --arch=x64 --no-save', {
             stdio: 'inherit',
             cwd: path.join(__dirname, '..'),
             timeout: 120000
         });
-        console.log('✅ Sharp rebuilt for Linux successfully');
+        console.log('✅ Sharp installed for Linux successfully');
+        
     } catch (error) {
-        console.log('⚠️ Sharp rebuild failed, trying reinstall...');
+        console.log('⚠️ Sharp installation failed, trying alternative approach...');
         try {
-            execSync('npm install sharp@latest --platform=linux --arch=x64 --no-save', {
+            // Try with optional dependencies
+            execSync('npm install sharp@latest --include=optional --no-save', {
                 stdio: 'inherit',
                 cwd: path.join(__dirname, '..'),
                 timeout: 120000
             });
-            console.log('✅ Sharp reinstalled for Linux successfully');
+            console.log('✅ Sharp installed with optional dependencies');
         } catch (installError) {
-            console.log('⚠️ Sharp reinstall failed, continuing with existing version...');
+            console.log('⚠️ Sharp installation failed, trying rebuild...');
+            try {
+                execSync('npm rebuild sharp --platform=linux --arch=x64', {
+                    stdio: 'inherit',
+                    cwd: path.join(__dirname, '..'),
+                    timeout: 120000
+                });
+                console.log('✅ Sharp rebuilt successfully');
+            } catch (rebuildError) {
+                console.log('❌ All sharp installation attempts failed');
+                console.log('📋 Sharp may not work correctly on this platform');
+            }
         }
     }
     

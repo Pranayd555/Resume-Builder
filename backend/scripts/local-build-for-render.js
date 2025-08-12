@@ -113,6 +113,13 @@ fetch-retry-maxtimeout=60000`;
     if (fs.existsSync(nodeModulesSrc)) {
         copyDirectory(nodeModulesSrc, nodeModulesDest);
         console.log('✅ Copied node_modules/');
+        
+        // Remove sharp module from deployment package (will be installed fresh on Render)
+        const sharpPath = path.join(nodeModulesDest, 'sharp');
+        if (fs.existsSync(sharpPath)) {
+            fs.rmSync(sharpPath, { recursive: true, force: true });
+            console.log('🗑️ Removed sharp module (will be installed fresh on Render)');
+        }
     }
     
     // Create directories
