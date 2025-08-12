@@ -641,7 +641,26 @@ router.get('/google/callback',
       const token = user.getSignedJwtToken();
 
       // Redirect to frontend with token
-      const redirectUrl = `${process.env.CLIENT_URL}/auth/callback?token=${token}`;
+      // Handle multiple CLIENT_URLs if needed
+      let clientUrl = process.env.CLIENT_URL;
+      
+      // If CLIENT_URL contains multiple URLs, use the first one
+      if (clientUrl && clientUrl.includes(',')) {
+        clientUrl = clientUrl.split(',')[0].trim();
+      }
+      
+      // Fallback to production URL if CLIENT_URL is not set
+      if (!clientUrl) {
+        clientUrl = 'https://resume-builder-pranay-das-projects.vercel.app';
+      }
+      
+      const redirectUrl = `${clientUrl}/auth/callback?token=${token}`;
+      
+      // Debug logging
+      logger.info(`Google OAuth redirect - Original CLIENT_URL: ${process.env.CLIENT_URL}`);
+      logger.info(`Google OAuth redirect - Using URL: ${clientUrl}`);
+      logger.info(`Google OAuth redirect - Full URL: ${redirectUrl}`);
+      
       res.redirect(redirectUrl);
     } catch (error) {
       logger.error('Google OAuth callback error:', error);
