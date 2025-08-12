@@ -1,291 +1,158 @@
 # CI/CD Pipeline Setup Guide
 
-This guide explains how to set up and use the CI/CD pipeline for the Resume Builder project.
+## GitHub Actions Setup
 
-## Overview
+### 1. Repository Secrets
 
-The CI/CD pipeline consists of multiple GitHub Actions workflows that handle:
+Add these secrets in your GitHub repository:
 
-- **Testing**: Unit tests, integration tests, and code quality checks
-- **Security**: Vulnerability scanning and dependency checks
-- **Building**: Frontend build and backend containerization
-- **Deployment**: Automated deployment to staging and production environments
-- **Monitoring**: Health checks and notifications
+**Go to:** `Settings` → `Secrets and variables` → `Actions`
 
-## Workflows
+#### Required Secrets:
 
-### 1. Main CI/CD Pipeline (`ci-cd.yml`)
+**For Backend (Render):**
+- `RENDER_TOKEN`
+  1. Go to [Render Dashboard](https://dashboard.render.com)
+  2. Click on your profile → `Account Settings`
+  3. Go to `API Keys` tab
+  4. Click `Create API Key`
+  5. Copy the token and add as `RENDER_TOKEN`
 
-**Triggers**: Push to `main`/`develop` branches, Pull Requests
+- `RENDER_SERVICE_ID`
+  1. Go to your Render service dashboard
+  2. Copy the service ID from the URL: `https://dashboard.render.com/web/[SERVICE_ID]`
+  3. Add as `RENDER_SERVICE_ID`
 
-**Jobs**:
-- **Backend Tests**: Runs tests with MongoDB service
-- **Frontend Tests & Build**: Runs tests and builds React app
-- **Security Scan**: Vulnerability scanning with Trivy
-- **Integration Tests**: End-to-end testing (main branch only)
-- **Deploy Staging**: Deploy to staging environment (develop branch)
-- **Deploy Production**: Deploy to production environment (main branch)
-- **Notify on Failure**: Send notifications on pipeline failures
+**For Frontend (Vercel):**
+- `VERCEL_TOKEN`
+  1. Go to [Vercel Dashboard](https://vercel.com/account/tokens)
+  2. Click `Create Token`
+  3. Give it a name (e.g., "GitHub Actions")
+  4. Copy the token and add as `VERCEL_TOKEN`
 
-### 2. Dependency Check (`dependency-check.yml`)
+- `VERCEL_ORG_ID`
+  1. Go to [Vercel Dashboard](https://vercel.com/account)
+  2. Click on your organization
+  3. Copy the Organization ID from the URL or settings
+  4. Add as `VERCEL_ORG_ID`
 
-**Triggers**: Weekly schedule, manual dispatch
+- `VERCEL_PROJECT_ID`
+  1. Go to your Vercel project dashboard
+  2. Copy the Project ID from the URL or settings
+  3. Add as `VERCEL_PROJECT_ID`
 
-**Jobs**:
-- **Check Dependencies**: Audit for vulnerabilities and outdated packages
-- **Update Dependencies**: Automated dependency updates with PR creation
+- `PROD_API_URL`
+  1. Your production backend URL (e.g., `https://your-app.onrender.com`)
+  2. Add as `PROD_API_URL`
 
-### 3. Code Quality (`code-quality.yml`)
+- `STAGING_API_URL`
+  1. Your staging backend URL (e.g., `https://your-app-staging.onrender.com`)
+  2. Add as `STAGING_API_URL`
 
-**Triggers**: Push to `main`/`develop` branches, Pull Requests
+### 2. Workflow File
 
-**Jobs**:
-- **Code Quality Checks**: Linting, formatting, and coverage reports
-- **SonarCloud Analysis**: Code quality analysis (optional)
+The `.github/workflows/deploy.yml` file is configured with:
+- Node.js 22
+- npm caching
+- Smart change detection
+- Dual platform deployment
+- Automatic deployment triggers
 
-### 4. Deployment (`deploy.yml`)
+### 3. Trigger Deployment
 
-**Triggers**: Push to `main`/`develop` branches, manual dispatch
+**Automatic:**
+- Push to `main` branch → Deploys to production
+- Push to `dev` branch → Deploys to staging
+- Workflow detects changes in `backend/` or `resume-builder/`
+- Deploys only what changed
 
-**Jobs**:
-- **Deploy to Heroku**: Backend deployment
-- **Deploy to Vercel**: Frontend deployment
-- **AWS Deployment**: Alternative deployment option
-- **Health Checks**: Post-deployment verification
-- **Notifications**: Deployment status notifications
+**Manual:**
+- Go to `Actions` tab
+- Select `🚀 Deploy to Render & Vercel` workflow
+- Click `Run workflow`
 
-## Setup Instructions
+## Platform Configuration
 
-### 1. GitHub Repository Setup
+### Render Configuration
 
-1. **Enable GitHub Actions**: Go to your repository → Settings → Actions → General → Allow all actions
-2. **Set up branch protection**: Go to Settings → Branches → Add rule for `main` branch
-   - Require status checks to pass before merging
-   - Require branches to be up to date before merging
-
-### 2. Environment Variables & Secrets
-
-Add the following secrets in your GitHub repository (Settings → Secrets and variables → Actions):
-
-#### Required Secrets
-
-```bash
-# Database
-TEST_MONGODB_URI=mongodb://localhost:27017/test
-
-# JWT Secrets
-JWT_SECRET=your-jwt-secret
-JWT_REFRESH_SECRET=your-jwt-refresh-secret
-
-# Email Configuration
-EMAIL_USER=your-email@gmail.com
-EMAIL_PASS=your-app-password
-
-# Stripe Configuration
-STRIPE_SECRET_KEY=sk_test_your-stripe-secret-key
-STRIPE_WEBHOOK_SECRET=whsec_your-webhook-secret
-
-# Cloudinary Configuration
-CLOUDINARY_CLOUD_NAME=your-cloudinary-cloud-name
-CLOUDINARY_API_KEY=your-cloudinary-api-key
-CLOUDINARY_API_SECRET=your-cloudinary-api-secret
+**Build Settings:**
+```
+Build Command: npm run render:build
+Start Command: npm start
 ```
 
-#### Deployment Platform Secrets
-
-**For Heroku:**
-```bash
-HEROKU_API_KEY=your-heroku-api-key
-HEROKU_EMAIL=your-heroku-email
-HEROKU_APP_NAME_PROD=your-prod-app-name
-HEROKU_APP_NAME_STAGING=your-staging-app-name
+**Environment Variables:**
+```
+NODE_ENV=production
+PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 ```
 
-**For Vercel:**
-```bash
-VERCEL_TOKEN=your-vercel-token
-VERCEL_ORG_ID=your-org-id
-VERCEL_PROJECT_ID=your-project-id
+### Vercel Configuration
+
+**Build Settings:**
+```
+Framework Preset: Create React App
+Build Command: npm run build
+Output Directory: build
+Install Command: npm ci
 ```
 
-**For AWS (optional):**
-```bash
-AWS_ACCESS_KEY_ID=your-aws-access-key
-AWS_SECRET_ACCESS_KEY=your-aws-secret-key
-AWS_REGION=us-east-1
+**Environment Variables:**
+```
+REACT_APP_API_URL=https://your-backend.onrender.com
+CI=false
 ```
 
-**For Notifications:**
-```bash
-SLACK_WEBHOOK_URL=your-slack-webhook-url
+**For Staging (dev branch):**
+```
+REACT_APP_API_URL=https://your-backend-staging.onrender.com
+CI=false
 ```
 
-#### Environment URLs
-```bash
-BACKEND_URL_PROD=https://your-backend-prod.herokuapp.com
-BACKEND_URL_STAGING=https://your-backend-staging.herokuapp.com
-FRONTEND_URL_PROD=https://your-frontend-prod.vercel.app
-FRONTEND_URL_STAGING=https://your-frontend-staging.vercel.app
+## Deployment Flow
+
+1. **Push to Git** → GitHub Actions triggers
+2. **Detect Changes** → Identifies what files changed
+3. **Deploy Backend** (if backend changed):
+   - Build deployment package
+   - Commit zip to repository
+   - Trigger Render deployment
+4. **Deploy Frontend** (if frontend changed):
+   - Build React app
+   - Deploy to Vercel
+5. **Summary** → Report deployment results
+
+## Smart Deployment Examples
+
+### Backend Only Changes (Production)
+```
+🔍 Backend files changed: backend/routes/auth.js
+✅ Backend deployed to Render (production) successfully
+⏭️ Frontend deployment skipped
 ```
 
-### 3. Environment Setup
+### Frontend Only Changes (Staging)
+```
+🔍 Frontend files changed: resume-builder/src/components/Header.js
+⏭️ Backend deployment skipped
+✅ Frontend deployed to Vercel (staging) successfully
+```
 
-Create environments in GitHub (Settings → Environments):
+### Full-Stack Changes (Production)
+```
+🔍 Backend files changed: backend/models/User.js
+🔍 Frontend files changed: resume-builder/src/services/api.js
+✅ Backend deployed to Render (production) successfully
+✅ Frontend deployed to Vercel (production) successfully
+```
 
-1. **staging**: For staging deployments
-2. **production**: For production deployments
+## Benefits
 
-Add environment-specific secrets and protection rules as needed.
-
-### 4. Local Development Setup
-
-#### Using Docker Compose
-
-1. **Clone the repository**:
-   ```bash
-   git clone <your-repo-url>
-   cd scrap
-   ```
-
-2. **Set up environment variables**:
-   ```bash
-   cp backend/env.template backend/.env
-   # Edit backend/.env with your configuration
-   ```
-
-3. **Start the development environment**:
-   ```bash
-   docker-compose up -d
-   ```
-
-4. **Access the applications**:
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:5000
-   - MongoDB: localhost:27017
-
-#### Manual Setup
-
-1. **Backend Setup**:
-   ```bash
-   cd backend
-   npm install
-   cp env.template .env
-   # Edit .env with your configuration
-   npm run dev
-   ```
-
-2. **Frontend Setup**:
-   ```bash
-   cd resume-builder
-   npm install
-   npm start
-   ```
-
-## Usage
-
-### Development Workflow
-
-1. **Create a feature branch**:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-
-2. **Make changes and commit**:
-   ```bash
-   git add .
-   git commit -m "feat: add new feature"
-   ```
-
-3. **Push to trigger CI**:
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-
-4. **Create Pull Request**: The CI pipeline will run automatically
-
-### Deployment Workflow
-
-1. **Staging Deployment**: Push to `develop` branch
-2. **Production Deployment**: Merge to `main` branch
-
-### Manual Actions
-
-1. **Run dependency check**: Go to Actions → Dependency Check → Run workflow
-2. **Manual deployment**: Go to Actions → Deploy → Run workflow
-
-## Monitoring & Troubleshooting
-
-### Pipeline Status
-
-- Check workflow runs: GitHub → Actions tab
-- View logs: Click on any job to see detailed logs
-- Download artifacts: Available in workflow run summary
-
-### Common Issues
-
-1. **Tests failing**: Check test logs and fix failing tests
-2. **Build failures**: Verify dependencies and build configuration
-3. **Deployment failures**: Check environment variables and platform credentials
-4. **Security vulnerabilities**: Review Trivy scan results and update dependencies
-
-### Health Checks
-
-The pipeline includes health checks for:
-- Backend API availability
-- Frontend application loading
-- Database connectivity
-
-### Notifications
-
-Configure notifications for:
-- Pipeline failures
-- Deployment status
-- Security alerts
-
-## Customization
-
-### Adding New Tests
-
-1. **Backend tests**: Add to `backend/` directory
-2. **Frontend tests**: Add to `resume-builder/src/` directory
-3. **Integration tests**: Add to `backend/tests/integration/`
-
-### Adding New Deployment Platforms
-
-1. Create a new job in `deploy.yml`
-2. Add platform-specific secrets
-3. Configure deployment steps
-
-### Modifying Workflow Triggers
-
-Edit the `on` section in workflow files to change when workflows run.
-
-## Security Considerations
-
-1. **Secrets Management**: Never commit secrets to the repository
-2. **Dependency Scanning**: Regularly review and update dependencies
-3. **Code Scanning**: Enable GitHub Code Scanning for additional security
-4. **Access Control**: Use environment protection rules for production
-
-## Performance Optimization
-
-1. **Caching**: Dependencies are cached between runs
-2. **Parallel Jobs**: Jobs run in parallel where possible
-3. **Artifact Management**: Build artifacts are shared between jobs
-4. **Resource Limits**: Jobs use minimal resources by default
-
-## Support
-
-For issues with the CI/CD pipeline:
-
-1. Check the GitHub Actions documentation
-2. Review workflow logs for specific error messages
-3. Verify environment variables and secrets
-4. Test locally before pushing changes
-
-## Additional Resources
-
-- [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [Docker Documentation](https://docs.docker.com/)
-- [Heroku Deployment Guide](https://devcenter.heroku.com/)
-- [Vercel Deployment Guide](https://vercel.com/docs) 
+- **Smart Detection**: Only deploys what changed
+- **Zero Manual Work**: Just push to Git
+- **Fast Deployments**: Parallel execution when possible
+- **Reliable**: Pre-built packages for backend
+- **Version Control**: Track all deployments
+- **Modern Stack**: Node.js 22+ features
+- **Clear Reporting**: Summary of all deployments 
