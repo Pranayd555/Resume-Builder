@@ -18,6 +18,7 @@
 const getEnvironment = () => {
   // Force production URL for now to fix the 404 issue
   return 'https://resume-builder-m5ef.onrender.com/api';
+  // return 'http://localhost:5000/api';
   
   // Original logic (commented out for debugging)
   // if (process.env.REACT_APP_API_URL) {
