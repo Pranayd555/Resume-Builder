@@ -121,6 +121,35 @@ try {
         }
     }
     
+    // Ensure Chromium is available for Puppeteer at runtime on Render
+    console.log('🌐 Ensuring Chromium is installed for Puppeteer...');
+    try {
+        // Allow Puppeteer to download Chromium even if env was set during local build
+        const cleanEnv = { ...process.env };
+        delete cleanEnv.PUPPETEER_SKIP_CHROMIUM_DOWNLOAD;
+
+        // Use Puppeteer's browsers installer (v21+) to fetch a Linux Chrome binary
+        execSync('npx --yes puppeteer@21.5.2 browsers install chrome', {
+            stdio: 'inherit',
+            cwd: path.join(__dirname, '..'),
+            timeout: 600000,
+            env: cleanEnv
+        });
+        console.log('✅ Chromium installed via Puppeteer');
+    } catch (chromeInstallError) {
+        console.log('⚠️ Puppeteer-managed Chromium install failed:', chromeInstallError.message);
+        console.log('🔄 Trying to install system chromium via apt-get (if available)...');
+        try {
+            execSync('apt-get update && apt-get install -y chromium-browser || apt-get install -y chromium', {
+                stdio: 'inherit',
+                timeout: 600000
+            });
+            console.log('✅ System chromium installed');
+        } catch (aptError) {
+            console.log('❌ Could not install Chromium via apt. Puppeteer may fail to launch if no browser is present.');
+        }
+    }
+    
     console.log('🚀 Ready to start application');
     
 } catch (error) {

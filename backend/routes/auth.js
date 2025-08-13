@@ -644,11 +644,6 @@ router.get('/google/callback',
       // Handle multiple CLIENT_URLs if needed
       let clientUrl = process.env.CLIENT_URL;
       
-      // If CLIENT_URL contains multiple URLs, use the first one
-      if (clientUrl && clientUrl.includes(',')) {
-        clientUrl = clientUrl.split(',')[0].trim();
-      }
-      
       // Fallback to production URL if CLIENT_URL is not set
       if (!clientUrl) {
         clientUrl = 'https://resume-builder-pranay-das-projects.vercel.app';

@@ -39,7 +39,6 @@ async function build() {
     process.env.NPM_CONFIG_PREFER_OFFLINE = 'true';
     process.env.NPM_CONFIG_NO_AUDIT = 'true';
     process.env.NPM_CONFIG_NO_OPTIONAL = 'true';
-    process.env.PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = 'true';
     
     try {
         execSync('npm install --only=production --no-audit --progress=false', {
