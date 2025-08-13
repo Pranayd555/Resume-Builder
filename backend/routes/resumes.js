@@ -145,13 +145,12 @@ router.post('/auto-save', [
       }
 
       if (!subscription.canCreateResume()) {
-        const currentUsage = subscription.usage.resumesCreated;
-        const limit = subscription.isTrialActive() ? 50 : subscription.features.resumeLimit;
+        const currentUsage = subscription.usage.resumesCreatedThisWeek || 0;
+        const limit = (subscription.plan === 'pro' || subscription.isTrialActive()) ? 7 : 3;
         const planName = subscription.plan === 'free' ? 'Free' : 'Pro';
-        
         return res.status(403).json({
           success: false,
-          error: `Resume creation limit reached. You have created ${currentUsage}/${limit} resumes on your ${planName} plan. Please upgrade your subscription to create more resumes.`,
+          error: `Weekly resume creation limit reached. You have created ${currentUsage}/${limit} resumes this week on your ${planName} plan.`,
           limitReached: true,
           currentUsage,
           limit,
@@ -618,7 +617,7 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
       });
     }
 
-    // Check if user can export PDF
+  // Check if user can export PDF (format access based on tier)
     if (!subscription.canExportFormat('pdf')) {
       return res.status(403).json({
         success: false,
@@ -626,13 +625,7 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
       });
     }
 
-    // Check export limits for non-unlimited plans
-    if (!subscription.features.unlimitedExports && subscription.usage.exportsThisMonth >= 20) {
-      return res.status(403).json({
-        success: false,
-        error: 'Export limit reached for this month. Please upgrade to Pro for unlimited exports.'
-      });
-    }
+  // Unlimited exports for both tiers per requirements (no weekly export limit)
 
     let resume = await Resume.findOne({
       _id: req.params.id,
@@ -963,7 +956,7 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
     
     await resume.save();
 
-    // Update subscription usage
+    // Track export usage weekly (for analytics; not enforcing limits)
     await subscription.incrementUsage('export');
 
     res.set({
@@ -1879,7 +1872,7 @@ router.post('/', [
     if (!subscription || !subscription.canCreateResume()) {
       return res.status(403).json({
         success: false,
-        error: 'Resume creation limit reached. Please upgrade your subscription.'
+        error: `Weekly resume creation limit reached (${subscription.plan === 'pro' || subscription.isTrialActive() ? 7 : 3}/week).`
       });
     }
 

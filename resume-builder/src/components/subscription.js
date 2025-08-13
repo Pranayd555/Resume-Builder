@@ -40,7 +40,11 @@ function Subscription() {
         }
 
         if (subscriptionResponse.success) {
-          setCurrentSubscription(subscriptionResponse.data.subscription);
+          // Store subscription plus weekly usage summary (if provided by backend)
+          setCurrentSubscription({
+            ...subscriptionResponse.data.subscription,
+            weekly: subscriptionResponse.data.weekly || null,
+          });
         }
 
         setLoading(false);
@@ -216,8 +220,8 @@ function Subscription() {
           </div>
         </div>
 
-        {/* Current Subscription Status */}
-        {currentSubscription && currentSubscription.plan !== 'free' && (
+        {/* Current Subscription Status - show for all users (including Free) */}
+        {currentSubscription && (
           <div className="mb-8">
             {/* Main Current Plan Card */}
             <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-2xl shadow-xl border border-blue-200/50">
@@ -262,24 +266,29 @@ function Subscription() {
                               ⏰ {currentSubscription.trialRemainingDays} days left
                             </span>
                           )}
+                          {currentSubscription.plan === 'free' && (
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                              Free plan
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
 
-                    {/* Usage Progress */}
+                    {/* Usage Progress (Weekly) */}
                     <div className="space-y-4">
                       <div>
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-sm font-medium text-gray-700">Resumes Created</span>
+                          <span className="text-sm font-medium text-gray-700">Resumes This Week</span>
                           <span className="text-sm text-gray-600">
-                            {currentSubscription.usage?.resumesCreated || 0} / {currentSubscription.features?.resumeLimit || 1}
+                            {(currentSubscription.weekly?.resumes?.used ?? 0)} / {(currentSubscription.weekly?.resumes?.limit ?? (currentSubscription.plan === 'pro' ? 7 : 3))}
                           </span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div 
                             className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
                             style={{ 
-                              width: `${Math.min(100, ((currentSubscription.usage?.resumesCreated || 0) / (currentSubscription.features?.resumeLimit || 1)) * 100)}%` 
+                              width: `${Math.min(100, (((currentSubscription.weekly?.resumes?.used ?? 0) / (currentSubscription.weekly?.resumes?.limit ?? (currentSubscription.plan === 'pro' ? 7 : 3))) * 100))}%` 
                             }}
                           ></div>
                         </div>
@@ -288,16 +297,16 @@ function Subscription() {
 
                       <div>
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-sm font-medium text-gray-700">Resumes Exported</span>
+                          <span className="text-sm font-medium text-gray-700">Exports This Week</span>
                           <span className="text-sm text-gray-600">
-                            {currentSubscription.usage?.exportsThisMonth || 0} / {currentSubscription.features?.resumeLimit || 1}
+                            {(currentSubscription.weekly?.exports?.used ?? 0)} / Unlimited
                           </span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div 
                             className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
                             style={{ 
-                              width: `${Math.min(100, ((currentSubscription.usage?.exportsThisMonth || 0) / (currentSubscription.features?.resumeLimit || 1)) * 100)}%` 
+                              width: `${Math.min(100, ((currentSubscription.weekly?.exports?.used ?? 0) * 5))}%` 
                             }}
                           ></div>
                         </div>
@@ -306,16 +315,16 @@ function Subscription() {
 
                       <div>
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-sm font-medium text-gray-700">AI Actions This Month</span>
+                          <span className="text-sm font-medium text-gray-700">AI Actions This Week</span>
                           <span className="text-sm text-gray-600">
-                            {currentSubscription.usage?.aiActionsThisMonth || 0} / {currentSubscription.features?.aiActionsLimit || 2}
+                            {(currentSubscription.weekly?.aiActions?.used ?? 0)} / {(currentSubscription.weekly?.aiActions?.limit ?? (currentSubscription.plan === 'pro' ? 20 : 0))}
                           </span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div 
                             className="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full transition-all duration-300"
                             style={{ 
-                              width: `${Math.min(100, ((currentSubscription.usage?.aiActionsThisMonth || 0) / (currentSubscription.features?.aiActionsLimit || 2)) * 100)}%` 
+                              width: `${Math.min(100, (((currentSubscription.weekly?.aiActions?.used ?? 0) / (currentSubscription.weekly?.aiActions?.limit ?? (currentSubscription.plan === 'pro' ? 20 : 0))) * 100))}%` 
                             }}
                           ></div>
                         </div>
