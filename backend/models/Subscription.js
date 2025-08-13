@@ -179,19 +179,19 @@ const subscriptionSchema = new mongoose.Schema({
   
   // Usage Tracking
   usage: {
-    resumesCreated: {
+    resumesCreatedThisWeek: {
       type: Number,
       default: 0
     },
-    exportsThisMonth: {
+    exportsThisWeek: {
       type: Number,
       default: 0
     },
-    aiActionsThisMonth: {
+    aiActionsThisWeek: {
       type: Number,
       default: 0
     },
-    lastResetDate: {
+    weekStartAtUtc: {
       type: Date,
       default: Date.now
     }
@@ -437,13 +437,24 @@ subscriptionSchema.pre('save', function(next) {
   next();
 });
 
-// Method to check if user can create resume
-subscriptionSchema.methods.canCreateResume = function() {
-  // Trial users get Pro limits
-  if (this.isTrialActive()) {
-    return this.usage.resumesCreated < 50; // Pro limit during trial
+// Ensure weekly window is aligned to Monday 00:00 IST; reset counters if week changed
+function ensureWeeklyWindow(subscriptionDoc) {
+  const { getIstWeekStartUtc } = require('../utils/istWeek');
+  const currentWeekStartUtc = getIstWeekStartUtc(new Date());
+  const stored = subscriptionDoc.usage?.weekStartAtUtc;
+  if (!stored || new Date(stored).getTime() !== currentWeekStartUtc.getTime()) {
+    subscriptionDoc.usage.weekStartAtUtc = currentWeekStartUtc;
+    subscriptionDoc.usage.resumesCreatedThisWeek = 0;
+    subscriptionDoc.usage.exportsThisWeek = 0;
+    subscriptionDoc.usage.aiActionsThisWeek = 0;
   }
-  return this.usage.resumesCreated < this.features.resumeLimit;
+}
+
+// Method to check if user can create resume (weekly)
+subscriptionSchema.methods.canCreateResume = function() {
+  ensureWeeklyWindow(this);
+  const weeklyLimit = this.plan === 'pro' || this.isTrialActive() ? 7 : 3;
+  return this.usage.resumesCreatedThisWeek < weeklyLimit;
 };
 
 // Method to check if user can access template
@@ -455,22 +466,20 @@ subscriptionSchema.methods.canAccessTemplate = function(templateTier) {
   return this.features.templateAccess.includes(templateTier);
 };
 
-// Method to check if user can export in format
+// Method to check if user can export in format (unlimited exports for both tiers)
 subscriptionSchema.methods.canExportFormat = function(format) {
-  // Trial users get all export formats
-  if (this.isTrialActive()) {
+  // Free: pdf only; Pro or trial: pdf + docx
+  if (this.isTrialActive() || this.plan === 'pro') {
     return ['pdf', 'docx'].includes(format);
   }
-  return this.features.exportFormats.includes(format);
+  return ['pdf'].includes(format);
 };
 
-// Method to check if user can use AI action
+// Method to check if user can use AI action (weekly)
 subscriptionSchema.methods.canUseAIAction = function() {
-  // Trial users get Pro AI limits
-  if (this.isTrialActive()) {
-    return this.usage.aiActionsThisMonth < 100; // Pro limit during trial
-  }
-  return this.usage.aiActionsThisMonth < this.features.aiActionsLimit;
+  ensureWeeklyWindow(this);
+  const weeklyLimit = this.plan === 'pro' || this.isTrialActive() ? 20 : 0;
+  return this.usage.aiActionsThisWeek < weeklyLimit;
 };
 
 // Method to check if export should have watermark
@@ -487,32 +496,20 @@ subscriptionSchema.methods.canStartTrial = function() {
   return !this.hasHadTrial && this.plan === 'free' && this.status !== 'trialing';
 };
 
-// Method to increment usage
+// Method to increment usage (weekly)
 subscriptionSchema.methods.incrementUsage = function(type) {
-  const now = new Date();
-  const lastReset = new Date(this.usage.lastResetDate);
-  
-  // Reset monthly counters if it's a new month
-  if (now.getMonth() !== lastReset.getMonth() || now.getFullYear() !== lastReset.getFullYear()) {
-    // Reset counters first
-    this.usage.exportsThisMonth = 0;
-    this.usage.aiActionsThisMonth = 0;
-    this.usage.lastResetDate = now;
-  }
-  
-  // Increment the appropriate counter
+  ensureWeeklyWindow(this);
   switch (type) {
     case 'resume':
-      this.usage.resumesCreated += 1;
+      this.usage.resumesCreatedThisWeek += 1;
       break;
     case 'export':
-      this.usage.exportsThisMonth += 1;
+      this.usage.exportsThisWeek += 1;
       break;
     case 'aiAction':
-      this.usage.aiActionsThisMonth += 1;
+      this.usage.aiActionsThisWeek += 1;
       break;
   }
-  
   return this.save();
 };
 

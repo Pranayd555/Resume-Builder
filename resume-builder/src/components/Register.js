@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE_URL } from '../config/api';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { validators } from '../models/dataModels';
@@ -358,7 +359,9 @@ function Register() {
               <div className="mt-6 grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => window.location.href = 'http://localhost:5000/api/auth/google'}
+                  onClick={() => {
+                    window.location.href = `${API_BASE_URL}/api/auth/google`;
+                  }}
                   className="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-xl shadow-sm text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all duration-200"
                   title="Sign up with Google"
                 >
@@ -373,7 +376,9 @@ function Register() {
 
                 <button
                   type="button"
-                  onClick={() => window.location.href = 'http://localhost:5000/api/auth/linkedin'}
+                  onClick={() => {
+                    window.location.href = `${API_BASE_URL}/api/auth/linkedin`;
+                  }}
                   className="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-xl shadow-sm text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all duration-200"
                   title="Sign up with LinkedIn"
                 >

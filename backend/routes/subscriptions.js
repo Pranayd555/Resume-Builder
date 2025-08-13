@@ -155,10 +155,28 @@ router.get('/current', protect, async (req, res) => {
       await subscription.recalculateResumeCount();
     }
 
+    // Compute current weekly window and limits
+    const weeklyLimit = subscription.plan === 'pro' || subscription.isTrialActive() ? 7 : 3;
+    const aiWeeklyLimit = subscription.plan === 'pro' || subscription.isTrialActive() ? 20 : 0;
+    const usage = subscription.usage || {};
     res.json({
       success: true,
       data: {
-        subscription
+        subscription,
+        weekly: {
+          resumes: {
+            used: usage.resumesCreatedThisWeek || 0,
+            limit: weeklyLimit
+          },
+          exports: {
+            used: usage.exportsThisWeek || 0,
+            limit: null // unlimited per requirements
+          },
+          aiActions: {
+            used: usage.aiActionsThisWeek || 0,
+            limit: aiWeeklyLimit
+          }
+        }
       }
     });
   } catch (error) {

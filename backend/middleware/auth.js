@@ -119,12 +119,10 @@ const checkResumeLimit = async (req, res, next) => {
     }
 
     if (!subscription.canCreateResume()) {
-      const limit = subscription.isTrialActive() ? 50 : subscription.features.resumeLimit;
-      const planType = subscription.isTrialActive() ? 'trial' : subscription.plan;
-      
+      const weeklyLimit = subscription.plan === 'pro' || subscription.isTrialActive() ? 7 : 3;
       return res.status(403).json({
         success: false,
-        error: `Resume creation limit reached (${limit}). ${subscription.isTrialActive() ? 'Upgrade to Pro plan to continue creating resumes.' : 'Please upgrade to Pro plan for unlimited resumes.'}`
+        error: `Weekly resume creation limit reached (${weeklyLimit}/week).`
       });
     }
 
@@ -160,12 +158,10 @@ const checkAIActionLimit = async (req, res, next) => {
     }
 
     if (!subscription.canUseAIAction()) {
-      const limit = subscription.isTrialActive() ? 100 : subscription.features.aiActionsLimit;
-      const planType = subscription.isTrialActive() ? 'trial' : subscription.plan;
-      
+      const limit = subscription.plan === 'pro' || subscription.isTrialActive() ? 20 : 0;
       return res.status(403).json({
         success: false,
-        error: `AI action limit reached (${limit}/month). ${subscription.isTrialActive() ? 'Upgrade to Pro plan to continue using AI features.' : 'Please upgrade to Pro plan for more AI actions.'}`
+        error: `Weekly AI action limit reached (${limit}/week).`
       });
     }
 
