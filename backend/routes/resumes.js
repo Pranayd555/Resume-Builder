@@ -11,6 +11,7 @@ const chromium = require('@sparticuz/chromium');
 const officegen = require('officegen');
 const fs = require('fs');
 const path = require('path');
+const sharp = require('sharp');
 
 const router = express.Router();
 
@@ -600,6 +601,204 @@ router.get('/:id/preview', protect, async (req, res) => {
       success: false,
       error: 'Server error'
     });
+  }
+});
+
+// @desc    Generate page-wise images from the exact PDF output (for mobile preview)
+// @route   GET /api/resumes/:id/preview/pdf-images
+// @access  Private
+router.get('/:id/preview/pdf-images', protect, async (req, res) => {
+  try {
+    let resume = await Resume.findOne({
+      _id: req.params.id,
+      user: req.user.id
+    }).populate('template');
+
+    if (!resume) {
+      return res.status(404).json({
+        success: false,
+        error: 'Resume not found'
+      });
+    }
+
+    // If a template is missing, align with the preview behavior by assigning default
+    if (!resume.template) {
+      const classicTemplate = await Template.findOne({
+        name: 'Classic Traditional',
+        'availability.isActive': true,
+        'availability.isPublic': true
+      });
+
+      if (classicTemplate) {
+        resume.template = classicTemplate._id;
+        resume.styling = {
+          ...classicTemplate.styling,
+          template: {
+            headerLevel: 'h3',
+            fontSize: 16,
+            lineSpacing: 1.5,
+            sectionSpacing: 5
+          }
+        };
+        await resume.save();
+        await resume.populate('template');
+      }
+    }
+
+    const renderer = new TemplateRenderer();
+    const resumeData = {
+      title: resume.title,
+      personalInfo: resume.personalInfo,
+      summary: resume.summary,
+      workExperience: resume.workExperience,
+      education: resume.education,
+      skills: resume.skills,
+      projects: resume.projects,
+      achievements: resume.achievements,
+      certifications: resume.certifications,
+      languages: resume.languages,
+      customFields: resume.customFields,
+      styling: resume.styling || {}
+    };
+
+    const renderResult = renderer.render(resume.template, resumeData);
+    if (!renderResult.success) {
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to render template: ' + renderResult.error
+      });
+    }
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>${resume.title}</title>
+          <style>
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              body { margin: 0; padding: 0; font-family: inherit; }
+              ${renderResult.css}
+              .resume, .resume-isolated-container .resume {
+                margin: 0 auto !important;
+                padding: 1in !important;
+                max-width: 8.5in !important;
+                background: white !important;
+              }
+              .resume-isolated-container { width: 100%; max-width: 8.5in; margin: 0 auto; }
+          </style>
+      </head>
+      <body>
+          ${renderResult.html}
+      </body>
+      </html>
+    `;
+
+    // Launch headless Chromium (Sparticuz on Linux, Puppeteer locally)
+    const isLinux = process.platform === 'linux';
+    let executablePath;
+    let launchArgs;
+    let defaultViewport;
+    let headlessOption;
+
+    if (isLinux) {
+      try {
+        executablePath = await chromium.executablePath();
+        launchArgs = chromium.args;
+        defaultViewport = chromium.defaultViewport;
+        headlessOption = chromium.headless;
+      } catch (e) {}
+    }
+
+    if (!executablePath) {
+      executablePath = typeof puppeteer.executablePath === 'function' ? puppeteer.executablePath() : undefined;
+      launchArgs = [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process'
+      ];
+      defaultViewport = null;
+      headlessOption = 'new';
+    }
+
+    const browser = await puppeteer.launch({
+      headless: headlessOption,
+      executablePath,
+      args: launchArgs,
+      defaultViewport
+    });
+
+    const page = await browser.newPage();
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+    await page.evaluateHandle('document.fonts.ready');
+    await page.emulateMediaType('print');
+
+    // Target A4 dimensions in CSS pixels at 96 DPI
+    const a4WidthCssPx = Math.ceil(8.27 * 96);
+    const a4HeightCssPx = Math.ceil(11.69 * 96);
+    const deviceScaleFactor = 2; // improve sharpness
+
+    await page.setViewport({
+      width: a4WidthCssPx,
+      height: a4HeightCssPx,
+      deviceScaleFactor
+    });
+
+    // Measure resume container
+    const rect = await page.evaluate(() => {
+      const el = document.querySelector('.resume') || document.querySelector('.resume-isolated-container .resume') || document.body;
+      const r = el.getBoundingClientRect();
+      return { x: Math.floor(r.left), y: Math.floor(r.top), width: Math.ceil(r.width), height: Math.ceil(r.height) };
+    });
+
+    const pages = [];
+    const totalHeight = rect.height;
+    const pageHeight = a4HeightCssPx;
+    const pageWidth = Math.min(a4WidthCssPx, rect.width);
+    let y = rect.y;
+    let index = 0;
+
+    while (y < rect.y + totalHeight) {
+      const remaining = rect.y + totalHeight - y;
+      const clipHeight = Math.floor(Math.min(pageHeight, remaining));
+      const buffer = await page.screenshot({
+        type: 'webp',
+        quality: 85,
+        clip: {
+          x: Math.max(0, rect.x),
+          y: Math.max(0, Math.floor(y)),
+          width: Math.floor(pageWidth),
+          height: clipHeight
+        }
+      });
+      const base64 = buffer.toString('base64');
+      pages.push({ index, mimeType: 'image/webp', dataUri: `data:image/webp;base64,${base64}` });
+      index += 1;
+      y += pageHeight;
+    }
+
+    await browser.close();
+
+    // Basic resume metadata for client UI
+    const meta = {
+      title: resume?.title || '',
+      template: resume?.template ? {
+        id: String(resume.template._id || ''),
+        name: resume.template.name || '',
+        category: resume.template.category || '',
+        tier: resume.template.availability?.tier || ''
+      } : null
+    };
+
+    return res.json({ success: true, data: { pageCount: pages.length, pages, meta } });
+  } catch (error) {
+    logger.error('Generate PDF images error:', error);
+    return res.status(500).json({ success: false, error: 'Server error' });
   }
 });
 
