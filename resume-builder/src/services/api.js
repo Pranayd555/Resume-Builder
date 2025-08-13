@@ -156,9 +156,11 @@ export const resumeAPI = {
     return response.data;
   },
 
-  // NEW: Generate resume preview
-  getPreview: async (resumeId) => {
-    const response = await api.get(`/resumes/${resumeId}/preview`);
+  // Removed HTML preview API in favor of image-based preview
+
+  // NEW: Generate page-wise images of the PDF for mobile preview
+  getPreviewPdfImages: async (resumeId) => {
+    const response = await api.get(`/resumes/${resumeId}/preview/pdf-images`);
     return response.data;
   },
 

@@ -8,37 +8,33 @@ function ResumePreview() {
   const { resumeId } = useParams();
   const navigate = useNavigate();
   const [resume, setResume] = useState(null);
-  const [renderedHtml, setRenderedHtml] = useState('');
-  const [renderedCss, setRenderedCss] = useState('');
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
   const [downloadFormat, setDownloadFormat] = useState('');
   const [showStylingControls, setShowStylingControls] = useState(false);
   const [hasTemplate, setHasTemplate] = useState(false);
+  const [pdfPages, setPdfPages] = useState([]);
+  const [previewMeta, setPreviewMeta] = useState(null);
 
   useEffect(() => {
     const fetchResumePreview = async () => {
       try {
         setLoading(true);
-        
-        // Fetch the rendered preview from the API
-        const previewResponse = await resumeAPI.getPreview(resumeId);
-        
-        if (previewResponse.success) {
-          setResume(previewResponse.data.resumeData);
-          setRenderedHtml(previewResponse.data.html);
-          setRenderedCss(previewResponse.data.css);
-          
-          // Set hasTemplate based on whether the resume has a template
-          setHasTemplate(!!previewResponse.data.resumeData?.template);
-          
-          // Show success message if template was automatically assigned
-          if (previewResponse.data.templateAssigned) {
-            toast.success('Classic Traditional template has been applied to your resume');
-          }
-        } else {
-          throw new Error(previewResponse.error || 'Failed to fetch resume preview');
+        // Fetch resume meta and image pages in parallel
+        const [resumeResp, imagesResp] = await Promise.all([
+          resumeAPI.getResumeById(resumeId),
+          resumeAPI.getPreviewPdfImages(resumeId)
+        ]);
+
+        if (resumeResp?.success !== false && resumeResp?.data) {
+          // Some endpoints return {success, data}, others return {data} directly
+          const r = resumeResp.data.resume || resumeResp.data;
+          setResume(r);
+          setHasTemplate(!!r?.template);
         }
+
+        setPdfPages(imagesResp.success ? (imagesResp.data.pages || []) : []);
+        setPreviewMeta(imagesResp.success ? (imagesResp.data.meta || null) : null);
       } catch (error) {
         const errorMessage = error.response?.data?.error || error.message || 'Download failed';
         toast.error(errorMessage);
@@ -101,13 +97,10 @@ function ResumePreview() {
       // Update the local resume state
       setResume(updatedResume);
       
-      // Fetch the updated preview with new styling
-      const previewResponse = await resumeAPI.getPreview(resumeId);
-      
-      if (previewResponse.success) {
-        setRenderedHtml(previewResponse.data.html);
-        setRenderedCss(previewResponse.data.css);
-      }
+      // Refresh image pages only
+      const imagesResp = await resumeAPI.getPreviewPdfImages(resumeId);
+      setPdfPages(imagesResp.success ? (imagesResp.data.pages || []) : []);
+      setPreviewMeta(imagesResp.success ? (imagesResp.data.meta || null) : null);
     } catch (error) {
       console.error('Error updating preview after styling change:', error);
     }
@@ -145,7 +138,8 @@ function ResumePreview() {
               {resume.title}
             </h1>
             <p className="text-gray-600 text-sm sm:text-lg">
-              Full template preview with all your data
+              {previewMeta?.template?.category ? `Category: ${previewMeta.template.category} • ` : ''}
+              {previewMeta?.template?.name ? `Template: ${previewMeta.template.name}` : 'Full template preview with all your data'}
             </p>
           </div>
           
@@ -289,170 +283,18 @@ function ResumePreview() {
                   </div>
                 ) : null} */}
 
-                {/* Rendered Template */}
-                {renderedHtml ? (
-                  <div className="template-preview-container">
-                    <style dangerouslySetInnerHTML={{ __html: renderedCss }} />
-                    <style dangerouslySetInnerHTML={{ __html: `
-                      .template-preview-container {
-                        width: 100%;
-                        max-width: 100%;
-                        overflow-x: auto;
-                        text-align: left;
-                      }
-                      .template-content {
-                        width: 100%;
-                        max-width: 100%;
-                        margin: 0 auto;
-                      }
-                      @media (min-width: 1280px) {
-                        .template-content {
-                          max-width: 800px;
-                        }
-                      }
-                      @media (min-width: 1536px) {
-                        .template-content {
-                          max-width: 900px;
-                        }
-                      }
-                      
-                      /* Ensure proper box-sizing for template content */
-                      .template-content * {
-                        box-sizing: border-box;
-                      }
-                      
-                      /* Ensure resume containers have consistent styling */
-                      .template-content .resume,
-                      .template-content .resume-isolated-container .resume {
-                        margin: 0 auto !important;
-                        padding: 1in !important;
-                        max-width: 8.5in !important;
-                        background: white !important;
-                      }
-                      
-                      /* Ensure all resume content is properly aligned */
-                      .template-content .resume-isolated-container {
-                        width: 100%;
-                        max-width: 8.5in;
-                        margin: 0 auto;
-                      }
-                      
-                      /* Ensure education section alignment is consistent - override template styles */
-                      .template-content .resume .edu-header,
-                      .template-content .resume-isolated-container .resume .edu-header,
-                      .template-content .classic-traditional .edu-header {
-                        display: flex !important;
-                        justify-content: space-between !important;
-                        align-items: baseline !important;
-                        margin-bottom: 2px !important;
-                      }
-                      
-                      .template-content .resume .edu-header strong,
-                      .template-content .resume-isolated-container .resume .edu-header strong,
-                      .template-content .classic-traditional .edu-header strong {
-                        font-size: 12px !important;
-                      }
-                      
-                      .template-content .resume .edu-header .dates,
-                      .template-content .resume-isolated-container .resume .edu-header .dates,
-                      .template-content .classic-traditional .edu-header .dates {
-                        font-size: 10px !important;
-                        font-style: italic !important;
-                      }
-                      
-                      /* Ensure job experience section alignment is consistent - override template styles */
-                      .template-content .resume .job-header,
-                      .template-content .resume-isolated-container .resume .job-header,
-                      .template-content .classic-traditional .job-header {
-                        display: flex !important;
-                        justify-content: space-between !important;
-                        align-items: baseline !important;
-                        margin-bottom: 2px !important;
-                      }
-                      
-                      .template-content .resume .job-header strong,
-                      .template-content .resume-isolated-container .resume .job-header strong,
-                      .template-content .classic-traditional .job-header strong {
-                        font-size: 12px !important;
-                      }
-                      
-                      .template-content .resume .job-header .dates,
-                      .template-content .resume-isolated-container .resume .job-header .dates,
-                      .template-content .classic-traditional .job-header .dates {
-                        font-size: 10px !important;
-                        font-style: italic !important;
-                      }
-                      
-                      /* Ensure contact information alignment is consistent - override template styles */
-                      .template-content .resume .contact-info,
-                      .template-content .resume-isolated-container .resume .contact-info,
-                      .template-content .classic-traditional .contact-info,
-                      .template-content .resume .header .contact-info,
-                      .template-content .resume-isolated-container .resume .header .contact-info,
-                      .template-content .classic-traditional .header .contact-info {
-                        text-align: center !important;
-                        font-size: 10px !important;
-                        line-height: 1.3 !important;
-                      }
-                      
-                      /* Ensure name alignment is consistent - override template styles */
-                      .template-content .resume .name,
-                      .template-content .resume-isolated-container .resume .name,
-                      .template-content .classic-traditional .name {
-                        text-align: center !important;
-                        font-size: 20px !important;
-                        font-weight: bold !important;
-                        margin-bottom: 8px !important;
-                        text-transform: uppercase !important;
-                        letter-spacing: 1px !important;
-                      }
-                      
-                      /* Force all text alignment to be consistent - highest priority */
-                      .template-content .resume *,
-                      .template-content .resume-isolated-container .resume *,
-                      .template-content .classic-traditional * {
-                        text-align: inherit !important;
-                      }
-                      
-                      /* Override any conflicting text-align properties */
-                      .template-content .resume h1,
-                      .template-content .resume h2,
-                      .template-content .resume h3,
-                      .template-content .resume-isolated-container .resume h1,
-                      .template-content .resume-isolated-container .resume h2,
-                      .template-content .resume-isolated-container .resume h3,
-                      .template-content .classic-traditional h1,
-                      .template-content .classic-traditional h2,
-                      .template-content .classic-traditional h3 {
-                        text-align: left !important;
-                      }
-                      
-                      /* Ensure specific elements maintain their intended alignment */
-                      .template-content .resume .header,
-                      .template-content .resume-isolated-container .resume .header,
-                      .template-content .classic-traditional .header {
-                        text-align: center !important;
-                      }
-                      
-                      /* Force all header content to be centered */
-                      .template-content .resume .header *,
-                      .template-content .resume-isolated-container .resume .header *,
-                      .template-content .classic-traditional .header * {
-                        text-align: center !important;
-                      }
-                      
-                      /* Ensure section headings are left-aligned */
-                      .template-content .resume section h2,
-                      .template-content .resume-isolated-container .resume section h2,
-                      .template-content .classic-traditional section h2 {
-                        text-align: left !important;
-                      }
-                    `}} />
-                    <div 
-                      key={`template-${resumeId}-${JSON.stringify(resume?.styling?.template)}`}
-                      className="template-content"
-                      dangerouslySetInnerHTML={{ __html: renderedHtml }}
-                    />
+                {/* Rendered Template - images only */}
+                {pdfPages.length > 0 ? (
+                  <div className="space-y-4">
+                    {pdfPages.map((p) => (
+                      <div key={`pdf-page-${p.index}`} className="mx-auto w-full max-w-[800px]">
+                        <img
+                          src={p.dataUri}
+                          alt={`Page ${p.index + 1}`}
+                          className="w-full h-auto rounded-lg shadow-lg border border-gray-200"
+                        />
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <div className="text-center py-12">
