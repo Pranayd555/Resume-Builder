@@ -25,22 +25,41 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle common errors
+// Normalize API error responses in one place and avoid duplicate UI toasts
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
+  (response) => response,
+  async (error) => {
+    // If the backend returned a Blob (e.g., when responseType is 'blob'), try to parse JSON error
+    if (error?.response?.data instanceof Blob) {
+      try {
+        const text = await error.response.data.text();
+        error.response.data = JSON.parse(text);
+      } catch (_) {
+        // Leave as-is if parsing fails
+      }
+    }
+
+    // Extract a single user-friendly message from backend
+    const backendMessage =
+      error?.response?.data?.error ||
+      (Array.isArray(error?.response?.data?.errors)
+        ? error.response.data.errors.map((e) => e.msg || e.message).join(', ')
+        : undefined) ||
+      error?.message ||
+      'An unexpected error occurred';
+
+    // Attach normalized message for callers to use
+    error.userMessage = backendMessage;
+
+    // Special handling for unauthorized: clear and redirect
     if (error.response?.status === 401) {
-      // Token expired or invalid
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
       window.location.href = '/login';
-    } else if (error.response?.status === 403) {
-      toast.error('Access denied. Please check your permissions.');
-    } else if (error.response?.status >= 500) {
-      toast.error('Server error. Please try again later.');
+      return; // stop
     }
+
+    // Do NOT toast here to prevent duplicate messages; components can toast using error.userMessage
     return Promise.reject(error);
   }
 );
