@@ -7,6 +7,7 @@ const Subscription = require('../models/Subscription');
 const TemplateRenderer = require('../utils/templateRenderer');
 const logger = require('../utils/logger');
 const puppeteer = require('puppeteer');
+const chromium = require('@sparticuz/chromium');
 const officegen = require('officegen');
 const fs = require('fs');
 const path = require('path');
@@ -626,7 +627,7 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
     }
 
     // Check export limits for non-unlimited plans
-    if (!subscription.features.unlimitedExports && subscription.usage.exportsThisMonth >= 10) {
+    if (!subscription.features.unlimitedExports && subscription.usage.exportsThisMonth >= 20) {
       return res.status(403).json({
         success: false,
         error: 'Export limit reached for this month. Please upgrade to Pro for unlimited exports.'
@@ -886,22 +887,44 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
       </html>
     `;
 
-    // Create PDF using Puppeteer
-    // Prefer Render/puppeteer-managed Chrome if available
-    const chromiumExecutablePath = process.env.PUPPETEER_EXECUTABLE_PATH ||
-      (typeof puppeteer.executablePath === 'function' ? puppeteer.executablePath() : undefined);
-    const browser = await puppeteer.launch({
-      headless: 'new',
-      executablePath: chromiumExecutablePath,
-      args: [
-        '--no-sandbox', 
-        '--disable-setuid-sandbox', 
+    // Create PDF using Puppeteer. Use Sparticuz Chromium on Linux (Render), fallback locally
+    const isLinux = process.platform === 'linux';
+    let executablePath;
+    let launchArgs;
+    let defaultViewport;
+    let headlessOption;
+
+    if (isLinux) {
+      try {
+        executablePath = await chromium.executablePath();
+        launchArgs = chromium.args;
+        defaultViewport = chromium.defaultViewport;
+        headlessOption = chromium.headless;
+      } catch (e) {
+        // Fall through to default Puppeteer on failure
+      }
+    }
+
+    if (!executablePath) {
+      executablePath = typeof puppeteer.executablePath === 'function' ? puppeteer.executablePath() : undefined;
+      launchArgs = [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
         '--disable-gpu',
         '--no-first-run',
         '--no-zygote',
         '--single-process'
-      ]
+      ];
+      defaultViewport = null;
+      headlessOption = 'new';
+    }
+
+    const browser = await puppeteer.launch({
+      headless: headlessOption,
+      executablePath,
+      args: launchArgs,
+      defaultViewport
     });
     
     const page = await browser.newPage();
@@ -1187,12 +1210,33 @@ router.get('/:id/download/docx', protect, async (req, res) => {
     `;
 
     // Convert HTML to DOCX using puppeteer and a custom approach
-    const docxChromiumPath = process.env.PUPPETEER_EXECUTABLE_PATH ||
-      (typeof puppeteer.executablePath === 'function' ? puppeteer.executablePath() : undefined);
+    const isLinuxDocx = process.platform === 'linux';
+    let docxExecutablePath;
+    let docxArgs;
+    let docxViewport;
+    let docxHeadless;
+
+    if (isLinuxDocx) {
+      try {
+        docxExecutablePath = await chromium.executablePath();
+        docxArgs = chromium.args;
+        docxViewport = chromium.defaultViewport;
+        docxHeadless = chromium.headless;
+      } catch (e) {}
+    }
+
+    if (!docxExecutablePath) {
+      docxExecutablePath = typeof puppeteer.executablePath === 'function' ? puppeteer.executablePath() : undefined;
+      docxArgs = ['--no-sandbox', '--disable-setuid-sandbox'];
+      docxViewport = null;
+      docxHeadless = 'new';
+    }
+
     const browser = await puppeteer.launch({
-      headless: 'new',
-      executablePath: docxChromiumPath,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      headless: docxHeadless,
+      executablePath: docxExecutablePath,
+      args: docxArgs,
+      defaultViewport: docxViewport
     });
     
     const page = await browser.newPage();
