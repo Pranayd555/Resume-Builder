@@ -399,6 +399,11 @@ export const feedbackAPI = {
 
 // Helper functions
 export const apiHelpers = {
+  //normalize url
+  normalizeUrl: (url) => {
+    return url.replace('http://localhost:5000', 'https://resume-builder-m5ef.onrender.com');
+  },
+
   // Set auth token
   setAuthToken: (token) => {
     if (token) {

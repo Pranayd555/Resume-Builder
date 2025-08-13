@@ -29,7 +29,18 @@ function TemplateSelection() {
       const response = await templateAPI.getTemplates();
       
       if (response.success) {
-        const templates = response.data.templates || [];
+        const templates = response.data.templates.map(t => {
+          return {
+            ...t,
+            preview: {
+              ...t.preview,
+              thumbnail: {
+                ...t.preview.thumbnail,
+                url: apiHelpers.normalizeUrl(t.preview.thumbnail.url)
+              }
+            }
+          }
+        }) || [];
         setTemplates(templates);
       } else {
         throw new Error(response.error || 'Failed to fetch templates');
