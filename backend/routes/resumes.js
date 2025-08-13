@@ -887,8 +887,12 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
     `;
 
     // Create PDF using Puppeteer
+    // Prefer Render/puppeteer-managed Chrome if available
+    const chromiumExecutablePath = process.env.PUPPETEER_EXECUTABLE_PATH ||
+      (typeof puppeteer.executablePath === 'function' ? puppeteer.executablePath() : undefined);
     const browser = await puppeteer.launch({
       headless: 'new',
+      executablePath: chromiumExecutablePath,
       args: [
         '--no-sandbox', 
         '--disable-setuid-sandbox', 
@@ -1183,8 +1187,11 @@ router.get('/:id/download/docx', protect, async (req, res) => {
     `;
 
     // Convert HTML to DOCX using puppeteer and a custom approach
+    const docxChromiumPath = process.env.PUPPETEER_EXECUTABLE_PATH ||
+      (typeof puppeteer.executablePath === 'function' ? puppeteer.executablePath() : undefined);
     const browser = await puppeteer.launch({
       headless: 'new',
+      executablePath: docxChromiumPath,
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
     
