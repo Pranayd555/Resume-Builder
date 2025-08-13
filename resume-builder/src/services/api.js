@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { toast } from 'react-toastify';
 import { API_BASE_URL } from '../config/api';
 
 // Create axios instance with base configuration
