@@ -405,17 +405,20 @@ export const feedbackAPI = {
 // Helper functions
 export const apiHelpers = {
   //normalize url
-  normalizeUrl: (url) => {
-    try {
-      // Align asset URLs (e.g., /thumbnails/...) to the same origin as the API base URL
-      const apiOrigin = new URL(API_BASE_URL).origin;
-      // Resolve relative URLs against API origin, keep absolute paths but swap to API origin
-      const resolved = new URL(url, apiOrigin);
-      return resolved.href;
-    } catch (_) {
-      return url;
-    }
-  },
+    normalizeUrl: (url) => {
+      try {
+        // Ensure any localhost:5000 absolute URL is swapped to our backend origin
+        const apiOrigin = new URL(API_BASE_URL).origin;
+        const resolved = new URL(url, apiOrigin); // resolves relative paths against apiOrigin
+        const isLocalhost5000 = resolved.origin.startsWith('http://localhost:5000');
+        if (isLocalhost5000) {
+          return `${apiOrigin}${resolved.pathname}${resolved.search || ''}${resolved.hash || ''}`;
+        }
+        return resolved.href;
+      } catch (_) {
+        return url;
+      }
+    },
 
   // Set auth token
   setAuthToken: (token) => {
