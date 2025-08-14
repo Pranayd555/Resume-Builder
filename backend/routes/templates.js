@@ -358,7 +358,7 @@ router.post('/seed', protect, authorize('admin'), async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 12;
+    const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
     const category = req.query.category;
     const tier = req.query.tier;

@@ -1192,6 +1192,277 @@ const seedAllTemplates = async () => {
         },
         creator: adminUser._id,
         tags: ['academic', 'research', 'education', 'scholarly', 'single-column', 'green']
+      },
+
+
+      {
+        "name": "Sleek Professional",
+        "description": "Corporate-friendly two-column layout with clean lines and ATS-optimized formatting.",
+        "category": "professional",
+        "preview": { "thumbnail": { "url": "placeholder-will-be-replaced-by-puppeteer" } },
+        "layout": {
+          "type": "two-column",
+          "sections": [
+            { "name": "personalInfo", "position": 1, "isRequired": true, "isVisible": true },
+            { "name": "skills", "position": 2, "isRequired": false, "isVisible": true },
+            { "name": "summary", "position": 3, "isRequired": false, "isVisible": true },
+            { "name": "workExperience", "position": 4, "isRequired": false, "isVisible": true },
+            { "name": "education", "position": 5, "isRequired": false, "isVisible": true },
+            { "name": "certifications", "position": 6, "isRequired": false, "isVisible": true },
+            { "name": "languages", "position": 7, "isRequired": false, "isVisible": true }
+          ]
+        },
+        "styling": {
+          "colors": {
+            "primary": "#0f172a",
+            "secondary": "#475569",
+            "accent": "#2563eb",
+            "text": "#1e293b",
+            "background": "#ffffff"
+          },
+          "fonts": {
+            "primary": "Lato",
+            "secondary": "Lato",
+            "sizes": { "heading": 22, "subheading": 16, "body": 11, "small": 10 }
+          }
+        },
+        "availability": { "tier": "free", "isPublic": true, "isActive": true },
+        "templateCode": {
+          "html": "<div class=\"resume sleek-professional\"><header class=\"header\"><h1 class=\"name\">{{personalInfo.fullName}}</h1><div class=\"contact-info\"><span>{{personalInfo.email}}</span>{{#if personalInfo.phone}}<span>{{personalInfo.phone}}</span>{{/if}}{{#if personalInfo.address}}<span>{{personalInfo.address}}</span>{{/if}}{{#if personalInfo.website}}<span>{{personalInfo.website}}</span>{{/if}}</div></header>{{#if summary}}<section class=\"summary\"><h2>Summary</h2><p>{{summary}}</p></section>{{/if}}{{#if skills}}<section class=\"skills\"><h2>Skills</h2>{{#each skills}}<div class=\"skill-category\"><strong>{{category}}:</strong> {{#each items}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/each}}</section>{{/if}}{{#if workExperience}}<section class=\"experience\"><h2>Experience</h2>{{#each workExperience}}<div class=\"job\"><div class=\"job-header\"><strong>{{jobTitle}}</strong><span class=\"dates\">{{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div><div class=\"company\">{{company}}{{#if location}} • {{location}}{{/if}}</div>{{#if description}}<p>{{description}}</p>{{/if}}{{#if achievements}}<ul>{{#each achievements}}<li>{{this}}</li>{{/each}}</ul>{{/if}}</div>{{/each}}</section>{{/if}}{{#if education}}<section class=\"education\"><h2>Education</h2>{{#each education}}<div class=\"edu\"><div class=\"edu-header\"><strong>{{degree}}</strong><span class=\"dates\">{{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div><div class=\"institution\">{{institution}}{{#if location}} • {{location}}{{/if}}</div>{{#if gpa}}<div class=\"gpa\">GPA: {{gpa}}</div>{{/if}}{{#if description}}<p>{{description}}</p>{{/if}}</div>{{/each}}</section>{{/if}}{{#if certifications}}<section class=\"certifications\"><h2>Certifications</h2>{{#each certifications}}<div class=\"cert\"><strong>{{name}}</strong>{{#if issuer}}<span> • {{issuer}}</span>{{/if}}{{#if date}}<div class=\"dates\">{{formatDate date}}</div>{{/if}}</div>{{/each}}</section>{{/if}}{{#if languages}}<section class=\"languages\"><h2>Languages</h2>{{#each languages}}<div class=\"lang\"><span>{{name}}</span> - <span>{{proficiency}}</span></div>{{/each}}</section>{{/if}}</div>",
+          "css": ".resume.sleek-professional { font-family: 'Lato', sans-serif; background: #ffffff; color: #1e293b; padding: 24px; } .header { margin-bottom: 12px; } .name { font-size: 22px; margin: 0 0 6px; } .contact-info { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: #475569; } section { margin-top: 12px; } h2 { font-size: 14px; margin: 0 0 8px; color: #2563eb; } .job-header, .edu-header { display: flex; justify-content: space-between; font-size: 12px; color: #334155; } .company, .institution { font-size: 12px; color: #475569; } .dates { font-size: 11px; color: #64748b; }"
+        },
+        creator: adminUser._id,
+        "tags": ["professional", "corporate", "ats", "clean"]
+      },
+      {
+        "name": "Creative Portfolio",
+        "description": "Vibrant single-column design with featured projects at the top.",
+        "category": "creative",
+        "preview": { "thumbnail": { "url": "placeholder-will-be-replaced-by-puppeteer" } },
+        "layout": {
+          "type": "single-column",
+          "sections": [
+            { "name": "personalInfo", "position": 1, "isRequired": true, "isVisible": true },
+            { "name": "projects", "position": 2, "isRequired": false, "isVisible": true },
+            { "name": "skills", "position": 3, "isRequired": false, "isVisible": true },
+            { "name": "summary", "position": 4, "isRequired": false, "isVisible": true },
+            { "name": "workExperience", "position": 5, "isRequired": false, "isVisible": true },
+            { "name": "education", "position": 6, "isRequired": false, "isVisible": true },
+            { "name": "customFields", "position": 7, "isRequired": false, "isVisible": true }
+          ]
+        },
+        "styling": {
+          "colors": {
+            "primary": "#9333ea",
+            "secondary": "#f472b6",
+            "accent": "#14b8a6",
+            "text": "#111827",
+            "background": "#fdf4ff"
+          },
+          "fonts": {
+            "primary": "Poppins",
+            "secondary": "Open Sans",
+            "sizes": { "heading": 26, "subheading": 18, "body": 12, "small": 10 }
+          }
+        },
+        "availability": { "tier": "pro", "isPublic": true, "isActive": true },
+        "templateCode": {
+          "html": "<div class=\"resume creative-portfolio\"><header class=\"header\"><h1 class=\"name\">{{personalInfo.fullName}}</h1><div class=\"contact\"><span>{{personalInfo.email}}</span>{{#if personalInfo.website}}<span>{{personalInfo.website}}</span>{{/if}}</div></header>{{#if summary}}<section class=\"summary\"><h2>Summary</h2><p>{{summary}}</p></section>{{/if}}{{#if projects}}<section class=\"projects\"><h2>Featured Projects</h2>{{#each projects}}<div class=\"project\"><h3>{{name}}</h3>{{#if description}}<p>{{description}}</p>{{/if}}{{#if technologies}}<div class=\"tech\">{{#each technologies}}<span>{{this}}</span>{{/each}}</div>{{/if}}{{#if url}}<div class=\"links\"><a href=\"{{url}}\">View</a></div>{{/if}}</div>{{/each}}</section>{{/if}}{{#if skills}}<section class=\"skills\"><h2>Skills</h2>{{#each skills}}<div><strong>{{category}}:</strong> {{#each items}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/each}}</section>{{/if}}{{#if workExperience}}<section class=\"experience\"><h2>Experience</h2>{{#each workExperience}}<div class=\"job\"><div class=\"job-header\"><strong>{{jobTitle}}</strong><span class=\"dates\">{{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div><div class=\"company\">{{company}}{{#if location}} • {{location}}{{/if}}</div>{{#if description}}<p>{{description}}</p>{{/if}}</div>{{/each}}</section>{{/if}}{{#if education}}<section class=\"education\"><h2>Education</h2>{{#each education}}<div class=\"edu\"><div class=\"edu-header\"><strong>{{degree}}</strong><span class=\"dates\">{{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div><div class=\"institution\">{{institution}}{{#if location}} • {{location}}{{/if}}</div></div>{{/each}}</section>{{/if}}{{#if customFields}}<section class=\"custom-fields\"><h2>Additional</h2>{{#each customFields}}<div class=\"field\"><h3>{{title}}</h3><div>{{content}}</div></div>{{/each}}</section>{{/if}}</div>",
+          "css": ".resume.creative-portfolio { font-family: 'Poppins', sans-serif; background: #fdf4ff; color: #111827; padding: 24px; } .header { margin-bottom: 12px; } .name { font-size: 24px; margin: 0 0 6px; color: #9333ea; } .contact { display: flex; gap: 12px; color: #6b21a8; font-size: 12px; } h2 { color: #9333ea; font-size: 14px; margin: 12px 0 6px; } .project h3 { margin: 0 0 4px; font-size: 13px; } .tech span { background: #f472b6; color: white; padding: 2px 6px; border-radius: 10px; margin-right: 4px; font-size: 10px; }"
+        },
+        creator: adminUser._id,
+        "tags": ["creative", "portfolio", "designer", "colorful"]
+      },
+      {
+        "name": "Dark Mode Developer",
+        "description": "Bold dark-themed design with monospace accents and neon highlights.",
+        "category": "modern",
+        "preview": { "thumbnail": { "url": "placeholder-will-be-replaced-by-puppeteer" } },
+        "layout": {
+          "type": "two-column",
+          "sections": [
+            { "name": "personalInfo", "position": 1, "isRequired": true, "isVisible": true },
+            { "name": "skills", "position": 2, "isRequired": false, "isVisible": true },
+            { "name": "summary", "position": 3, "isRequired": false, "isVisible": true },
+            { "name": "workExperience", "position": 4, "isRequired": false, "isVisible": true },
+            { "name": "projects", "position": 5, "isRequired": false, "isVisible": true },
+            { "name": "education", "position": 6, "isRequired": false, "isVisible": true },
+            { "name": "languages", "position": 7, "isRequired": false, "isVisible": true }
+          ]
+        },
+        "styling": {
+          "colors": {
+            "primary": "#38bdf8",
+            "secondary": "#0ea5e9",
+            "accent": "#a855f7",
+            "text": "#f8fafc",
+            "background": "#0f172a"
+          },
+          "fonts": {
+            "primary": "Inter",
+            "secondary": "JetBrains Mono",
+            "sizes": { "heading": 24, "subheading": 16, "body": 11, "small": 10 }
+          }
+        },
+        "availability": { "tier": "free", "isPublic": true, "isActive": true },
+        "templateCode": {
+          "html": "<div class=\"resume dark-mode-dev\"><header class=\"header\"><h1 class=\"name\">{{personalInfo.fullName}}</h1><div class=\"contact\"><span>{{personalInfo.email}}</span>{{#if personalInfo.linkedin}}<span>{{personalInfo.linkedin}}</span>{{/if}}</div></header>{{#if summary}}<section><h2>Summary</h2><p>{{summary}}</p></section>{{/if}}{{#if skills}}<section><h2>Technical Skills</h2>{{#each skills}}<div><strong>{{category}}:</strong> {{#each items}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/each}}</section>{{/if}}{{#if workExperience}}<section><h2>Experience</h2>{{#each workExperience}}<div class=\"job\"><div class=\"job-header\"><strong>{{jobTitle}}</strong><span class=\"dates\">{{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div><div class=\"company\">{{company}}{{#if location}} • {{location}}{{/if}}</div>{{#if description}}<p>{{description}}</p>{{/if}}</div>{{/each}}</section>{{/if}}{{#if projects}}<section><h2>Projects</h2>{{#each projects}}<div class=\"project\"><strong>{{name}}</strong>{{#if description}}<p>{{description}}</p>{{/if}}</div>{{/each}}</section>{{/if}}{{#if education}}<section><h2>Education</h2>{{#each education}}<div class=\"edu\"><div class=\"edu-header\"><strong>{{degree}}</strong><span class=\"dates\">{{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div><div class=\"institution\">{{institution}}</div></div>{{/each}}</section>{{/if}}{{#if languages}}<section><h2>Languages</h2>{{#each languages}}<div>{{name}} - {{proficiency}}</div>{{/each}}</section>{{/if}}</div>",
+          "css": ".resume.dark-mode-dev { font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; padding: 24px; } .name { color: #38bdf8; margin: 0 0 6px; } .contact { display: flex; gap: 12px; color: #a855f7; font-size: 12px; } h2 { color: #38bdf8; font-size: 14px; margin: 12px 0 6px; }"
+        },
+        creator: adminUser._id,
+        "tags": ["dark", "developer", "tech", "modern"]
+      },
+      {
+        "name": "Elegant Minimal",
+        "description": "Minimalist single-column layout with soft colors and elegant typography.",
+        "category": "modern",
+        "preview": { "thumbnail": { "url": "placeholder-will-be-replaced-by-puppeteer" } },
+        "layout": {
+          "type": "single-column",
+          "sections": [
+            { "name": "personalInfo", "position": 1, "isRequired": true, "isVisible": true },
+            { "name": "summary", "position": 2, "isRequired": false, "isVisible": true },
+            { "name": "workExperience", "position": 3, "isRequired": false, "isVisible": true },
+            { "name": "education", "position": 4, "isRequired": false, "isVisible": true },
+            { "name": "skills", "position": 5, "isRequired": false, "isVisible": true },
+            { "name": "languages", "position": 6, "isRequired": false, "isVisible": true }
+          ]
+        },
+        "styling": {
+          "colors": {
+            "primary": "#374151",
+            "secondary": "#9ca3af",
+            "accent": "#10b981",
+            "text": "#111827",
+            "background": "#ffffff"
+          },
+          "fonts": {
+            "primary": "Merriweather",
+            "secondary": "Open Sans",
+            "sizes": { "heading": 24, "subheading": 18, "body": 12, "small": 10 }
+          }
+        },
+        "availability": { "tier": "free", "isPublic": true, "isActive": true },
+        "templateCode": {
+          "html": "<div class=\"resume elegant-minimal\"><header class=\"header\"><h1 class=\"name\">{{personalInfo.fullName}}</h1><div class=\"contact\"><span>{{personalInfo.email}}</span>{{#if personalInfo.phone}}<span>{{personalInfo.phone}}</span>{{/if}}</div></header>{{#if summary}}<section><h2>Summary</h2><p>{{summary}}</p></section>{{/if}}{{#if workExperience}}<section><h2>Experience</h2>{{#each workExperience}}<div class=\"job\"><div class=\"job-header\"><strong>{{jobTitle}}</strong><span class=\"dates\">{{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div><div class=\"company\">{{company}}{{#if location}} • {{location}}{{/if}}</div>{{#if description}}<p>{{description}}</p>{{/if}}</div>{{/each}}</section>{{/if}}{{#if education}}<section><h2>Education</h2>{{#each education}}<div class=\"edu\"><div class=\"edu-header\"><strong>{{degree}}</strong><span class=\"dates\">{{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div><div class=\"institution\">{{institution}}</div></div>{{/each}}</section>{{/if}}{{#if skills}}<section><h2>Skills</h2>{{#each skills}}<div><strong>{{category}}:</strong> {{#each items}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/each}}</section>{{/if}}{{#if languages}}<section><h2>Languages</h2>{{#each languages}}<div>{{name}} - {{proficiency}}</div>{{/each}}</section>{{/if}}</div>",
+          "css": ".resume.elegant-minimal { font-family: 'Merriweather', serif; background: #ffffff; color: #111827; padding: 24px; } .name { font-size: 24px; margin: 0 0 6px; } .contact { display: flex; gap: 12px; color: #6b7280; font-size: 12px; } h2 { font-size: 14px; margin: 12px 0 6px; color: #10b981; } .dates { font-size: 11px; color: #6b7280; }"
+        },
+        creator: adminUser._id,
+        "tags": ["minimal", "modern", "clean", "professional"]
+      },
+      {
+        "name": "Bold Accent",
+        "description": "Single-column resume with strong header bar and bold accent color for headings.",
+        "category": "modern",
+        "preview": { "thumbnail": { "url": "placeholder-will-be-replaced-by-puppeteer" } },
+        "layout": {
+          "type": "single-column",
+          "sections": [
+            { "name": "personalInfo", "position": 1, "isRequired": true, "isVisible": true },
+            { "name": "summary", "position": 2, "isRequired": false, "isVisible": true },
+            { "name": "skills", "position": 3, "isRequired": false, "isVisible": true },
+            { "name": "workExperience", "position": 4, "isRequired": false, "isVisible": true },
+            { "name": "projects", "position": 5, "isRequired": false, "isVisible": true },
+            { "name": "education", "position": 6, "isRequired": false, "isVisible": true }
+          ]
+        },
+        "styling": {
+          "colors": {
+            "primary": "#ef4444",
+            "secondary": "#fca5a5",
+            "accent": "#ef4444",
+            "text": "#1f2937",
+            "background": "#ffffff"
+          },
+          "fonts": {
+            "primary": "Montserrat",
+            "secondary": "Open Sans",
+            "sizes": { "heading": 26, "subheading": 18, "body": 12, "small": 10 }
+          }
+        },
+        "availability": { "tier": "pro", "isPublic": true, "isActive": true },
+        "templateCode": {
+          "html": "<div class=\"resume bold-accent\"><header class=\"header\"><h1 class=\"name\">{{personalInfo.fullName}}</h1><div class=\"contact\"><span>{{personalInfo.email}}</span>{{#if personalInfo.phone}}<span>{{personalInfo.phone}}</span>{{/if}}</div></header>{{#if summary}}<section><h2>Professional Summary</h2><p>{{summary}}</p></section>{{/if}}{{#if skills}}<section><h2>Core Skills</h2>{{#each skills}}<div><strong>{{category}}:</strong> {{#each items}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/each}}</section>{{/if}}{{#if workExperience}}<section><h2>Experience</h2>{{#each workExperience}}<div class=\"job\"><div class=\"job-header\"><strong>{{jobTitle}}</strong><span class=\"dates\">{{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div><div class=\"company\">{{company}}{{#if location}} • {{location}}{{/if}}</div>{{#if description}}<p>{{description}}</p>{{/if}}</div>{{/each}}</section>{{/if}}{{#if projects}}<section><h2>Projects</h2>{{#each projects}}<div class=\"project\"><strong>{{name}}</strong>{{#if description}}<p>{{description}}</p>{{/if}}</div>{{/each}}</section>{{/if}}{{#if education}}<section><h2>Education</h2>{{#each education}}<div class=\"edu\"><div class=\"edu-header\"><strong>{{degree}}</strong><span class=\"dates\">{{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div><div class=\"institution\">{{institution}}</div></div>{{/each}}</section>{{/if}}</div>",
+          "css": ".resume.bold-accent { font-family: 'Montserrat', sans-serif; background: #ffffff; color: #1f2937; padding: 24px; } .name { font-size: 24px; margin: 0 0 6px; color: #ef4444; } .contact { display: flex; gap: 12px; color: #ef4444; font-size: 12px; } h2 { color: #ef4444; font-size: 14px; margin: 12px 0 6px; }"
+        },
+        creator: adminUser._id,
+        "tags": ["bold", "modern", "accent", "colorful"]
+      },
+      {
+        "name": "Classic Serif",
+        "description": "Traditional serif design for academic or formal applications.",
+        "category": "classic",
+        "preview": { "thumbnail": { "url": "placeholder-will-be-replaced-by-puppeteer" } },
+        "layout": {
+          "type": "single-column",
+          "sections": [
+            { "name": "personalInfo", "position": 1, "isRequired": true, "isVisible": true },
+            { "name": "summary", "position": 2, "isRequired": false, "isVisible": true },
+            { "name": "education", "position": 3, "isRequired": false, "isVisible": true },
+            { "name": "workExperience", "position": 4, "isRequired": false, "isVisible": true },
+            { "name": "achievements", "position": 5, "isRequired": false, "isVisible": true },
+            { "name": "languages", "position": 6, "isRequired": false, "isVisible": true }
+          ]
+        },
+        "styling": {
+          "colors": {
+            "primary": "#1f2937",
+            "secondary": "#6b7280",
+            "accent": "#4b5563",
+            "text": "#111827",
+            "background": "#ffffff"
+          },
+          "fonts": {
+            "primary": "Times New Roman",
+            "secondary": "Georgia",
+            "sizes": { "heading": 24, "subheading": 18, "body": 12, "small": 10 }
+          }
+        },
+        "availability": { "tier": "free", "isPublic": true, "isActive": true },
+        "templateCode": {
+          "html": "<div class=\"resume classic-serif\"><header class=\"header\"><h1 class=\"name\">{{personalInfo.fullName}}</h1><div class=\"contact\">{{personalInfo.email}}{{#if personalInfo.phone}} | {{personalInfo.phone}}{{/if}}</div></header>{{#if summary}}<section><h2>Objective</h2><p>{{summary}}</p></section>{{/if}}{{#if education}}<section><h2>Education</h2>{{#each education}}<div class=\"edu\"><div class=\"edu-header\"><strong>{{degree}}</strong><span class=\"dates\">{{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div><div class=\"institution\">{{institution}}{{#if location}} • {{location}}{{/if}}</div></div>{{/each}}</section>{{/if}}{{#if workExperience}}<section><h2>Experience</h2>{{#each workExperience}}<div class=\"job\"><div class=\"job-header\"><strong>{{jobTitle}}</strong><span class=\"dates\">{{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div><div class=\"company\">{{company}}</div>{{#if description}}<p>{{description}}</p>{{/if}}{{#if achievements}}<ul>{{#each achievements}}<li>{{this}}</li>{{/each}}</ul>{{/if}}</div>{{/each}}</section>{{/if}}{{#if achievements}}<section><h2>Achievements</h2>{{#each achievements}}<div><strong>{{title}}</strong>{{#if description}}<p>{{description}}</p>{{/if}}</div>{{/each}}</section>{{/if}}{{#if languages}}<section><h2>Languages</h2>{{#each languages}}<div>{{name}} - {{proficiency}}</div>{{/each}}</section>{{/if}}</div>",
+          "css": ".resume.classic-serif { font-family: 'Times New Roman', serif; background: #ffffff; color: #111827; padding: 24px; } .name { font-size: 22px; margin: 0 0 6px; } .contact { font-size: 12px; color: #4b5563; } h2 { text-transform: uppercase; font-size: 14px; margin: 12px 0 6px; } .dates { font-size: 11px; color: #6b7280; }"
+        },
+        creator: adminUser._id,
+        "tags": ["classic", "serif", "academic", "formal"]
+      },
+      {
+        "name": "Fresh Gradient",
+        "description": "Modern design with gradient header bar and rounded section cards.",
+        "category": "modern",
+        "preview": { "thumbnail": { "url": "placeholder-will-be-replaced-by-puppeteer" } },
+        "layout": {
+          "type": "two-column",
+          "sections": [
+            { "name": "personalInfo", "position": 1, "isRequired": true, "isVisible": true },
+            { "name": "skills", "position": 2, "isRequired": false, "isVisible": true },
+            { "name": "summary", "position": 3, "isRequired": false, "isVisible": true },
+            { "name": "workExperience", "position": 4, "isRequired": false, "isVisible": true },
+            { "name": "projects", "position": 5, "isRequired": false, "isVisible": true },
+            { "name": "education", "position": 6, "isRequired": false, "isVisible": true }
+          ]
+        },
+        "styling": {
+          "colors": {
+            "primary": "#3b82f6",
+            "secondary": "#9333ea",
+            "accent": "#14b8a6",
+            "text": "#111827",
+            "background": "#f9fafb"
+          },
+          "fonts": {
+            "primary": "Inter",
+            "secondary": "Inter",
+            "sizes": { "heading": 24, "subheading": 18, "body": 12, "small": 10 }
+          }
+        },
+        "availability": { "tier": "pro", "isPublic": true, "isActive": true },
+        "templateCode": {
+          "html": "<div class=\"resume fresh-gradient\"><header class=\"header\"><h1 class=\"name\">{{personalInfo.fullName}}</h1><div class=\"contact\"><span>{{personalInfo.email}}</span>{{#if personalInfo.website}}<span>{{personalInfo.website}}</span>{{/if}}</div></header>{{#if summary}}<section><h2>Summary</h2><p>{{summary}}</p></section>{{/if}}{{#if skills}}<section><h2>Skills</h2>{{#each skills}}<div><strong>{{category}}:</strong> {{#each items}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/each}}</section>{{/if}}{{#if workExperience}}<section><h2>Experience</h2>{{#each workExperience}}<div class=\"job\"><div class=\"job-header\"><strong>{{jobTitle}}</strong><span class=\"dates\">{{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div><div class=\"company\">{{company}}{{#if location}} • {{location}}{{/if}}</div>{{#if description}}<p>{{description}}</p>{{/if}}</div>{{/each}}</section>{{/if}}{{#if projects}}<section><h2>Projects</h2>{{#each projects}}<div class=\"project\"><div class=\"project-header\"><strong>{{name}}</strong>{{#if startDate}}<span class=\"dates\">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</span>{{/if}}</div>{{#if technologies}}<div class=\"tech\">{{#each technologies}}<span class=\"tag\">{{this}}</span>{{/each}}</div>{{/if}}</div>{{/each}}</section>{{/if}}{{#if education}}<section><h2>Education</h2>{{#each education}}<div class=\"edu\"><div class=\"edu-header\"><strong>{{degree}}</strong><span class=\"dates\">{{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div><div class=\"institution\">{{institution}}</div></div>{{/each}}</section>{{/if}}</div>",
+          "css": ".resume.fresh-gradient { font-family: 'Inter', sans-serif; background: #f9fafb; color: #111827; padding: 24px; } .name { font-size: 24px; margin: 0 0 6px; color: #3b82f6; } .contact { display: flex; gap: 12px; color: #3b82f6; font-size: 12px; } h2 { color: #3b82f6; font-size: 14px; margin: 12px 0 6px; } .project-header { display: flex; justify-content: space-between; font-size: 12px; } .tag { background: #9333ea; color: white; padding: 2px 6px; border-radius: 8px; margin-right: 4px; font-size: 10px; }"
+        },
+        creator: adminUser._id,
+        "tags": ["modern", "gradient", "colorful", "rounded"]
       }
     ];
 
