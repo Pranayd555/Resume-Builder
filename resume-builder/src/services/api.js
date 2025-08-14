@@ -160,7 +160,10 @@ export const resumeAPI = {
 
   // NEW: Generate page-wise images of the PDF for mobile preview
   getPreviewPdfImages: async (resumeId) => {
-    const response = await api.get(`/resumes/${resumeId}/preview/pdf-images`);
+    const response = await api.get(`/resumes/${resumeId}/preview/pdf-images`, {
+      // This endpoint can take longer due to Puppeteer render; allow up to 60s
+      timeout: 60000,
+    });
     return response.data;
   },
 
