@@ -678,17 +678,17 @@ router.get('/:id/preview/pdf-images', protect, async (req, res) => {
           <title>${resume.title}</title>
           <style>
               * { margin: 0; padding: 0; box-sizing: border-box; }
-              body { margin: 0; padding: 0; font-family: inherit; }
+              :root { --template-bg: ${resume.template?.styling?.colors?.background || '#ffffff'}; }
+              body { margin: 0; padding: 0; font-family: inherit; background: var(--template-bg) !important; }
               ${renderResult.css}
               .resume, .resume-isolated-container .resume {
                 margin: 0 auto !important;
                 padding: 1in !important;
                 max-width: 8.5in !important;
-                background: white !important;
                 -webkit-box-decoration-break: clone !important;
                 box-decoration-break: clone !important;
               }
-              .resume-isolated-container { width: 100%; max-width: 8.5in; margin: 0 auto; }
+              .resume-isolated-container { width: 100%; max-width: 8.5in; margin: 0 auto; min-height: 100vh; background: transparent !important; }
               /* Alignment overrides to match PDF */
               .resume .edu-header,
               .resume-isolated-container .resume .edu-header,
@@ -728,52 +728,7 @@ router.get('/:id/preview/pdf-images', protect, async (req, res) => {
                   font-size: 10px !important;
                   font-style: italic !important;
               }
-              .resume .contact-info,
-              .resume-isolated-container .resume .contact-info,
-              .classic-traditional .contact-info,
-              .resume .header .contact-info,
-              .resume-isolated-container .resume .header .contact-info,
-              .classic-traditional .header .contact-info {
-                  text-align: center !important;
-                  font-size: 10px !important;
-                  line-height: 1.3 !important;
-              }
-              .resume .name,
-              .resume-isolated-container .resume .name,
-              .classic-traditional .name {
-                  text-align: center !important;
-                  font-size: 20px !important;
-                  font-weight: bold !important;
-                  margin-bottom: 8px !important;
-                  text-transform: uppercase !important;
-                  letter-spacing: 1px !important;
-              }
-              .resume *,
-              .resume-isolated-container .resume *,
-              .classic-traditional * {
-                  text-align: inherit !important;
-              }
-              .resume h1,
-              .resume h2,
-              .resume h3,
-              .resume-isolated-container .resume h1,
-              .resume-isolated-container .resume h2,
-              .resume-isolated-container .resume h3,
-              .classic-traditional h1,
-              .classic-traditional h2,
-              .classic-traditional h3 {
-                  text-align: left !important;
-              }
-              .resume .header,
-              .resume-isolated-container .resume .header,
-              .classic-traditional .header {
-                  text-align: center !important;
-              }
-              .resume .header *,
-              .resume-isolated-container .resume .header *,
-              .classic-traditional .header * {
-                  text-align: center !important;
-              }
+              /* Let individual templates control name/contact/header alignment */
               .resume section h2,
               .resume-isolated-container .resume section h2,
               .classic-traditional section h2 {
@@ -884,8 +839,13 @@ router.get('/:id/preview/pdf-images', protect, async (req, res) => {
         const clipHeightDevicePx = clipHeightCss * deviceScaleFactor;
         const totalTargetHeightDevicePx = pageHeight * deviceScaleFactor;
         const bottomExtendDevicePx = Math.max(0, totalTargetHeightDevicePx - (marginDevicePx + clipHeightDevicePx));
+        // Use template background instead of white for top/bottom padding so page color is continuous
+        const bg = (resume?.template?.styling?.colors?.background || '#ffffff').replace('#','');
+        const r = parseInt(bg.substring(0,2), 16) || 255;
+        const g = parseInt(bg.substring(2,4), 16) || 255;
+        const b = parseInt(bg.substring(4,6), 16) || 255;
         finalBuffer = await sharp(buffer)
-          .extend({ top: marginDevicePx, bottom: bottomExtendDevicePx, background: { r: 255, g: 255, b: 255, alpha: 1 } })
+          .extend({ top: marginDevicePx, bottom: bottomExtendDevicePx, background: { r, g, b, alpha: 1 } })
           .webp({ quality: 85 })
           .toBuffer();
       } catch (e) {
@@ -1035,10 +995,12 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
                   box-sizing: border-box;
               }
               
+              :root { --template-bg: ${resume.template?.styling?.colors?.background || '#ffffff'}; }
               body {
                   margin: 0;
                   padding: 0;
                   font-family: inherit;
+                  background: var(--template-bg) !important;
               }
               
               ${renderResult.css}
@@ -1049,7 +1011,6 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
                   margin: 0 auto !important;
                   padding: 1in !important;
                   max-width: 8.5in !important;
-                  background: white !important;
                   -webkit-box-decoration-break: clone !important;
                   box-decoration-break: clone !important;
               }
@@ -1059,6 +1020,8 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
                   width: 100%;
                   max-width: 8.5in;
                   margin: 0 auto;
+                  min-height: 100vh;
+                  background: transparent !important;
               }
               
               /* Ensure education section alignment is consistent - override template styles */
@@ -1108,28 +1071,25 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
               }
               
               /* Ensure contact information alignment is consistent - override template styles */
-              .resume .contact-info,
-              .resume-isolated-container .resume .contact-info,
-              .classic-traditional .contact-info,
               .resume .header .contact-info,
-              .resume-isolated-container .resume .header .contact-info,
-              .classic-traditional .header .contact-info {
-                  text-align: center !important;
+              .resume-isolated-container .resume .header .contact-info {
+                  text-align: inherit !important;
                   font-size: 10px !important;
                   line-height: 1.3 !important;
               }
+              .classic-traditional .header .contact-info { text-align: center !important; }
               
               /* Ensure name alignment is consistent - override template styles */
               .resume .name,
-              .resume-isolated-container .resume .name,
-              .classic-traditional .name {
-                  text-align: center !important;
+              .resume-isolated-container .resume .name {
+                  text-align: inherit !important;
                   font-size: 20px !important;
                   font-weight: bold !important;
                   margin-bottom: 8px !important;
                   text-transform: uppercase !important;
                   letter-spacing: 1px !important;
               }
+              .classic-traditional .name { text-align: center !important; }
               
               /* Force all text alignment to be consistent - highest priority */
               .resume *,
@@ -1153,14 +1113,18 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
               
               /* Ensure specific elements maintain their intended alignment */
               .resume .header,
-              .resume-isolated-container .resume .header,
+              .resume-isolated-container .resume .header {
+                  text-align: inherit !important;
+              }
               .classic-traditional .header {
                   text-align: center !important;
               }
               
-              /* Force all header content to be centered */
+              /* Header content alignment */
               .resume .header *,
-              .resume-isolated-container .resume .header *,
+              .resume-isolated-container .resume .header * {
+                  text-align: inherit !important;
+              }
               .classic-traditional .header * {
                   text-align: center !important;
               }

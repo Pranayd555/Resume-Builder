@@ -257,6 +257,17 @@ class PuppeteerThumbnailGenerator {
               border-radius: 8px;
               overflow: hidden;
             }
+            .resume, .resume-isolated-container .resume {
+              margin: 0 auto !important;
+              padding: 1in !important;
+              max-width: 8.5in !important;
+            }
+            /* Add consistent page padding like preview/PDF */
+            .resume, .resume-isolated-container .resume {
+              margin: 0 auto !important;
+              padding: 1in !important;
+              max-width: 8.5in !important;
+            }
             
             /* Ensure text is readable in thumbnail */
             * {
