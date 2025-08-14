@@ -8,6 +8,7 @@ const TemplateRenderer = require('../utils/templateRenderer');
 const logger = require('../utils/logger');
 const puppeteer = require('puppeteer');
 const chromium = require('@sparticuz/chromium');
+const { withPage } = require('../utils/browserManager');
 const officegen = require('officegen');
 const fs = require('fs');
 const path = require('path');
@@ -780,17 +781,11 @@ router.get('/:id/preview/pdf-images', protect, async (req, res) => {
       headlessOption = 'new';
     }
 
-    const browser = await puppeteer.launch({
-      headless: headlessOption,
-      executablePath,
-      args: launchArgs,
-      defaultViewport
-    });
-
-    const page = await browser.newPage();
-    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-    await page.evaluateHandle('document.fonts.ready');
-    await page.emulateMediaType('print');
+    // Use shared browser and a managed page to avoid cold starts per request on Render
+    const result = await withPage(async (page) => {
+      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+      await page.evaluateHandle('document.fonts.ready');
+      await page.emulateMediaType('print');
 
     // Target A4 dimensions in CSS pixels at 96 DPI
     const a4WidthCssPx = Math.ceil(8.27 * 96);
@@ -810,7 +805,7 @@ router.get('/:id/preview/pdf-images', protect, async (req, res) => {
       return { x: Math.floor(r.left), y: Math.floor(r.top), width: Math.ceil(r.width), height: Math.ceil(r.height) };
     });
 
-    const pages = [];
+      const pages = [];
     const totalHeight = rect.height;
     const pageHeight = a4HeightCssPx; // full page height in CSS px
     const contentAreaCssPx = Math.max(1, pageHeight - 2 * Math.round(0.5 * 96));
@@ -820,7 +815,7 @@ router.get('/:id/preview/pdf-images', protect, async (req, res) => {
     const marginCssPx = Math.round(0.5 * 96); // 0.5in in CSS px at 96 DPI
     const marginDevicePx = marginCssPx * deviceScaleFactor;
 
-    while (y < rect.y + totalHeight) {
+      while (y < rect.y + totalHeight) {
       const remainingCss = rect.y + totalHeight - y;
       const clipHeightCss = Math.floor(Math.min(contentAreaCssPx, remainingCss));
       const buffer = await page.screenshot({
@@ -852,12 +847,13 @@ router.get('/:id/preview/pdf-images', protect, async (req, res) => {
         // If sharp fails, fallback to original buffer
       }
       const base64 = finalBuffer.toString('base64');
-      pages.push({ index, mimeType: 'image/webp', dataUri: `data:image/webp;base64,${base64}` });
+        pages.push({ index, mimeType: 'image/webp', dataUri: `data:image/webp;base64,${base64}` });
       index += 1;
       y += clipHeightCss;
-    }
+      }
 
-    await browser.close();
+      return pages;
+    });
 
     // Basic resume metadata for client UI
     const meta = {
@@ -870,7 +866,7 @@ router.get('/:id/preview/pdf-images', protect, async (req, res) => {
       } : null
     };
 
-    return res.json({ success: true, data: { pageCount: pages.length, pages, meta } });
+    return res.json({ success: true, data: { pageCount: result.length, pages: result, meta } });
   } catch (error) {
     logger.error('Generate PDF images error:', error);
     return res.status(500).json({ success: false, error: 'Server error' });
@@ -1195,20 +1191,13 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
       headlessOption = 'new';
     }
 
-    const browser = await puppeteer.launch({
-      headless: headlessOption,
-      executablePath,
-      args: launchArgs,
-      defaultViewport
-    });
-    
-    const page = await browser.newPage();
-    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-    
-    // Wait for fonts to load to ensure consistent rendering
-    await page.evaluateHandle('document.fonts.ready');
-    
-    const pdfBuffer = await page.pdf({
+    // Use shared browser
+    const pdfBuffer = await withPage(async (page) => {
+      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+      // Wait for fonts to load to ensure consistent rendering
+      await page.evaluateHandle('document.fonts.ready');
+      
+      return await page.pdf({
       format: 'A4',
       margin: {
         top: '0.5in',
@@ -1217,9 +1206,8 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
         left: '0in'
       },
       printBackground: true
+      });
     });
-
-    await browser.close();
 
     // Update resume export statistics
     const exportRecord = {

@@ -15,6 +15,7 @@ function ResumePreview() {
   const [hasTemplate, setHasTemplate] = useState(false);
   const [pdfPages, setPdfPages] = useState([]);
   const [previewMeta, setPreviewMeta] = useState(null);
+  const [refreshingPreview, setRefreshingPreview] = useState(false);
 
   useEffect(() => {
     const fetchResumePreview = async () => {
@@ -95,15 +96,17 @@ function ResumePreview() {
 
   const handleStylingUpdate = async (updatedResume) => {
     try {
+      setRefreshingPreview(true);
       // Update the local resume state
       setResume(updatedResume);
-      
       // Refresh image pages only
       const imagesResp = await resumeAPI.getPreviewPdfImages(resumeId);
       setPdfPages(imagesResp.success ? (imagesResp.data.pages || []) : []);
       setPreviewMeta(imagesResp.success ? (imagesResp.data.meta || null) : null);
     } catch (error) {
       console.error('Error updating preview after styling change:', error);
+    } finally {
+      setRefreshingPreview(false);
     }
   };
 
@@ -284,9 +287,18 @@ function ResumePreview() {
                   </div>
                 ) : null} */}
 
-                {/* Rendered Template - images only */}
+                {/* Rendered Template - images only with overlay loader during refresh */}
                 {pdfPages.length > 0 ? (
-                  <div className="space-y-4">
+                  <div className="relative">
+                    {refreshingPreview && (
+                      <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg">
+                        <div className="flex items-center gap-3 text-gray-700">
+                          <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                          <span className="font-medium">Updating preview…</span>
+                        </div>
+                      </div>
+                    )}
+                    <div className="space-y-4">
                     {pdfPages.map((p) => (
                       <div key={`pdf-page-${p.index}`} className="mx-auto w-full max-w-[800px]">
                         <img
@@ -296,6 +308,7 @@ function ResumePreview() {
                         />
                       </div>
                     ))}
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center py-12">
