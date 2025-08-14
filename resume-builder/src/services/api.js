@@ -403,7 +403,15 @@ export const feedbackAPI = {
 export const apiHelpers = {
   //normalize url
   normalizeUrl: (url) => {
-    return url.replace('http://localhost:5000', 'https://resume-builder-m5ef.onrender.com');
+    try {
+      // Align asset URLs (e.g., /thumbnails/...) to the same origin as the API base URL
+      const apiOrigin = new URL(API_BASE_URL).origin;
+      // Resolve relative URLs against API origin, keep absolute paths but swap to API origin
+      const resolved = new URL(url, apiOrigin);
+      return resolved.href;
+    } catch (_) {
+      return url;
+    }
   },
 
   // Set auth token
