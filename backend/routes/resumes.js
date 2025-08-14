@@ -685,8 +685,107 @@ router.get('/:id/preview/pdf-images', protect, async (req, res) => {
                 padding: 1in !important;
                 max-width: 8.5in !important;
                 background: white !important;
+                -webkit-box-decoration-break: clone !important;
+                box-decoration-break: clone !important;
               }
               .resume-isolated-container { width: 100%; max-width: 8.5in; margin: 0 auto; }
+              /* Alignment overrides to match PDF */
+              .resume .edu-header,
+              .resume-isolated-container .resume .edu-header,
+              .classic-traditional .edu-header {
+                  display: flex !important;
+                  justify-content: space-between !important;
+                  align-items: baseline !important;
+                  margin-bottom: 2px !important;
+              }
+              .resume .edu-header strong,
+              .resume-isolated-container .resume .edu-header strong,
+              .classic-traditional .edu-header strong {
+                  font-size: 12px !important;
+              }
+              .resume .edu-header .dates,
+              .resume-isolated-container .resume .edu-header .dates,
+              .classic-traditional .edu-header .dates {
+                  font-size: 10px !important;
+                  font-style: italic !important;
+              }
+              .resume .job-header,
+              .resume-isolated-container .resume .job-header,
+              .classic-traditional .job-header {
+                  display: flex !important;
+                  justify-content: space-between !important;
+                  align-items: baseline !important;
+                  margin-bottom: 2px !important;
+              }
+              .resume .job-header strong,
+              .resume-isolated-container .resume .job-header strong,
+              .classic-traditional .job-header strong {
+                  font-size: 12px !important;
+              }
+              .resume .job-header .dates,
+              .resume-isolated-container .resume .job-header .dates,
+              .classic-traditional .job-header .dates {
+                  font-size: 10px !important;
+                  font-style: italic !important;
+              }
+              .resume .contact-info,
+              .resume-isolated-container .resume .contact-info,
+              .classic-traditional .contact-info,
+              .resume .header .contact-info,
+              .resume-isolated-container .resume .header .contact-info,
+              .classic-traditional .header .contact-info {
+                  text-align: center !important;
+                  font-size: 10px !important;
+                  line-height: 1.3 !important;
+              }
+              .resume .name,
+              .resume-isolated-container .resume .name,
+              .classic-traditional .name {
+                  text-align: center !important;
+                  font-size: 20px !important;
+                  font-weight: bold !important;
+                  margin-bottom: 8px !important;
+                  text-transform: uppercase !important;
+                  letter-spacing: 1px !important;
+              }
+              .resume *,
+              .resume-isolated-container .resume *,
+              .classic-traditional * {
+                  text-align: inherit !important;
+              }
+              .resume h1,
+              .resume h2,
+              .resume h3,
+              .resume-isolated-container .resume h1,
+              .resume-isolated-container .resume h2,
+              .resume-isolated-container .resume h3,
+              .classic-traditional h1,
+              .classic-traditional h2,
+              .classic-traditional h3 {
+                  text-align: left !important;
+              }
+              .resume .header,
+              .resume-isolated-container .resume .header,
+              .classic-traditional .header {
+                  text-align: center !important;
+              }
+              .resume .header *,
+              .resume-isolated-container .resume .header *,
+              .classic-traditional .header * {
+                  text-align: center !important;
+              }
+              .resume section h2,
+              .resume-isolated-container .resume section h2,
+              .classic-traditional section h2 {
+                  text-align: left !important;
+              }
+              @page { size: A4; margin: 0; }
+              @media print {
+                .resume, .resume-isolated-container .resume {
+                  -webkit-box-decoration-break: clone !important;
+                  box-decoration-break: clone !important;
+                }
+              }
           </style>
       </head>
       <body>
@@ -758,14 +857,17 @@ router.get('/:id/preview/pdf-images', protect, async (req, res) => {
 
     const pages = [];
     const totalHeight = rect.height;
-    const pageHeight = a4HeightCssPx;
+    const pageHeight = a4HeightCssPx; // full page height in CSS px
+    const contentAreaCssPx = Math.max(1, pageHeight - 2 * Math.round(0.5 * 96));
     const pageWidth = Math.min(a4WidthCssPx, rect.width);
     let y = rect.y;
     let index = 0;
+    const marginCssPx = Math.round(0.5 * 96); // 0.5in in CSS px at 96 DPI
+    const marginDevicePx = marginCssPx * deviceScaleFactor;
 
     while (y < rect.y + totalHeight) {
-      const remaining = rect.y + totalHeight - y;
-      const clipHeight = Math.floor(Math.min(pageHeight, remaining));
+      const remainingCss = rect.y + totalHeight - y;
+      const clipHeightCss = Math.floor(Math.min(contentAreaCssPx, remainingCss));
       const buffer = await page.screenshot({
         type: 'webp',
         quality: 85,
@@ -773,13 +875,26 @@ router.get('/:id/preview/pdf-images', protect, async (req, res) => {
           x: Math.max(0, rect.x),
           y: Math.max(0, Math.floor(y)),
           width: Math.floor(pageWidth),
-          height: clipHeight
+          height: clipHeightCss
         }
       });
-      const base64 = buffer.toString('base64');
+      // Add a white top and bottom margin to each page image for preview
+      let finalBuffer = buffer;
+      try {
+        const clipHeightDevicePx = clipHeightCss * deviceScaleFactor;
+        const totalTargetHeightDevicePx = pageHeight * deviceScaleFactor;
+        const bottomExtendDevicePx = Math.max(0, totalTargetHeightDevicePx - (marginDevicePx + clipHeightDevicePx));
+        finalBuffer = await sharp(buffer)
+          .extend({ top: marginDevicePx, bottom: bottomExtendDevicePx, background: { r: 255, g: 255, b: 255, alpha: 1 } })
+          .webp({ quality: 85 })
+          .toBuffer();
+      } catch (e) {
+        // If sharp fails, fallback to original buffer
+      }
+      const base64 = finalBuffer.toString('base64');
       pages.push({ index, mimeType: 'image/webp', dataUri: `data:image/webp;base64,${base64}` });
       index += 1;
-      y += pageHeight;
+      y += clipHeightCss;
     }
 
     await browser.close();
@@ -935,6 +1050,8 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
                   padding: 1in !important;
                   max-width: 8.5in !important;
                   background: white !important;
+                  -webkit-box-decoration-break: clone !important;
+                  box-decoration-break: clone !important;
               }
               
               /* Ensure all resume content is properly aligned */
@@ -1065,6 +1182,8 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
                       box-shadow: none !important;
                       margin: 0 !important;
                       padding: 1in !important;
+                      -webkit-box-decoration-break: clone !important;
+                      box-decoration-break: clone !important;
                   }
                   * { 
                       -webkit-print-color-adjust: exact !important; 
@@ -1128,9 +1247,9 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
     const pdfBuffer = await page.pdf({
       format: 'A4',
       margin: {
-        top: '0in',
+        top: '0.5in',
         right: '0in',
-        bottom: '0in',
+        bottom: '0.5in',
         left: '0in'
       },
       printBackground: true
@@ -1338,6 +1457,8 @@ router.get('/:id/download/docx', protect, async (req, res) => {
                   margin: 0 auto;
                   padding: 1in;
                   background: white;
+                  -webkit-box-decoration-break: clone !important;
+                  box-decoration-break: clone !important;
               }
               
               /* Ensure proper spacing for DOCX */
@@ -1385,6 +1506,8 @@ router.get('/:id/download/docx', protect, async (req, res) => {
                       box-shadow: none !important;
                       margin: 0 !important;
                       padding: 1in !important;
+                      -webkit-box-decoration-break: clone !important;
+                      box-decoration-break: clone !important;
                   }
                   * { 
                       -webkit-print-color-adjust: exact !important; 
