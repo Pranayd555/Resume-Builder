@@ -35,6 +35,7 @@ function ResumePreview() {
 
         setPdfPages(imagesResp.success ? (imagesResp.data.pages || []) : []);
         setPreviewMeta(imagesResp.success ? (imagesResp.data.meta || null) : null);
+        toast.success('Resume preview loaded successfully');
       } catch (error) {
         const errorMessage = error.response?.data?.error || error.message || 'Download failed';
         toast.error(errorMessage);
