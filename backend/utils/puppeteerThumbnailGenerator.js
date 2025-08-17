@@ -259,14 +259,18 @@ class PuppeteerThumbnailGenerator {
             }
             .resume, .resume-isolated-container .resume {
               margin: 0 auto !important;
-              padding: 1in !important;
+              padding: 0in 0.35in !important; /* 0in top/bottom, 0.35in left/right */
               max-width: 8.5in !important;
+              min-height: 100vh !important;
+              background: var(--template-bg) !important;
             }
             /* Add consistent page padding like preview/PDF */
             .resume, .resume-isolated-container .resume {
               margin: 0 auto !important;
-              padding: 1in !important;
+              padding: 0in 0.35in !important; /* 0in top/bottom, 0.35in left/right */
               max-width: 8.5in !important;
+              min-height: 100vh !important;
+              background: var(--template-bg) !important;
             }
             
             /* Ensure text is readable in thumbnail */

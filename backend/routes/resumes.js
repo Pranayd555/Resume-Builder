@@ -344,7 +344,7 @@ router.put('/:id/template', [
         headerLevel: 'h3', // Set default to h3 instead of h1
         fontSize: 16,
         lineSpacing: 1.5,
-        sectionSpacing: 5
+        sectionSpacing: 1
       }
     };
     
@@ -481,7 +481,7 @@ router.get('/:id/preview', protect, async (req, res) => {
             headerLevel: 'h3',
             fontSize: 16,
             lineSpacing: 1.5,
-            sectionSpacing: 5
+            sectionSpacing: 1
           }
         };
         await resume.save();
@@ -539,7 +539,7 @@ router.get('/:id/preview', protect, async (req, res) => {
         headerLevel: 'h3',
         fontSize: 16,
         lineSpacing: 1.5,
-        sectionSpacing: 5
+        sectionSpacing: 1
       };
       await resume.save();
     }
@@ -638,7 +638,7 @@ router.get('/:id/preview/pdf-images', protect, async (req, res) => {
             headerLevel: 'h3',
             fontSize: 16,
             lineSpacing: 1.5,
-            sectionSpacing: 5
+            sectionSpacing: 1
           }
         };
         await resume.save();
@@ -680,12 +680,14 @@ router.get('/:id/preview/pdf-images', protect, async (req, res) => {
           <style>
               * { margin: 0; padding: 0; box-sizing: border-box; }
               :root { --template-bg: ${resume.template?.styling?.colors?.background || '#ffffff'}; }
-              body { margin: 0; padding: 0; font-family: inherit; background: var(--template-bg) !important; }
+              body { margin: 0; padding: 0; font-family: inherit; background: var(--template-bg) !important; min-height: 100vh; }
               ${renderResult.css}
               .resume, .resume-isolated-container .resume {
                 margin: 0 auto !important;
-                padding: 1in !important;
+                padding: 0in 0.35in !important; /* 0in top/bottom, 0.35in left/right */
                 max-width: 8.5in !important;
+                min-height: 100vh !important;
+                background: var(--template-bg) !important;
                 -webkit-box-decoration-break: clone !important;
                 box-decoration-break: clone !important;
               }
@@ -929,7 +931,7 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
             headerLevel: 'h3',
             fontSize: 16,
             lineSpacing: 1.5,
-            sectionSpacing: 5
+            sectionSpacing: 1
           }
         };
         await resume.save();
@@ -1005,8 +1007,10 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
               .resume,
               .resume-isolated-container .resume {
                   margin: 0 auto !important;
-                  padding: 1in !important;
+                  padding: 0in 0.35in !important; /* 0in top/bottom, 0.35in left/right */
                   max-width: 8.5in !important;
+                  min-height: 100vh !important;
+                  background: var(--template-bg) !important;
                   -webkit-box-decoration-break: clone !important;
                   box-decoration-break: clone !important;
               }
@@ -1141,7 +1145,9 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
                   .resume { 
                       box-shadow: none !important;
                       margin: 0 !important;
-                      padding: 1in !important;
+                      padding: 0in 0.35in !important; /* 0in top/bottom, 0.35in left/right */
+                      min-height: 100vh !important;
+                      background: var(--template-bg) !important;
                       -webkit-box-decoration-break: clone !important;
                       box-decoration-break: clone !important;
                   }
@@ -1317,7 +1323,7 @@ router.get('/:id/download/docx', protect, async (req, res) => {
             headerLevel: 'h3',
             fontSize: 16,
             lineSpacing: 1.5,
-            sectionSpacing: 5
+            sectionSpacing: 1
           }
         };
         await resume.save();
@@ -1344,7 +1350,7 @@ router.get('/:id/download/docx', protect, async (req, res) => {
         headerLevel: 'h3',
         fontSize: 16,
         lineSpacing: 1.5,
-        sectionSpacing: 5
+        sectionSpacing: 1
       };
       await resume.save();
     }
@@ -1457,7 +1463,9 @@ router.get('/:id/download/docx', protect, async (req, res) => {
                   .resume { 
                       box-shadow: none !important;
                       margin: 0 !important;
-                      padding: 1in !important;
+                      padding: 0in 0.35in !important; /* 0in top/bottom, 0.35in left/right */
+                      min-height: 100vh !important;
+                      background: var(--template-bg) !important;
                       -webkit-box-decoration-break: clone !important;
                       box-decoration-break: clone !important;
                   }
