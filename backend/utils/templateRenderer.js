@@ -384,8 +384,24 @@ class TemplateRenderer {
         'h5': { fontSize: '1.125rem', fontWeight: '500', marginBottom: '0.5rem' }
       };
 
-      // Apply header level
-      if (templateStyling.headerLevel && headerLevels[templateStyling.headerLevel]) {
+      // Apply header font size (new field)
+      if (templateStyling.headerFontSize) {
+        const headerFontSize = templateStyling.headerFontSize;
+        css += `
+          .${uniqueId} .name,
+          .${uniqueId} h1,
+          .${uniqueId} h2,
+          .${uniqueId} h3,
+          .${uniqueId} h4,
+          .${uniqueId} h5 { 
+            font-size: ${headerFontSize}px !important; 
+            font-weight: 600 !important; 
+            margin-bottom: 0.75rem !important; 
+          }
+        `;
+      }
+      // Apply header level (fallback if headerFontSize not set)
+      else if (templateStyling.headerLevel && headerLevels[templateStyling.headerLevel]) {
         const level = headerLevels[templateStyling.headerLevel];
         css += `
           .${uniqueId} .name,
@@ -399,31 +415,42 @@ class TemplateRenderer {
             margin-bottom: ${level.marginBottom} !important; 
           }
         `;
-
       }
 
-      // Apply font size
+      // Apply content font size
       if (templateStyling.fontSize) {
         const fontSize = templateStyling.fontSize;
         css += `
-          .${uniqueId},
-          .${uniqueId} * { 
+          .${uniqueId} p,
+          .${uniqueId} .contact-info,
+          .${uniqueId} .job-description,
+          .${uniqueId} .edu-description,
+          .${uniqueId} .achievements li,
+          .${uniqueId} .skill-items,
+          .${uniqueId} .technologies,
+          .${uniqueId} .project-links,
+          .${uniqueId} .cert-expiry,
+          .${uniqueId} .cert-id,
+          .${uniqueId} .language-level,
+          .${uniqueId} .custom-content { 
             font-size: ${fontSize}px !important; 
           }
         `;
-
       }
 
       // Apply line spacing
       if (templateStyling.lineSpacing) {
         const lineSpacing = templateStyling.lineSpacing;
         css += `
-          .${uniqueId},
-          .${uniqueId} * { 
+          .${uniqueId} p,
+          .${uniqueId} .job-description,
+          .${uniqueId} .edu-description,
+          .${uniqueId} .achievements li,
+          .${uniqueId} .summary,
+          .${uniqueId} .custom-content { 
             line-height: ${lineSpacing} !important; 
           }
         `;
-
       }
 
       // Apply section spacing
@@ -438,12 +465,21 @@ class TemplateRenderer {
           .${uniqueId} .projects,
           .${uniqueId} .achievements,
           .${uniqueId} .certifications,
-          .${uniqueId} .languages { 
+          .${uniqueId} .languages,
+          .${uniqueId} .summary { 
             margin-bottom: ${sectionSpacing}rem !important; 
             padding-bottom: ${sectionSpacing * 0.5}rem !important; 
           }
+          .${uniqueId} .job-item,
+          .${uniqueId} .edu-item,
+          .${uniqueId} .project-item,
+          .${uniqueId} .cert-item,
+          .${uniqueId} .achievement-item,
+          .${uniqueId} .skill-category { 
+            margin-bottom: ${sectionSpacing * 0.5}rem !important; 
+            padding-bottom: ${sectionSpacing * 0.25}rem !important; 
+          }
         `;
-
       }
     }
     // Apply header styling options if available (old format - for backward compatibility)

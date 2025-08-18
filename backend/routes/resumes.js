@@ -341,10 +341,11 @@ router.put('/:id/template', [
     resume.styling = {
       ...template.styling, // Template's default styling (colors, fonts, etc.)
       template: {
-        headerLevel: 'h3', // Set default to h3 instead of h1
-        fontSize: 16,
+        headerLevel: 'h3',
+        headerFontSize: 18,
+        fontSize: 14,
         lineSpacing: 1.5,
-        sectionSpacing: 1
+        sectionSpacing: 3
       }
     };
     
@@ -381,9 +382,10 @@ router.put('/:id/template', [
 router.put('/:id/template-styling', [
   protect,
   body('template.headerLevel').optional().isIn(['h1', 'h2', 'h3', 'h4', 'h5']).withMessage('Invalid header level'),
-  body('template.fontSize').optional().isInt({ min: 1, max: 30 }).withMessage('Font size must be between 1 and 30'),
-  body('template.lineSpacing').optional().isFloat({ min: 1, max: 10 }).withMessage('Line spacing must be between 1 and 10'),
-  body('template.sectionSpacing').optional().isFloat({ min: 1, max: 10 }).withMessage('Section spacing must be between 1 and 10')
+  body('template.headerFontSize').optional().isInt({ min: 12, max: 24 }).withMessage('Header font size must be between 12 and 24'),
+  body('template.fontSize').optional().isInt({ min: 12, max: 18 }).withMessage('Font size must be between 12 and 18'),
+  body('template.lineSpacing').optional().isFloat({ min: 1, max: 3 }).withMessage('Line spacing must be between 1 and 3'),
+  body('template.sectionSpacing').optional().isFloat({ min: 1, max: 5 }).withMessage('Section spacing must be between 1 and 5')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -1600,7 +1602,7 @@ function generateDocxContent(docx, resume) {
   
   // Apply user's font size if specified
   const baseFontSize = userStyling.fontSize || fontSizes.body || 11;
-  const headerFontSize = userStyling.fontSize ? userStyling.fontSize * 1.8 : fontSizes.heading || 20;
+  const headerFontSize = userStyling.headerFontSize || (userStyling.fontSize ? userStyling.fontSize * 1.8 : fontSizes.heading || 20);
   const subheadingFontSize = userStyling.fontSize ? userStyling.fontSize * 1.3 : fontSizes.subheading || 14;
   
   // Apply user's line spacing if specified

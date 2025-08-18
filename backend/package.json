@@ -13,6 +13,7 @@
     "test": "echo 'No tests configured - API endpoints tested via integration tests'",
     "seed:all-templates": "node scripts/seedAllTemplates.js",
     "test:templates": "node scripts/testTemplates.js",
+    "test:styling": "node scripts/testTemplateStyling.js",
     "generate-thumbnails": "node scripts/generatePuppeteerThumbnails.js",
     "update-thumbnails": "node scripts/updateTemplatesWithPuppeteerThumbnails.js",
     "seed": "node scripts/seedDatabase.js"
