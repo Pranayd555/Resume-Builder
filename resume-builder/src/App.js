@@ -16,7 +16,6 @@ import ResumeEditor from './components/resume-editor';
 import ResumeTemplates from './components/resume-templates';
 import ResumeForm from './components/ResumeForm';
 import TemplateSelection from './components/TemplateSelection';
-import ResumePreview from './components/ResumePreview';
 import Feedback from './components/feedback';
 import Subscription from './components/subscription';
 import Profile from './components/Profile';
@@ -24,6 +23,7 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 
 import ProtectedRoute, { UnauthorizedPage } from './components/ProtectedRoute';
 import AuthCallback from './components/AuthCallback';
+import ResumePreviewEnhanced from './components/ResumePreviewEnhanced';
 
 function App() {
   return (
@@ -93,10 +93,11 @@ function App() {
                 path="/resume-preview/:resumeId" 
                 element={
                   <ProtectedRoute>
-                    <ResumePreview />
+                    <ResumePreviewEnhanced />
                   </ProtectedRoute>
                 } 
               />
+
               <Route 
                 path="/resume-editor" 
                 element={
