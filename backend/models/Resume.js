@@ -333,25 +333,31 @@ const resumeSchema = new mongoose.Schema({
       headerLevel: {
         type: String,
         enum: ['h1', 'h2', 'h3', 'h4', 'h5'],
-        default: 'h1'
+        default: 'h3'
+      },
+      headerFontSize: {
+        type: Number,
+        min: 12,
+        max: 24,
+        default: 18
       },
       fontSize: {
         type: Number,
-        min: 1,
-        max: 30,
-        default: 16
+        min: 12,
+        max: 18,
+        default: 14
       },
       lineSpacing: {
         type: Number,
         min: 1,
-        max: 10,
+        max: 3,
         default: 1.5
       },
       sectionSpacing: {
         type: Number,
         min: 1,
-        max: 10,
-        default: 5
+        max: 5,
+        default: 3
       }
     },
     // Header styling options (keeping for backward compatibility)
