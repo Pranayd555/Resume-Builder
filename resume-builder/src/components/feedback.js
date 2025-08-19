@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { feedbackAPI, apiHelpers } from '../services/api';
 import { toast } from 'react-toastify';
@@ -20,6 +20,11 @@ function Feedback() {
     rating: 5
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleInputChange = (field, value) => {
     setFeedback(prev => ({
@@ -141,7 +146,7 @@ function Feedback() {
               <div className="mt-8 p-4 bg-gradient-to-r from-gray-50/50 to-gray-100/30 rounded-xl border border-gray-200/30">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-6 h-6 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center">
-                    <InformationCircleIcon className="w-3 h-3 text-white" />
+                    <InformationCircleIcon className="w-4 h-4 text-white" />
                   </div>
                   <p className="font-semibold text-gray-900">Response Time</p>
                 </div>

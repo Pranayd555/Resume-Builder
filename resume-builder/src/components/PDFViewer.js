@@ -11,7 +11,7 @@ import {
 // Set up PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
 
-const PDFViewer = ({ pdfUrl, onError }) => {
+const PDFViewer = ({ pdfUrl, onError, showLoader = true }) => {
   const canvasRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -196,7 +196,7 @@ const PDFViewer = ({ pdfUrl, onError }) => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [prevPage, nextPage, zoomIn, zoomOut]);
 
-  if (loading) {
+  if (loading && showLoader) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
@@ -205,6 +205,10 @@ const PDFViewer = ({ pdfUrl, onError }) => {
         </div>
       </div>
     );
+  }
+
+  if (loading && !showLoader) {
+    return null;
   }
 
   return (
