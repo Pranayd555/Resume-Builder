@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { resumeAPI } from '../services/api';
 import TemplateStylingControls from './TemplateStylingControls';
+import PDFViewer from './PDFViewer';
+import { ArrowsRightLeftIcon, DocumentArrowDownIcon, DocumentTextIcon, PencilSquareIcon, PrinterIcon } from '@heroicons/react/24/outline';
 
 function ResumePreviewEnhanced() {
   const { resumeId } = useParams();
@@ -175,8 +177,8 @@ function ResumePreviewEnhanced() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-16 bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <div className="max-w-6xl mx-auto py-4 px-3 sm:py-6 sm:px-6 lg:px-8">
+      <div className="min-h-screen pt-16">
+        <div className="max-w-7xl mx-auto py-4 px-3 sm:py-6 sm:px-6 lg:px-8">
           <div className="text-center py-8 sm:py-12">
             <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
               <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -192,8 +194,8 @@ function ResumePreviewEnhanced() {
   }
 
   return (
-    <div className="min-h-screen pt-16 bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="max-w-6xl mx-auto py-4 px-3 sm:py-6 sm:px-6 lg:px-8">
+    <div className="min-h-screen pt-16">
+      <div className="max-w-7xl mx-auto py-4 px-3 sm:py-6 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex flex-col gap-3 sm:gap-4 mb-4 sm:mb-6 lg:mb-8">
           <div>
@@ -212,20 +214,16 @@ function ResumePreviewEnhanced() {
               onClick={() => setShowStylingControls(!showStylingControls)}
               className="px-2 py-1.5 sm:px-3 sm:py-2 lg:px-4 lg:py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm lg:text-base whitespace-nowrap"
             >
-              <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17v4a2 2 0 002 2h4M15 7l3-3m0 0l-3-3m3 3H9" />
-              </svg>
-              {showStylingControls ? 'Hide Template' : 'Edit Template'}
+              <PrinterIcon className="h-4 w-4" />
+              {showStylingControls ? 'Hide Settings' : 'Design Settings'}
             </button>
             
             <button
               onClick={handleEdit}
               className="px-2 py-1.5 sm:px-3 sm:py-2 lg:px-4 lg:py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm lg:text-base whitespace-nowrap"
             >
-              <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
-              Edit
+              <PencilSquareIcon className="h-4 w-4" />
+              Edit Details
             </button>
             
             {hasTemplate && (
@@ -233,9 +231,7 @@ function ResumePreviewEnhanced() {
                 onClick={handleSelectNewTemplate}
                 className="px-2 py-1.5 sm:px-3 sm:py-2 lg:px-4 lg:py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm lg:text-base whitespace-nowrap"
               >
-                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17v4a2 2 0 002 2h4M15 7l3-3m0 0l-3-3m3 3H9" />
-                </svg>
+                <ArrowsRightLeftIcon className="h-4 w-4" />
                 Change Template
               </button>
             )}
@@ -245,9 +241,7 @@ function ResumePreviewEnhanced() {
         {/* PDF Preview Status */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 lg:mb-8">
           <div className="flex items-center gap-2 mb-2">
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
+            <DocumentTextIcon className="h-6 w-6" />
             <h3 className="text-blue-800 font-semibold text-sm sm:text-base">Document Preview</h3>
           </div>
           <p className="text-blue-700 text-xs sm:text-sm">
@@ -274,9 +268,7 @@ function ResumePreviewEnhanced() {
                 </>
               ) : (
                 <>
-                  <svg className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
+                  <DocumentArrowDownIcon className="h-6 w-6" />
                   Download PDF
                 </>
               )}
@@ -307,10 +299,10 @@ function ResumePreviewEnhanced() {
         </div>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 xl:grid-cols-5 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-6 gap-4 sm:gap-6">
           {/* Styling Controls Sidebar */}
           {showStylingControls && (
-            <div className="xl:col-span-1">
+            <div className="xl:col-span-2">
               <div className="sticky top-4 sm:top-6">
                 <TemplateStylingControls
                   resumeId={resumeId}
@@ -322,7 +314,7 @@ function ResumePreviewEnhanced() {
           )}
 
           {/* Resume Preview */}
-          <div className={`${showStylingControls ? 'xl:col-span-4' : 'xl:col-span-5'}`}>
+          <div className={`${showStylingControls ? 'xl:col-span-4' : 'xl:col-span-6'}`}>
             <div className="backdrop-blur-md bg-white/90 rounded-xl sm:rounded-2xl shadow-xl border border-white/20 p-3 sm:p-6 lg:p-8">
               <div className="max-w-5xl mx-auto">
                 {refreshingPreview && (
@@ -347,21 +339,17 @@ function ResumePreviewEnhanced() {
                   </div>
                 ) : pdfData ? (
                   <div className="mx-auto w-full">
-                    {/* PDF Viewer using iframe - Responsive */}
+                    {/* PDF Viewer using PDF.js - Responsive */}
                     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-lg" style={{ 
-                      height: 'calc(100vh - 400px)', 
                       minHeight: '600px',
                       maxHeight: '1200px'
                     }}>
-                      <iframe
-                        src={pdfData.url}
-                        title="PDF Preview"
-                        width="100%"
-                        height="100%"
-                        style={{ border: 'none' }}
-                        onError={() => toast.error('Failed to load PDF preview')}
-                        className="w-full h-full"
-                        allowFullScreen
+                      <PDFViewer 
+                        pdfUrl={pdfData.url}
+                        onError={(error) => {
+                          console.error('PDF Viewer error:', error);
+                          toast.error('Failed to load PDF preview');
+                        }}
                       />
                     </div>
                     
@@ -374,7 +362,7 @@ function ResumePreviewEnhanced() {
                         <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                         </svg>
-                        Open in New Tab
+                        Open in Browser
                       </button>
                       
                       <button

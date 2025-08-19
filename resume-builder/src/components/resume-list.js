@@ -1,6 +1,26 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
+import { 
+  Bars3Icon,
+  CheckCircleIcon,
+  ClockIcon,
+  PlusIcon,
+  MagnifyingGlassIcon,
+  FunnelIcon,
+  ChevronDownIcon,
+  CheckIcon,
+  DocumentTextIcon,
+  PencilIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  DocumentDuplicateIcon,
+  ArrowDownTrayIcon,
+  TrashIcon,
+  EllipsisVerticalIcon,
+  ChatBubbleLeftRightIcon,
+  CurrencyDollarIcon
+} from '@heroicons/react/24/outline';
 import { resumeAPI, apiHelpers } from '../services/api';
 import { createResumeModel } from '../models/dataModels';
 import { toast } from 'react-toastify';
@@ -88,41 +108,25 @@ function ResumeList() {
     { 
       value: '', 
       label: 'All Status', 
-      icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-        </svg>
-      ),
+      icon: <Bars3Icon className="w-4 h-4" />,
       color: 'text-gray-600'
     },
     { 
       value: 'active', 
       label: 'Active', 
-      icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
+      icon: <CheckCircleIcon className="w-4 h-4" />,
       color: 'text-green-600'
     },
     { 
       value: 'published', 
       label: 'Published', 
-      icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
+      icon: <CheckCircleIcon className="w-4 h-4" />,
       color: 'text-blue-600'
     },
     { 
       value: 'draft', 
       label: 'Draft', 
-      icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      ),
+      icon: <ClockIcon className="w-4 h-4" />,
       color: 'text-yellow-600'
     }
   ];
@@ -534,9 +538,7 @@ function ResumeList() {
             onClick={handleCreateNew}
             className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2 sm:gap-3 font-semibold text-sm sm:text-base min-w-[140px] sm:min-w-auto"
           >
-            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
+            <PlusIcon className="w-5 h-5 sm:w-6 sm:h-6" />
             <span className="whitespace-nowrap">Create New</span>
           </button>
         </div>
@@ -548,9 +550,7 @@ function ResumeList() {
               <form onSubmit={handleSearch} className="flex gap-3">
                 <div className="flex-1 relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+                    <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors duration-200" />
                   </div>
                   <input
                     type="text"
@@ -564,13 +564,9 @@ function ResumeList() {
                   type="submit"
                   className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 sm:px-6 py-2.5 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center min-w-[80px] sm:min-w-[120px] font-semibold"
                 >
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
+                  <MagnifyingGlassIcon className="w-4 h-4 sm:w-5 sm:h-5 sm:hidden" />
                   <span className="hidden sm:flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+                    <MagnifyingGlassIcon className="w-4 h-4" />
                     Search
                   </span>
                 </button>
@@ -578,9 +574,7 @@ function ResumeList() {
             </div>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
-                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                </svg>
+                <FunnelIcon className="w-4 h-4 text-gray-500" />
                 <span className="text-sm font-medium text-gray-600 hidden sm:inline">Filter by:</span>
               </div>
               <div 
@@ -597,14 +591,9 @@ function ResumeList() {
                     </span>
                     <span className="font-medium text-gray-700">{getSelectedOption().label}</span>
                   </div>
-                  <svg 
+                  <ChevronDownIcon 
                     className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${showStatusDropdown ? 'rotate-180' : ''}`} 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+                  />
                 </button>
 
                 {showStatusDropdown && createPortal(
@@ -645,9 +634,7 @@ function ResumeList() {
                             {option.label}
                           </span>
                           {option.value === filters.status && (
-                            <svg className="w-4 h-4 text-blue-500 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
+                            <CheckIcon className="w-4 h-4 text-blue-500 ml-auto" />
                           )}
                         </button>
                       ))}
@@ -669,9 +656,7 @@ function ResumeList() {
                 <p className="text-3xl font-bold text-gray-900">{resumes.length}</p>
               </div>
               <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
+                <DocumentTextIcon className="w-6 h-6 text-white" />
               </div>
             </div>
           </div>
@@ -683,9 +668,7 @@ function ResumeList() {
                 <p className="text-3xl font-bold text-gray-900">{resumes.filter(r => r.isActive === true).length}</p>
               </div>
               <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <CheckCircleIcon className="w-6 h-6 text-white" />
               </div>
             </div>
           </div>
@@ -697,9 +680,7 @@ function ResumeList() {
                 <p className="text-3xl font-bold text-gray-900">{resumes.filter(r => r.status === 'draft').length}</p>
               </div>
               <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-xl flex items-center justify-center shadow-lg">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <ClockIcon className="w-6 h-6 text-white" />
               </div>
             </div>
           </div>
@@ -718,9 +699,7 @@ function ResumeList() {
                 <div className="p-6 pb-4">
                   <div className="flex items-start justify-between mb-4">
                     <div className={`w-12 h-12 bg-gradient-to-br ${getTemplateColor(resume.template?.name || 'Default')} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200`}>
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
+                      <DocumentTextIcon className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex items-center gap-2">
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(resume.status)}`}>
@@ -732,9 +711,7 @@ function ResumeList() {
                           className="p-1.5 bg-gray-100/80 text-gray-600 rounded-lg hover:bg-gray-200/80 transition-colors opacity-0 group-hover:opacity-100"
                           title="More Actions"
                         >
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-                          </svg>
+                          <EllipsisVerticalIcon className="w-4 h-4" />
                         </button>
                         
                         {/* Dropdown Menu */}
@@ -752,9 +729,7 @@ function ResumeList() {
                                 onClick={() => handleEditResume(resume.id)}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                               >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
+                                <PencilIcon className="w-4 h-4" />
                                 Edit Resume
                               </button>
                               {resume.status === 'published' && (
@@ -766,13 +741,11 @@ function ResumeList() {
                                       : 'text-green-600 hover:bg-green-50'
                                   }`}
                                 >
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    {resume.isActive ? (
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
-                                    ) : (
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    )}
-                                  </svg>
+                                  {resume.isActive ? (
+                                    <EyeSlashIcon className="w-4 h-4" />
+                                  ) : (
+                                    <EyeIcon className="w-4 h-4" />
+                                  )}
                                   {resume.isActive ? 'Deactivate' : 'Activate'}
                                 </button>
                               )}
@@ -780,9 +753,7 @@ function ResumeList() {
                                 onClick={() => handleDuplicateResume(resume.id)}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                               >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                </svg>
+                                <DocumentDuplicateIcon className="w-4 h-4" />
                                 Duplicate
                               </button>
                               <button
@@ -800,9 +771,7 @@ function ResumeList() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                   </svg>
                                 ) : (
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                  </svg>
+                                  <ArrowDownTrayIcon className="w-4 h-4" />
                                 )}
                                 {downloadingResumes.has(resume.id) ? 'Downloading...' : 'Download PDF'}
                               </button>
@@ -821,9 +790,7 @@ function ResumeList() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                                   </svg>
                                 ) : (
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                  </svg>
+                                  <ArrowDownTrayIcon className="w-4 h-4" />
                                 )}
                                 {downloadingResumes.has(resume.id) ? 'Downloading...' : 'Download DOCX'}
                               </button>
@@ -831,9 +798,7 @@ function ResumeList() {
                                 onClick={() => handleDeleteResume(resume.id)}
                                 className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
                               >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
+                                <TrashIcon className="w-4 h-4" />
                                 Delete
                               </button>
                             </div>
@@ -851,9 +816,7 @@ function ResumeList() {
                   
                   {/* Template Info */}
                   <div className="flex items-center gap-2 mb-4">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17v4a2 2 0 002 2h4M15 7l3-3m0 0l-3-3m3 3H9" />
-                    </svg>
+                    <DocumentTextIcon className="w-4 h-4 text-gray-400" />
                     <span className="text-sm text-gray-600 font-medium">{resume.template?.name || 'Default'}</span>
                   </div>
                 </div>
@@ -893,9 +856,7 @@ function ResumeList() {
                       }}
                       className="bg-blue-100 text-blue-600 px-3 py-2.5 rounded-lg hover:bg-blue-200 transition-colors font-medium text-xs flex items-center justify-center gap-1"
                     >
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
+                      <PencilIcon className="w-3 h-3" />
                       Edit
                     </button>
                     {resume.status === 'published' && (
@@ -910,13 +871,11 @@ function ResumeList() {
                             : 'bg-green-100 text-green-600 hover:bg-green-200'
                         }`}
                       >
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          {resume.isActive ? (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
-                          ) : (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          )}
-                        </svg>
+                        {resume.isActive ? (
+                          <EyeSlashIcon className="w-3 h-3" />
+                        ) : (
+                          <EyeIcon className="w-3 h-3" />
+                        )}
                         {resume.isActive ? 'Off' : 'On'}
                       </button>
                     )}
@@ -938,9 +897,7 @@ function ResumeList() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
                       ) : (
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
+                        <ArrowDownTrayIcon className="w-3 h-3" />
                       )}
                       {downloadingResumes.has(resume.id) ? '...' : 'PDF'}
                     </button>
@@ -952,9 +909,7 @@ function ResumeList() {
             <div className="col-span-full">
               <div className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 text-center py-16">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
+                  <DocumentTextIcon className="w-8 h-8 text-gray-400" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No resumes found</h3>
                 <p className="text-gray-600 mb-6">Get started by creating your first professional resume.</p>
@@ -1013,9 +968,7 @@ function ResumeList() {
             >
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
+                  <ChatBubbleLeftRightIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-green-600 transition-colors duration-200">Share Feedback</h3>
@@ -1030,9 +983,7 @@ function ResumeList() {
             >
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                  </svg>
+                  <CurrencyDollarIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors duration-200">Upgrade to Premium</h3>

@@ -344,8 +344,8 @@ router.put('/:id/template', [
         headerLevel: 'h3',
         headerFontSize: 18,
         fontSize: 14,
-        lineSpacing: 1.5,
-        sectionSpacing: 3
+        lineSpacing: 1.3,
+        sectionSpacing: 1
       }
     };
     
