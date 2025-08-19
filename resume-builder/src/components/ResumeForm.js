@@ -4,6 +4,12 @@ import { resumeAPI, apiHelpers } from '../services/api';
 import { toast } from 'react-toastify';
 import { validators } from '../models/dataModels';
 import { useFormScroll, useScrollToTop } from '../hooks/useAutoScroll';
+import { 
+  PlusIcon, 
+  TrashIcon,
+  ExclamationTriangleIcon,
+  BoltIcon
+} from '@heroicons/react/24/outline';
 
 // Add after the imports and before the ResumeForm function
 const formatDateForInput = (dateString) => {
@@ -1036,9 +1042,7 @@ function ResumeForm() {
           })}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
+          <PlusIcon className="w-4 h-4" />
           Add Experience
         </button>
       </div>
@@ -1051,9 +1055,7 @@ function ResumeForm() {
               onClick={() => removeArrayItem('workExperience', index)}
               className="text-red-600 hover:text-red-700"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
+              <TrashIcon className="w-4 h-4" />
             </button>
           </div>
           
@@ -1195,9 +1197,7 @@ function ResumeForm() {
       {validationErrors.workExperience && (
         <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
           <div className="flex items-center gap-2">
-            <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <ExclamationTriangleIcon className="w-5 h-5 text-red-600" />
             <p className="text-red-700 text-sm font-medium">{validationErrors.workExperience}</p>
           </div>
         </div>
@@ -1222,9 +1222,7 @@ function ResumeForm() {
           })}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
+          <PlusIcon className="w-4 h-4" />
           Add Education
         </button>
       </div>
@@ -1237,9 +1235,7 @@ function ResumeForm() {
               onClick={() => removeArrayItem('education', index)}
               className="text-red-600 hover:text-red-700"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
+              <TrashIcon className="w-4 h-4" />
             </button>
           </div>
           
@@ -1417,9 +1413,7 @@ function ResumeForm() {
       {validationErrors.education && (
         <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
           <div className="flex items-center gap-2">
-            <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <ExclamationTriangleIcon className="w-5 h-5 text-red-600" />
             <p className="text-red-700 text-sm font-medium">{validationErrors.education}</p>
           </div>
         </div>
@@ -1448,9 +1442,7 @@ function ResumeForm() {
       {/* Quick Add Skills - Comma Separated */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 space-y-4">
         <div className="flex items-center gap-2">
-          <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
+          <BoltIcon className="w-5 h-5 text-blue-600" />
           <h4 className="font-medium text-blue-900">Quick Add Skills</h4>
         </div>
         <div>
@@ -1509,9 +1501,7 @@ function ResumeForm() {
               onClick={() => removeArrayItem('skills', categoryIndex)}
               className="text-red-600 hover:text-red-700"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
+              <TrashIcon className="w-4 h-4" />
             </button>
           </div>
           
@@ -2192,7 +2182,7 @@ function ResumeForm() {
 
   if (loading && isEditMode) {
     return (
-      <div className="min-h-screen pt-16 flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="min-h-screen pt-16 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Loading Resume Data...</h3>
@@ -2203,7 +2193,7 @@ function ResumeForm() {
   }
 
   return (
-    <div className="min-h-screen pt-16 bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen pt-16">
       <div className="max-w-4xl mx-auto py-6 px-3 sm:py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">

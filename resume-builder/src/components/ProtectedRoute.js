@@ -9,7 +9,7 @@ const ProtectedRoute = ({ children, requireAuth = true, redirectTo = '/login' })
   // Show loading spinner while auth status is being determined
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+      <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center space-y-4">
           <div className="relative">
             <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
@@ -69,7 +69,7 @@ export const SubscriptionProtectedRoute = ({
   // Show loading spinner while auth status is being determined
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+      <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center space-y-4">
           <div className="relative">
             <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
@@ -140,7 +140,7 @@ export const RoleProtectedRoute = ({
   // Show loading spinner while auth status is being determined
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+      <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center space-y-4">
           <div className="relative">
             <div className="w-16 h-16 border-4 border-red-200 border-t-red-600 rounded-full animate-spin"></div>
@@ -200,7 +200,7 @@ export const UnauthorizedPage = () => {
   const { requiredRole, currentRole } = location.state || {};
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-50 flex items-center justify-center px-4">
+    <div className="min-h-screen flex items-center justify-center px-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
         <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
           <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

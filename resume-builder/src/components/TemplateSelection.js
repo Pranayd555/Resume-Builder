@@ -125,7 +125,7 @@ function TemplateSelection() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-16 flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="min-h-screen pt-16 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Loading Templates...</h3>
@@ -136,7 +136,7 @@ function TemplateSelection() {
   }
 
   return (
-    <div className="min-h-screen pt-16 bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen pt-16">
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-8">

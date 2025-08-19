@@ -200,7 +200,7 @@ function Subscription() {
   }
 
   return (
-    <div className="min-h-screen pt-16 bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
+    <div className="min-h-screen pt-16">
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8 sm:mb-12">

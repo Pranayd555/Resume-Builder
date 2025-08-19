@@ -5,6 +5,21 @@ import { authAPI, userAPI, uploadAPI, apiHelpers } from '../services/api';
 import { toast } from 'react-toastify';
 import Tooltip from './Tooltip';
 import { useAutoScroll, useScrollToTop } from '../hooks/useAutoScroll';
+import { 
+  UserCircleIcon,
+  PencilIcon,
+  CheckIcon,
+  XMarkIcon,
+  CameraIcon,
+  PhotoIcon,
+  EyeIcon,
+  ExclamationTriangleIcon,
+  TrashIcon,
+  ArrowLeftIcon,
+  InformationCircleIcon,
+  CloudArrowUpIcon,
+  LockClosedIcon
+} from '@heroicons/react/24/outline';
 
 function Profile() {
   const navigate = useNavigate();
@@ -466,9 +481,7 @@ function Profile() {
               onClick={handleBack}
               className="mr-4 text-gray-600 hover:text-gray-900 transition-colors"
             >
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
+              <ArrowLeftIcon className="h-6 w-6" />
             </button>
             <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
           </div>
@@ -509,9 +522,7 @@ function Profile() {
                     </div>
                   ) : (
                     <div className="flex flex-col items-center">
-                      <svg className="w-20 h-20 text-white mb-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                      </svg>
+                      <UserCircleIcon className="w-20 h-20 text-white mb-2" />
                       {(isEditing || !profile.profilePicture) && (
                         <div className="text-white text-center">
                           <p className="text-xs font-medium">Click to upload</p>
@@ -523,19 +534,14 @@ function Profile() {
                   {profile.profilePicture && (
                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
+                        <EyeIcon className="w-8 h-8 text-white" />
                       </div>
                     </div>
                   )}
                   {dragOver && (
                     <div className="absolute inset-0 bg-blue-500 bg-opacity-20 rounded-full flex items-center justify-center">
                       <div className="text-white text-center">
-                        <svg className="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                        </svg>
+                        <PhotoIcon className="w-8 h-8 mx-auto mb-2" />
                         <p className="text-sm font-medium">Drop photo here</p>
                       </div>
                     </div>
@@ -567,9 +573,7 @@ function Profile() {
                     disabled={uploading}
                     className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
+                    <CameraIcon className="w-4 h-4" />
                     <span>{uploading ? 'Uploading...' : profile.profilePicture ? 'Change Photo' : 'Upload Photo'}</span>
                   </button>
                 )}
@@ -582,9 +586,7 @@ function Profile() {
                       disabled={uploading}
                       className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
+                      <UserCircleIcon className="w-4 h-4" />
                       <span>{uploading ? 'Saving...' : 'Choose Avatar'}</span>
                     </button>
                     
@@ -601,9 +603,7 @@ function Profile() {
                         disabled={uploading}
                         className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                        </svg>
+                        <UserCircleIcon className="w-4 h-4" />
                         <span>{uploading ? 'Saving...' : 'Use My Initials'}</span>
                       </button>
                     )}
@@ -611,14 +611,12 @@ function Profile() {
                 )}
                 
                 {profile.profilePicture && isEditing && (
-                  <button 
+                                    <button
                     onClick={handleRemoveProfilePicture}
                     disabled={uploading}
                     className="text-red-600 hover:text-red-700 text-sm font-medium transition-colors flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
+                    <TrashIcon className="w-4 h-4" />
                     <span>Remove Photo</span>
                   </button>
                 )}
@@ -630,35 +628,27 @@ function Profile() {
                       <div className="max-w-xs sm:max-w-sm">
                         <div className="mb-3 pb-3 border-b border-blue-200">
                           <div className="flex items-center space-x-2">
-                            <svg className="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+                            <InformationCircleIcon className="w-4 h-4 text-blue-600 flex-shrink-0" />
                             <span className="font-semibold text-blue-800">Upload Guidelines</span>
                           </div>
                         </div>
                         <div className="space-y-3">
                           <div className="flex items-start space-x-3">
-                            <svg className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
+                            <CheckIcon className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
                             <div>
                               <p className="font-medium text-gray-800">Size & Quality</p>
                               <p className="text-sm text-gray-600">Best: 400×400px+, Max: 5MB</p>
                             </div>
                           </div>
                           <div className="flex items-start space-x-3">
-                            <svg className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
+                            <CheckIcon className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
                             <div>
                               <p className="font-medium text-gray-800">Formats</p>
                               <p className="text-sm text-gray-600">JPG, PNG, GIF</p>
                             </div>
                           </div>
                           <div className="flex items-start space-x-3">
-                            <svg className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                            </svg>
+                            <CloudArrowUpIcon className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
                             <div>
                               <p className="font-medium text-gray-800">Upload Method</p>
                               <p className="text-sm text-gray-600">Drag & drop or click to browse</p>
@@ -672,9 +662,7 @@ function Profile() {
                   >
                     <div className="text-center text-sm text-gray-500">
                       <div className="inline-flex items-center space-x-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 hover:bg-blue-100 transition-colors cursor-help">
-                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
+                        <InformationCircleIcon className="w-4 h-4 text-blue-600" />
                         <span className="font-medium text-blue-700">Upload Requirements</span>
                       </div>
                     </div>
@@ -792,27 +780,21 @@ function Profile() {
                   onClick={() => setIsEditing(true)}
                   className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 min-w-[140px]"
                 >
-                  <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
+                  <PencilIcon className="w-5 h-5 flex-shrink-0" />
                   <span className="whitespace-nowrap">Edit Profile</span>
                 </button>
                 <button
                   onClick={() => setShowPasswordModal(true)}
                   className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 min-w-[160px]"
                 >
-                  <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
+                  <LockClosedIcon className="w-5 h-5 flex-shrink-0" />
                   <span className="whitespace-nowrap">Change Password</span>
                 </button>
                 <button
                   onClick={() => setShowDeleteModal(true)}
                   className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 min-w-[150px]"
                 >
-                  <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
+                  <TrashIcon className="w-5 h-5 flex-shrink-0" />
                   <span className="whitespace-nowrap">Delete Account</span>
                 </button>
               </div>
@@ -823,9 +805,7 @@ function Profile() {
                   disabled={loading}
                   className="bg-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-400 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 min-w-[120px]"
                 >
-                  <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <XMarkIcon className="w-5 h-5 flex-shrink-0" />
                   <span className="whitespace-nowrap">Cancel</span>
                 </button>
                 <button
@@ -836,9 +816,7 @@ function Profile() {
                   {loading ? (
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
                   ) : (
-                    <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
+                    <CheckIcon className="w-5 h-5 flex-shrink-0" />
                   )}
                   <span className="whitespace-nowrap">{loading ? 'Saving...' : 'Save'}</span>
                 </button>
@@ -909,9 +887,7 @@ function Profile() {
                   {loading ? (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   ) : (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
+                    <CheckIcon className="w-4 h-4" />
                   )}
                   <span>{loading ? 'Changing...' : 'Change Password'}</span>
                 </button>
@@ -926,9 +902,7 @@ function Profile() {
             <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
               <div className="flex items-center mb-4">
                 <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-4">
-                  <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
+                  <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900">Delete Account</h3>
               </div>
@@ -959,9 +933,7 @@ function Profile() {
                   {loading ? (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   ) : (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
+                    <TrashIcon className="w-4 h-4" />
                   )}
                   <span>{loading ? 'Deleting...' : 'Delete Account'}</span>
                 </button>
@@ -977,9 +949,7 @@ function Profile() {
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
+                    <UserCircleIcon className="w-6 h-6 text-purple-600" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900">Choose Professional Avatar</h3>
                 </div>
@@ -987,9 +957,7 @@ function Profile() {
                   onClick={() => setShowAvatarSelector(false)}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <XMarkIcon className="w-6 h-6" />
                 </button>
               </div>
               
@@ -1029,9 +997,7 @@ function Profile() {
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 rounded-xl flex items-center justify-center">
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                           <div className="bg-white rounded-full p-2 shadow-lg">
-                            <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
+                            <CheckIcon className="w-6 h-6 text-purple-600" />
                           </div>
                         </div>
                       </div>
@@ -1052,9 +1018,7 @@ function Profile() {
               <div className="mt-6 pt-4 border-t border-gray-200">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2 text-sm text-gray-500">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <InformationCircleIcon className="w-4 h-4" />
                     <span>Professional avatars from Flaticon</span>
                   </div>
                   <button
