@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { resumeAPI } from '../services/api';
 import { 
@@ -17,6 +17,8 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate }) 
     sectionSpacing: 1
   });
   const [updating, setUpdating] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const debounceTimeoutRef = useRef(null);
 
   useEffect(() => {
     if (currentStyling?.template) {
@@ -30,7 +32,42 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate }) 
     }
   }, [currentStyling]);
 
-  const handleStylingChange = async (key, value) => {
+  // Debounced API call function
+  const debouncedStylingUpdate = useCallback((newStyling) => {
+    // Clear existing timeout
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    // Set new timeout for API call
+    debounceTimeoutRef.current = setTimeout(async () => {
+      try {
+        setUpdating(true);
+        const response = await resumeAPI.updateTemplateStyling(resumeId, newStyling);
+        
+        if (response.success) {
+          // Call the parent callback to update the preview
+          if (onStylingUpdate) {
+            onStylingUpdate(response.data.resume);
+          }
+          toast.success('Template styling updated!');
+        } else {
+          throw new Error(response.error || 'Failed to update styling');
+        }
+      } catch (error) {
+        console.error('Error updating template styling:', error);
+        toast.error('Failed to update template styling');
+        // Revert the change
+        setStyling(prev => ({ ...prev }));
+      } finally {
+        setUpdating(false);
+        setIsDragging(false);
+      }
+    }, 1000); // 1 second delay
+  }, [resumeId, onStylingUpdate]);
+
+  // Immediate update for non-range inputs (like header level buttons)
+  const handleImmediateStylingChange = async (key, value) => {
     const newStyling = { ...styling, [key]: value };
     setStyling(newStyling);
 
@@ -39,7 +76,6 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate }) 
       const response = await resumeAPI.updateTemplateStyling(resumeId, newStyling);
       
       if (response.success) {
-        // Call the parent callback to update the preview
         if (onStylingUpdate) {
           onStylingUpdate(response.data.resume);
         }
@@ -50,12 +86,28 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate }) 
     } catch (error) {
       console.error('Error updating template styling:', error);
       toast.error('Failed to update template styling');
-      // Revert the change
       setStyling(prev => ({ ...prev, [key]: styling[key] }));
     } finally {
       setUpdating(false);
     }
   };
+
+  // Debounced update for range inputs
+  const handleDebouncedStylingChange = (key, value) => {
+    const newStyling = { ...styling, [key]: value };
+    setStyling(newStyling);
+    setIsDragging(true);
+    debouncedStylingUpdate(newStyling);
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const headerLevels = [
     { value: 'h1', label: 'H1', icon: 'H1' },
@@ -72,6 +124,12 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate }) 
            <SwatchIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
          </div>
          <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Edit Template</span>
+         {isDragging && (
+           <div className="ml-auto flex items-center gap-2 text-sm text-purple-600">
+             <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+             <span>Updating...</span>
+           </div>
+         )}
        </h3>
 
                                                        {/* Header Level */}
@@ -84,7 +142,7 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate }) 
            {headerLevels.map((level) => (
              <button
                key={level.value}
-               onClick={() => handleStylingChange('headerLevel', level.value)}
+               onClick={() => handleImmediateStylingChange('headerLevel', level.value)}
                disabled={updating}
                                className={`px-2 py-2 rounded-lg border-2 transition-all duration-300 flex items-center justify-center text-sm font-bold min-h-[40px] transform hover:scale-105 active:scale-95 ${
                   styling.headerLevel === level.value
@@ -114,7 +172,7 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate }) 
                min="12"
                max="24"
                value={styling.headerFontSize}
-               onChange={(e) => handleStylingChange('headerFontSize', parseInt(e.target.value))}
+               onChange={(e) => handleDebouncedStylingChange('headerFontSize', parseInt(e.target.value))}
                disabled={updating}
                className="w-full h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg appearance-none cursor-pointer slider"
              />
@@ -141,7 +199,7 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate }) 
                min="12"
                max="18"
                value={styling.fontSize}
-               onChange={(e) => handleStylingChange('fontSize', parseInt(e.target.value))}
+               onChange={(e) => handleDebouncedStylingChange('fontSize', parseInt(e.target.value))}
                disabled={updating}
                className="w-full h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg appearance-none cursor-pointer slider"
              />
@@ -169,7 +227,7 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate }) 
                max="3"
                step="0.1"
                value={styling.lineSpacing}
-               onChange={(e) => handleStylingChange('lineSpacing', parseFloat(e.target.value))}
+               onChange={(e) => handleDebouncedStylingChange('lineSpacing', parseFloat(e.target.value))}
                disabled={updating}
                className="w-full h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg appearance-none cursor-pointer slider"
              />
@@ -197,7 +255,7 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate }) 
                max="5"
                step="0.1"
                value={styling.sectionSpacing}
-               onChange={(e) => handleStylingChange('sectionSpacing', parseFloat(e.target.value))}
+               onChange={(e) => handleDebouncedStylingChange('sectionSpacing', parseFloat(e.target.value))}
                disabled={updating}
                className="w-full h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg appearance-none cursor-pointer slider"
              />

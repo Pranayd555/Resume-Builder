@@ -15,7 +15,6 @@ function ResumePreviewEnhanced() {
   const [downloadFormat, setDownloadFormat] = useState('');
   const [showStylingControls, setShowStylingControls] = useState(false);
   const [hasTemplate, setHasTemplate] = useState(false);
-  const [refreshingPreview, setRefreshingPreview] = useState(false);
   
   // PDF preview state
   const [pdfData, setPdfData] = useState(null);
@@ -111,20 +110,16 @@ function ResumePreviewEnhanced() {
     navigate('/resume-list');
   }, [navigate]);
 
-  // Styling update function
+  // Styling update function with debounced PDF reload
   const handleStylingUpdate = useCallback(async (updatedResume) => {
     try {
-      setRefreshingPreview(true);
       setResume(updatedResume);
       
       // Reload PDF preview with updated styling
       await loadPDFPreview();
-      toast.success('Preview updated successfully!');
     } catch (error) {
       console.error('Error updating preview after styling change:', error);
       toast.error('Failed to update preview after styling change');
-    } finally {
-      setRefreshingPreview(false);
     }
   }, [loadPDFPreview]);
 
@@ -319,40 +314,98 @@ function ResumePreviewEnhanced() {
           <div className={`${showStylingControls ? 'xl:col-span-4' : 'xl:col-span-6'}`}>
             <div className="backdrop-blur-md bg-white/90 rounded-xl sm:rounded-2xl shadow-xl border border-white/20 p-3 sm:p-6 lg:p-8">
               <div className="max-w-5xl mx-auto">
-                {refreshingPreview && (
-                  <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg">
-                    <div className="flex items-center gap-2 sm:gap-3 text-gray-700">
-                      <div className="w-4 h-4 sm:w-6 sm:h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                      <span className="font-medium text-sm sm:text-base">Updating preview…</span>
-                    </div>
-                  </div>
-                )}
-                
-                {/* PDF Preview */}
-                {pdfLoading ? (
-                  <div className="text-center py-8 sm:py-12">
-                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <svg className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">Loading PDF Preview...</h3>
-                    <p className="text-sm sm:text-base text-gray-600 mb-4">Please wait while we prepare your PDF preview.</p>
-                  </div>
-                ) : pdfData ? (
-                  <div className="mx-auto w-full">
-                    {/* PDF Viewer using PDF.js - Responsive */}
-                    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-lg" style={{ 
-                      minHeight: '550px',
-                      maxHeight: '1200px'
-                    }}>
-                      <PDFViewer 
-                        pdfUrl={pdfData.url}
-                        onError={(error) => {
-                          console.error('PDF Viewer error:', error);
-                          toast.error('Failed to load PDF preview');
-                        }}
-                      />
+                                 {/* PDF Preview */}
+                 {pdfLoading ? (
+                   <div className="text-center py-8 sm:py-12">
+                     {/* Animated PDF Generation Container */}
+                     <div className="relative max-w-md mx-auto mb-8">
+                       {/* Background Animation */}
+                       <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-2xl animate-pulse"></div>
+                       
+                       {/* Main Container */}
+                       <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl p-8 border border-white/50 shadow-xl">
+                         {/* Animated PDF Icon */}
+                         <div className="relative mb-6">
+                           <div className="w-20 h-24 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg shadow-lg flex items-center justify-center transform animate-bounce">
+                             <svg className="w-10 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                             </svg>
+                           </div>
+                           
+                           {/* Floating Elements */}
+                           <div className="absolute -top-2 -right-2 w-4 h-4 bg-yellow-400 rounded-full animate-ping"></div>
+                           <div className="absolute -bottom-2 -left-2 w-3 h-3 bg-green-400 rounded-full animate-ping" style={{ animationDelay: '0.5s' }}></div>
+                           <div className="absolute top-1/2 -left-3 w-2 h-2 bg-pink-400 rounded-full animate-ping" style={{ animationDelay: '1s' }}></div>
+                         </div>
+                         
+                                                   {/* Progress Bar */}
+                          <div className="mb-6">
+                            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                              <div className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full animate-progress"></div>
+                            </div>
+                          </div>
+                         
+                         {/* Loading Text */}
+                         <div className="space-y-2">
+                           <h3 className="text-lg font-semibold text-gray-900 animate-pulse">
+                             Generating PDF Preview...
+                           </h3>
+                           <p className="text-sm text-gray-600">
+                             Crafting your professional resume with precision
+                           </p>
+                         </div>
+                         
+                         {/* Animated Steps */}
+                         <div className="mt-6 space-y-2">
+                           <div className="flex items-center gap-3 text-sm">
+                             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                             <span className="text-gray-700">Processing resume data</span>
+                           </div>
+                           <div className="flex items-center gap-3 text-sm">
+                             <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '0.3s' }}></div>
+                             <span className="text-gray-700">Applying template styling</span>
+                           </div>
+                           <div className="flex items-center gap-3 text-sm">
+                             <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" style={{ animationDelay: '0.6s' }}></div>
+                             <span className="text-gray-700">Generating PDF document</span>
+                           </div>
+                         </div>
+                       </div>
+                       
+                       {/* Decorative Elements */}
+                       <div className="absolute -top-4 -left-4 w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full opacity-20 animate-spin"></div>
+                       <div className="absolute -bottom-4 -right-4 w-6 h-6 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full opacity-20 animate-spin" style={{ animationDirection: 'reverse' }}></div>
+                     </div>
+                     
+                     {/* Additional Info */}
+                     <div className="max-w-lg mx-auto">
+                       <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200">
+                         <div className="flex items-center gap-3">
+                           <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                             <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                             </svg>
+                           </div>
+                           <div>
+                             <p className="text-sm font-medium text-blue-900">High-Quality Preview</p>
+                             <p className="text-xs text-blue-700">Your resume is being rendered with professional formatting and styling</p>
+                           </div>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                                 ) : pdfData ? (
+                   <div className="mx-auto w-full animate-fade-in">
+                     {/* PDF Viewer using PDF.js - Responsive */}
+                     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-lg transform transition-all duration-500 ease-out">
+                                             <PDFViewer 
+                         pdfUrl={pdfData.url}
+                         showLoader={false}
+                         onError={(error) => {
+                           console.error('PDF Viewer error:', error);
+                           toast.error('Failed to load PDF preview');
+                         }}
+                       />
                     </div>
                     
                     {/* Mobile PDF Controls - Only visible on mobile */}
