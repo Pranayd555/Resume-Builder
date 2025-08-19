@@ -11,13 +11,47 @@ function Header() {
   const location = useLocation();
   const { logout, user, isAuthenticated } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
+  const [profilePictureVersion, setProfilePictureVersion] = useState(0);
   const mobileMenuRef = useRef(null);
   const mobileMenuButtonRef = useRef(null);
+
+  // Helper function to get profile picture URL from user data
+  const getProfilePictureUrl = (userData) => {
+    if (!userData || !userData.profilePicture) return null;
+    
+    let url = null;
+    
+    // Handle the new profile picture structure
+    if (userData.profilePicture.type === 'avatar' && userData.profilePicture.avatarUrl) {
+      url = userData.profilePicture.avatarUrl;
+    } else if (userData.profilePicture.type === 'uploaded' && userData.profilePicture.uploadedPhoto) {
+      url = userData.profilePicture.uploadedPhoto.thumbnailUrl || userData.profilePicture.uploadedPhoto.url;
+    }
+    
+    // Legacy support for old structure
+    if (!url) {
+      if (typeof userData.profilePicture === 'string') {
+        url = userData.profilePicture;
+      } else if (userData.profilePicture.url || userData.profilePicture.thumbnailUrl) {
+        url = userData.profilePicture.thumbnailUrl || userData.profilePicture.url;
+      }
+    }
+    
+
+    
+    return url;
+  };
 
   // Close mobile menu when route changes
   useEffect(() => {
     setShowMenu(false);
   }, [location.pathname]);
+
+  // Force re-render when user data changes (especially profile picture)
+  useEffect(() => {
+    // Increment version to force re-render when user data changes
+    setProfilePictureVersion(prev => prev + 1);
+  }, [user?.profilePicture]);
 
   // Handle click outside to close mobile menu
   useEffect(() => {
@@ -101,8 +135,21 @@ function Header() {
             {/* User Info */}
             {user && (
               <div className="flex items-center space-x-2 lg:space-x-3">
-                <div className="w-7 h-7 lg:w-8 lg:h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xs lg:text-sm font-medium">
+                <div className="w-7 h-7 lg:w-8 lg:h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden">
+                  {getProfilePictureUrl(user) ? (
+                    <img 
+                      key={`${getProfilePictureUrl(user)}-${profilePictureVersion}`} // Force re-render when URL changes
+                      src={getProfilePictureUrl(user)} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        const fallback = e.target.nextElementSibling;
+                        if (fallback) fallback.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <span className="text-white text-xs lg:text-sm font-medium" style={{ display: getProfilePictureUrl(user) ? 'none' : 'flex' }}>
                     {user.firstName ? user.firstName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
                   </span>
                 </div>
@@ -160,8 +207,21 @@ function Header() {
               {/* User Info - Mobile */}
               {user && (
                 <div className="flex items-center space-x-3 px-2 py-2 border-b border-white/20 mb-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-sm font-medium">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    {getProfilePictureUrl(user) ? (
+                      <img 
+                        key={`${getProfilePictureUrl(user)}-${profilePictureVersion}`} // Force re-render when URL changes
+                        src={getProfilePictureUrl(user)} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          const fallback = e.target.nextElementSibling;
+                          if (fallback) fallback.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    <span className="text-white text-sm font-medium" style={{ display: getProfilePictureUrl(user) ? 'none' : 'flex' }}>
                       {user.firstName ? user.firstName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
                     </span>
                   </div>

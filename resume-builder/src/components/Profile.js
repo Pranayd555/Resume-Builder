@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { authAPI, userAPI, uploadAPI, apiHelpers } from '../services/api';
 import { toast } from 'react-toastify';
-import Tooltip from './Tooltip';
 import { useAutoScroll, useScrollToTop } from '../hooks/useAutoScroll';
 import { 
   UserCircleIcon,
@@ -17,7 +16,6 @@ import {
   TrashIcon,
   ArrowLeftIcon,
   InformationCircleIcon,
-  CloudArrowUpIcon,
   LockClosedIcon
 } from '@heroicons/react/24/outline';
 
@@ -39,6 +37,7 @@ function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [savingAvatar, setSavingAvatar] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -53,7 +52,7 @@ function Profile() {
   const [justSaved, setJustSaved] = useState(false);
   
   // Auto-scroll hooks (declared after all state variables)
-  const { ref: profilePhotoRef } = useAutoScroll(isEditing, { 
+  const { ref: profilePhotoRef } = useAutoScroll(false, { 
     block: 'center', 
     delay: 100,
     offset: -50 // Scroll slightly above the profile photo
@@ -62,6 +61,20 @@ function Profile() {
   const { ref: profileFormRef } = useAutoScroll(false); // Can be triggered manually
   const { scrollToTop } = useScrollToTop(justSaved);
   
+  // Scroll to top when edit mode is activated
+  useEffect(() => {
+    if (isEditing) {
+      const timer = setTimeout(() => {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isEditing]);
+
   // Manual scroll for avatar selector (targets the same profile photo section)
   useEffect(() => {
     if (showAvatarSelector && profilePhotoRef.current) {
@@ -349,7 +362,7 @@ function Profile() {
         location: profile.location,
         bio: profile.bio,
         profilePicture: '',
-        profilePictureType: null
+        profilePictureType: 'uploaded' // Default type when removing
       };
       
       const profileResponse = await authAPI.updateProfile(profileData);
@@ -373,7 +386,7 @@ function Profile() {
 
   const handleAvatarSelection = async (avatarUrl) => {
     try {
-      setUploading(true);
+      setSavingAvatar(true);
       
       const updatedProfile = {
         ...profile,
@@ -413,7 +426,7 @@ function Profile() {
       // Revert the local state on error
       setProfile(profile);
     } finally {
-      setUploading(false);
+      setSavingAvatar(false);
     }
   };
 
@@ -501,7 +514,7 @@ function Profile() {
                 onDrop={handleDrop}
                 onClick={() => (isEditing || !profile.profilePicture) && fileInputRef.current?.click()}
               >
-                <div className={`w-40 h-40 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center mb-4 shadow-lg overflow-hidden border-4 transition-all duration-300 ${
+                <div className={`w-40 h-40 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg overflow-hidden border-4 transition-all duration-300 ${
                   dragOver ? 'border-blue-400 shadow-blue-400/50' : 'border-white/20'
                 } backdrop-blur-sm`}>
                   {profile.profilePicture ? (
@@ -570,7 +583,7 @@ function Profile() {
                 {(isEditing || !profile.profilePicture) && (
                   <button 
                     onClick={() => fileInputRef.current?.click()}
-                    disabled={uploading}
+                    disabled={uploading || savingAvatar}
                     className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                   >
                     <CameraIcon className="w-4 h-4" />
@@ -583,11 +596,11 @@ function Profile() {
                   <div className="flex flex-col space-y-2">
                     <button 
                       onClick={() => setShowAvatarSelector(true)}
-                      disabled={uploading}
+                      disabled={uploading || savingAvatar}
                       className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                     >
                       <UserCircleIcon className="w-4 h-4" />
-                      <span>{uploading ? 'Saving...' : 'Choose Avatar'}</span>
+                      <span>{savingAvatar ? 'Saving...' : 'Choose Avatar'}</span>
                     </button>
                     
                     {/* Personalized Avatar Button */}
@@ -600,74 +613,36 @@ function Profile() {
                           const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=${randomColor}&color=ffffff&size=400&rounded=true&font-size=0.4`;
                           handleAvatarSelection(avatarUrl);
                         }}
-                        disabled={uploading}
+                        disabled={uploading || savingAvatar}
                         className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                       >
                         <UserCircleIcon className="w-4 h-4" />
-                        <span>{uploading ? 'Saving...' : 'Use My Initials'}</span>
+                        <span>{savingAvatar ? 'Saving...' : 'Use My Initials'}</span>
                       </button>
                     )}
                   </div>
                 )}
                 
-                {profile.profilePicture && isEditing && (
-                                    <button
-                    onClick={handleRemoveProfilePicture}
-                    disabled={uploading}
-                    className="text-red-600 hover:text-red-700 text-sm font-medium transition-colors flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <TrashIcon className="w-4 h-4" />
-                    <span>Remove Photo</span>
-                  </button>
-                )}
-                
-                {/* Upload Instructions with Tooltip - Only show when editing */}
-                {isEditing && (
-                  <Tooltip 
-                    content={
-                      <div className="max-w-xs sm:max-w-sm">
-                        <div className="mb-3 pb-3 border-b border-blue-200">
-                          <div className="flex items-center space-x-2">
-                            <InformationCircleIcon className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                            <span className="font-semibold text-blue-800">Upload Guidelines</span>
-                          </div>
-                        </div>
-                        <div className="space-y-3">
-                          <div className="flex items-start space-x-3">
-                            <CheckIcon className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                            <div>
-                              <p className="font-medium text-gray-800">Size & Quality</p>
-                              <p className="text-sm text-gray-600">Best: 400×400px+, Max: 5MB</p>
-                            </div>
-                          </div>
-                          <div className="flex items-start space-x-3">
-                            <CheckIcon className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                            <div>
-                              <p className="font-medium text-gray-800">Formats</p>
-                              <p className="text-sm text-gray-600">JPG, PNG, GIF</p>
-                            </div>
-                          </div>
-                          <div className="flex items-start space-x-3">
-                            <CloudArrowUpIcon className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-                            <div>
-                              <p className="font-medium text-gray-800">Upload Method</p>
-                              <p className="text-sm text-gray-600">Drag & drop or click to browse</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    }
-                    position="top"
-                    delay={300}
-                  >
-                    <div className="text-center text-sm text-gray-500">
-                      <div className="inline-flex items-center space-x-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 hover:bg-blue-100 transition-colors cursor-help">
-                        <InformationCircleIcon className="w-4 h-4 text-blue-600" />
-                        <span className="font-medium text-blue-700">Upload Requirements</span>
-                      </div>
-                    </div>
-                  </Tooltip>
-                )}
+                                 {profile.profilePicture && isEditing && (
+                   <button
+                     onClick={handleRemoveProfilePicture}
+                     disabled={uploading || savingAvatar}
+                     className="text-red-600 hover:text-red-700 text-sm font-medium transition-colors flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                   >
+                     <TrashIcon className="w-4 h-4" />
+                     <span>Remove Photo</span>
+                   </button>
+                 )}
+                 
+                 {/* Upload Requirements - Only show when editing */}
+                 {isEditing && (
+                   <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                     <div className="text-center">
+                       <p className="text-xs text-gray-600 font-medium">Upload Requirements</p>
+                       <p className="text-xs text-gray-500 mt-1">Maximum size: 5MB • Supported formats: JPG, PNG, JPEG</p>
+                     </div>
+                   </div>
+                 )}
               </div>
             </div>
 
@@ -972,7 +947,7 @@ function Profile() {
                   <div key={avatar.id} className="group relative">
                     <button
                       onClick={() => handleAvatarSelection(avatar.url)}
-                      disabled={uploading}
+                      disabled={savingAvatar}
                       className="w-full aspect-square bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border-2 border-gray-200 hover:border-purple-400 transition-all duration-300 overflow-hidden group-hover:scale-105 group-hover:shadow-xl p-4 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <div className="w-full h-full flex items-center justify-center">
@@ -1001,7 +976,7 @@ function Profile() {
                           </div>
                         </div>
                       </div>
-                      {uploading && (
+                      {savingAvatar && (
                         <div className="absolute inset-0 bg-white bg-opacity-80 rounded-xl flex items-center justify-center">
                           <div className="flex flex-col items-center space-y-2">
                             <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>

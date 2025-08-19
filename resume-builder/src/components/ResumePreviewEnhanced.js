@@ -51,7 +51,6 @@ function ResumePreviewEnhanced() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        toast.success('PDF downloaded successfully!');
       } else {
         // Fallback to API call if no cached data
         const response = await resumeAPI.downloadPDF(resumeId);
@@ -64,7 +63,6 @@ function ResumePreviewEnhanced() {
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-        toast.success('PDF downloaded successfully!');
       }
     } catch (error) {
       const errorMessage = error.response?.data?.error || error.message || 'Download failed';
@@ -118,10 +116,10 @@ function ResumePreviewEnhanced() {
     try {
       setRefreshingPreview(true);
       setResume(updatedResume);
-      toast.success('Template updated successfully!');
       
       // Reload PDF preview with updated styling
       await loadPDFPreview();
+      toast.success('Preview updated successfully!');
     } catch (error) {
       console.error('Error updating preview after styling change:', error);
       toast.error('Failed to update preview after styling change');
@@ -144,17 +142,17 @@ function ResumePreviewEnhanced() {
 
         if (resumeResp?.success !== false && resumeResp?.data) {
           const r = resumeResp.data.resume || resumeResp.data;
-          console.log('Resume data received:', r);
           setResume(r);
           setHasTemplate(!!r?.template);
         }
         
         // Load PDF preview
         await loadPDFPreview();
+        toast.success('Preview generated successfully!');
         
       } catch (error) {
         console.error('Failed to load resume data:', error);
-        toast.error('Failed to load resume data');
+        toast.error('Failed to load preview');
         setTimeout(() => navigate('/resume-list'), 0);
       } finally {
         setLoading(false);
@@ -239,14 +237,18 @@ function ResumePreviewEnhanced() {
         </div>
 
         {/* PDF Preview Status */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 lg:mb-8">
-          <div className="flex items-center gap-2 mb-2">
-            <DocumentTextIcon className="h-6 w-6" />
-            <h3 className="text-blue-800 font-semibold text-sm sm:text-base">Document Preview</h3>
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4 sm:mb-6 lg:mb-8">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-green-500 rounded-md">
+              <DocumentTextIcon className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <span className="text-green-800 font-medium text-sm">Document Preview: </span>
+              <span className="text-green-700 text-sm">
+                Preview your resume exactly as it will appear in the final document. All formatting, styling, and content are preserved.
+              </span>
+            </div>
           </div>
-          <p className="text-blue-700 text-xs sm:text-sm">
-            Preview your resume exactly as it will appear in the final document. All formatting, styling, and content are preserved.
-          </p>
         </div>
 
         {/* Download Options */}
@@ -341,7 +343,7 @@ function ResumePreviewEnhanced() {
                   <div className="mx-auto w-full">
                     {/* PDF Viewer using PDF.js - Responsive */}
                     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-lg" style={{ 
-                      minHeight: '600px',
+                      minHeight: '550px',
                       maxHeight: '1200px'
                     }}>
                       <PDFViewer 

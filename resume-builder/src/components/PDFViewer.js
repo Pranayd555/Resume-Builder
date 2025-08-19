@@ -209,33 +209,61 @@ const PDFViewer = ({ pdfUrl, onError }) => {
 
   return (
     <div className="flex flex-col h-full">
-      {/* PDF Controls */}
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-200 p-4 flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={prevPage}
-            disabled={currentPage <= 1}
-            className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200 shadow-sm"
-            title="Previous page (←)"
-          >
-            <ChevronLeftIcon className="w-4 h-4" />
-          </button>
-          
-          <span className="text-sm font-medium text-gray-700 bg-white px-3 py-2 rounded-lg shadow-sm">
-            Page {currentPage} of {totalPages}
-          </span>
-          
-          <button
-            onClick={nextPage}
-            disabled={currentPage >= totalPages}
-            className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200 shadow-sm"
-            title="Next page (→)"
-          >
-            <ChevronRightIcon className="w-4 h-4" />
-          </button>
-        </div>
+             {/* PDF Controls */}
+       <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-200 p-4 flex items-center justify-between flex-wrap gap-3">
+         {/* Mobile: Centered page navigation */}
+         <div className="flex md:hidden items-center justify-center w-full">
+           <div className="flex items-center gap-3">
+             <button
+               onClick={prevPage}
+               disabled={currentPage <= 1}
+               className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200 shadow-sm"
+               title="Previous page (←)"
+             >
+               <ChevronLeftIcon className="w-4 h-4" />
+             </button>
+             
+             <span className="text-sm font-medium text-gray-700 bg-white px-3 py-2 rounded-lg shadow-sm">
+               Page {currentPage} of {totalPages}
+             </span>
+             
+             <button
+               onClick={nextPage}
+               disabled={currentPage >= totalPages}
+               className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200 shadow-sm"
+               title="Next page (→)"
+             >
+               <ChevronRightIcon className="w-4 h-4" />
+             </button>
+           </div>
+         </div>
 
-        <div className="flex items-center gap-3">
+         {/* Desktop: Left-aligned page navigation */}
+         <div className="hidden md:flex items-center gap-3">
+           <button
+             onClick={prevPage}
+             disabled={currentPage <= 1}
+             className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200 shadow-sm"
+             title="Previous page (←)"
+           >
+             <ChevronLeftIcon className="w-4 h-4" />
+           </button>
+           
+           <span className="text-sm font-medium text-gray-700 bg-white px-3 py-2 rounded-lg shadow-sm">
+             Page {currentPage} of {totalPages}
+           </span>
+           
+           <button
+             onClick={nextPage}
+             disabled={currentPage >= totalPages}
+             className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200 shadow-sm"
+             title="Next page (→)"
+           >
+             <ChevronRightIcon className="w-4 h-4" />
+           </button>
+         </div>
+
+        <div className="hidden md:flex items-center gap-3">
           <button
             onClick={zoomOut}
             disabled={scale <= 0.5}
