@@ -324,7 +324,7 @@ const seedAllTemplates = async () => {
               {{/if}}
             </div>
           </article>`,
-          css: `.resume.modern-professional { font-family: 'Inter', 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 20px; background: white; color: #1f2937; display: grid; grid-template-columns: 2fr 1fr; gap: 30px; font-size: 12px; line-height: 1.4; }
+          css: `.resume.modern-professional { font-family: 'Inter', 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; display: grid; grid-template-columns: 2fr 1fr; gap: 30px; font-size: 12px; line-height: 1.4; }
           @media print { .resume.modern-professional { max-width: none; margin: 0; padding: 0.5in; } }
           @media (max-width: 768px) { .resume.modern-professional { grid-template-columns: 1fr; gap: 20px; padding: 15px; } }
           
@@ -591,7 +591,7 @@ const seedAllTemplates = async () => {
             </section>
             {{/if}}
           </article>`,
-          css: `.resume.modern-executive { font-family: 'Inter', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 30px; background: white; color: #374151; font-size: 12px; line-height: 1.5; }
+          css: `.resume.modern-executive { font-family: 'Inter', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #374151; font-size: 12px; line-height: 1.5; }
           .header { text-align: center; margin-bottom: 35px; padding-bottom: 25px; border-bottom: 1px solid #e5e7eb; }
           .name { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: #1f2937; margin-bottom: 8px; letter-spacing: 1px; }
           .title-line { width: 60px; height: 3px; background: #f59e0b; margin: 0 auto 15px; }
@@ -835,7 +835,7 @@ const seedAllTemplates = async () => {
             </section>
             {{/if}}
           </article>`,
-          css: `.resume.modern-tech { font-family: 'Roboto', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 1in; background: white; color: #1f2937; line-height: 1.5; }
+          css: `.resume.modern-tech { font-family: 'Roboto', sans-serif; max-width: 8.5in; margin: 0 auto; background: white; color: #1f2937; line-height: 1.5; }
           .tech-header { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 3px solid #06b6d4; }
           .name { font-size: 24px; font-weight: 700; color: #06b6d4; margin-bottom: 0.5rem; }
           .contact-info { display: flex; flex-wrap: wrap; gap: 1rem; }
@@ -1202,7 +1202,7 @@ const seedAllTemplates = async () => {
             </section>
             {{/if}}
           </article>`,
-          css: `.resume.classic-traditional { font-family: 'Times New Roman', 'Georgia', serif; max-width: 8.5in; margin: 0 auto; padding: 1in; background: white; color: black; font-size: 11px; line-height: 1.4; }
+          css: `.resume.classic-traditional { font-family: 'Times New Roman', 'Georgia', serif; max-width: 8.5in; margin: 0 auto; background: white; color: black; font-size: 11px; line-height: 1.4; }
           @media print { .resume.classic-traditional { max-width: none; margin: 0; padding: 0.5in; } }
           @media (max-width: 768px) { .resume.classic-traditional { padding: 0.5in; font-size: 10px; } }
           
@@ -1303,7 +1303,7 @@ const seedAllTemplates = async () => {
             {{#if skills}}<section class="skills-section"><h2>CORE COMPETENCIES</h2><div class="skills-grid">{{#each skills}}<div class="skill-category"><h3>{{category}}</h3><div class="skill-items">{{#each items}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}</div></div>{{/each}}</div>{{/if}}
             {{#if certifications}}<section class="certifications-section"><h2>CERTIFICATIONS</h2>{{#each certifications}}<div class="cert-entry"><div class="cert-line"><strong>{{name}}</strong>{{#if date}}<span class="cert-date">{{formatDate date}}</span>{{/if}}</div>{{#if issuer}}<div class="cert-issuer">{{issuer}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
           </div>`,
-          css: `.resume.classic-professional { font-family: 'Georgia', serif; max-width: 8.5in; margin: 0 auto; padding: 1in; background: white; color: black; line-height: 1.4; }
+          css: `.resume.classic-professional { font-family: 'Georgia', serif; max-width: 8.5in; margin: 0 auto; background: white; color: black; line-height: 1.4; }
           .classic-header { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #1f2937; }
           .name { font-size: 22px; font-weight: bold; color: #1f2937; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px; }
           .contact-details { font-size: 12px; color: #4b5563; margin-bottom: 0.25rem; }
@@ -1547,7 +1547,7 @@ const seedAllTemplates = async () => {
             </section>
             {{/if}}
           </article>`,
-          css: `.resume.minimalist-clean { font-family: 'Inter', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 40px; background: white; color: #374151; font-size: 11px; line-height: 1.5; }
+          css: `.resume.minimalist-clean { font-family: 'Inter', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #374151; font-size: 11px; line-height: 1.5; }
           .header { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb; }
           .name { font-size: 22px; font-weight: 600; color: #1f2937; margin-bottom: 8px; letter-spacing: -0.5px; }
           .contact-info { display: flex; flex-wrap: wrap; gap: 20px; font-size: 10px; color: #6b7280; }
@@ -1621,12 +1621,24 @@ const seedAllTemplates = async () => {
             secondary: '#64748b',
             accent: '#3b82f6',
             text: '#1f2937',
-            background: '#ffffff'
+            background: '#ffffff',
+            header: '#1e40af',
+            sidebar: '#f8fafc'
           },
           fonts: {
             primary: 'Inter',
             secondary: 'Inter',
             sizes: { heading: 24, subheading: 18, body: 11, small: 10 }
+          },
+          spacing: {
+            section: 12,
+            element: 8,
+            header: 6
+          },
+          layout: {
+            type: 'two-column',
+            sidebarWidth: '1fr',
+            mainWidth: '2fr'
           }
         },
         availability: { tier: 'free', isPublic: true, isActive: true },
@@ -1639,10 +1651,12 @@ const seedAllTemplates = async () => {
                   <div class="contact-row">
                     <span class="contact-item" itemprop="email">{{personalInfo.email}}</span>
                     {{#if personalInfo.phone}}<span class="contact-item" itemprop="telephone">{{personalInfo.phone}}</span>{{/if}}
-                    {{#if personalInfo.website}}<span class="contact-item"><a href="{{personalInfo.website}}" target="_blank" itemprop="url">Portfolio</a></span>{{/if}}
                   </div>
                   <div class="contact-row">
                     {{#if personalInfo.address}}<span class="contact-item" itemprop="address">{{personalInfo.address}}</span>{{/if}}
+                    {{#if personalInfo.website}}<span class="contact-item"><a href="{{personalInfo.website}}" target="_blank" itemprop="url">Portfolio</a></span>{{/if}}
+                  </div>
+                  <div class="contact-row">
                     {{#if personalInfo.linkedin}}<span class="contact-item"><a href="{{personalInfo.linkedin}}" target="_blank">LinkedIn</a></span>{{/if}}
                     {{#if personalInfo.github}}<span class="contact-item"><a href="{{personalInfo.github}}" target="_blank">GitHub</a></span>{{/if}}
                   </div>
@@ -1724,18 +1738,30 @@ const seedAllTemplates = async () => {
                 </section>
                 {{/if}}
                 
+                {{#if customFields}}
+                <section class="custom-fields">
+                  <h2>Additional Information</h2>
+                  {{#each customFields}}
+                  <div class="custom-field">
+                    <h3>{{title}}</h3>
+                    <div class="custom-content">{{content}}</div>
+                  </div>
+                  {{/each}}
+                </section>
+                {{/if}}
+              </div>
+              
+              <div class="sidebar">
                 {{#if education}}
                 <section class="education">
                   <h2>Education</h2>
                   {{#each education}}
                   <div class="edu-entry" itemscope itemtype="http://schema.org/EducationalOccupationalCredential">
-                    <div class="edu-header">
-                      <div class="edu-title-institution">
-                        <h3 itemprop="credentialCategory">{{degree}}</h3>
-                        <div class="institution-location">
-                          <span class="institution" itemprop="recognizedBy">{{institution}}</span>
-                          {{#if location}}<span class="location">{{location}}</span>{{/if}}
-                        </div>
+                    <div class="edu-title-institution">
+                      <h3 itemprop="credentialCategory">{{degree}}</h3>
+                      <div class="institution-location">
+                        <span class="institution" itemprop="recognizedBy">{{institution}}</span>
+                        {{#if location}}<span class="location">{{location}}</span>{{/if}}
                       </div>
                       <div class="edu-dates">
                         <time>{{formatDate startDate}}</time> - 
@@ -1763,20 +1789,6 @@ const seedAllTemplates = async () => {
                 </section>
                 {{/if}}
                 
-                {{#if customFields}}
-                <section class="custom-fields">
-                  <h2>Additional Information</h2>
-                  {{#each customFields}}
-                  <div class="custom-field">
-                    <h3>{{title}}</h3>
-                    <div class="custom-content">{{content}}</div>
-                  </div>
-                  {{/each}}
-                </section>
-                {{/if}}
-              </div>
-              
-              <div class="sidebar">
                 {{#if certifications}}
                 <section class="certifications">
                   <h2>Professional Certifications</h2>
@@ -1809,74 +1821,75 @@ const seedAllTemplates = async () => {
               </div>
             </div>
           </article>`,
-          css: `.resume.professional-corporate { font-family: 'Inter', 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; background: white; color: #1f2937; font-size: 11px; line-height: 1.4; }
-          @media print { .resume.professional-corporate { max-width: none; margin: 0; padding: 0.5in; } }
-          @media (max-width: 768px) { .resume.professional-corporate .content-grid { grid-template-columns: 1fr; gap: 20px; } }
+          css: `.resume.professional-corporate { font-family: 'Inter', 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; background: white; color: #1f2937; font-size: 11px; line-height: 1.3; }
+          @media print { .resume.professional-corporate { max-width: none; margin: 0; padding: 0; } }
+          @media (max-width: 768px) { .resume.professional-corporate .content-grid { grid-template-columns: 1fr; gap: 15px; } }
           
-          .header { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 25px 30px; margin-bottom: 25px; }
-          @media print { .header { background: #1e40af !important; } }
+          .header { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 18px 22px 12px; margin-bottom: 12px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 8px rgba(30, 64, 175, 0.2); }
+          @media print { .header { background: #1e40af !important; border-radius: 0; box-shadow: none; } }
           .header-content { max-width: 100%; }
-          .name { font-size: 24px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.5px; }
-          .contact-info { display: flex; flex-direction: column; gap: 5px; }
-          .contact-row { display: flex; gap: 25px; flex-wrap: wrap; }
-          .contact-item { font-size: 11px; opacity: 0.95; }
+          .name { font-size: 24px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.5px; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+          .contact-info { display: flex; flex-direction: column; gap: 2px; }
+          .contact-row { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; }
+          .contact-item { font-size: 10px; opacity: 0.95; }
           .contact-item a { color: white; text-decoration: none; }
           .contact-item a:hover { text-decoration: underline; }
           
-          .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; padding: 0 30px 30px; }
-          section { margin-bottom: 25px; }
-          h2 { font-size: 18px; font-weight: 600; color: #1e40af; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb; position: relative; }
-          h2::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 30px; height: 2px; background: #1e40af; }
-          .summary-text { font-size: 12px; line-height: 1.6; color: #4b5563; text-align: justify; }
+          .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; padding: 0 22px 16px; }
+          section { margin-bottom: 12px; }
+          h2 { font-size: 15px; font-weight: 600; color: #1e40af; margin-bottom: 6px; padding-bottom: 3px; border-bottom: 2px solid #e5e7eb; position: relative; }
+          h2::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 22px; height: 2px; background: #1e40af; }
+          .summary-text { font-size: 11px; line-height: 1.4; color: #4b5563; text-align: justify; }
           
-          .job-entry, .edu-entry, .project-entry, .achievement-entry { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #f3f4f6; }
-          .job-header, .edu-header, .project-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-          .job-title-company h3, .edu-title-institution h3, .project-header h3, .achievement-entry h3 { font-size: 14px; font-weight: 600; color: #1f2937; margin-bottom: 3px; }
-          .company-location, .institution-location { display: flex; gap: 8px; font-size: 11px; color: #6b7280; }
-          .job-dates, .edu-dates, .project-dates { font-size: 10px; color: #9ca3af; font-weight: 500; text-align: right; }
-          .job-description, .edu-description, .project-description { margin: 8px 0; color: #4b5563; line-height: 1.5; }
+          .job-entry, .edu-entry, .project-entry, .achievement-entry { margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #f3f4f6; }
+          .job-header, .edu-header, .project-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3px; }
+          .job-title-company h3, .edu-title-institution h3, .project-header h3, .achievement-entry h3 { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+          .company-location, .institution-location { display: flex; gap: 5px; font-size: 9px; color: #6b7280; }
+          .job-dates, .edu-dates, .project-dates { font-size: 8px; color: #9ca3af; font-weight: 500; text-align: right; }
+          .job-description, .edu-description, .project-description { margin: 3px 0; color: #4b5563; line-height: 1.4; }
           
-          .achievements { margin: 8px 0; padding-left: 18px; }
-          .achievements li { margin-bottom: 3px; color: #4b5563; }
-          .gpa { font-size: 10px; color: #6b7280; margin: 5px 0; }
+          .achievements { margin: 3px 0; padding-left: 12px; }
+          .achievements li { margin-bottom: 1px; color: #4b5563; }
+          .gpa { font-size: 8px; color: #6b7280; margin: 2px 0; }
           
-          .technologies { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
-          .tech-tag { background: #1e40af; color: white; padding: 3px 8px; border-radius: 4px; font-size: 9px; }
+          .technologies { display: flex; flex-wrap: wrap; gap: 3px; margin: 3px 0; }
+          .tech-tag { background: #1e40af; color: white; padding: 2px 5px; border-radius: 3px; font-size: 7px; }
           
-          .project-links { margin: 5px 0; }
-          .project-links a { color: #1e40af; text-decoration: none; font-size: 10px; margin-right: 15px; }
+          .project-links { margin: 2px 0; }
+          .project-links a { color: #1e40af; text-decoration: none; font-size: 8px; margin-right: 10px; }
           .project-links a:hover { text-decoration: underline; }
-          .achievement-date { font-size: 10px; color: #9ca3af; margin: 5px 0; font-style: italic; }
-          .achievement-issuer { font-size: 10px; color: #6b7280; }
+          .achievement-date { font-size: 8px; color: #9ca3af; margin: 2px 0; font-style: italic; }
+          .achievement-issuer { font-size: 8px; color: #6b7280; }
           
-          .custom-field { margin-bottom: 15px; }
-          .custom-field h3 { font-size: 14px; font-weight: 600; color: #1f2937; margin-bottom: 5px; }
-          .custom-content { font-size: 11px; color: #4b5563; line-height: 1.5; }
+          .custom-field { margin-bottom: 8px; }
+          .custom-field h3 { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+          .custom-content { font-size: 9px; color: #4b5563; line-height: 1.4; }
           
-          .sidebar { background: #f8fafc; padding: 20px; border-radius: 8px; height: fit-content; }
+          .sidebar { background: #f8fafc; padding: 12px; border-radius: 6px; height: fit-content; border: 1px solid #e5e7eb; }
           @media print { .sidebar { background: white; border: 1px solid #e5e7eb; } }
-          .sidebar h2 { font-size: 16px; color: #1f2937; border-bottom: 1px solid #e5e7eb; }
+          .sidebar h2 { font-size: 13px; color: #1f2937; border-bottom: 1px solid #e5e7eb; margin-bottom: 6px; }
           .sidebar h2::after { background: #1f2937; }
+          .sidebar section { margin-bottom: 10px; }
           
-          .skill-category { margin-bottom: 20px; }
-          .skill-category h3 { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 10px; }
-          .skill-items { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-          .skill-item { background: #1e40af; color: white; padding: 4px 8px; border-radius: 4px; font-size: 10px; }
+          .skill-category { margin-bottom: 10px; }
+          .skill-category h3 { font-size: 10px; font-weight: 600; color: #1f2937; margin-bottom: 4px; }
+          .skill-items { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; }
+          .skill-item { background: #1e40af; color: white; padding: 2px 5px; border-radius: 3px; font-size: 8px; }
           .skill-item[data-level="expert"] { background: #059669; }
           .skill-item[data-level="advanced"] { background: #0ea5e9; }
           .skill-item[data-level="intermediate"] { background: #1e40af; }
           .skill-item[data-level="beginner"] { background: #6b7280; }
           
-          .cert-item { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #f3f4f6; }
-          .cert-item h3 { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 5px; }
-          .cert-details { display: flex; justify-content: space-between; font-size: 10px; color: #6b7280; }
-          .cert-expiry, .cert-id { font-size: 9px; color: #6b7280; margin: 3px 0; }
-          .cert-link a { color: #1e40af; text-decoration: none; font-size: 9px; }
+          .cert-item { margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid #f3f4f6; }
+          .cert-item h3 { font-size: 9px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+          .cert-details { display: flex; justify-content: space-between; font-size: 8px; color: #6b7280; }
+          .cert-expiry, .cert-id { font-size: 7px; color: #6b7280; margin: 1px 0; }
+          .cert-link a { color: #1e40af; text-decoration: none; font-size: 7px; }
           .cert-link a:hover { text-decoration: underline; }
           
-          .language-item { display: flex; justify-content: space-between; margin-bottom: 8px; }
-          .language-name { font-size: 10px; color: #1f2937; }
-          .language-level { font-size: 9px; color: #6b7280; text-transform: capitalize; }`
+          .language-item { display: flex; justify-content: space-between; margin-bottom: 4px; }
+          .language-name { font-size: 8px; color: #1f2937; }
+          .language-level { font-size: 7px; color: #6b7280; text-transform: capitalize; }`
         },
         creator: adminUser._id,
         tags: ['professional', 'corporate', 'business', 'two-column', 'blue', 'executive']
@@ -1946,8 +1959,8 @@ const seedAllTemplates = async () => {
             {{#if languages}}<section class="languages-section"><h2>LANGUAGES</h2><div class="languages-grid">{{#each languages}}<div class="language-item"><span class="language-name">{{name}}</span><span class="language-level">{{proficiency}}</span></div>{{/each}}</div>{{/if}}
             {{#if customFields}}<section class="custom-fields-section">{{#each customFields}}<div class="custom-field"><h2>{{title}}</h2><div class="custom-content">{{content}}</div></div>{{/each}}</section>{{/if}}
           </div>`,
-          css: `.resume.professional-executive { font-family: 'Calibri', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 1in; background: white; color: #1f2937; line-height: 1.5; }
-          .executive-header { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); color: white; padding: 2rem; margin: -1in -1in 2rem -1in; text-align: center; }
+          css: `.resume.professional-executive { font-family: 'Calibri', sans-serif; max-width: 8.5in; margin: 0 auto; background: white; color: #1f2937; line-height: 1.5; }
+                      .executive-header { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); color: white; padding: 2rem; margin: 0 0 2rem 0; text-align: center; }
           .name { font-size: 28px; font-weight: 700; margin-bottom: 1rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); letter-spacing: 0.5px; }
           .contact-bar { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; }
           .contact-item { font-size: 11px; padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); border-radius: 20px; backdrop-filter: blur(10px); }
@@ -2134,7 +2147,7 @@ const seedAllTemplates = async () => {
             </section>
             {{/if}}
           </article>`,
-          css: `.resume.academic-research { font-family: 'Inter', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 30px; background: white; color: #1f2937; font-size: 11px; line-height: 1.5; }
+          css: `.resume.academic-research { font-family: 'Inter', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; font-size: 11px; line-height: 1.5; }
           .header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #059669; }
           .name { font-family: 'Georgia', serif; font-size: 20px; font-weight: 600; color: #059669; margin-bottom: 15px; letter-spacing: 0.5px; }
           .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; max-width: 600px; margin: 0 auto; }
@@ -2339,7 +2352,7 @@ const seedAllTemplates = async () => {
               {{/if}}
             </div>
           `,
-           "css": ".resume.sleek-professional { font-family: 'Lato', 'Arial', sans-serif; background: #ffffff; color: #1e293b; padding: 24px; } @media print { .resume.sleek-professional { max-width: none; margin: 0; padding: 0.5in; } } @media (max-width: 768px) { .resume.sleek-professional { padding: 15px; } } .header { margin-bottom: 12px; } .name { font-size: 22px; margin: 0 0 6px; color: #2563eb; } .contact-info { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: #475569; } .contact-info a { color: #2563eb; text-decoration: none; } .contact-info a:hover { text-decoration: underline; } section { margin-top: 12px; } h2 { font-size: 14px; margin: 0 0 8px; color: #2563eb; font-weight: 600; } .job-header, .edu-header, .project-header, .achievement-header, .cert-header { display: flex; justify-content: space-between; font-size: 12px; color: #334155; } .company, .institution { font-size: 12px; color: #475569; } .dates { font-size: 11px; color: #64748b; } .job-description, .project-description, .edu-description { margin: 5px 0; color: #4b5563; line-height: 1.4; } .achievements { margin: 5px 0; padding-left: 18px; } .achievements li { margin-bottom: 2px; color: #4b5563; } .technologies { margin: 5px 0; font-size: 11px; color: #6b7280; } .project-url a, .github-url a, .cert-url a { color: #2563eb; text-decoration: none; } .project-url a:hover, .github-url a:hover, .cert-url a:hover { text-decoration: underline; } .gpa { font-size: 11px; color: #6b7280; margin: 3px 0; } .cert-issuer { font-size: 11px; color: #6b7280; margin: 3px 0; } .cert-expiry, .cert-id { font-size: 10px; color: #6b7280; margin: 2px 0; }"
+           "css": ".resume.sleek-professional { font-family: 'Lato', 'Arial', sans-serif; background: #ffffff; color: #1e293b; padding: 0.5in 0.35in; } @media print { .resume.sleek-professional { max-width: none; margin: 0; padding: 0.5in; } } @media (max-width: 768px) { .resume.sleek-professional { padding: 15px; } } .header { margin-bottom: 12px; } .name { font-size: 22px; margin: 0 0 6px; color: #2563eb; } .contact-info { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: #475569; } .contact-info a { color: #2563eb; text-decoration: none; } .contact-info a:hover { text-decoration: underline; } section { margin-top: 12px; } h2 { font-size: 14px; margin: 0 0 8px; color: #2563eb; font-weight: 600; } .job-header, .edu-header, .project-header, .achievement-header, .cert-header { display: flex; justify-content: space-between; font-size: 12px; color: #334155; } .company, .institution { font-size: 12px; color: #475569; } .dates { font-size: 11px; color: #64748b; } .job-description, .project-description, .edu-description { margin: 5px 0; color: #4b5563; line-height: 1.4; } .achievements { margin: 5px 0; padding-left: 18px; } .achievements li { margin-bottom: 2px; color: #4b5563; } .technologies { margin: 5px 0; font-size: 11px; color: #6b7280; } .project-url a, .github-url a, .cert-url a { color: #2563eb; text-decoration: none; } .project-url a:hover, .github-url a:hover, .cert-url a:hover { text-decoration: underline; } .gpa { font-size: 11px; color: #6b7280; margin: 3px 0; } .cert-issuer { font-size: 11px; color: #6b7280; margin: 3px 0; } .cert-expiry, .cert-id { font-size: 10px; color: #6b7280; margin: 2px 0; }"
         },
         creator: adminUser._id,
         "tags": ["professional", "corporate", "ats", "clean"]
@@ -2494,7 +2507,7 @@ const seedAllTemplates = async () => {
               {{/if}}
             </div>
           `,
-          "css": ".resume.creative-portfolio { font-family: 'Poppins', sans-serif; background: #fdf4ff; color: #111827; padding: 28px; } .header { margin-bottom: 10px; } .name { font-size: 26px; margin: 0 0 6px; color: #7e22ce; } .contact { display: flex; gap: 12px; color: #6b21a8; font-size: 12px; } section { margin-top: 12px; } h2 { color: #7e22ce; font-size: 14px; margin: 10px 0 6px; } .projects .project { border-left: 4px solid #f472b6; padding-left: 10px; margin-bottom: 10px; } .project h3 { margin: 0 0 4px; font-size: 13px; } .tech span { background: #f472b6; color: white; padding: 2px 6px; border-radius: 10px; margin-right: 4px; font-size: 10px; }"
+          "css": ".resume.creative-portfolio { font-family: 'Poppins', sans-serif; background: #fdf4ff; color: #111827; padding: 0.5in 0.35in; } .header { margin-bottom: 10px; } .name { font-size: 26px; margin: 0 0 6px; color: #7e22ce; } .contact { display: flex; gap: 12px; color: #6b21a8; font-size: 12px; } section { margin-top: 12px; } h2 { color: #7e22ce; font-size: 14px; margin: 10px 0 6px; } .projects .project { border-left: 4px solid #f472b6; padding-left: 10px; margin-bottom: 10px; } .project h3 { margin: 0 0 4px; font-size: 13px; } .tech span { background: #f472b6; color: white; padding: 2px 6px; border-radius: 10px; margin-right: 4px; font-size: 10px; }"
         },
         creator: adminUser._id,
         "tags": ["creative", "portfolio", "designer", "colorful"]
@@ -2677,7 +2690,7 @@ const seedAllTemplates = async () => {
               {{/if}}
             </div>
           `,
-          "css": ".resume.dark-mode-dev { font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; padding: 24px; } .name { color: #38bdf8; margin: 0 0 6px; } .contact { display: flex; gap: 12px; color: #a855f7; font-size: 12px; } h2 { color: #38bdf8; font-size: 14px; margin: 12px 0 6px; }"
+          "css": ".resume.dark-mode-dev { font-family: 'Inter', sans-serif; background: #0f172a; color: #f8fafc; padding: 0.5in 0.35in; } .name { color: #38bdf8; margin: 0 0 6px; } .contact { display: flex; gap: 12px; color: #a855f7; font-size: 12px; } h2 { color: #38bdf8; font-size: 14px; margin: 12px 0 6px; }"
         },
         creator: adminUser._id,
         "tags": ["dark", "developer", "tech", "modern"]
@@ -2826,7 +2839,7 @@ const seedAllTemplates = async () => {
               {{/if}}
             </div>
           `,
-          "css": ".resume.elegant-minimal { font-family: 'Merriweather', serif; background: #f5f6f8; color: #111827; padding: 28px; } .header { margin-bottom: 10px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; } .name { font-size: 26px; margin: 0 0 6px; } .contact { display: flex; gap: 12px; color: #6b7280; font-size: 12px; } section { margin-top: 14px; background: transparent; } .job, .edu, .project { background: transparent; } h2 { font-size: 15px; margin: 8px 0 6px; color: #10b981; letter-spacing: 0.4px; } .dates { font-size: 11px; color: #6b7280; }"
+          "css": ".resume.elegant-minimal { font-family: 'Merriweather', serif; background: #f5f6f8; color: #111827; padding: 0.5in 0.35in; } .header { margin-bottom: 10px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; } .name { font-size: 26px; margin: 0 0 6px; } .contact { display: flex; gap: 12px; color: #6b7280; font-size: 12px; } section { margin-top: 14px; background: transparent; } .job, .edu, .project { background: transparent; } h2 { font-size: 15px; margin: 8px 0 6px; color: #10b981; letter-spacing: 0.4px; } .dates { font-size: 11px; color: #6b7280; }"
         },
         creator: adminUser._id,
         "tags": ["minimal", "modern", "clean", "professional"]
@@ -2965,7 +2978,7 @@ const seedAllTemplates = async () => {
               {{/if}}
             </div>
           `,
-          "css": ".resume.bold-accent { font-family: 'Montserrat', sans-serif; background: #ffffff; color: #1f2937; padding: 24px; } .header { background: #2563eb; color: #ffffff; padding: 12px 16px; margin: -24px -24px 16px -24px; } .name { font-size: 24px; margin: 0 0 2px; color: #ffffff; } .contact { display: flex; gap: 12px; color: #e0e7ff; font-size: 12px; } h2 { color: #2563eb; font-size: 14px; margin: 16px 0 8px; text-transform: uppercase; letter-spacing: 0.8px; } .job-description, .project-description, .edu-description { margin: 5px 0; } .achievements { margin: 5px 0; padding-left: 18px; } .project-header { display: flex; justify-content: space-between; }"
+          "css": ".resume.bold-accent { font-family: 'Montserrat', 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; background: white; color: #1f2937; font-size: 11px; line-height: 1.3; padding: 0; } @media print { .resume.bold-accent { max-width: none; margin: 0; padding: 0; } } .header { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 20px 25px; margin-bottom: 15px; } @media print { .header { background: #1e40af !important; } } .name { font-size: 22px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px; color: white; } .contact { font-size: 10px; color: rgba(255, 255, 255, 0.9); line-height: 1.4; } section { margin-bottom: 15px; padding: 0 25px; } h2 { font-size: 16px; font-weight: 600; color: #2563eb; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 2px solid #e5e7eb; position: relative; } h2::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 25px; height: 2px; background: #2563eb; } .job, .edu, .cert, .project, .achievement-entry { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #f3f4f6; } .job-header, .edu-header, .cert-header, .project-header, .achievement-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; } .job-header strong, .edu-header strong, .cert-header strong, .project-header strong, .achievement-header strong { font-size: 13px; font-weight: 600; color: #1f2937; margin-bottom: 2px; } .company, .institution, .cert-issuer { font-size: 10px; color: #6b7280; font-weight: 500; margin-bottom: 3px; } .dates { font-size: 9px; color: #9ca3af; font-weight: 500; text-align: right; } .job-description, .edu-description, .project-description, .achievement-description { margin: 6px 0; color: #4b5563; line-height: 1.4; } .achievements { margin: 6px 0; padding-left: 16px; } .achievements li { margin-bottom: 2px; color: #4b5563; } .gpa { font-size: 9px; color: #6b7280; margin: 4px 0; } .technologies { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0; } .technologies strong { margin-right: 6px; } .project-url, .github-url, .cert-url { margin: 4px 0; } .project-url strong, .github-url strong, .cert-url strong { margin-right: 6px; } .cert-expiry, .cert-id { font-size: 8px; color: #6b7280; margin: 2px 0; } .skill-category { margin-bottom: 12px; } .skill-category strong { font-size: 11px; font-weight: 600; color: #1f2937; margin-bottom: 4px; display: block; } .language-entry { margin-bottom: 6px; } .language-entry strong { font-size: 9px; color: #1f2937; } .issuer-info { font-size: 9px; color: #6b7280; font-style: italic; margin-top: 3px; }"
         },
         creator: adminUser._id,
         "tags": ["bold", "modern", "accent", "colorful"]
@@ -3017,12 +3030,57 @@ const seedAllTemplates = async () => {
                   {{#if personalInfo.github}} | {{personalInfo.github}}{{/if}}
                 </div>
               </header>
+              
               {{#if summary}}
                 <section>
-                  <h2>OBJECTIVE</h2>
+                  <h2>PROFESSIONAL SUMMARY</h2>
                   <p>{{summary}}</p>
                 </section>
               {{/if}}
+              
+              {{#if skills}}
+                <section>
+                  <h2>CORE COMPETENCIES</h2>
+                  {{#each skills}}
+                    <div class="skill-category">
+                      <h3>{{category}}</h3>
+                      <div class="skill-items">
+                        {{#each items}}<span class="skill-item">{{name}}</span>{{/each}}
+                      </div>
+                    </div>
+                  {{/each}}
+                </section>
+              {{/if}}
+              
+              {{#if workExperience}}
+                <section>
+                  <h2>PROFESSIONAL EXPERIENCE</h2>
+                  {{#each workExperience}}
+                    <div class="job">
+                      <div class="job-header"><strong>{{jobTitle}}</strong><span class="dates">{{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div>
+                      <div class="company">{{company}}{{#if location}}, {{location}}{{/if}}</div>
+                      {{#if description}}<p class="job-description">{{description}}</p>{{/if}}
+                      {{#if achievements}}<ul class="achievements">{{#each achievements}}<li>{{this}}</li>{{/each}}</ul>{{/if}}
+                    </div>
+                  {{/each}}
+                </section>
+              {{/if}}
+              
+              {{#if projects}}
+                <section>
+                  <h2>KEY PROJECTS</h2>
+                  {{#each projects}}
+                    <div class="project">
+                      <div class="project-header"><strong>{{name}}</strong>{{#if startDate}}<span class="dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</span>{{/if}}</div>
+                      {{#if description}}<p class="project-description">{{description}}</p>{{/if}}
+                      {{#if technologies}}<div class="technologies"><strong>Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}</div>{{/if}}
+                      {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
+                      {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
+                    </div>
+                  {{/each}}
+                </section>
+              {{/if}}
+              
               {{#if education}}
                 <section>
                   <h2>EDUCATION</h2>
@@ -3036,24 +3094,27 @@ const seedAllTemplates = async () => {
                   {{/each}}
                 </section>
               {{/if}}
-              {{#if workExperience}}
+              
+              {{#if certifications}}
                 <section>
-                  <h2>EXPERIENCE</h2>
-                  {{#each workExperience}}
-                    <div class="job">
-                      <div class="job-header"><strong>{{jobTitle}}</strong><span class="dates">{{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div>
-                      <div class="company">{{company}}{{#if location}}, {{location}}{{/if}}</div>
-                      {{#if description}}<p>{{description}}</p>{{/if}}
-                      {{#if achievements}}<ul>{{#each achievements}}<li>{{this}}</li>{{/each}}</ul>{{/if}}
+                  <h2>PROFESSIONAL CERTIFICATIONS</h2>
+                  {{#each certifications}}
+                    <div class="cert">
+                      <div class="cert-header"><strong>{{name}}</strong>{{#if date}}<span class="dates">{{formatDate date}}</span>{{/if}}</div>
+                      <div class="issuer">{{issuer}}</div>
+                      {{#if expiryDate}}<div class="cert-expiry">Expires: {{formatDate expiryDate}}</div>{{/if}}
+                      {{#if credentialId}}<div class="cert-id">ID: {{credentialId}}</div>{{/if}}
+                      {{#if url}}<div class="cert-link"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}
                     </div>
                   {{/each}}
                 </section>
               {{/if}}
+              
               {{#if achievements}}
                 <section>
-                  <h2>ACHIEVEMENTS</h2>
+                  <h2>ACHIEVEMENTS & AWARDS</h2>
                   {{#each achievements}}
-                    <div>
+                    <div class="achievement">
                       {{#if title}}<div class="achievement-header"><strong>{{title}}</strong>{{#if date}}<span class="dates">{{formatDate date}}</span>{{/if}}</div>{{/if}}
                       {{#if description}}<p>{{description}}</p>{{/if}}
                       {{#if issuer}}<div class="issuer-info"><em>{{issuer}}</em></div>{{/if}}
@@ -3061,15 +3122,28 @@ const seedAllTemplates = async () => {
                   {{/each}}
                 </section>
               {{/if}}
+              
               {{#if languages}}
                 <section>
                   <h2>LANGUAGES</h2>
-                  {{#each languages}}<div>{{name}} - {{proficiency}}</div>{{/each}}
+                  {{#each languages}}<div class="language-item">{{name}} - {{proficiency}}</div>{{/each}}
+                </section>
+              {{/if}}
+              
+              {{#if customFields}}
+                <section>
+                  <h2>ADDITIONAL INFORMATION</h2>
+                  {{#each customFields}}
+                    <div class="custom-field">
+                      <h3>{{title}}</h3>
+                      <div class="custom-content">{{content}}</div>
+                    </div>
+                  {{/each}}
                 </section>
               {{/if}}
             </div>
           `,
-          "css": ".resume.classic-serif { font-family: 'Times New Roman', serif; background: #ffffff; color: #111827; padding: 28px 32px; max-width: 8.5in; margin: 0 auto; text-align: left !important; } .resume.classic-serif .header { text-align: left !important; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #d1d5db; } .resume.classic-serif .name { font-size: 26px; line-height: 1.2; letter-spacing: 0.5px; margin: 0 0 6px; font-variant: small-caps; text-align: left !important; } .resume.classic-serif .contact { font-size: 12px; color: #4b5563; } .resume.classic-serif section { margin-top: 14px; } .resume.classic-serif h2 { text-transform: uppercase; font-size: 14px; margin: 12px 0 6px; letter-spacing: 0.5px; color: #1f2937; border-left: 3px solid #4b5563; padding-left: 8px; } .resume.classic-serif .job-header, .resume.classic-serif .edu-header, .resume.classic-serif .project-header, .resume.classic-serif .achievement-header { display: flex; justify-content: space-between; align-items: baseline; } .resume.classic-serif .dates { font-size: 11px; color: #6b7280; } .resume.classic-serif .gpa { font-size: 12px; color: #374151; }"
+          "css": ".resume.classic-serif { font-family: 'Times New Roman', serif; background: #ffffff; color: #111827; padding: 0.5in 0.35in; max-width: 8.5in; margin: 0 auto; text-align: left !important; line-height: 1.3; font-size: 11px; } .resume.classic-serif .header { text-align: left !important; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #d1d5db; } .resume.classic-serif .name { font-size: 24px; line-height: 1.1; letter-spacing: 0.5px; margin: 0 0 4px; font-variant: small-caps; text-align: left !important; font-weight: bold; } .resume.classic-serif .contact { font-size: 11px; color: #4b5563; line-height: 1.2; } .resume.classic-serif section { margin-top: 10px; } .resume.classic-serif h2 { text-transform: uppercase; font-size: 13px; margin: 8px 0 4px; letter-spacing: 0.5px; color: #1f2937; border-left: 3px solid #4b5563; padding-left: 6px; font-weight: bold; } .resume.classic-serif h3 { font-size: 12px; font-weight: bold; margin: 4px 0 2px; color: #374151; } .resume.classic-serif .job-header, .resume.classic-serif .edu-header, .resume.classic-serif .project-header, .resume.classic-serif .achievement-header, .resume.classic-serif .cert-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; } .resume.classic-serif .dates { font-size: 10px; color: #6b7280; } .resume.classic-serif .gpa { font-size: 11px; color: #374151; margin: 2px 0; } .resume.classic-serif .company, .resume.classic-serif .institution, .resume.classic-serif .issuer { font-size: 11px; color: #4b5563; margin: 2px 0; } .resume.classic-serif .job-description, .resume.classic-serif .project-description, .resume.classic-serif .edu-description { margin: 4px 0; color: #374151; line-height: 1.3; } .resume.classic-serif .achievements { margin: 4px 0; padding-left: 16px; } .resume.classic-serif .achievements li { margin-bottom: 2px; color: #374151; } .resume.classic-serif .skill-category { margin-bottom: 6px; } .resume.classic-serif .skill-items { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 2px; } .resume.classic-serif .skill-item { background: #f3f4f6; padding: 2px 6px; border-radius: 3px; font-size: 10px; color: #374151; } .resume.classic-serif .technologies { margin: 4px 0; } .resume.classic-serif .tech-tag { background: #e5e7eb; padding: 1px 4px; border-radius: 2px; font-size: 9px; margin-right: 4px; } .resume.classic-serif .project-links { margin: 2px 0; } .resume.classic-serif .project-links a { color: #2563eb; text-decoration: none; font-size: 10px; } .resume.classic-serif .cert-expiry, .resume.classic-serif .cert-id { font-size: 10px; color: #6b7280; margin: 1px 0; } .resume.classic-serif .cert-link a { color: #2563eb; text-decoration: none; font-size: 10px; } .resume.classic-serif .issuer-info { font-size: 10px; color: #6b7280; margin: 2px 0; } .resume.classic-serif .language-item { margin: 2px 0; font-size: 11px; } .resume.classic-serif .custom-field { margin-bottom: 6px; } .resume.classic-serif .custom-content { margin: 2px 0; } .resume.classic-serif p { margin: 2px 0; } .resume.classic-serif .job, .resume.classic-serif .edu, .resume.classic-serif .project, .resume.classic-serif .cert, .resume.classic-serif .achievement { margin-bottom: 8px; }"
         },
         creator: adminUser._id,
         "tags": ["classic", "serif", "academic", "formal"]
@@ -3208,7 +3282,7 @@ const seedAllTemplates = async () => {
               {{/if}}
             </div>
           `,
-          "css": ".resume.fresh-gradient { font-family: 'Inter', sans-serif; background: #f3f4f6; color: #111827; padding: 24px; } .header { margin-bottom: 10px; } .name { font-size: 24px; margin: 0 0 6px; color: #3b82f6; } .contact { display: flex; gap: 12px; color: #3b82f6; font-size: 12px; } section { margin-top: 12px; background: transparent; } .job, .edu, .project { background: transparent; } h2 { color: #3b82f6; font-size: 14px; margin: 12px 0 6px; } .section-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; } .project-header { display: flex; justify-content: space-between; font-size: 12px; } .tag { background: linear-gradient(90deg, #3b82f6, #9333ea); color: white; padding: 2px 6px; border-radius: 8px; margin-right: 4px; font-size: 10px; }"
+          "css": ".resume.fresh-gradient { font-family: 'Inter', sans-serif; background: #f3f4f6; color: #111827; padding: 0.5in 0.35in; } .header { margin-bottom: 10px; } .name { font-size: 24px; margin: 0 0 6px; color: #3b82f6; } .contact { display: flex; gap: 12px; color: #3b82f6; font-size: 12px; } section { margin-top: 12px; background: transparent; } .job, .edu, .project { background: transparent; } h2 { color: #3b82f6; font-size: 14px; margin: 12px 0 6px; } .section-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; } .project-header { display: flex; justify-content: space-between; font-size: 12px; } .tag { background: linear-gradient(90deg, #3b82f6, #9333ea); color: white; padding: 2px 6px; border-radius: 8px; margin-right: 4px; font-size: 10px; }"
         },
         creator: adminUser._id,
         "tags": ["modern", "gradient", "colorful", "rounded"]

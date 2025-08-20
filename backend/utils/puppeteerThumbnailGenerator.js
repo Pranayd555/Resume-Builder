@@ -228,7 +228,7 @@ class PuppeteerThumbnailGenerator {
       const htmlTemplate = handlebars.compile(template.templateCode.html);
       const compiledHTML = htmlTemplate(this.sampleData);
 
-      // Create full HTML document
+      // Create full HTML document with minimal styling to match actual rendering
       const fullHTML = `
         <!DOCTYPE html>
         <html lang="en">
@@ -237,52 +237,42 @@ class PuppeteerThumbnailGenerator {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>${template.name}</title>
           <style>
-            ${template.templateCode.css}
+            /* Basic reset and page setup */
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
             
-            /* Additional styles for better thumbnails */
+            :root { 
+              --template-bg: ${template.styling.colors.background || '#ffffff'}; 
+            }
+            
             body {
               margin: 0;
-              padding: 20px;
-              font-family: ${template.styling.fonts.primary}, sans-serif;
-              background: ${template.styling.colors.background};
-              color: ${template.styling.colors.text};
-              transform: scale(0.8);
-              transform-origin: top left;
-              width: 125%;
-              height: 125%;
+              padding: 10px;
+              background: var(--template-bg);
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             }
             
+            /* Template CSS from template - use as-is without modifications */
+            ${template.templateCode.css}
+            
+            /* Minimal thumbnail-specific adjustments for better preview */
             .resume {
-              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-              border-radius: 8px;
+              max-width: 8.5in;
+              margin: 0 auto;
+              background: var(--template-bg);
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+              border-radius: 4px;
               overflow: hidden;
             }
-            .resume, .resume-isolated-container .resume {
-              margin: 0 auto !important;
-              padding: 0in 0.35in !important; /* 0in top/bottom, 0.35in left/right */
-              max-width: 8.5in !important;
-              min-height: 100vh !important;
-              background: var(--template-bg) !important;
-            }
-            /* Add consistent page padding like preview/PDF */
-            .resume, .resume-isolated-container .resume {
-              margin: 0 auto !important;
-              padding: 0in 0.35in !important; /* 0in top/bottom, 0.35in left/right */
-              max-width: 8.5in !important;
-              min-height: 100vh !important;
-              background: var(--template-bg) !important;
-            }
             
-            /* Ensure text is readable in thumbnail */
-            * {
-              font-size: max(8px, 1em) !important;
-              line-height: 1.2 !important;
-            }
-            
-            /* Hide very small text elements */
-            .small-text,
-            .fine-print {
-              display: none;
+            /* Ensure consistent rendering across templates */
+            .resume * {
+              text-rendering: optimizeLegibility;
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
             }
           </style>
         </head>
@@ -295,10 +285,10 @@ class PuppeteerThumbnailGenerator {
       // Create new page
       const page = await this.browser.newPage();
       
-      // Set viewport
+      // Set viewport to match the template dimensions
       await page.setViewport({
-        width: Math.max(width * 3, 900),
-        height: Math.max(height * 3, 1200),
+        width: Math.max(width * 2, 800),
+        height: Math.max(height * 2, 1000),
         deviceScaleFactor: 2
       });
 
@@ -315,7 +305,7 @@ class PuppeteerThumbnailGenerator {
       const thumbnailFilename = filename || `${template.name.toLowerCase().replace(/\s+/g, '-')}-thumbnail.${format}`;
       const thumbnailPath = path.join(this.outputDir, thumbnailFilename);
 
-      // Take screenshot
+      // Take screenshot with proper clipping
       const screenshotOptions = {
         path: thumbnailPath,
         width,
@@ -326,8 +316,8 @@ class PuppeteerThumbnailGenerator {
         clip: {
           x: 0,
           y: 0,
-          width: Math.max(width * 3, 900),
-          height: Math.max(height * 3, 1200)
+          width: Math.max(width * 2, 800),
+          height: Math.max(height * 2, 1000)
         }
       };
 
@@ -440,7 +430,7 @@ class PuppeteerThumbnailGenerator {
       const htmlTemplate = handlebars.compile(template.templateCode.html);
       const compiledHTML = htmlTemplate(this.sampleData);
 
-      // Create full HTML document
+      // Create full HTML document with minimal styling to match actual rendering
       const fullHTML = `
         <!DOCTYPE html>
         <html lang="en">
@@ -449,26 +439,42 @@ class PuppeteerThumbnailGenerator {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>${template.name}</title>
           <style>
-            ${template.templateCode.css}
+            /* Basic reset and page setup */
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            
+            :root { 
+              --template-bg: ${template.styling.colors.background || '#ffffff'}; 
+            }
+            
             body {
               margin: 0;
-              padding: 20px;
-              font-family: ${template.styling.fonts.primary}, sans-serif;
-              background: ${template.styling.colors.background};
-              color: ${template.styling.colors.text};
-              transform: scale(0.8);
-              transform-origin: top left;
-              width: 125%;
-              height: 125%;
+              padding: 10px;
+              background: var(--template-bg);
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             }
+            
+            /* Template CSS from template - use as-is without modifications */
+            ${template.templateCode.css}
+            
+            /* Minimal thumbnail-specific adjustments for better preview */
             .resume {
-              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-              border-radius: 8px;
+              max-width: 8.5in;
+              margin: 0 auto;
+              background: var(--template-bg);
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+              border-radius: 4px;
               overflow: hidden;
             }
-            * {
-              font-size: max(8px, 1em) !important;
-              line-height: 1.2 !important;
+            
+            /* Ensure consistent rendering across templates */
+            .resume * {
+              text-rendering: optimizeLegibility;
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
             }
           </style>
         </head>
@@ -481,10 +487,10 @@ class PuppeteerThumbnailGenerator {
       // Create new page
       const page = await this.browser.newPage();
       
-      // Set viewport
+      // Set viewport to match the template dimensions
       await page.setViewport({
-        width: Math.max(width * 3, 900),
-        height: Math.max(height * 3, 1200),
+        width: Math.max(width * 2, 800),
+        height: Math.max(height * 2, 1000),
         deviceScaleFactor: 2
       });
 
@@ -497,7 +503,7 @@ class PuppeteerThumbnailGenerator {
       // Wait for fonts to load
       await page.evaluateHandle('document.fonts.ready');
 
-      // Take screenshot as buffer
+      // Take screenshot as buffer with proper clipping
       const screenshotBuffer = await page.screenshot({
         type: format,
         quality: format === 'jpeg' ? 85 : undefined,
@@ -505,8 +511,8 @@ class PuppeteerThumbnailGenerator {
         clip: {
           x: 0,
           y: 0,
-          width: Math.max(width * 3, 900),
-          height: Math.max(height * 3, 1200)
+          width: Math.max(width * 2, 800),
+          height: Math.max(height * 2, 1000)
         }
       });
 

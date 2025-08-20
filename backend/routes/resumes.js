@@ -680,71 +680,48 @@ router.get('/:id/preview/pdf-images', protect, async (req, res) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>${resume.title}</title>
           <style>
-              * { margin: 0; padding: 0; box-sizing: border-box; }
-              :root { --template-bg: ${resume.template?.styling?.colors?.background || '#ffffff'}; }
-              body { margin: 0; padding: 0; font-family: inherit; background: var(--template-bg) !important; min-height: 100vh; }
+              /* Basic reset and page setup */
+              * {
+                  margin: 0;
+                  padding: 0;
+                  box-sizing: border-box;
+              }
+              
+              :root { 
+                  --template-bg: ${resume.template?.styling?.colors?.background || '#ffffff'}; 
+              }
+              
+              body {
+                  margin: 0;
+                  padding: 0;
+                  background: var(--template-bg);
+                  min-height: 100vh;
+              }
+              
+              /* Template CSS from renderer - HIGHEST PRIORITY */
               ${renderResult.css}
-              .resume, .resume-isolated-container .resume {
-                margin: 0 auto !important;
-                padding: 0in 0.35in !important; /* 0in top/bottom, 0.35in left/right */
-                max-width: 8.5in !important;
-                min-height: 100vh !important;
-                background: var(--template-bg) !important;
-                -webkit-box-decoration-break: clone !important;
-                box-decoration-break: clone !important;
-              }
-              .resume-isolated-container { width: 100%; max-width: 8.5in; margin: 0 auto; min-height: 100vh; background: transparent !important; }
-              /* Alignment overrides to match PDF */
-              .resume .edu-header,
-              .resume-isolated-container .resume .edu-header,
-              .classic-traditional .edu-header {
-                  display: flex !important;
-                  justify-content: space-between !important;
-                  align-items: baseline !important;
-                  margin-bottom: 2px !important;
-              }
-              .resume .edu-header strong,
-              .resume-isolated-container .resume .edu-header strong,
-              .classic-traditional .edu-header strong {
-                  font-size: 12px !important;
-              }
-              .resume .edu-header .dates,
-              .resume-isolated-container .resume .edu-header .dates,
-              .classic-traditional .edu-header .dates {
-                  font-size: 10px !important;
-                  font-style: italic !important;
-              }
-              .resume .job-header,
-              .resume-isolated-container .resume .job-header,
-              .classic-traditional .job-header {
-                  display: flex !important;
-                  justify-content: space-between !important;
-                  align-items: baseline !important;
-                  margin-bottom: 2px !important;
-              }
-              .resume .job-header strong,
-              .resume-isolated-container .resume .job-header strong,
-              .classic-traditional .job-header strong {
-                  font-size: 12px !important;
-              }
-              .resume .job-header .dates,
-              .resume-isolated-container .resume .job-header .dates,
-              .classic-traditional .job-header .dates {
-                  font-size: 10px !important;
-                  font-style: italic !important;
-              }
-              /* Let individual templates control name/contact/header alignment */
-              .resume section h2,
-              .resume-isolated-container .resume section h2,
-              .classic-traditional section h2 {
-                  text-align: left !important;
-              }
-              @page { size: A4; margin: 0; }
+              
+              /* Minimal PDF-specific overrides - LOWEST PRIORITY */
+              /* Only apply essential PDF optimizations that don't conflict with template design */
+              
+              /* Print optimizations - minimal and non-conflicting */
               @media print {
-                .resume, .resume-isolated-container .resume {
-                  -webkit-box-decoration-break: clone !important;
-                  box-decoration-break: clone !important;
-                }
+                  .resume {
+                      -webkit-box-decoration-break: clone;
+                      box-decoration-break: clone;
+                  }
+              }
+              
+              /* Page margins for PDF generation - minimal */
+              @page :first {
+                  size: A4;
+                  margin: 0in 0in 0.5in 0in;
+              }
+              
+              @page {
+                  size: A4;
+                  margin: 0.5in 0in 0.5in 0in;
+              }
               }
           </style>
       </head>
@@ -979,7 +956,7 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
       });
     }
 
-    // Create complete HTML for PDF - ensure exact same styling as preview
+    // Create complete HTML for PDF with template-first styling approach
     const htmlContent = `
       <!DOCTYPE html>
       <html lang="en">
@@ -988,175 +965,54 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>${resume.title}</title>
           <style>
-              /* Reset all margins and padding to ensure consistency */
+              /* Basic reset and page setup */
               * {
                   margin: 0;
                   padding: 0;
                   box-sizing: border-box;
               }
               
-              :root { --template-bg: ${resume.template?.styling?.colors?.background || '#ffffff'}; }
+              :root { 
+                  --template-bg: ${resume.template?.styling?.colors?.background || '#ffffff'}; 
+              }
+              
               body {
                   margin: 0;
                   padding: 0;
-                  font-family: inherit;
-                  background: var(--template-bg) !important;
+                  background: var(--template-bg);
               }
               
+              /* Template CSS from renderer - HIGHEST PRIORITY */
               ${renderResult.css}
               
-              /* Ensure resume container has consistent styling */
-              .resume,
-              .resume-isolated-container .resume {
-                  margin: 0 auto !important;
-                  padding: 0in 0.35in !important; /* 0in top/bottom, 0.35in left/right */
-                  max-width: 8.5in !important;
-                  min-height: 100vh !important;
-                  background: var(--template-bg) !important;
-                  -webkit-box-decoration-break: clone !important;
-                  box-decoration-break: clone !important;
-              }
+              /* Minimal PDF-specific overrides - LOWEST PRIORITY */
+              /* Only apply essential PDF optimizations that don't conflict with template design */
               
-              /* Ensure all resume content is properly aligned */
-              .resume-isolated-container {
-                  width: 100%;
-                  max-width: 8.5in;
-                  margin: 0 auto;
-                  min-height: 100vh;
-                  background: transparent !important;
-              }
-              
-              /* Ensure education section alignment is consistent - override template styles */
-              .resume .edu-header,
-              .resume-isolated-container .resume .edu-header,
-              .classic-traditional .edu-header {
-                  display: flex !important;
-                  justify-content: space-between !important;
-                  align-items: baseline !important;
-                  margin-bottom: 2px !important;
-              }
-              
-              .resume .edu-header strong,
-              .resume-isolated-container .resume .edu-header strong,
-              .classic-traditional .edu-header strong {
-                  font-size: 12px !important;
-              }
-              
-              .resume .edu-header .dates,
-              .resume-isolated-container .resume .edu-header .dates,
-              .classic-traditional .edu-header .dates {
-                  font-size: 10px !important;
-                  font-style: italic !important;
-              }
-              
-              /* Ensure job experience section alignment is consistent - override template styles */
-              .resume .job-header,
-              .resume-isolated-container .resume .job-header,
-              .classic-traditional .job-header {
-                  display: flex !important;
-                  justify-content: space-between !important;
-                  align-items: baseline !important;
-                  margin-bottom: 2px !important;
-              }
-              
-              .resume .job-header strong,
-              .resume-isolated-container .resume .job-header strong,
-              .classic-traditional .job-header strong {
-                  font-size: 12px !important;
-              }
-              
-              .resume .job-header .dates,
-              .resume-isolated-container .resume .job-header .dates,
-              .classic-traditional .job-header .dates {
-                  font-size: 10px !important;
-                  font-style: italic !important;
-              }
-              
-              /* Ensure contact information alignment is consistent - override template styles */
-              .resume .header .contact-info,
-              .resume-isolated-container .resume .header .contact-info {
-                  text-align: inherit !important;
-                  font-size: 10px !important;
-                  line-height: 1.3 !important;
-              }
-              .classic-traditional .header .contact-info { text-align: center !important; }
-              
-              /* Ensure name alignment is consistent - override template styles */
-              .resume .name,
-              .resume-isolated-container .resume .name {
-                  text-align: inherit !important;
-                  font-size: 20px !important;
-                  font-weight: bold !important;
-                  margin-bottom: 8px !important;
-                  text-transform: uppercase !important;
-                  letter-spacing: 1px !important;
-              }
-              .classic-traditional .name { text-align: center !important; }
-              
-              /* Force all text alignment to be consistent - highest priority */
-              .resume *,
-              .resume-isolated-container .resume *,
-              .classic-traditional * {
-                  text-align: inherit !important;
-              }
-              
-              /* Override any conflicting text-align properties */
-              .resume h1,
-              .resume h2,
-              .resume h3,
-              .resume-isolated-container .resume h1,
-              .resume-isolated-container .resume h2,
-              .resume-isolated-container .resume h3,
-              .classic-traditional h1,
-              .classic-traditional h2,
-              .classic-traditional h3 {
-                  text-align: left !important;
-              }
-              
-              /* Ensure specific elements maintain their intended alignment */
-              .resume .header,
-              .resume-isolated-container .resume .header {
-                  text-align: inherit !important;
-              }
-              .classic-traditional .header {
-                  text-align: center !important;
-              }
-              
-              /* Header content alignment */
-              .resume .header *,
-              .resume-isolated-container .resume .header * {
-                  text-align: inherit !important;
-              }
-              .classic-traditional .header * {
-                  text-align: center !important;
-              }
-              
-              /* Ensure section headings are left-aligned */
-              .resume section h2,
-              .resume-isolated-container .resume section h2,
-              .classic-traditional section h2 {
-                  text-align: left !important;
-              }
-              
-              /* Print-specific optimizations */
+              /* Print optimizations - minimal and non-conflicting */
               @media print {
                   body { 
-                      margin: 0 !important; 
-                      padding: 0 !important;
+                      margin: 0; 
+                      padding: 0;
                   }
                   .resume { 
-                      box-shadow: none !important;
-                      margin: 0 !important;
-                      padding: 0in 0.35in !important; /* 0in top/bottom, 0.35in left/right */
-                      min-height: 100vh !important;
-                      background: var(--template-bg) !important;
-                      -webkit-box-decoration-break: clone !important;
-                      box-decoration-break: clone !important;
+                      box-shadow: none;
+                      margin: 0;
+                      min-height: 100vh;
+                      background: var(--template-bg);
                   }
                   * { 
-                      -webkit-print-color-adjust: exact !important; 
-                      color-adjust: exact !important;
+                      -webkit-print-color-adjust: exact; 
+                      color-adjust: exact;
                   }
+              }
+              
+              /* Page margins for PDF generation - minimal */
+              @page :first {
+                  margin: 0in 0in 0.5in 0in;
+              }
+              
+              @page {
+                  margin: 0.5in 0in 0.5in 0in;
               }
           </style>
       </head>
@@ -1207,12 +1063,7 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
       
       return await page.pdf({
       format: 'A4',
-      margin: {
-        top: '0.5in',
-        right: '0in',
-        bottom: '0.5in',
-        left: '0in'
-      },
+        margin: '0in', // Let CSS @page rules handle margins
       printBackground: true
       });
     });
@@ -1386,7 +1237,7 @@ router.get('/:id/download/docx', protect, async (req, res) => {
       });
     }
 
-    // Create complete HTML for DOCX conversion
+    // Create complete HTML for DOCX conversion with template-first approach
     const htmlContent = `
       <!DOCTYPE html>
       <html lang="en">
@@ -1395,7 +1246,7 @@ router.get('/:id/download/docx', protect, async (req, res) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>${resume.title}</title>
           <style>
-              /* Reset and base styles for DOCX conversion */
+              /* Basic reset and DOCX setup */
               * {
                   margin: 0;
                   padding: 0;
@@ -1405,23 +1256,16 @@ router.get('/:id/download/docx', protect, async (req, res) => {
               body {
                   margin: 0;
                   padding: 0;
-                  font-family: inherit;
                   line-height: 1.6;
               }
               
+              /* Template CSS from renderer - HIGHEST PRIORITY */
               ${renderResult.css}
               
-              /* DOCX-specific optimizations */
-              .resume {
-                  max-width: 8.5in;
-                  margin: 0 auto;
-                  padding: 1in;
-                  background: white;
-                  -webkit-box-decoration-break: clone !important;
-                  box-decoration-break: clone !important;
-              }
+              /* Minimal DOCX-specific overrides - LOWEST PRIORITY */
+              /* Only apply essential DOCX optimizations that don't conflict with template design */
               
-              /* Ensure proper spacing for DOCX */
+              /* DOCX spacing optimizations */
               h1, h2, h3, h4, h5, h6 {
                   margin-top: 12pt;
                   margin-bottom: 6pt;
@@ -1433,7 +1277,6 @@ router.get('/:id/download/docx', protect, async (req, res) => {
                   page-break-inside: avoid;
               }
               
-              /* Ensure tables work well in DOCX */
               table {
                   border-collapse: collapse;
                   width: 100%;
@@ -1446,7 +1289,6 @@ router.get('/:id/download/docx', protect, async (req, res) => {
                   text-align: left;
               }
               
-              /* Ensure lists work well in DOCX */
               ul, ol {
                   margin-left: 20pt;
                   margin-bottom: 6pt;
@@ -1454,27 +1296,6 @@ router.get('/:id/download/docx', protect, async (req, res) => {
               
               li {
                   margin-bottom: 3pt;
-              }
-              
-              /* Print-specific optimizations */
-              @media print {
-                  body { 
-                      margin: 0 !important; 
-                      padding: 0 !important;
-                  }
-                  .resume { 
-                      box-shadow: none !important;
-                      margin: 0 !important;
-                      padding: 0in 0.35in !important; /* 0in top/bottom, 0.35in left/right */
-                      min-height: 100vh !important;
-                      background: var(--template-bg) !important;
-                      -webkit-box-decoration-break: clone !important;
-                      box-decoration-break: clone !important;
-                  }
-                  * { 
-                      -webkit-print-color-adjust: exact !important; 
-                      color-adjust: exact !important;
-                  }
               }
           </style>
       </head>
