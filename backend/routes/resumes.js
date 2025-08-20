@@ -1006,13 +1006,15 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
                   }
               }
               
-              /* Page margins for PDF generation - minimal */
+              /* Page margins for PDF generation with background color */
               @page :first {
                   margin: 0in 0in 0.5in 0in;
+                  background-color: var(--template-bg);
               }
               
               @page {
                   margin: 0.5in 0in 0.5in 0in;
+                  background-color: var(--template-bg);
               }
           </style>
       </head>

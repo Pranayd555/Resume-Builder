@@ -196,7 +196,7 @@ function ResumePreviewEnhanced() {
               {resume?.title}
             </h1>
             <p className="text-xs sm:text-sm lg:text-lg text-gray-600">
-              {resume?.template?.category ? `Category: ${resume.template.category} • ` : ''}
+              {resume?.template?.category ? `Category: ${resume.template.category.charAt(0).toUpperCase() + resume.template.category.slice(1)} • ` : ''}
               {resume?.template?.name ? `Template: ${resume.template.name}` : 'Full template preview with all your data'}
             </p>
           </div>

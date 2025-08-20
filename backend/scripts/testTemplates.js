@@ -107,13 +107,15 @@ const testTemplates = async () => {
             padding-top: 0;
         }
         
-        /* Conditional page margins for multi-page PDFs */
+        /* Conditional page margins for multi-page PDFs with background color */
         @page :first {
             margin: 0in 0in 0.5in 0in; /* No top margin on first page */
+            background-color: var(--template-bg);
         }
         
         @page {
             margin: 0.5in 0in 0.5in 0in; /* Top margin on subsequent pages */
+            background-color: var(--template-bg);
         }
     </style>
 </head>
