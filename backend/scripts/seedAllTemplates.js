@@ -291,7 +291,7 @@ const seedAllTemplates = async () => {
                 <h2>Achievements & Awards</h2>
                 {{#each achievements}}
                 <div class="achievement-item">
-                  {{#if title}}<h3>{{title}}</h3>{{/if}}
+                  {{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}
                   {{#if description}}<p>{{description}}</p>{{/if}}
                   {{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}
                   {{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}
@@ -369,7 +369,7 @@ const seedAllTemplates = async () => {
           .project-dates { font-size: 9px; color: #6b7280; margin-top: 5px; font-style: italic; }
           
           .achievement-item { margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; }
-          .achievement-item h3 { font-size: 11px; font-weight: 600; color: #1f2937; margin-bottom: 3px; }
+          .achievement-item .achievement-title { font-size: 11px; font-weight: 600; color: #1f2937; margin-bottom: 3px; }
           .achievement-item p { font-size: 9px; color: #4b5563; margin-bottom: 3px; }
           .achievement-date { font-size: 8px; color: #6b7280; font-style: italic; }
           .achievement-issuer { font-size: 8px; color: #6b7280; }
@@ -518,7 +518,7 @@ const seedAllTemplates = async () => {
               <h2>Achievements & Awards</h2>
               {{#each achievements}}
               <div class="achievement-item">
-                {{#if title}}<h3>{{title}}</h3>{{/if}}
+                {{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}
                 {{#if description}}<p>{{description}}</p>{{/if}}
                 {{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}
                 {{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}
@@ -591,48 +591,48 @@ const seedAllTemplates = async () => {
             </section>
             {{/if}}
           </article>`,
-          css: `.resume.modern-executive { font-family: 'Inter', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #374151; font-size: 12px; line-height: 1.5; }
-          .header { text-align: center; margin-bottom: 35px; padding-bottom: 25px; border-bottom: 1px solid #e5e7eb; }
-          .name { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: #1f2937; margin-bottom: 8px; letter-spacing: 1px; }
-          .title-line { width: 60px; height: 3px; background: #f59e0b; margin: 0 auto 15px; }
-          .contact-info { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; font-size: 11px; color: #6b7280; }
-          section { margin-bottom: 30px; }
-          h2 { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 20px; position: relative; padding-bottom: 8px; }
-          h2::after { content: ''; position: absolute; bottom: 0; left: 0; width: 50px; height: 2px; background: #f59e0b; }
-          .executive-summary .summary-text { font-size: 13px; line-height: 1.6; color: #4b5563; font-style: italic; text-align: justify; }
-          .position, .edu-entry, .project-item, .achievement-item { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #f3f4f6; }
-          .position-header, .edu-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-          .position-title h3, .edu-entry h3, .project-item h3, .achievement-item h3 { font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 3px; }
-          .company-info, .edu-meta { font-size: 12px; color: #6b7280; }
-          .dates { font-size: 11px; color: #9ca3af; font-weight: 500; }
-          .description { margin: 10px 0; color: #4b5563; line-height: 1.5; }
-          .achievements { margin: 10px 0; padding-left: 20px; }
-          .achievements li { margin-bottom: 5px; color: #4b5563; }
-          .gpa { font-size: 11px; color: #6b7280; margin-bottom: 5px; }
-          .skill-category { margin-bottom: 15px; }
-          .skill-category h3 { font-size: 14px; font-weight: 600; color: #1f2937; margin-bottom: 8px; }
-          .skill-items { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-          .skill-item { background: #f59e0b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 10px; }
+          css: `.resume.modern-executive { font-family: 'Inter', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #374151; font-size: 11px; line-height: 1.3; }
+          .header { text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #e5e7eb; }
+          .name { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: #1f2937; margin-bottom: 4px; letter-spacing: 1px; }
+          .title-line { width: 40px; height: 2px; background: #f59e0b; margin: 0 auto 10px; }
+          .contact-info { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; font-size: 10px; color: #6b7280; }
+          section { margin-bottom: 18px; }
+          h2 { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 12px; position: relative; padding-bottom: 4px; }
+          h2::after { content: ''; position: absolute; bottom: 0; left: 0; width: 30px; height: 2px; background: #f59e0b; }
+          .executive-summary .summary-text { font-size: 11px; line-height: 1.3; color: #4b5563; font-style: italic; text-align: justify; }
+          .position, .edu-entry, .project-item, .achievement-item { margin-bottom: 15px; padding-bottom: 12px; }
+          .position-header, .edu-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+          .position-title h3, .edu-entry h3, .project-item h3, .achievement-item .achievement-title { font-size: 13px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+          .company-info, .edu-meta { font-size: 10px; color: #6b7280; }
+          .dates { font-size: 9px; color: #9ca3af; font-weight: 500; }
+          .description { margin: 6px 0; color: #4b5563; line-height: 1.3; }
+          .achievements { margin: 6px 0; padding-left: 12px; }
+          .achievements li { margin-bottom: 3px; color: #4b5563; }
+          .gpa { font-size: 9px; color: #6b7280; margin-bottom: 3px; }
+          .skill-category { margin-bottom: 10px; }
+          .skill-category h3 { font-size: 11px; font-weight: 600; color: #1f2937; margin-bottom: 4px; }
+          .skill-items { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+          .skill-item { background: #f59e0b; color: white; padding: 2px 5px; border-radius: 2px; font-size: 8px; }
           .skill-item[data-level="expert"] { background: #059669; }
           .skill-item[data-level="advanced"] { background: #0ea5e9; }
           .skill-item[data-level="intermediate"] { background: #f59e0b; }
           .skill-item[data-level="beginner"] { background: #6b7280; }
-          .technologies { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-          .tech-tag { background: #374151; color: white; padding: 3px 6px; border-radius: 3px; font-size: 9px; }
-          .project-links { margin-top: 8px; }
-          .project-links a { color: #f59e0b; text-decoration: none; font-size: 11px; margin-right: 15px; }
-          .achievement-date { font-size: 10px; color: #6b7280; font-style: italic; margin-top: 5px; }
-          .achievement-issuer { font-size: 10px; color: #6b7280; margin-top: 3px; }
-          .cert-item { margin-bottom: 15px; }
-          .cert-meta { display: flex; gap: 15px; font-size: 11px; color: #6b7280; margin-bottom: 5px; }
-          .cert-expiry, .cert-id { font-size: 10px; color: #6b7280; margin-bottom: 3px; }
-          .cert-link a { color: #f59e0b; text-decoration: none; font-size: 10px; }
-          .language-item { display: flex; justify-content: space-between; margin-bottom: 8px; }
-          .language-name { font-size: 11px; color: #1f2937; }
-          .language-level { font-size: 10px; color: #6b7280; text-transform: capitalize; }
-          .custom-field { margin-bottom: 15px; }
-          .custom-field h3 { font-size: 14px; font-weight: 600; color: #1f2937; margin-bottom: 5px; }
-          .custom-content { font-size: 11px; color: #4b5563; line-height: 1.5; }`
+          .technologies { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
+          .tech-tag { background: #374151; color: white; padding: 1px 4px; border-radius: 2px; font-size: 7px; }
+          .project-links { margin-top: 4px; }
+          .project-links a { color: #f59e0b; text-decoration: none; font-size: 9px; margin-right: 10px; }
+          .achievement-date { font-size: 8px; color: #6b7280; font-style: italic; margin-top: 3px; }
+          .achievement-issuer { font-size: 8px; color: #6b7280; margin-top: 1px; }
+          .cert-item { margin-bottom: 10px; }
+          .cert-meta { display: flex; gap: 10px; font-size: 9px; color: #6b7280; margin-bottom: 3px; }
+          .cert-expiry, .cert-id { font-size: 8px; color: #6b7280; margin-bottom: 1px; }
+          .cert-link a { color: #f59e0b; text-decoration: none; font-size: 8px; }
+          .language-item { display: flex; justify-content: space-between; margin-bottom: 4px; }
+          .language-name { font-size: 9px; color: #1f2937; }
+          .language-level { font-size: 8px; color: #6b7280; text-transform: capitalize; }
+          .custom-field { margin-bottom: 10px; }
+          .custom-field h3 { font-size: 11px; font-weight: 600; color: #1f2937; margin-bottom: 3px; }
+          .custom-content { font-size: 9px; color: #4b5563; line-height: 1.3; }`
         },
         creator: adminUser._id,
         tags: ['executive', 'modern', 'sophisticated', 'single-column', 'gold']
@@ -785,7 +785,7 @@ const seedAllTemplates = async () => {
               <h2>Achievements & Awards</h2>
               {{#each achievements}}
               <div class="achievement-item">
-                {{#if title}}<h3>{{title}}</h3>{{/if}}
+                {{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}
                 {{#if description}}<p>{{description}}</p>{{/if}}
                 {{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}
                 {{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}
@@ -835,48 +835,48 @@ const seedAllTemplates = async () => {
             </section>
             {{/if}}
           </article>`,
-          css: `.resume.modern-tech { font-family: 'Roboto', sans-serif; max-width: 8.5in; margin: 0 auto; background: white; color: #1f2937; line-height: 1.5; }
-          .tech-header { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 3px solid #06b6d4; }
-          .name { font-size: 24px; font-weight: 700; color: #06b6d4; margin-bottom: 0.5rem; }
-          .contact-info { display: flex; flex-wrap: wrap; gap: 1rem; }
-          .contact-item { font-size: 10px; color: #64748b; padding: 0.25rem 0.5rem; background: #f1f5f9; border-radius: 4px; }
-          section { margin-bottom: 1.5rem; }
-          section h2 { font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #06b6d4; }
-          .summary-section p { font-size: 11px; line-height: 1.6; color: #4b5563; }
-          .skill-category { margin-bottom: 1rem; }
-          .skill-category h3 { font-size: 14px; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem; }
-          .skill-items { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem; }
-          .skill-item { background: #06b6d4; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 10px; }
+          css: `.resume.modern-tech { font-family: 'Roboto', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; line-height: 1.4; }
+          .tech-header { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #06b6d4; }
+          .name { font-size: 22px; font-weight: 700; color: #06b6d4; margin-bottom: 0.4rem; }
+          .contact-info { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+          .contact-item { font-size: 9px; color: #64748b; padding: 0.2rem 0.4rem; background: #f1f5f9; border-radius: 3px; }
+          section { margin-bottom: 1.25rem; }
+          section h2 { font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 0.75rem; padding-bottom: 0.4rem; border-bottom: 2px solid #06b6d4; }
+          .summary-section p { font-size: 10px; line-height: 1.4; color: #4b5563; }
+          .skill-category { margin-bottom: 0.75rem; }
+          .skill-category h3 { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 0.4rem; }
+          .skill-items { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.4rem; }
+          .skill-item { background: #06b6d4; color: white; padding: 0.2rem 0.4rem; border-radius: 3px; font-size: 9px; }
           .skill-item[data-level="expert"] { background: #059669; }
           .skill-item[data-level="advanced"] { background: #0ea5e9; }
           .skill-item[data-level="intermediate"] { background: #06b6d4; }
           .skill-item[data-level="beginner"] { background: #6b7280; }
-          .job-item, .project-item, .edu-item, .achievement-item, .cert-item { margin-bottom: 1.5rem; padding: 1rem; background: #f8fafc; border-radius: 8px; border-left: 4px solid #06b6d4; }
-          .job-header, .edu-header { display: grid; grid-template-columns: 1fr 1fr auto; gap: 1rem; margin-bottom: 0.5rem; }
-          .job-title, .edu-item h3, .project-item h3, .achievement-item h3, .cert-item h3 { font-size: 14px; font-weight: 600; color: #1f2937; }
-          .job-company, .edu-institution { font-size: 12px; color: #06b6d4; font-weight: 500; }
-          .job-duration, .edu-duration { font-size: 10px; color: #64748b; text-align: right; }
-          .job-location, .edu-location { font-size: 10px; color: #6b7280; margin-bottom: 0.5rem; }
-          .job-description, .edu-description { font-size: 11px; color: #4b5563; margin-bottom: 0.5rem; }
-          .achievements { margin: 0.5rem 0; padding-left: 1rem; }
-          .achievements li { margin-bottom: 0.25rem; color: #4b5563; font-size: 10px; }
-          .gpa { font-size: 10px; color: #6b7280; margin-bottom: 0.5rem; }
-          .technologies { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.5rem; }
-          .tech-tag { background: #8b5cf6; color: white; padding: 0.125rem 0.375rem; border-radius: 3px; font-size: 9px; }
-          .project-links { margin-top: 0.5rem; }
-          .project-links a { color: #06b6d4; text-decoration: none; font-size: 10px; margin-right: 1rem; }
-          .project-dates { font-size: 9px; color: #6b7280; margin-top: 0.5rem; font-style: italic; }
-          .achievement-date { font-size: 9px; color: #6b7280; font-style: italic; margin-top: 0.5rem; }
-          .achievement-issuer { font-size: 9px; color: #6b7280; margin-top: 0.25rem; }
-          .cert-meta { display: flex; gap: 1rem; font-size: 11px; color: #6b7280; margin-bottom: 0.5rem; }
-          .cert-expiry, .cert-id { font-size: 9px; color: #6b7280; margin-bottom: 0.25rem; }
-          .cert-link a { color: #06b6d4; text-decoration: none; font-size: 9px; }
-          .language-item { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
-          .language-name { font-size: 11px; color: #1f2937; }
-          .language-level { font-size: 10px; color: #6b7280; text-transform: capitalize; }
-          .custom-field { margin-bottom: 1rem; }
-          .custom-field h3 { font-size: 14px; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem; }
-          .custom-content { font-size: 11px; color: #4b5563; line-height: 1.5; }`
+          .job-item, .project-item, .edu-item, .achievement-item, .cert-item { margin-bottom: 1.25rem; padding: 0.75rem; background: #f8fafc; border-radius: 6px; border-left: 3px solid #06b6d4; }
+          .job-header, .edu-header { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem; margin-bottom: 0.4rem; }
+          .job-title, .edu-item h3, .project-item h3, .achievement-item .achievement-title, .cert-item h3 { font-size: 13px; font-weight: 600; color: #1f2937; }
+          .job-company, .edu-institution { font-size: 11px; color: #06b6d4; font-weight: 500; }
+          .job-duration, .edu-duration { font-size: 9px; color: #64748b; text-align: right; }
+          .job-location, .edu-location { font-size: 9px; color: #6b7280; margin-bottom: 0.4rem; }
+          .job-description, .edu-description { font-size: 10px; color: #4b5563; margin-bottom: 0.4rem; }
+          .achievements { margin: 0.4rem 0; padding-left: 0.75rem; }
+          .achievements li { margin-bottom: 0.2rem; color: #4b5563; font-size: 9px; }
+          .gpa { font-size: 9px; color: #6b7280; margin-bottom: 0.4rem; }
+          .technologies { display: flex; flex-wrap: wrap; gap: 0.2rem; margin-top: 0.4rem; }
+          .tech-tag { background: #8b5cf6; color: white; padding: 0.1rem 0.3rem; border-radius: 2px; font-size: 8px; }
+          .project-links { margin-top: 0.4rem; }
+          .project-links a { color: #06b6d4; text-decoration: none; font-size: 9px; margin-right: 0.75rem; }
+          .project-dates { font-size: 8px; color: #6b7280; margin-top: 0.4rem; font-style: italic; }
+          .achievement-date { font-size: 8px; color: #6b7280; font-style: italic; margin-top: 0.4rem; }
+          .achievement-issuer { font-size: 8px; color: #6b7280; margin-top: 0.2rem; }
+          .cert-meta { display: flex; gap: 0.75rem; font-size: 10px; color: #6b7280; margin-bottom: 0.4rem; }
+          .cert-expiry, .cert-id { font-size: 8px; color: #6b7280; margin-bottom: 0.2rem; }
+          .cert-link a { color: #06b6d4; text-decoration: none; font-size: 8px; }
+          .language-item { display: flex; justify-content: space-between; margin-bottom: 0.4rem; }
+          .language-name { font-size: 10px; color: #1f2937; }
+          .language-level { font-size: 9px; color: #6b7280; text-transform: capitalize; }
+          .custom-field { margin-bottom: 0.75rem; }
+          .custom-field h3 { font-size: 13px; font-weight: 600; color: #1f2937; margin-bottom: 0.4rem; }
+          .custom-content { font-size: 10px; color: #4b5563; line-height: 1.4; }`
         },
         creator: adminUser._id,
         tags: ['modern', 'tech', 'developer', 'clean']
@@ -945,7 +945,7 @@ const seedAllTemplates = async () => {
               {{#if workExperience}}<section class="experience"><h2>Experience</h2><div class="timeline">{{#each workExperience}}<div class="timeline-item"><div class="timeline-marker"></div><div class="timeline-content"><h3>{{jobTitle}}</h3><div class="job-meta"><span class="company">{{company}}</span>{{#if location}}<span class="location">{{location}}</span>{{/if}}</div><div class="dates">{{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{formatDate endDate}}{{/if}}</div>{{#if description}}<p class="description">{{description}}</p>{{/if}}{{#if achievements}}<ul class="achievements">{{#each achievements}}<li>{{this}}</li>{{/each}}</ul>{{/if}}</div></div>{{/each}}</div></section>{{/if}}
               {{#if education}}<section class="education"><h2>Education</h2>{{#each education}}<div class="edu-item"><h3>{{degree}}</h3><div class="edu-meta"><span class="institution">{{institution}}</span>{{#if location}}<span class="location">{{location}}</span>{{/if}}</div><div class="edu-dates">{{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{formatDate endDate}}{{/if}}</div>{{#if gpa}}<div class="gpa">GPA: {{gpa}}</div>{{/if}}{{#if description}}<p class="edu-description">{{description}}</p>{{/if}}</div>{{/each}}</section>{{/if}}
               {{#if projects}}<section class="projects"><h2>Projects</h2>{{#each projects}}<div class="project-item"><h3>{{name}}</h3>{{#if description}}<p>{{description}}</p>{{/if}}{{#if technologies}}<div class="technologies">{{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}</div>{{/if}}{{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}{{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}{{#if startDate}}<div class="project-dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
-              {{#if achievements}}<section class="achievements-section"><h2>Achievements</h2>{{#each achievements}}<div class="achievement-item">{{#if title}}<h3>{{title}}</h3>{{/if}}{{#if description}}<p>{{description}}</p>{{/if}}{{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}{{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
+              {{#if achievements}}<section class="achievements-section"><h2>Achievements</h2>{{#each achievements}}<div class="achievement-item">{{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}{{#if description}}<p>{{description}}</p>{{/if}}{{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}{{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
               {{#if customFields}}<section class="custom-fields">{{#each customFields}}<div class="custom-field"><h3>{{title}}</h3><div class="custom-content">{{content}}</div></div>{{/each}}</section>{{/if}}
             </div>
           </div>`,
@@ -1003,7 +1003,7 @@ const seedAllTemplates = async () => {
           .project-links a { color: #ec4899; text-decoration: none; font-size: 10px; margin-right: 15px; }
           .project-dates { font-size: 9px; color: #9ca3af; font-style: italic; }
           .achievement-item { margin-bottom: 20px; }
-          .achievement-item h3 { font-size: 14px; font-weight: 600; color: #1f2937; margin-bottom: 5px; }
+          .achievement-item .achievement-title { font-size: 14px; font-weight: 600; color: #1f2937; margin-bottom: 5px; }
           .achievement-item p { font-size: 11px; color: #4b5563; line-height: 1.5; margin-bottom: 5px; }
           .achievement-date { font-size: 9px; color: #9ca3af; font-style: italic; margin-bottom: 3px; }
           .achievement-issuer { font-size: 9px; color: #6b7280; }
@@ -1303,35 +1303,35 @@ const seedAllTemplates = async () => {
             {{#if skills}}<section class="skills-section"><h2>CORE COMPETENCIES</h2><div class="skills-grid">{{#each skills}}<div class="skill-category"><h3>{{category}}</h3><div class="skill-items">{{#each items}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}</div></div>{{/each}}</div>{{/if}}
             {{#if certifications}}<section class="certifications-section"><h2>CERTIFICATIONS</h2>{{#each certifications}}<div class="cert-entry"><div class="cert-line"><strong>{{name}}</strong>{{#if date}}<span class="cert-date">{{formatDate date}}</span>{{/if}}</div>{{#if issuer}}<div class="cert-issuer">{{issuer}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
           </div>`,
-          css: `.resume.classic-professional { font-family: 'Georgia', serif; max-width: 8.5in; margin: 0 auto; background: white; color: black; line-height: 1.4; }
-          .classic-header { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #1f2937; }
-          .name { font-size: 22px; font-weight: bold; color: #1f2937; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px; }
-          .contact-details { font-size: 12px; color: #4b5563; margin-bottom: 0.25rem; }
-          .linkedin { font-size: 11px; color: #6b7280; }
-          section { margin-bottom: 1.5rem; }
-          section h2 { font-size: 14px; font-weight: bold; color: #1f2937; text-transform: uppercase; margin-bottom: 1rem; border-bottom: 1px solid #1f2937; padding-bottom: 0.25rem; letter-spacing: 0.5px; }
-          .summary-section p { font-size: 12px; line-height: 1.5; color: #1f2937; text-align: justify; }
-          .job-entry { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px dotted #6b7280; }
-          .job-title-line { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.25rem; }
-          .job-title-line strong { font-size: 13px; color: #1f2937; }
-          .job-dates { font-size: 11px; color: #6b7280; font-style: italic; }
-          .company-line { font-size: 12px; color: #4b5563; margin-bottom: 0.5rem; font-weight: 500; }
-          .job-description { font-size: 11px; color: #1f2937; margin: 0.5rem 0; line-height: 1.4; }
-          .education-entry { margin-bottom: 1.25rem; }
-          .education-line { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.25rem; }
-          .education-line strong { font-size: 13px; color: #1f2937; }
-          .education-dates { font-size: 11px; color: #6b7280; font-style: italic; }
-          .school-line { font-size: 12px; color: #4b5563; margin-bottom: 0.25rem; font-weight: 500; }
-          .gpa { font-size: 11px; color: #6b7280; margin-bottom: 0.25rem; }
-          .education-description { font-size: 11px; color: #1f2937; line-height: 1.4; }
-          .skills-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-          .skill-category h3 { font-size: 12px; font-weight: bold; color: #1f2937; margin-bottom: 0.5rem; }
-          .skill-items { font-size: 11px; color: #4b5563; line-height: 1.4; }
-          .cert-entry { margin-bottom: 1rem; }
-          .cert-line { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.25rem; }
-          .cert-line strong { font-size: 12px; color: #1f2937; }
-          .cert-date { font-size: 10px; color: #6b7280; font-style: italic; }
-          .cert-issuer { font-size: 11px; color: #4b5563; font-style: italic; }`
+          css: `.resume.classic-professional { font-family: 'Georgia', serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: black; line-height: 1.3; }
+          .classic-header { text-align: center; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 2px solid #1f2937; }
+          .name { font-size: 20px; font-weight: bold; color: #1f2937; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px; }
+          .contact-details { font-size: 11px; color: #4b5563; margin-bottom: 0.2rem; }
+          .linkedin { font-size: 10px; color: #6b7280; }
+          section { margin-bottom: 1rem; }
+          section h2 { font-size: 13px; font-weight: bold; color: #1f2937; text-transform: uppercase; margin-bottom: 0.75rem; border-bottom: 1px solid #1f2937; padding-bottom: 0.2rem; letter-spacing: 0.5px; }
+          .summary-section p { font-size: 11px; line-height: 1.4; color: #1f2937; text-align: justify; }
+          .job-entry { margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px dotted #6b7280; }
+          .job-title-line { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.2rem; }
+          .job-title-line strong { font-size: 12px; color: #1f2937; }
+          .job-dates { font-size: 10px; color: #6b7280; font-style: italic; }
+          .company-line { font-size: 11px; color: #4b5563; margin-bottom: 0.4rem; font-weight: 500; }
+          .job-description { font-size: 10px; color: #1f2937; margin: 0.4rem 0; line-height: 1.3; }
+          .education-entry { margin-bottom: 1rem; }
+          .education-line { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.2rem; }
+          .education-line strong { font-size: 12px; color: #1f2937; }
+          .education-dates { font-size: 10px; color: #6b7280; font-style: italic; }
+          .school-line { font-size: 11px; color: #4b5563; margin-bottom: 0.2rem; font-weight: 500; }
+          .gpa { font-size: 10px; color: #6b7280; margin-bottom: 0.2rem; }
+          .education-description { font-size: 10px; color: #1f2937; line-height: 1.3; }
+          .skills-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+          .skill-category h3 { font-size: 11px; font-weight: bold; color: #1f2937; margin-bottom: 0.4rem; }
+          .skill-items { font-size: 10px; color: #4b5563; line-height: 1.3; }
+          .cert-entry { margin-bottom: 0.75rem; }
+          .cert-line { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.2rem; }
+          .cert-line strong { font-size: 11px; color: #1f2937; }
+          .cert-date { font-size: 9px; color: #6b7280; font-style: italic; }
+          .cert-issuer { font-size: 10px; color: #4b5563; font-style: italic; }`
         },
         creator: adminUser._id,
         tags: ['classic', 'professional', 'conservative', 'formal']
@@ -1492,7 +1492,7 @@ const seedAllTemplates = async () => {
               <h2 class="section-title">Achievements & Awards</h2>
               {{#each achievements}}
               <div class="achievement-item">
-                {{#if title}}<h3>{{title}}</h3>{{/if}}
+                {{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}
                 {{#if description}}<p class="item-description">{{description}}</p>{{/if}}
                 {{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}
                 {{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}
@@ -1547,44 +1547,44 @@ const seedAllTemplates = async () => {
             </section>
             {{/if}}
           </article>`,
-          css: `.resume.minimalist-clean { font-family: 'Inter', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #374151; font-size: 11px; line-height: 1.5; }
-          .header { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb; }
-          .name { font-size: 22px; font-weight: 600; color: #1f2937; margin-bottom: 8px; letter-spacing: -0.5px; }
-          .contact-info { display: flex; flex-wrap: wrap; gap: 20px; font-size: 10px; color: #6b7280; }
+          css: `.resume.minimalist-clean { font-family: 'Inter', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #374151; font-size: 10px; line-height: 1.3; }
+          .header { margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb; }
+          .name { font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 4px; letter-spacing: -0.5px; }
+          .contact-info { display: flex; flex-wrap: wrap; gap: 12px; font-size: 9px; color: #6b7280; }
           .contact-item { display: flex; align-items: center; }
-          .summary { margin-bottom: 25px; }
-          .summary-text { font-size: 12px; color: #4b5563; line-height: 1.6; text-align: justify; }
-          section { margin-bottom: 25px; }
-          .section-title { font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 15px; padding-bottom: 5px; border-bottom: 1px solid #e5e7eb; }
-          .experience-item, .education-item, .project-item, .achievement-item, .cert-item { margin-bottom: 20px; padding-bottom: 15px; }
-          .item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; }
-          .item-title h3, .achievement-item h3, .custom-field h3 { font-size: 13px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
-          .company, .institution, .location, .cert-issuer { font-size: 11px; color: #6b7280; }
-          .dates { font-size: 10px; color: #9ca3af; font-weight: 500; }
-          .item-description, .custom-content { margin: 8px 0; color: #4b5563; line-height: 1.5; }
-          .achievements { margin: 8px 0; padding-left: 18px; }
-          .achievements li { margin-bottom: 3px; color: #4b5563; }
-          .gpa { font-size: 10px; color: #6b7280; margin-bottom: 5px; }
-          .skills-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
-          .skill-category-title { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 8px; }
-          .skill-items { display: flex; flex-wrap: wrap; gap: 8px; }
-          .skill-item { background: #f3f4f6; color: #374151; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 500; }
+          .summary { margin-bottom: 15px; }
+          .summary-text { font-size: 11px; color: #4b5563; line-height: 1.3; text-align: justify; }
+          section { margin-bottom: 15px; }
+          .section-title { font-size: 14px; font-weight: 600; color: #1f2937; margin-bottom: 10px; padding-bottom: 3px; border-bottom: 1px solid #e5e7eb; }
+          .experience-item, .education-item, .project-item, .achievement-item, .cert-item { margin-bottom: 12px; padding-bottom: 10px; }
+          .item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3px; }
+          .item-title h3, .achievement-item .achievement-title, .custom-field h3 { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 1px; }
+          .company, .institution, .location, .cert-issuer { font-size: 10px; color: #6b7280; }
+          .dates { font-size: 9px; color: #9ca3af; font-weight: 500; }
+          .item-description, .custom-content { margin: 4px 0; color: #4b5563; line-height: 1.3; }
+          .achievements { margin: 4px 0; padding-left: 12px; }
+          .achievements li { margin-bottom: 1px; color: #4b5563; }
+          .gpa { font-size: 9px; color: #6b7280; margin-bottom: 3px; }
+          .skills-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+          .skill-category-title { font-size: 11px; font-weight: 600; color: #1f2937; margin-bottom: 4px; }
+          .skill-items { display: flex; flex-wrap: wrap; gap: 4px; }
+          .skill-item { background: #f3f4f6; color: #374151; padding: 2px 5px; border-radius: 2px; font-size: 9px; font-weight: 500; }
           .skill-item[data-level="expert"] { background: #059669; color: white; }
           .skill-item[data-level="advanced"] { background: #0ea5e9; color: white; }
           .skill-item[data-level="intermediate"] { background: #6b7280; color: white; }
           .skill-item[data-level="beginner"] { background: #d1d5db; color: #374151; }
-          .technologies { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
-          .tech-tag { background: #1f2937; color: white; padding: 3px 6px; border-radius: 3px; font-size: 9px; }
-          .project-links, .cert-link { margin: 5px 0; }
-          .project-links a, .cert-link a { color: #1f2937; text-decoration: none; font-size: 10px; margin-right: 15px; }
-          .achievement-date { font-size: 10px; color: #9ca3af; margin: 5px 0; font-style: italic; }
-          .achievement-issuer { font-size: 10px; color: #6b7280; }
-          .cert-expiry, .cert-id { font-size: 9px; color: #6b7280; margin: 3px 0; }
-          .languages-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
-          .language-item { display: flex; justify-content: space-between; margin-bottom: 8px; }
-          .language-name { font-size: 11px; color: #1f2937; }
-          .language-level { font-size: 10px; color: #6b7280; text-transform: capitalize; }
-          .custom-field { margin-bottom: 15px; }`
+          .technologies { display: flex; flex-wrap: wrap; gap: 3px; margin: 4px 0; }
+          .tech-tag { background: #1f2937; color: white; padding: 1px 4px; border-radius: 2px; font-size: 8px; }
+          .project-links, .cert-link { margin: 3px 0; }
+          .project-links a, .cert-link a { color: #1f2937; text-decoration: none; font-size: 9px; margin-right: 10px; }
+          .achievement-date { font-size: 9px; color: #9ca3af; margin: 3px 0; font-style: italic; }
+          .achievement-issuer { font-size: 9px; color: #6b7280; }
+          .cert-expiry, .cert-id { font-size: 8px; color: #6b7280; margin: 1px 0; }
+          .languages-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+          .language-item { display: flex; justify-content: space-between; margin-bottom: 4px; }
+          .language-name { font-size: 10px; color: #1f2937; }
+          .language-level { font-size: 9px; color: #6b7280; text-transform: capitalize; }
+          .custom-field { margin-bottom: 10px; }`
         },
         creator: adminUser._id,
         tags: ['minimalist', 'clean', 'simple', 'modern', 'readable', 'single-column']
@@ -1780,7 +1780,7 @@ const seedAllTemplates = async () => {
                   <h2>Achievements & Awards</h2>
                   {{#each achievements}}
                   <div class="achievement-entry">
-                    {{#if title}}<h3>{{title}}</h3>{{/if}}
+                    {{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}
                     {{#if description}}<p>{{description}}</p>{{/if}}
                     {{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}
                     {{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}
@@ -1843,7 +1843,7 @@ const seedAllTemplates = async () => {
           
           .job-entry, .edu-entry, .project-entry, .achievement-entry { margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #f3f4f6; }
           .job-header, .edu-header, .project-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3px; }
-          .job-title-company h3, .edu-title-institution h3, .project-header h3, .achievement-entry h3 { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+          .job-title-company h3, .edu-title-institution h3, .project-header h3, .achievement-entry .achievement-title { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
           .company-location, .institution-location { display: flex; gap: 5px; font-size: 9px; color: #6b7280; }
           .job-dates, .edu-dates, .project-dates { font-size: 8px; color: #9ca3af; font-weight: 500; text-align: right; }
           .job-description, .edu-description, .project-description { margin: 3px 0; color: #4b5563; line-height: 1.4; }
@@ -1950,7 +1950,7 @@ const seedAllTemplates = async () => {
             {{#if summary}}<section class="executive-summary"><h2>EXECUTIVE SUMMARY</h2><p>{{summary}}</p></section>{{/if}}
             {{#if workExperience}}<section class="leadership-experience"><h2>LEADERSHIP EXPERIENCE</h2>{{#each workExperience}}<div class="executive-role"><div class="role-header"><div class="role-title">{{jobTitle}}</div><div class="role-company">{{company}}</div><div class="role-duration">{{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</div></div>{{#if location}}<div class="role-location">{{location}}</div>{{/if}}{{#if description}}<p class="role-description">{{description}}</p>{{/if}}{{#if achievements}}<ul class="role-achievements">{{#each achievements}}<li>{{this}}</li>{{/each}}</ul>{{/if}}</div>{{/each}}</section>{{/if}}
             {{#if projects}}<section class="executive-projects"><h2>KEY INITIATIVES & PROJECTS</h2>{{#each projects}}<div class="project-item"><h3>{{name}}</h3>{{#if description}}<p class="project-description">{{description}}</p>{{/if}}{{#if technologies}}<div class="project-technologies"><strong>Technologies/Methods:</strong> {{#each technologies}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/if}}{{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}{{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">Repository</a></div>{{/if}}</div>{{/each}}</section>{{/if}}
-            {{#if achievements}}<section class="achievements-section"><h2>ACHIEVEMENTS & AWARDS</h2>{{#each achievements}}<div class="achievement-item">{{#if title}}<h3>{{title}}</h3>{{/if}}{{#if description}}<p>{{description}}</p>{{/if}}{{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}{{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
+            {{#if achievements}}<section class="achievements-section"><h2>ACHIEVEMENTS & AWARDS</h2>{{#each achievements}}<div class="achievement-item">{{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}{{#if description}}<p>{{description}}</p>{{/if}}{{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}{{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
             <div class="executive-bottom">
               {{#if education}}<section class="education-section"><h2>EDUCATION</h2>{{#each education}}<div class="education-item"><div class="degree">{{degree}}</div><div class="institution">{{institution}}</div><div class="education-year">{{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</div>{{#if gpa}}<div class="gpa">GPA: {{gpa}}</div>{{/if}}{{#if description}}<div class="education-description">{{description}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
               {{#if skills}}<section class="executive-skills"><h2>CORE COMPETENCIES</h2><div class="competencies-grid">{{#each skills}}<div class="competency-area"><h3>{{category}}</h3><div class="competency-items">{{#each items}}{{name}}{{#unless @last}} • {{/unless}}{{/each}}</div></div>{{/each}}</div></section>{{/if}}
@@ -1959,36 +1959,36 @@ const seedAllTemplates = async () => {
             {{#if languages}}<section class="languages-section"><h2>LANGUAGES</h2><div class="languages-grid">{{#each languages}}<div class="language-item"><span class="language-name">{{name}}</span><span class="language-level">{{proficiency}}</span></div>{{/each}}</div>{{/if}}
             {{#if customFields}}<section class="custom-fields-section">{{#each customFields}}<div class="custom-field"><h2>{{title}}</h2><div class="custom-content">{{content}}</div></div>{{/each}}</section>{{/if}}
           </div>`,
-          css: `.resume.professional-executive { font-family: 'Calibri', sans-serif; max-width: 8.5in; margin: 0 auto; background: white; color: #1f2937; line-height: 1.5; }
-                      .executive-header { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); color: white; padding: 2rem; margin: 0 0 2rem 0; text-align: center; }
-          .name { font-size: 28px; font-weight: 700; margin-bottom: 1rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); letter-spacing: 0.5px; }
-          .contact-bar { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; }
-          .contact-item { font-size: 11px; padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); border-radius: 20px; backdrop-filter: blur(10px); }
-          section { margin-bottom: 2rem; }
-          section h2 { font-size: 18px; font-weight: 700; color: #1e3a8a; text-transform: uppercase; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #1e3a8a; letter-spacing: 0.5px; }
-          .executive-summary { background: #f8fafc; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #1e3a8a; }
-          .executive-summary p { font-size: 12px; line-height: 1.6; color: #374151; margin: 0; }
-          .executive-role { margin-bottom: 2rem; padding: 1.5rem; background: #f9fafb; border-radius: 8px; border-top: 3px solid #dc2626; }
-          .role-header { display: grid; grid-template-columns: 1fr 1fr auto; gap: 1rem; margin-bottom: 0.5rem; }
-          .role-title { font-size: 16px; font-weight: 600; color: #1f2937; }
-          .role-company { font-size: 14px; color: #1e3a8a; font-weight: 500; }
-          .role-duration { font-size: 11px; color: #64748b; text-align: right; font-style: italic; }
-          .role-location { font-size: 11px; color: #64748b; margin-bottom: 0.5rem; }
-          .role-description { font-size: 12px; line-height: 1.5; color: #374151; margin-bottom: 1rem; }
-          .executive-bottom { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem; margin-top: 2rem; }
-          .education-item { margin-bottom: 1.5rem; }
-          .degree { font-size: 13px; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
-          .institution { font-size: 12px; color: #1e3a8a; font-weight: 500; margin-bottom: 0.25rem; }
-          .education-year { font-size: 10px; color: #64748b; font-style: italic; }
-          .gpa { font-size: 10px; color: #64748b; margin-top: 0.25rem; }
-          .competencies-grid { display: flex; flex-direction: column; gap: 1rem; }
-          .competency-area h3 { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem; }
-          .competency-items { font-size: 10px; color: #374151; line-height: 1.4; }
-          .certifications-grid { display: flex; flex-direction: column; gap: 1rem; }
-          .certification-item { padding: 0.75rem; background: #f1f5f9; border-radius: 6px; border-left: 3px solid #1e3a8a; }
-          .cert-name { font-size: 11px; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
-          .cert-issuer { font-size: 10px; color: #1e3a8a; font-weight: 500; }
-          .cert-date { font-size: 9px; color: #64748b; margin-top: 0.25rem; }`
+          css: `.resume.professional-executive { font-family: 'Calibri', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; line-height: 1.4; }
+                      .executive-header { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); color: white; padding: 1.5rem; margin: 0 0 1.5rem 0; text-align: center; }
+          .name { font-size: 24px; font-weight: 700; margin-bottom: 0.75rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); letter-spacing: 0.5px; }
+          .contact-bar { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; }
+          .contact-item { font-size: 10px; padding: 0.4rem 0.8rem; background: rgba(255,255,255,0.2); border-radius: 16px; backdrop-filter: blur(10px); }
+          section { margin-bottom: 1.5rem; }
+          section h2 { font-size: 16px; font-weight: 700; color: #1e3a8a; text-transform: uppercase; margin-bottom: 0.75rem; padding-bottom: 0.4rem; border-bottom: 2px solid #1e3a8a; letter-spacing: 0.5px; }
+          .executive-summary { background: #f8fafc; padding: 1.25rem; border-radius: 6px; border-left: 3px solid #1e3a8a; }
+          .executive-summary p { font-size: 11px; line-height: 1.4; color: #374151; margin: 0; }
+          .executive-role { margin-bottom: 1.5rem; padding: 1.25rem; background: #f9fafb; border-radius: 6px; border-top: 2px solid #dc2626; }
+          .role-header { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem; margin-bottom: 0.4rem; }
+          .role-title { font-size: 14px; font-weight: 600; color: #1f2937; }
+          .role-company { font-size: 12px; color: #1e3a8a; font-weight: 500; }
+          .role-duration { font-size: 10px; color: #64748b; text-align: right; font-style: italic; }
+          .role-location { font-size: 10px; color: #64748b; margin-bottom: 0.4rem; }
+          .role-description { font-size: 11px; line-height: 1.4; color: #374151; margin-bottom: 0.75rem; }
+          .executive-bottom { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem; }
+          .education-item { margin-bottom: 1.25rem; }
+          .degree { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 0.2rem; }
+          .institution { font-size: 11px; color: #1e3a8a; font-weight: 500; margin-bottom: 0.2rem; }
+          .education-year { font-size: 9px; color: #64748b; font-style: italic; }
+          .gpa { font-size: 9px; color: #64748b; margin-top: 0.2rem; }
+          .competencies-grid { display: flex; flex-direction: column; gap: 0.75rem; }
+          .competency-area h3 { font-size: 11px; font-weight: 600; color: #1f2937; margin-bottom: 0.4rem; }
+          .competency-items { font-size: 9px; color: #374151; line-height: 1.3; }
+          .certifications-grid { display: flex; flex-direction: column; gap: 0.75rem; }
+          .certification-item { padding: 0.6rem; background: #f1f5f9; border-radius: 4px; border-left: 2px solid #1e3a8a; }
+          .cert-name { font-size: 10px; font-weight: 600; color: #1f2937; margin-bottom: 0.2rem; }
+          .cert-issuer { font-size: 9px; color: #1e3a8a; font-weight: 500; }
+          .cert-date { font-size: 8px; color: #64748b; margin-top: 0.2rem; }`
         },
         creator: adminUser._id,
         tags: ['professional', 'executive', 'leadership', 'corporate']
@@ -2147,29 +2147,29 @@ const seedAllTemplates = async () => {
             </section>
             {{/if}}
           </article>`,
-          css: `.resume.academic-research { font-family: 'Inter', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; font-size: 11px; line-height: 1.5; }
-          .header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #059669; }
-          .name { font-family: 'Georgia', serif; font-size: 20px; font-weight: 600; color: #059669; margin-bottom: 15px; letter-spacing: 0.5px; }
-          .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; max-width: 600px; margin: 0 auto; }
-          .contact-item { display: flex; justify-content: space-between; font-size: 10px; }
+          css: `.resume.academic-research { font-family: 'Inter', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; font-size: 10px; line-height: 1.4; }
+          .header { text-align: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #059669; }
+          .name { font-family: 'Georgia', serif; font-size: 18px; font-weight: 600; color: #059669; margin-bottom: 12px; letter-spacing: 0.5px; }
+          .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; max-width: 600px; margin: 0 auto; }
+          .contact-item { display: flex; justify-content: space-between; font-size: 9px; }
           .contact-item .label { font-weight: 600; color: #6b7280; }
           .contact-item .value { color: #1f2937; }
-          section { margin-bottom: 25px; }
-          h2 { font-family: 'Georgia', serif; font-size: 16px; font-weight: 600; color: #059669; margin-bottom: 15px; padding-bottom: 5px; border-bottom: 1px solid #e5e7eb; text-transform: uppercase; letter-spacing: 0.5px; }
-          .interests-text { font-size: 11px; line-height: 1.6; color: #4b5563; text-align: justify; font-style: italic; }
-          .edu-entry, .position-entry, .publication-entry, .cert-entry { margin-bottom: 18px; padding-bottom: 15px; border-bottom: 1px solid #f3f4f6; }
-          .edu-header, .position-header, .cert-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-          .edu-entry h3, .position-entry h3, .publication-entry h3, .cert-entry h3 { font-size: 13px; font-weight: 600; color: #1f2937; margin-bottom: 3px; }
-          .institution-info { font-size: 11px; color: #6b7280; font-style: italic; }
-          .edu-dates, .position-dates, .cert-date { font-size: 10px; color: #9ca3af; font-weight: 500; }
-          .gpa { font-size: 10px; color: #6b7280; margin-bottom: 5px; }
-          .edu-description, .position-description, .publication-description { margin: 8px 0; color: #4b5563; line-height: 1.5; text-align: justify; }
-          .methodologies { margin: 5px 0; font-size: 10px; }
+          section { margin-bottom: 18px; }
+          h2 { font-family: 'Georgia', serif; font-size: 14px; font-weight: 600; color: #059669; margin-bottom: 12px; padding-bottom: 4px; border-bottom: 1px solid #e5e7eb; text-transform: uppercase; letter-spacing: 0.5px; }
+          .interests-text { font-size: 10px; line-height: 1.4; color: #4b5563; text-align: justify; font-style: italic; }
+          .edu-entry, .position-entry, .publication-entry, .cert-entry { margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid #f3f4f6; }
+          .edu-header, .position-header, .cert-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+          .edu-entry h3, .position-entry h3, .publication-entry h3, .cert-entry h3 { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+          .institution-info { font-size: 10px; color: #6b7280; font-style: italic; }
+          .edu-dates, .position-dates, .cert-date { font-size: 9px; color: #9ca3af; font-weight: 500; }
+          .gpa { font-size: 9px; color: #6b7280; margin-bottom: 4px; }
+          .edu-description, .position-description, .publication-description { margin: 6px 0; color: #4b5563; line-height: 1.4; text-align: justify; }
+          .methodologies { margin: 4px 0; font-size: 9px; }
           .methodologies .label { font-weight: 600; color: #6b7280; }
-          .publication-entry { border-left: 3px solid #10b981; padding-left: 12px; }
-          .skill-category { margin-bottom: 15px; }
-          .skill-category h3 { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 5px; }
-          .skill-items { color: #4b5563; line-height: 1.4; }
+          .publication-entry { border-left: 3px solid #10b981; padding-left: 10px; }
+          .skill-category { margin-bottom: 12px; }
+          .skill-category h3 { font-size: 11px; font-weight: 600; color: #1f2937; margin-bottom: 4px; }
+          .skill-items { color: #4b5563; line-height: 1.3; }
           .cert-issuer { color: #6b7280; font-style: italic; }`
         },
         creator: adminUser._id,

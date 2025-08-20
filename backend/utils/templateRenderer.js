@@ -467,8 +467,8 @@ class TemplateRenderer {
           .${uniqueId} .certifications,
           .${uniqueId} .languages,
           .${uniqueId} .summary { 
-            margin-bottom: ${sectionSpacing}rem !important; 
-            padding-bottom: ${sectionSpacing * 0.5}rem !important; 
+            margin-bottom: ${sectionSpacing * 0.5}rem !important; 
+            padding-bottom: ${sectionSpacing * 0.25}rem !important; 
           }
           .${uniqueId} .job-item,
           .${uniqueId} .edu-item,
@@ -476,8 +476,8 @@ class TemplateRenderer {
           .${uniqueId} .cert-item,
           .${uniqueId} .achievement-item,
           .${uniqueId} .skill-category { 
-            margin-bottom: ${sectionSpacing * 0.5}rem !important; 
-            padding-bottom: ${sectionSpacing * 0.25}rem !important; 
+            margin-bottom: ${sectionSpacing * 0.25}rem !important; 
+            padding-bottom: ${sectionSpacing * 0.125}rem !important; 
           }
         `;
       }
@@ -490,10 +490,10 @@ class TemplateRenderer {
       
       // Header size mapping
       const headerSizes = {
-        'small': { padding: '15px', margin: '10px 0' },
-        'medium': { padding: '20px', margin: '15px 0' },
-        'large': { padding: '25px', margin: '20px 0' },
-        'extra-large': { padding: '30px', margin: '25px 0' }
+        'small': { padding: '15px', margin: '5px 0' },
+        'medium': { padding: '20px', margin: '10px 0' },
+        'large': { padding: '25px', margin: '15px 0' },
+        'extra-large': { padding: '30px', margin: '20px 0' }
       };
 
       // Text size mapping
@@ -512,9 +512,9 @@ class TemplateRenderer {
 
       // Spacing mapping
       const spacingOptions = {
-        'compact': { gap: '8px', marginBottom: '10px' },
-        'normal': { gap: '12px', marginBottom: '15px' },
-        'spacious': { gap: '16px', marginBottom: '20px' }
+        'compact': { gap: '8px', marginBottom: '5px' },
+        'normal': { gap: '12px', marginBottom: '10px' },
+        'spacious': { gap: '16px', marginBottom: '15px' }
       };
 
       // Apply header size
