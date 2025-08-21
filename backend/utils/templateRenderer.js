@@ -593,7 +593,41 @@ class TemplateRenderer {
 
     }
 
-
+    // Add CSS rule to remove bottom spacing from the last element
+    css += `
+      /* Remove bottom spacing from the last element */
+      .${uniqueId} > *:last-child,
+      .${uniqueId} section:last-child,
+      .${uniqueId} .section:last-child,
+      .${uniqueId} .work-experience:last-child,
+      .${uniqueId} .education:last-child,
+      .${uniqueId} .skills:last-child,
+      .${uniqueId} .projects:last-child,
+      .${uniqueId} .achievements:last-child,
+      .${uniqueId} .certifications:last-child,
+      .${uniqueId} .languages:last-child,
+      .${uniqueId} .summary:last-child,
+      .${uniqueId} .custom-fields:last-child,
+      .${uniqueId} .main-content > *:last-child,
+      .${uniqueId} .sidebar > *:last-child,
+      .${uniqueId} .content-grid > *:last-child {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+      }
+      
+      /* Also remove bottom spacing from last items within sections */
+      .${uniqueId} .job-item:last-child,
+      .${uniqueId} .edu-item:last-child,
+      .${uniqueId} .project-item:last-child,
+      .${uniqueId} .cert-item:last-child,
+      .${uniqueId} .achievement-item:last-child,
+      .${uniqueId} .skill-category:last-child,
+      .${uniqueId} .language-item:last-child,
+      .${uniqueId} .custom-field:last-child {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+      }
+    `;
 
     return css;
   }
