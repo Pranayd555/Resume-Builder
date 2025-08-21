@@ -722,6 +722,39 @@ router.get('/:id/preview/pdf-images', protect, async (req, res) => {
                   size: A4;
                   margin: 0.5in 0in 0.5in 0in;
               }
+              
+              /* Remove bottom spacing from the last element for PDF preview */
+              .resume > *:last-child,
+              .resume section:last-child,
+              .resume .section:last-child,
+              .resume .work-experience:last-child,
+              .resume .education:last-child,
+              .resume .skills:last-child,
+              .resume .projects:last-child,
+              .resume .achievements:last-child,
+              .resume .certifications:last-child,
+              .resume .languages:last-child,
+              .resume .summary:last-child,
+              .resume .custom-fields:last-child,
+              .resume .main-content > *:last-child,
+              .resume .sidebar > *:last-child,
+              .resume .content-grid > *:last-child {
+                margin-bottom: 0 !important;
+                padding-bottom: 0 !important;
+              }
+              
+              /* Also remove bottom spacing from last items within sections */
+              .resume .job-item:last-child,
+              .resume .edu-item:last-child,
+              .resume .project-item:last-child,
+              .resume .cert-item:last-child,
+              .resume .achievement-item:last-child,
+              .resume .skill-category:last-child,
+              .resume .language-item:last-child,
+              .resume .custom-field:last-child {
+                margin-bottom: 0 !important;
+                padding-bottom: 0 !important;
+              }
               }
           </style>
       </head>
@@ -979,7 +1012,7 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
               body {
                   margin: 0;
                   padding: 0;
-                  background: var(--template-bg);
+                  background: ${resume.template?.styling?.colors?.background || '#ffffff'};
               }
               
               /* Template CSS from renderer - HIGHEST PRIORITY */
@@ -990,15 +1023,12 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
               
               /* Print optimizations - minimal and non-conflicting */
               @media print {
-                  body { 
-                      margin: 0; 
-                      padding: 0;
+                  body {
+                      background: ${resume.template?.styling?.colors?.background || '#ffffff'} !important;
                   }
                   .resume { 
                       box-shadow: none;
-                      margin: 0;
-                      min-height: 100vh;
-                      background: var(--template-bg);
+                      background: ${resume.template?.styling?.colors?.background || '#ffffff'} !important;
                   }
                   * { 
                       -webkit-print-color-adjust: exact; 
@@ -1006,15 +1036,46 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
                   }
               }
               
-              /* Page margins for PDF generation with background color */
+              /* Page margins for PDF generation */
               @page :first {
                   margin: 0in 0in 0.5in 0in;
-                  background-color: var(--template-bg);
               }
               
               @page {
                   margin: 0.5in 0in 0.5in 0in;
-                  background-color: var(--template-bg);
+              }
+              
+              /* Remove bottom spacing from the last element for PDF */
+              .resume > *:last-child,
+              .resume section:last-child,
+              .resume .section:last-child,
+              .resume .work-experience:last-child,
+              .resume .education:last-child,
+              .resume .skills:last-child,
+              .resume .projects:last-child,
+              .resume .achievements:last-child,
+              .resume .certifications:last-child,
+              .resume .languages:last-child,
+              .resume .summary:last-child,
+              .resume .custom-fields:last-child,
+              .resume .main-content > *:last-child,
+              .resume .sidebar > *:last-child,
+              .resume .content-grid > *:last-child {
+                margin-bottom: 0 !important;
+                padding-bottom: 0 !important;
+              }
+              
+              /* Also remove bottom spacing from last items within sections */
+              .resume .job-item:last-child,
+              .resume .edu-item:last-child,
+              .resume .project-item:last-child,
+              .resume .cert-item:last-child,
+              .resume .achievement-item:last-child,
+              .resume .skill-category:last-child,
+              .resume .language-item:last-child,
+              .resume .custom-field:last-child {
+                margin-bottom: 0 !important;
+                padding-bottom: 0 !important;
               }
           </style>
       </head>
@@ -1059,8 +1120,8 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
 
     // Use shared browser
     const pdfBuffer = await withPage(async (page) => {
+      await page.emulateMediaType('print');
       await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-      // Wait for fonts to load to ensure consistent rendering
       await page.evaluateHandle('document.fonts.ready');
       
       return await page.pdf({

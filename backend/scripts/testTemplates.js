@@ -117,6 +117,39 @@ const testTemplates = async () => {
             margin: 0.5in 0in 0.5in 0in; /* Top margin on subsequent pages */
             background-color: var(--template-bg);
         }
+        
+        /* Remove bottom spacing from the last element */
+        .resume > *:last-child,
+        .resume section:last-child,
+        .resume .section:last-child,
+        .resume .work-experience:last-child,
+        .resume .education:last-child,
+        .resume .skills:last-child,
+        .resume .projects:last-child,
+        .resume .achievements:last-child,
+        .resume .certifications:last-child,
+        .resume .languages:last-child,
+        .resume .summary:last-child,
+        .resume .custom-fields:last-child,
+        .resume .main-content > *:last-child,
+        .resume .sidebar > *:last-child,
+        .resume .content-grid > *:last-child {
+          margin-bottom: 0 !important;
+          padding-bottom: 0 !important;
+        }
+        
+        /* Also remove bottom spacing from last items within sections */
+        .resume .job-item:last-child,
+        .resume .edu-item:last-child,
+        .resume .project-item:last-child,
+        .resume .cert-item:last-child,
+        .resume .achievement-item:last-child,
+        .resume .skill-category:last-child,
+        .resume .language-item:last-child,
+        .resume .custom-field:last-child {
+          margin-bottom: 0 !important;
+          padding-bottom: 0 !important;
+        }
     </style>
 </head>
 <body>
