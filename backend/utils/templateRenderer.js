@@ -262,8 +262,6 @@ class TemplateRenderer {
     // Convert MongoDB objects to plain JavaScript objects
     const plainData = JSON.parse(JSON.stringify(resumeData));
     
-
-    
     const data = {
       ...plainData,
       // Add computed fields
@@ -285,8 +283,6 @@ class TemplateRenderer {
       // Add resume styling data
       styling: plainData.styling || {}
     };
-
-
 
     // Ensure arrays exist and are plain objects
     data.workExperience = Array.isArray(data.workExperience) ? data.workExperience : [];
@@ -330,7 +326,6 @@ class TemplateRenderer {
     const styling = template.styling;
     const colors = styling.colors || {};
     const fonts = styling.fonts || {};
-    const spacing = styling.spacing || {};
 
     // Replace color variables
     Object.keys(colors).forEach(key => {
@@ -354,26 +349,9 @@ class TemplateRenderer {
       });
     }
 
-    // Replace spacing variables
-    if (spacing.margins) {
-      Object.keys(spacing.margins).forEach(side => {
-        const pattern = new RegExp(`var\\(--margin-${side}\\)`, 'g');
-        css = css.replace(pattern, `${spacing.margins[side]}px`);
-      });
-    }
-
-    if (spacing.padding) {
-      Object.keys(spacing.padding).forEach(type => {
-        const pattern = new RegExp(`var\\(--padding-${type}\\)`, 'g');
-        css = css.replace(pattern, `${spacing.padding[type]}px`);
-      });
-    }
-
-    // Apply template styling options if available (new format)
+    // Apply template styling options if available
     if (data.styling && data.styling.template) {
       const templateStyling = data.styling.template;
-      
-
       
       // Header level mapping
       const headerLevels = {
@@ -384,7 +362,7 @@ class TemplateRenderer {
         'h5': { fontSize: '1.125rem', fontWeight: '500', marginBottom: '0.5rem' }
       };
 
-      // Apply header font size (new field)
+      // Apply header font size
       if (templateStyling.headerFontSize) {
         const headerFontSize = templateStyling.headerFontSize;
         css += `
@@ -482,116 +460,6 @@ class TemplateRenderer {
         `;
       }
     }
-    // Apply header styling options if available (old format - for backward compatibility)
-    else if (data.styling && data.styling.header) {
-      const headerStyling = data.styling.header;
-      
-
-      
-      // Header size mapping
-      const headerSizes = {
-        'small': { padding: '15px', margin: '5px 0' },
-        'medium': { padding: '20px', margin: '10px 0' },
-        'large': { padding: '25px', margin: '15px 0' },
-        'extra-large': { padding: '30px', margin: '20px 0' }
-      };
-
-      // Text size mapping
-      const textSizes = {
-        'small': { fontSize: '14px', lineHeight: '1.3' },
-        'medium': { fontSize: '16px', lineHeight: '1.4' },
-        'large': { fontSize: '18px', lineHeight: '1.5' }
-      };
-
-      // Label size mapping
-      const labelSizes = {
-        'small': { fontSize: '10px', lineHeight: '1.2' },
-        'medium': { fontSize: '12px', lineHeight: '1.3' },
-        'large': { fontSize: '14px', lineHeight: '1.4' }
-      };
-
-      // Spacing mapping
-      const spacingOptions = {
-        'compact': { gap: '8px', marginBottom: '5px' },
-        'normal': { gap: '12px', marginBottom: '10px' },
-        'spacious': { gap: '16px', marginBottom: '15px' }
-      };
-
-      // Apply header size
-      if (headerStyling.size && headerSizes[headerStyling.size]) {
-        const size = headerSizes[headerStyling.size];
-        css += `
-          .${uniqueId} .header,
-          .${uniqueId} .tech-header,
-          .${uniqueId} .classic-header,
-          .${uniqueId} .executive-header { 
-            padding: ${size.padding} !important; 
-            margin: ${size.margin} !important; 
-          }
-        `;
-
-      }
-
-      // Apply text size
-      if (headerStyling.textSize && textSizes[headerStyling.textSize]) {
-        const textSize = textSizes[headerStyling.textSize];
-        css += `
-          .${uniqueId} .header .name,
-          .${uniqueId} .tech-header .name,
-          .${uniqueId} .classic-header .name,
-          .${uniqueId} .executive-header .name,
-          .${uniqueId} .name { 
-            font-size: ${textSize.fontSize} !important; 
-            line-height: ${textSize.lineHeight} !important; 
-          }
-        `;
-
-      }
-
-      // Apply label size
-      if (headerStyling.labelSize && labelSizes[headerStyling.labelSize]) {
-        const labelSize = labelSizes[headerStyling.labelSize];
-        css += `
-          .${uniqueId} .header .contact-info,
-          .${uniqueId} .header .contact-item,
-          .${uniqueId} .header .contact-details,
-          .${uniqueId} .tech-header .contact-info,
-          .${uniqueId} .tech-header .contact-item,
-          .${uniqueId} .classic-header .contact-info,
-          .${uniqueId} .classic-header .contact-item,
-          .${uniqueId} .classic-header .contact-details,
-          .${uniqueId} .executive-header .contact-info,
-          .${uniqueId} .executive-header .contact-item { 
-            font-size: ${labelSize.fontSize} !important; 
-            line-height: ${labelSize.lineHeight} !important; 
-          }
-        `;
-
-      }
-
-      // Apply spacing
-      if (headerStyling.spacing && spacingOptions[headerStyling.spacing]) {
-        const spacing = spacingOptions[headerStyling.spacing];
-        css += `
-          .${uniqueId} .header .contact-info,
-          .${uniqueId} .tech-header .contact-info,
-          .${uniqueId} .classic-header .contact-info,
-          .${uniqueId} .executive-header .contact-info { 
-            gap: ${spacing.gap} !important; 
-            margin-bottom: ${spacing.marginBottom} !important; 
-          }
-          .${uniqueId} .header .contact-item,
-          .${uniqueId} .tech-header .contact-item,
-          .${uniqueId} .classic-header .contact-item,
-          .${uniqueId} .executive-header .contact-item { 
-            margin-bottom: ${spacing.gap} !important; 
-          }
-        `;
-
-      }
-    } else {
-
-    }
 
     // Add CSS rule to remove bottom spacing from the last element
     css += `
@@ -608,7 +476,7 @@ class TemplateRenderer {
       .${uniqueId} .languages:last-child,
       .${uniqueId} .summary:last-child,
       .${uniqueId} .custom-fields:last-child,
-      .${uniqueId} .main-content > *:last-child,
+      .${uniqueId} .main-column > *:last-child,
       .${uniqueId} .sidebar > *:last-child,
       .${uniqueId} .content-grid > *:last-child {
         margin-bottom: 0 !important;

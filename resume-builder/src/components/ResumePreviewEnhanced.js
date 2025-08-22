@@ -16,6 +16,9 @@ function ResumePreviewEnhanced() {
   const [showStylingControls, setShowStylingControls] = useState(false);
   const [hasTemplate, setHasTemplate] = useState(false);
   
+  // Template styling state
+  const [defaultTemplateStyling, setDefaultTemplateStyling] = useState(null);
+  
   // PDF preview state
   const [pdfData, setPdfData] = useState(null);
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -139,6 +142,11 @@ function ResumePreviewEnhanced() {
           const r = resumeResp.data.resume || resumeResp.data;
           setResume(r);
           setHasTemplate(!!r?.template);
+          
+          // Store default template styling data if available
+          if (resumeResp.data.defaultTemplateStyling) {
+            setDefaultTemplateStyling(resumeResp.data.defaultTemplateStyling);
+          }
         }
         
         // Load PDF preview
@@ -305,6 +313,7 @@ function ResumePreviewEnhanced() {
                   resumeId={resumeId}
                   currentStyling={resume?.styling}
                   onStylingUpdate={handleStylingUpdate}
+                  defaultStyling={defaultTemplateStyling}
                 />
               </div>
             </div>

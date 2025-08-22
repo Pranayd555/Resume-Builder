@@ -157,6 +157,13 @@ const seedAllTemplates = async () => {
             primary: 'Arial',
             secondary: 'Arial',
             sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+          },
+          template: {
+            headerLevel: 'h3',
+            headerFontSize: 18,
+            fontSize: 12,
+            lineSpacing: 1,
+            sectionSpacing: 1
           }
         },
         availability: { tier: 'free', isPublic: true, isActive: true },
@@ -426,6 +433,13 @@ const seedAllTemplates = async () => {
             primary: 'Calibri',
             secondary: 'Calibri',
             sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+          },
+          template: {
+            headerLevel: 'h3',
+            headerFontSize: 18,
+            fontSize: 12,
+            lineSpacing: 1,
+            sectionSpacing: 1
           }
         },
         availability: { tier: 'free', isPublic: true, isActive: true },
@@ -674,6 +688,13 @@ const seedAllTemplates = async () => {
             primary: 'Roboto',
             secondary: 'Roboto',
             sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+          },
+          template: {
+            headerLevel: 'h3',
+            headerFontSize: 18,
+            fontSize: 12,
+            lineSpacing: 1,
+            sectionSpacing: 1
           }
         },
         availability: { tier: 'free', isPublic: true, isActive: true },
@@ -919,6 +940,13 @@ const seedAllTemplates = async () => {
             primary: 'Arial',
             secondary: 'Arial',
             sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+          },
+          template: {
+            headerLevel: 'h3',
+            headerFontSize: 18,
+            fontSize: 12,
+            lineSpacing: 1,
+            sectionSpacing: 1
           }
         },
         availability: { tier: 'free', isPublic: true, isActive: true },
@@ -1052,6 +1080,13 @@ const seedAllTemplates = async () => {
             primary: 'Times New Roman',
             secondary: 'Times New Roman',
             sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+          },
+          template: {
+            headerLevel: 'h3',
+            headerFontSize: 18,
+            fontSize: 12,
+            lineSpacing: 1,
+            sectionSpacing: 1
           }
         },
         availability: { tier: 'free', isPublic: true, isActive: true },
@@ -1285,6 +1320,13 @@ const seedAllTemplates = async () => {
             primary: 'Georgia',
             secondary: 'Georgia',
             sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+          },
+          template: {
+            headerLevel: 'h3',
+            headerFontSize: 18,
+            fontSize: 12,
+            lineSpacing: 1,
+            sectionSpacing: 1
           }
         },
         availability: { tier: 'free', isPublic: true, isActive: true },
@@ -1376,6 +1418,13 @@ const seedAllTemplates = async () => {
             primary: 'Arial',
             secondary: 'Arial',
             sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+          },
+          template: {
+            headerLevel: 'h3',
+            headerFontSize: 18,
+            fontSize: 12,
+            lineSpacing: 1,
+            sectionSpacing: 1
           }
         },
         availability: { tier: 'free', isPublic: true, isActive: true },
@@ -1643,6 +1692,13 @@ const seedAllTemplates = async () => {
             type: 'two-column',
             sidebarWidth: '1fr',
             mainWidth: '2fr'
+          },
+          template: {
+            headerLevel: 'h3',
+            headerFontSize: 18,
+            fontSize: 12,
+            lineSpacing: 1,
+            sectionSpacing: 1
           }
         },
         availability: { tier: 'free', isPublic: true, isActive: true },
@@ -1935,6 +1991,13 @@ const seedAllTemplates = async () => {
             primary: 'Calibri',
             secondary: 'Calibri',
             sizes: { heading: 28, subheading: 20, body: 12, small: 10 }
+          },
+          template: {
+            headerLevel: 'h3',
+            headerFontSize: 28,
+            fontSize: 12,
+            lineSpacing: 1,
+            sectionSpacing: 1
           }
         },
         availability: { tier: 'free', isPublic: true, isActive: true },
@@ -2046,6 +2109,13 @@ const seedAllTemplates = async () => {
             primary: 'Georgia',
             secondary: 'Arial',
             sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+          },
+          template: {
+            headerLevel: 'h3',
+            headerFontSize: 18,
+            fontSize: 12,
+            lineSpacing: 1,
+            sectionSpacing: 1
           }
         },
         availability: { tier: 'free', isPublic: true, isActive: true },
@@ -2230,6 +2300,13 @@ const seedAllTemplates = async () => {
             primary: 'Arial',
             secondary: 'Arial',
             sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+          },
+          template: {
+            headerLevel: 'h3',
+            headerFontSize: 18,
+            fontSize: 12,
+            lineSpacing: 1,
+            sectionSpacing: 1
           }
         },
         availability: { tier: 'free', isPublic: true, isActive: true },
@@ -2478,6 +2555,13 @@ const seedAllTemplates = async () => {
             primary: 'Arial',
             secondary: 'Arial',
             sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+          },
+          template: {
+            headerLevel: 'h3',
+            headerFontSize: 18,
+            fontSize: 12,
+            lineSpacing: 1,
+            sectionSpacing: 1
           }
         },
         availability: { tier: 'free', isPublic: true, isActive: true },
@@ -2728,6 +2812,13 @@ const seedAllTemplates = async () => {
             primary: 'Arial',
             secondary: 'Arial',
             sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+          },
+          template: {
+            headerLevel: 'h3',
+            headerFontSize: 18,
+            fontSize: 12,
+            lineSpacing: 1,
+            sectionSpacing: 1
           }
         },
         availability: { tier: 'free', isPublic: true, isActive: true },
@@ -2976,6 +3067,13 @@ const seedAllTemplates = async () => {
             primary: 'Arial',
             secondary: 'Arial',
             sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+          },
+          template: {
+            headerLevel: 'h3',
+            headerFontSize: 18,
+            fontSize: 12,
+            lineSpacing: 1,
+            sectionSpacing: 1
           }
         },
         availability: { tier: 'free', isPublic: true, isActive: true },
@@ -3223,6 +3321,13 @@ const seedAllTemplates = async () => {
             primary: 'Arial',
             secondary: 'Arial',
             sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+          },
+          template: {
+            headerLevel: 'h3',
+            headerFontSize: 18,
+            fontSize: 12,
+            lineSpacing: 1,
+            sectionSpacing: 1
           }
         },
         availability: { tier: 'free', isPublic: true, isActive: true },
@@ -3467,6 +3572,13 @@ const seedAllTemplates = async () => {
             "primary": "Times New Roman",
             "secondary": "Times New Roman",
             "sizes": { "heading": 18, "subheading": 16, "body": 12, "small": 10 }
+          },
+          "template": {
+            "headerLevel": "h3",
+            "headerFontSize": 18,
+            "fontSize": 12,
+            "lineSpacing": 1,
+            "sectionSpacing": 1
           }
         },
         "availability": { "tier": "free", "isPublic": true, "isActive": true },
@@ -3670,6 +3782,13 @@ const seedAllTemplates = async () => {
             "primary": "Arial",
             "secondary": "Arial",
             "sizes": { "heading": 18, "subheading": 16, "body": 12, "small": 10 }
+          },
+          "template": {
+            "headerLevel": "h3",
+            "headerFontSize": 18,
+            "fontSize": 12,
+            "lineSpacing": 1,
+            "sectionSpacing": 1
           }
         },
         "availability": { "tier": "free", "isPublic": true, "isActive": true },
