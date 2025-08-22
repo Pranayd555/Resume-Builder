@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Resume = require('../models/Resume');
 const Template = require('../models/Template');
-const TemplateRenderer = require('../utils/templateRenderer');
+const OptimizedTemplateRenderer = require('../utils/templateRenderer');
 
 // Test data
 const testResumeData = {
@@ -121,7 +121,7 @@ async function testTemplateStyling() {
     // Test 3: Test Template Renderer
     console.log('\n3. Testing Template Renderer...');
     
-    const renderer = new TemplateRenderer();
+    const renderer = new OptimizedTemplateRenderer();
     const mockTemplate = {
       templateCode: {
         html: '<div class="resume">{{personalInfo.fullName}}</div>',

@@ -1,209 +1,366 @@
 const handlebars = require('handlebars');
 const moment = require('moment');
+const crypto = require('crypto');
 
 // Register Handlebars helpers
 handlebars.registerHelper('formatDate', function(date) {
-  if (!date) return '';
-  try {
-    return moment(date).format('MMM YYYY');
-  } catch (error) {
-    return '';
+  return moment(date).format('MMM YYYY');
+});
+
+handlebars.registerHelper('formatDateRange', function(startDate, endDate, isCurrent) {
+  const start = moment(startDate).format('MMM YYYY');
+  const end = isCurrent ? 'Present' : moment(endDate).format('MMM YYYY');
+  return `${start} - ${end}`;
+});
+
+handlebars.registerHelper('calculateDuration', function(startDate, endDate, isCurrent) {
+  const start = moment(startDate);
+  const end = isCurrent ? moment() : moment(endDate);
+  const years = end.diff(start, 'years');
+  const months = end.diff(start, 'months') % 12;
+  
+  if (years > 0 && months > 0) {
+    return `${years} yr${years > 1 ? 's' : ''} ${months} mo${months > 1 ? 's' : ''}`;
+  } else if (years > 0) {
+    return `${years} yr${years > 1 ? 's' : ''}`;
+  } else {
+    return `${months} mo${months > 1 ? 's' : ''}`;
   }
-});
-
-handlebars.registerHelper('formatDateFull', function(date) {
-  if (!date) return '';
-  try {
-    return moment(date).format('MMMM D, YYYY');
-  } catch (error) {
-    return '';
-  }
-});
-
-// Helper for date ranges with proper formatting
-handlebars.registerHelper('formatDateRange', function(startDate, endDate, isCurrentJob, isCurrentlyStudying) {
-  if (!startDate) return '';
-  
-  try {
-    const start = moment(startDate).format('MMM YYYY');
-    const isCurrent = isCurrentJob || isCurrentlyStudying;
-    
-    if (isCurrent) {
-      return `${start} - Present`;
-    } else if (endDate) {
-      const end = moment(endDate).format('MMM YYYY');
-      return `${start} - ${end}`;
-    } else {
-      return start;
-    }
-  } catch (error) {
-    return '';
-  }
-});
-
-handlebars.registerHelper('eq', function(a, b) {
-  return a === b;
-});
-
-handlebars.registerHelper('ne', function(a, b) {
-  return a !== b;
-});
-
-handlebars.registerHelper('gt', function(a, b) {
-  return a > b;
-});
-
-handlebars.registerHelper('lt', function(a, b) {
-  return a < b;
-});
-
-handlebars.registerHelper('or', function(a, b) {
-  return a || b;
-});
-
-handlebars.registerHelper('and', function(a, b) {
-  return a && b;
-});
-
-handlebars.registerHelper('capitalize', function(str) {
-  if (!str) return '';
-  return str.charAt(0).toUpperCase() + str.slice(1);
-});
-
-handlebars.registerHelper('uppercase', function(str) {
-  if (!str) return '';
-  return str.toUpperCase();
-});
-
-handlebars.registerHelper('lowercase', function(str) {
-  if (!str) return '';
-  return str.toLowerCase();
-});
-
-handlebars.registerHelper('truncate', function(str, length) {
-  if (!str) return '';
-  if (str.length <= length) return str;
-  return str.substring(0, length) + '...';
-});
-
-handlebars.registerHelper('join', function(array, separator) {
-  if (!array || !Array.isArray(array)) return '';
-  return array.join(separator || ', ');
-});
-
-handlebars.registerHelper('length', function(array) {
-  if (!array || !Array.isArray(array)) return 0;
-  return array.length;
-});
-
-handlebars.registerHelper('getSkillLevel', function(level) {
-  const levels = {
-    'beginner': 25,
-    'intermediate': 50,
-    'advanced': 75,
-    'expert': 100
-  };
-  return levels[level] || 50;
-});
-
-handlebars.registerHelper('getProficiencyLevel', function(proficiency) {
-  const levels = {
-    'basic': 25,
-    'conversational': 50,
-    'fluent': 75,
-    'native': 100
-  };
-  return levels[proficiency] || 50;
-});
-
-handlebars.registerHelper('formatPhoneNumber', function(phone) {
-  if (!phone) return '';
-  // Simple phone number formatting - can be enhanced
-  const cleaned = phone.replace(/\D/g, '');
-  if (cleaned.length === 10) {
-    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
-  }
-  return phone;
-});
-
-handlebars.registerHelper('formatUrl', function(url) {
-  if (!url) return '';
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
-    return `https://${url}`;
-  }
-  return url;
-});
-
-handlebars.registerHelper('getInitials', function(name) {
-  if (!name) return '';
-  return name.split(' ').map(word => word.charAt(0).toUpperCase()).join('');
-});
-
-handlebars.registerHelper('yearsOfExperience', function(workExperience) {
-  if (!workExperience || !Array.isArray(workExperience)) return 0;
-  
-  let totalMonths = 0;
-  workExperience.forEach(job => {
-    if (job.startDate) {
-      const startDate = moment(job.startDate);
-      const endDate = job.isCurrentJob ? moment() : moment(job.endDate);
-      totalMonths += endDate.diff(startDate, 'months');
-    }
-  });
-  
-  return Math.floor(totalMonths / 12);
-});
-
-handlebars.registerHelper('getEducationLevel', function(education) {
-  if (!education || !Array.isArray(education)) return '';
-  
-  const levels = {
-    'high school': 1,
-    'diploma': 2,
-    'associate': 3,
-    'bachelor': 4,
-    'master': 5,
-    'doctorate': 6,
-    'phd': 6
-  };
-  
-  let highestLevel = 0;
-  let highestDegree = '';
-  
-  education.forEach(edu => {
-    if (edu.degree) {
-      const degree = edu.degree.toLowerCase();
-      for (const [key, level] of Object.entries(levels)) {
-        if (degree.includes(key) && level > highestLevel) {
-          highestLevel = level;
-          highestDegree = edu.degree;
-        }
-      }
-    }
-  });
-  
-  return highestDegree;
-});
-
-handlebars.registerHelper('hasContent', function(obj) {
-  if (!obj) return false;
-  if (Array.isArray(obj)) return obj.length > 0;
-  if (typeof obj === 'string') return obj.trim().length > 0;
-  if (typeof obj === 'object') return Object.keys(obj).length > 0;
-  return Boolean(obj);
-});
-
-handlebars.registerHelper('isCurrentPosition', function(workExperience) {
-  return workExperience && workExperience.some(job => job.isCurrentJob);
 });
 
 handlebars.registerHelper('isCurrentlyStudying', function(education) {
   return education && education.some(edu => edu.isCurrentlyStudying);
 });
 
-class TemplateRenderer {
+/**
+ * Optimized Template Renderer with CSS Caching
+ * Replaces inefficient string concatenation with template-based CSS generation
+ */
+class OptimizedTemplateRenderer {
   constructor() {
     this.handlebars = handlebars;
+    this.cssTemplates = new Map();
+    this.styleCache = new Map();
+    this.cssTemplateCache = new Map();
+    this.maxCacheSize = 1000; // Prevent memory leaks
+  }
+
+  /**
+   * Generate a hash for styling configuration to enable caching
+   * @param {Object} styling - Template styling object
+   * @param {Object} dataStyling - User data styling object
+   * @returns {string} - Hash string for caching
+   */
+  generateStylingHash(styling, dataStyling) {
+    const hashData = {
+      colors: styling?.colors || {},
+      fonts: styling?.fonts || {},
+      template: dataStyling?.template || {}
+    };
+    return crypto.createHash('md5').update(JSON.stringify(hashData)).digest('hex');
+  }
+
+  /**
+   * Get cached CSS if available
+   * @param {string} stylingHash - Hash of styling configuration
+   * @param {string} templateId - Template identifier
+   * @returns {string|null} - Cached CSS or null if not found
+   */
+  getCachedStyles(stylingHash, templateId) {
+    const cacheKey = `${templateId}-${stylingHash}`;
+    return this.styleCache.get(cacheKey);
+  }
+
+  /**
+   * Set cached CSS
+   * @param {string} stylingHash - Hash of styling configuration
+   * @param {string} templateId - Template identifier
+   * @param {string} css - Generated CSS
+   */
+  setCachedStyles(stylingHash, templateId, css) {
+    const cacheKey = `${templateId}-${stylingHash}`;
+    
+    // Implement LRU-like cache eviction
+    if (this.styleCache.size >= this.maxCacheSize) {
+      const firstKey = this.styleCache.keys().next().value;
+      this.styleCache.delete(firstKey);
+    }
+    
+    this.styleCache.set(cacheKey, css);
+  }
+
+  /**
+   * Get or compile CSS template for a template type
+   * @param {Object} template - Template object
+   * @returns {Function} - Compiled CSS template function
+   */
+  getCssTemplate(template) {
+    const templateKey = template._id?.toString() || template.name || 'default';
+    
+    if (!this.cssTemplates.has(templateKey)) {
+      this.cssTemplates.set(templateKey, this.compileCssTemplate(template));
+    }
+    
+    return this.cssTemplates.get(templateKey);
+  }
+
+  /**
+   * Compile CSS template for efficient rendering
+   * @param {Object} template - Template object
+   * @returns {Function} - Compiled CSS template function
+   */
+  compileCssTemplate(template) {
+    const baseCss = template.templateCode.css;
+    
+    return (styling, dataStyling, uniqueId) => {
+      let css = baseCss;
+      const colors = styling?.colors || {};
+      const fonts = styling?.fonts || {};
+
+      // Pre-compile regex patterns for better performance
+      const colorPatterns = Object.keys(colors).map(key => ({
+        pattern: new RegExp(`var\\(--color-${key}\\)`, 'g'),
+        replacement: colors[key]
+      }));
+
+      const fontPatterns = Object.keys(fonts)
+        .filter(key => key !== 'sizes')
+        .map(key => ({
+          pattern: new RegExp(`var\\(--font-${key}\\)`, 'g'),
+          replacement: fonts[key]
+        }));
+
+      const fontSizePatterns = fonts.sizes ? 
+        Object.keys(fonts.sizes).map(size => ({
+          pattern: new RegExp(`var\\(--font-size-${size}\\)`, 'g'),
+          replacement: `${fonts.sizes[size]}px`
+        })) : [];
+
+      // Apply all replacements efficiently
+      [...colorPatterns, ...fontPatterns, ...fontSizePatterns].forEach(({ pattern, replacement }) => {
+        css = css.replace(pattern, replacement);
+      });
+
+      // Apply template styling options if available
+      if (dataStyling?.template) {
+        css += this.generateTemplateStyling(dataStyling.template, uniqueId);
+      }
+
+      // Add final spacing rules
+      css += this.generateSpacingRules(uniqueId);
+
+      return css;
+    };
+  }
+
+  /**
+   * Generate template-specific styling CSS
+   * @param {Object} templateStyling - Template styling configuration
+   * @param {string} uniqueId - Unique CSS identifier
+   * @returns {string} - Generated CSS
+   */
+  generateTemplateStyling(templateStyling, uniqueId) {
+    let css = '';
+
+    // Header level mapping
+    const headerLevels = {
+      'h1': { fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem' },
+      'h2': { fontSize: '2rem', fontWeight: '600', marginBottom: '0.875rem' },
+      'h3': { fontSize: '1.5rem', fontWeight: '600', marginBottom: '0.75rem' },
+      'h4': { fontSize: '1.25rem', fontWeight: '500', marginBottom: '0.625rem' },
+      'h5': { fontSize: '1.125rem', fontWeight: '500', marginBottom: '0.5rem' }
+    };
+
+    // Apply header font size
+    if (templateStyling.headerFontSize) {
+      css += `
+        .${uniqueId} .name,
+        .${uniqueId} h1,
+        .${uniqueId} h2,
+        .${uniqueId} h3,
+        .${uniqueId} h4,
+        .${uniqueId} h5 { 
+          font-size: ${templateStyling.headerFontSize}px !important; 
+          font-weight: 600 !important; 
+          margin-bottom: 0.75rem !important; 
+        }
+      `;
+    }
+    // Apply header level (fallback if headerFontSize not set)
+    else if (templateStyling.headerLevel && headerLevels[templateStyling.headerLevel]) {
+      const level = headerLevels[templateStyling.headerLevel];
+      css += `
+        .${uniqueId} .name,
+        .${uniqueId} h1,
+        .${uniqueId} h2,
+        .${uniqueId} h3,
+        .${uniqueId} h4,
+        .${uniqueId} h5 { 
+          font-size: ${level.fontSize} !important; 
+          font-weight: ${level.fontWeight} !important; 
+          margin-bottom: ${level.marginBottom} !important; 
+        }
+      `;
+    }
+
+    // Apply content font size
+    if (templateStyling.fontSize) {
+      css += `
+        .${uniqueId} p,
+        .${uniqueId} .contact-info,
+        .${uniqueId} .job-description,
+        .${uniqueId} .edu-description,
+        .${uniqueId} .achievements li,
+        .${uniqueId} .skill-items,
+        .${uniqueId} .technologies,
+        .${uniqueId} .project-links,
+        .${uniqueId} .cert-expiry,
+        .${uniqueId} .cert-id,
+        .${uniqueId} .language-level,
+        .${uniqueId} .custom-content { 
+          font-size: ${templateStyling.fontSize}px !important; 
+        }
+      `;
+    }
+
+    // Apply line spacing
+    if (templateStyling.lineSpacing) {
+      css += `
+        .${uniqueId} p,
+        .${uniqueId} .job-description,
+        .${uniqueId} .edu-description,
+        .${uniqueId} .achievements li,
+        .${uniqueId} .summary,
+        .${uniqueId} .custom-content { 
+          line-height: ${templateStyling.lineSpacing} !important; 
+        }
+      `;
+    }
+
+    // Apply section spacing
+    if (templateStyling.sectionSpacing) {
+      css += `
+        .${uniqueId} section,
+        .${uniqueId} .section,
+        .${uniqueId} .work-experience,
+        .${uniqueId} .education,
+        .${uniqueId} .skills,
+        .${uniqueId} .projects,
+        .${uniqueId} .achievements,
+        .${uniqueId} .certifications,
+        .${uniqueId} .languages,
+        .${uniqueId} .summary { 
+          margin-bottom: ${templateStyling.sectionSpacing * 0.5}rem !important; 
+          padding-bottom: ${templateStyling.sectionSpacing * 0.25}rem !important; 
+        }
+        .${uniqueId} .job-item,
+        .${uniqueId} .edu-item,
+        .${uniqueId} .project-item,
+        .${uniqueId} .cert-item,
+        .${uniqueId} .achievement-item,
+        .${uniqueId} .skill-category { 
+          margin-bottom: ${templateStyling.sectionSpacing * 0.25}rem !important; 
+          padding-bottom: ${templateStyling.sectionSpacing * 0.125}rem !important; 
+        }
+      `;
+    }
+
+    return css;
+  }
+
+  /**
+   * Generate spacing rules CSS
+   * @param {string} uniqueId - Unique CSS identifier
+   * @returns {string} - Generated CSS
+   */
+  generateSpacingRules(uniqueId) {
+    return `
+      /* Remove bottom spacing from the last element */
+      .${uniqueId} > *:last-child,
+      .${uniqueId} section:last-child,
+      .${uniqueId} .section:last-child,
+      .${uniqueId} .work-experience:last-child,
+      .${uniqueId} .education:last-child,
+      .${uniqueId} .skills:last-child,
+      .${uniqueId} .projects:last-child,
+      .${uniqueId} .achievements:last-child,
+      .${uniqueId} .certifications:last-child,
+      .${uniqueId} .languages:last-child,
+      .${uniqueId} .summary:last-child,
+      .${uniqueId} .custom-fields:last-child,
+      .${uniqueId} .main-column > *:last-child,
+      .${uniqueId} .sidebar > *:last-child,
+      .${uniqueId} .content-grid > *:last-child {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+      }
+      
+      /* Also remove bottom spacing from last items within sections */
+      .${uniqueId} .job-item:last-child,
+      .${uniqueId} .edu-item:last-child,
+      .${uniqueId} .project-item:last-child,
+      .${uniqueId} .cert-item:last-child,
+      .${uniqueId} .achievement-item:last-child,
+      .${uniqueId} .skill-category:last-child,
+      .${uniqueId} .language-item:last-child,
+      .${uniqueId} .custom-field:last-child {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+      }
+    `;
+  }
+
+  /**
+   * Optimized CSS rendering with caching
+   * @param {Object} template - Template object
+   * @param {Object} data - Template data
+   * @param {string} uniqueId - Unique identifier for CSS scoping
+   * @returns {string} - Rendered CSS
+   */
+  renderCss(template, data, uniqueId) {
+    const templateId = template._id?.toString() || template.name || 'default';
+    const styling = template.styling;
+    const dataStyling = data.styling;
+    
+    // Generate hash for caching
+    const stylingHash = this.generateStylingHash(styling, dataStyling);
+    
+    // Check cache first
+    const cachedCss = this.getCachedStyles(stylingHash, templateId);
+    if (cachedCss) {
+      return cachedCss;
+    }
+    
+    // Get or compile CSS template
+    const cssTemplate = this.getCssTemplate(template);
+    
+    // Generate CSS using template
+    const css = cssTemplate(styling, dataStyling, uniqueId);
+    
+    // Cache the result
+    this.setCachedStyles(stylingHash, templateId, css);
+    
+    return css;
+  }
+
+  /**
+   * Clear CSS cache (useful for development or memory management)
+   */
+  clearCache() {
+    this.styleCache.clear();
+    this.cssTemplates.clear();
+  }
+
+  /**
+   * Get cache statistics
+   * @returns {Object} - Cache statistics
+   */
+  getCacheStats() {
+    return {
+      styleCacheSize: this.styleCache.size,
+      cssTemplatesSize: this.cssTemplates.size,
+      maxCacheSize: this.maxCacheSize
+    };
   }
 
   /**
@@ -310,194 +467,6 @@ class TemplateRenderer {
     }));
 
     return data;
-  }
-
-  /**
-   * Render CSS with template variables
-   * @param {Object} template - Template object
-   * @param {Object} data - Template data
-   * @param {string} uniqueId - Unique identifier for CSS scoping
-   * @returns {string} - Rendered CSS
-   */
-  renderCss(template, data, uniqueId) {
-    let css = template.templateCode.css;
-
-    // Replace CSS variables with template styling
-    const styling = template.styling;
-    const colors = styling.colors || {};
-    const fonts = styling.fonts || {};
-
-    // Replace color variables
-    Object.keys(colors).forEach(key => {
-      const pattern = new RegExp(`var\\(--color-${key}\\)`, 'g');
-      css = css.replace(pattern, colors[key]);
-    });
-
-    // Replace font variables
-    Object.keys(fonts).forEach(key => {
-      if (key !== 'sizes') {
-        const pattern = new RegExp(`var\\(--font-${key}\\)`, 'g');
-        css = css.replace(pattern, fonts[key]);
-      }
-    });
-
-    // Replace font size variables
-    if (fonts.sizes) {
-      Object.keys(fonts.sizes).forEach(size => {
-        const pattern = new RegExp(`var\\(--font-size-${size}\\)`, 'g');
-        css = css.replace(pattern, `${fonts.sizes[size]}px`);
-      });
-    }
-
-    // Apply template styling options if available
-    if (data.styling && data.styling.template) {
-      const templateStyling = data.styling.template;
-      
-      // Header level mapping
-      const headerLevels = {
-        'h1': { fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem' },
-        'h2': { fontSize: '2rem', fontWeight: '600', marginBottom: '0.875rem' },
-        'h3': { fontSize: '1.5rem', fontWeight: '600', marginBottom: '0.75rem' },
-        'h4': { fontSize: '1.25rem', fontWeight: '500', marginBottom: '0.625rem' },
-        'h5': { fontSize: '1.125rem', fontWeight: '500', marginBottom: '0.5rem' }
-      };
-
-      // Apply header font size
-      if (templateStyling.headerFontSize) {
-        const headerFontSize = templateStyling.headerFontSize;
-        css += `
-          .${uniqueId} .name,
-          .${uniqueId} h1,
-          .${uniqueId} h2,
-          .${uniqueId} h3,
-          .${uniqueId} h4,
-          .${uniqueId} h5 { 
-            font-size: ${headerFontSize}px !important; 
-            font-weight: 600 !important; 
-            margin-bottom: 0.75rem !important; 
-          }
-        `;
-      }
-      // Apply header level (fallback if headerFontSize not set)
-      else if (templateStyling.headerLevel && headerLevels[templateStyling.headerLevel]) {
-        const level = headerLevels[templateStyling.headerLevel];
-        css += `
-          .${uniqueId} .name,
-          .${uniqueId} h1,
-          .${uniqueId} h2,
-          .${uniqueId} h3,
-          .${uniqueId} h4,
-          .${uniqueId} h5 { 
-            font-size: ${level.fontSize} !important; 
-            font-weight: ${level.fontWeight} !important; 
-            margin-bottom: ${level.marginBottom} !important; 
-          }
-        `;
-      }
-
-      // Apply content font size
-      if (templateStyling.fontSize) {
-        const fontSize = templateStyling.fontSize;
-        css += `
-          .${uniqueId} p,
-          .${uniqueId} .contact-info,
-          .${uniqueId} .job-description,
-          .${uniqueId} .edu-description,
-          .${uniqueId} .achievements li,
-          .${uniqueId} .skill-items,
-          .${uniqueId} .technologies,
-          .${uniqueId} .project-links,
-          .${uniqueId} .cert-expiry,
-          .${uniqueId} .cert-id,
-          .${uniqueId} .language-level,
-          .${uniqueId} .custom-content { 
-            font-size: ${fontSize}px !important; 
-          }
-        `;
-      }
-
-      // Apply line spacing
-      if (templateStyling.lineSpacing) {
-        const lineSpacing = templateStyling.lineSpacing;
-        css += `
-          .${uniqueId} p,
-          .${uniqueId} .job-description,
-          .${uniqueId} .edu-description,
-          .${uniqueId} .achievements li,
-          .${uniqueId} .summary,
-          .${uniqueId} .custom-content { 
-            line-height: ${lineSpacing} !important; 
-          }
-        `;
-      }
-
-      // Apply section spacing
-      if (templateStyling.sectionSpacing) {
-        const sectionSpacing = templateStyling.sectionSpacing;
-        css += `
-          .${uniqueId} section,
-          .${uniqueId} .section,
-          .${uniqueId} .work-experience,
-          .${uniqueId} .education,
-          .${uniqueId} .skills,
-          .${uniqueId} .projects,
-          .${uniqueId} .achievements,
-          .${uniqueId} .certifications,
-          .${uniqueId} .languages,
-          .${uniqueId} .summary { 
-            margin-bottom: ${sectionSpacing * 0.5}rem !important; 
-            padding-bottom: ${sectionSpacing * 0.25}rem !important; 
-          }
-          .${uniqueId} .job-item,
-          .${uniqueId} .edu-item,
-          .${uniqueId} .project-item,
-          .${uniqueId} .cert-item,
-          .${uniqueId} .achievement-item,
-          .${uniqueId} .skill-category { 
-            margin-bottom: ${sectionSpacing * 0.25}rem !important; 
-            padding-bottom: ${sectionSpacing * 0.125}rem !important; 
-          }
-        `;
-      }
-    }
-
-    // Add CSS rule to remove bottom spacing from the last element
-    css += `
-      /* Remove bottom spacing from the last element */
-      .${uniqueId} > *:last-child,
-      .${uniqueId} section:last-child,
-      .${uniqueId} .section:last-child,
-      .${uniqueId} .work-experience:last-child,
-      .${uniqueId} .education:last-child,
-      .${uniqueId} .skills:last-child,
-      .${uniqueId} .projects:last-child,
-      .${uniqueId} .achievements:last-child,
-      .${uniqueId} .certifications:last-child,
-      .${uniqueId} .languages:last-child,
-      .${uniqueId} .summary:last-child,
-      .${uniqueId} .custom-fields:last-child,
-      .${uniqueId} .main-column > *:last-child,
-      .${uniqueId} .sidebar > *:last-child,
-      .${uniqueId} .content-grid > *:last-child {
-        margin-bottom: 0 !important;
-        padding-bottom: 0 !important;
-      }
-      
-      /* Also remove bottom spacing from last items within sections */
-      .${uniqueId} .job-item:last-child,
-      .${uniqueId} .edu-item:last-child,
-      .${uniqueId} .project-item:last-child,
-      .${uniqueId} .cert-item:last-child,
-      .${uniqueId} .achievement-item:last-child,
-      .${uniqueId} .skill-category:last-child,
-      .${uniqueId} .language-item:last-child,
-      .${uniqueId} .custom-field:last-child {
-        margin-bottom: 0 !important;
-        padding-bottom: 0 !important;
-      }
-    `;
-
-    return css;
   }
 
   /**
@@ -749,4 +718,4 @@ class TemplateRenderer {
   }
 }
 
-module.exports = TemplateRenderer; 
+module.exports = OptimizedTemplateRenderer; 

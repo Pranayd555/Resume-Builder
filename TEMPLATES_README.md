@@ -262,8 +262,8 @@ Templates support CSS variables for consistent styling:
 ### Using the Template Renderer
 
 ```javascript
-const TemplateRenderer = require('./utils/templateRenderer');
-const renderer = new TemplateRenderer();
+const OptimizedTemplateRenderer = require('./utils/templateRenderer');
+const renderer = new OptimizedTemplateRenderer();
 
 // Render template with user data
 const result = renderer.render(template, resumeData);
