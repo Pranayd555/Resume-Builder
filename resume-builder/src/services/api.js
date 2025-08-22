@@ -152,7 +152,7 @@ export const resumeAPI = {
 
   // NEW: Update template styling options
   updateTemplateStyling: async (resumeId, templateStyling) => {
-    const response = await api.put(`/resumes/${resumeId}/template-styling`, { template: templateStyling });
+    const response = await api.put(`/resumes/${resumeId}/template-styling`, templateStyling);
     return response.data;
   },
 

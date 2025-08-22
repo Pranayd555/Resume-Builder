@@ -341,11 +341,11 @@ router.put('/:id/template', [
     resume.styling = {
       ...template.styling, // Template's default styling (colors, fonts, etc.)
       template: {
-        headerLevel: 'h3',
-        headerFontSize: 18,
-        fontSize: 14,
-        lineSpacing: 1.3,
-        sectionSpacing: 1
+        headerLevel: template.styling?.template?.headerLevel || 'h3',
+        headerFontSize: template.styling?.template?.headerFontSize || template.styling?.fonts?.sizes?.heading || 18,
+        fontSize: template.styling?.template?.fontSize || template.styling?.fonts?.sizes?.body || 14,
+        lineSpacing: template.styling?.template?.lineSpacing || 1,
+        sectionSpacing: template.styling?.template?.sectionSpacing || 1
       }
     };
     
@@ -381,11 +381,11 @@ router.put('/:id/template', [
 // @access  Private
 router.put('/:id/template-styling', [
   protect,
-  body('template.headerLevel').optional().isIn(['h1', 'h2', 'h3', 'h4', 'h5']).withMessage('Invalid header level'),
-  body('template.headerFontSize').optional().isInt({ min: 12, max: 24 }).withMessage('Header font size must be between 12 and 24'),
-  body('template.fontSize').optional().isInt({ min: 12, max: 18 }).withMessage('Font size must be between 12 and 18'),
-  body('template.lineSpacing').optional().isFloat({ min: 1, max: 3 }).withMessage('Line spacing must be between 1 and 3'),
-  body('template.sectionSpacing').optional().isFloat({ min: 1, max: 5 }).withMessage('Section spacing must be between 1 and 5')
+  body('styling.template.headerLevel').optional().isIn(['h1', 'h2', 'h3', 'h4', 'h5']).withMessage('Invalid header level'),
+  body('styling.template.headerFontSize').optional().isInt({ min: 12, max: 24 }).withMessage('Header font size must be between 12 and 24'),
+  body('styling.template.fontSize').optional().isInt({ min: 12, max: 18 }).withMessage('Font size must be between 12 and 18'),
+  body('styling.template.lineSpacing').optional().isFloat({ min: 1, max: 3 }).withMessage('Line spacing must be between 1 and 3'),
+  body('styling.template.sectionSpacing').optional().isFloat({ min: 1, max: 5 }).withMessage('Section spacing must be between 1 and 5')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -409,7 +409,7 @@ router.put('/:id/template-styling', [
     }
 
     // Update template styling options
-    if (req.body.template) {
+    if (req.body.styling && req.body.styling.template) {
       if (!resume.styling) {
         resume.styling = {};
       }
@@ -418,9 +418,9 @@ router.put('/:id/template-styling', [
       }
       
       // Update only the provided fields
-      Object.keys(req.body.template).forEach(key => {
-        if (req.body.template[key] !== undefined) {
-          resume.styling.template[key] = req.body.template[key];
+      Object.keys(req.body.styling.template).forEach(key => {
+        if (req.body.styling.template[key] !== undefined) {
+          resume.styling.template[key] = req.body.styling.template[key];
         }
       });
     }
@@ -480,10 +480,11 @@ router.get('/:id/preview', protect, async (req, res) => {
         resume.styling = {
           ...classicTemplate.styling,
           template: {
-            headerLevel: 'h3',
-            fontSize: 16,
-            lineSpacing: 1.5,
-            sectionSpacing: 1
+            headerLevel: classicTemplate.styling?.template?.headerLevel || 'h3',
+            headerFontSize: classicTemplate.styling?.template?.headerFontSize || classicTemplate.styling?.fonts?.sizes?.heading || 18,
+            fontSize: classicTemplate.styling?.template?.fontSize || classicTemplate.styling?.fonts?.sizes?.body || 14,
+            lineSpacing: classicTemplate.styling?.template?.lineSpacing || 1,
+            sectionSpacing: classicTemplate.styling?.template?.sectionSpacing || 1
           }
         };
         await resume.save();
@@ -538,10 +539,11 @@ router.get('/:id/preview', protect, async (req, res) => {
         resume.styling = {};
       }
       resume.styling.template = {
-        headerLevel: 'h3',
-        fontSize: 16,
-        lineSpacing: 1.5,
-        sectionSpacing: 1
+        headerLevel: resume.template.styling?.template?.headerLevel || 'h3',
+        headerFontSize: resume.template.styling?.template?.headerFontSize || resume.template.styling?.fonts?.sizes?.heading || 18,
+        fontSize: resume.template.styling?.template?.fontSize || resume.template.styling?.fonts?.sizes?.body || 14,
+        lineSpacing: resume.template.styling?.template?.lineSpacing || 1,
+        sectionSpacing: resume.template.styling?.template?.sectionSpacing || 1
       };
       await resume.save();
     }
@@ -1263,10 +1265,11 @@ router.get('/:id/download/docx', protect, async (req, res) => {
         resume.styling = {};
       }
       resume.styling.template = {
-        headerLevel: 'h3',
-        fontSize: 16,
-        lineSpacing: 1.5,
-        sectionSpacing: 1
+        headerLevel: resume.template.styling?.template?.headerLevel || 'h3',
+        headerFontSize: resume.template.styling?.template?.headerFontSize || resume.template.styling?.fonts?.sizes?.heading || 18,
+        fontSize: resume.template.styling?.template?.fontSize || resume.template.styling?.fonts?.sizes?.body || 14,
+        lineSpacing: resume.template.styling?.template?.lineSpacing || 1,
+        sectionSpacing: resume.template.styling?.template?.sectionSpacing || 1
       };
       await resume.save();
     }
@@ -1998,13 +2001,30 @@ router.get('/:id', protect, async (req, res) => {
     resume.analytics.views += 1;
     await resume.save();
 
+    // Prepare response with default template styling
+    const responseData = {
+      resume: resume.toObject()
+    };
 
+    // Add default template styling if template exists and no custom styling is set
+    if (resume.template && (!resume.styling || !resume.styling.template)) {
+      responseData.defaultTemplateStyling = {
+        headerLevel: resume.template.styling?.template?.headerLevel || 'h3',
+        headerFontSize: resume.template.styling?.template?.headerFontSize || resume.template.styling?.fonts?.sizes?.heading || 18,
+        fontSize: resume.template.styling?.template?.fontSize || resume.template.styling?.fonts?.sizes?.body || 14,
+        lineSpacing: resume.template.styling?.template?.lineSpacing || 1,
+        sectionSpacing: resume.template.styling?.template?.sectionSpacing || 1
+      };
+    }
+
+    // If resume has custom styling, include it
+    if (resume.styling && resume.styling.template) {
+      responseData.currentTemplateStyling = resume.styling.template;
+    }
 
     res.json({
       success: true,
-      data: {
-        resume
-      }
+      data: responseData
     });
   } catch (error) {
     logger.error('Get resume error:', error);
