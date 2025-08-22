@@ -162,7 +162,7 @@ const seedAllTemplates = async () => {
             headerLevel: 'h3',
             headerFontSize: 18,
             fontSize: 12,
-            lineSpacing: 1,
+            lineSpacing: 1.3,
             sectionSpacing: 1
           }
         },
@@ -438,7 +438,7 @@ const seedAllTemplates = async () => {
             headerLevel: 'h3',
             headerFontSize: 18,
             fontSize: 12,
-            lineSpacing: 1,
+            lineSpacing: 1.3,
             sectionSpacing: 1
           }
         },
@@ -693,7 +693,7 @@ const seedAllTemplates = async () => {
             headerLevel: 'h3',
             headerFontSize: 18,
             fontSize: 12,
-            lineSpacing: 1,
+            lineSpacing: 1.3,
             sectionSpacing: 1
           }
         },
@@ -945,7 +945,7 @@ const seedAllTemplates = async () => {
             headerLevel: 'h3',
             headerFontSize: 18,
             fontSize: 12,
-            lineSpacing: 1,
+            lineSpacing: 1.3,
             sectionSpacing: 1
           }
         },
@@ -1085,7 +1085,7 @@ const seedAllTemplates = async () => {
             headerLevel: 'h3',
             headerFontSize: 18,
             fontSize: 12,
-            lineSpacing: 1,
+            lineSpacing: 1.3,
             sectionSpacing: 1
           }
         },
@@ -1325,7 +1325,7 @@ const seedAllTemplates = async () => {
             headerLevel: 'h3',
             headerFontSize: 18,
             fontSize: 12,
-            lineSpacing: 1,
+            lineSpacing: 1.3,
             sectionSpacing: 1
           }
         },
@@ -1423,7 +1423,7 @@ const seedAllTemplates = async () => {
             headerLevel: 'h3',
             headerFontSize: 18,
             fontSize: 12,
-            lineSpacing: 1,
+            lineSpacing: 1.3,
             sectionSpacing: 1
           }
         },
@@ -1697,7 +1697,7 @@ const seedAllTemplates = async () => {
             headerLevel: 'h3',
             headerFontSize: 18,
             fontSize: 12,
-            lineSpacing: 1,
+            lineSpacing: 1.3,
             sectionSpacing: 1
           }
         },
@@ -1996,7 +1996,7 @@ const seedAllTemplates = async () => {
             headerLevel: 'h3',
             headerFontSize: 28,
             fontSize: 12,
-            lineSpacing: 1,
+            lineSpacing: 1.3,
             sectionSpacing: 1
           }
         },
@@ -2114,7 +2114,7 @@ const seedAllTemplates = async () => {
             headerLevel: 'h3',
             headerFontSize: 18,
             fontSize: 12,
-            lineSpacing: 1,
+            lineSpacing: 1.3,
             sectionSpacing: 1
           }
         },
@@ -2305,7 +2305,7 @@ const seedAllTemplates = async () => {
             headerLevel: 'h3',
             headerFontSize: 18,
             fontSize: 12,
-            lineSpacing: 1,
+            lineSpacing: 1.3,
             sectionSpacing: 1
           }
         },
@@ -2560,7 +2560,7 @@ const seedAllTemplates = async () => {
             headerLevel: 'h3',
             headerFontSize: 18,
             fontSize: 12,
-            lineSpacing: 1,
+            lineSpacing: 1.3,
             sectionSpacing: 1
           }
         },
@@ -2817,7 +2817,7 @@ const seedAllTemplates = async () => {
             headerLevel: 'h3',
             headerFontSize: 18,
             fontSize: 12,
-            lineSpacing: 1,
+            lineSpacing: 1.3,
             sectionSpacing: 1
           }
         },
@@ -3072,7 +3072,7 @@ const seedAllTemplates = async () => {
             headerLevel: 'h3',
             headerFontSize: 18,
             fontSize: 12,
-            lineSpacing: 1,
+            lineSpacing: 1.3,
             sectionSpacing: 1
           }
         },
@@ -3326,7 +3326,7 @@ const seedAllTemplates = async () => {
             headerLevel: 'h3',
             headerFontSize: 18,
             fontSize: 12,
-            lineSpacing: 1,
+            lineSpacing: 1.3,
             sectionSpacing: 1
           }
         },
@@ -3577,7 +3577,7 @@ const seedAllTemplates = async () => {
             "headerLevel": "h3",
             "headerFontSize": 18,
             "fontSize": 12,
-            "lineSpacing": 1,
+            "lineSpacing": 1.3,
             "sectionSpacing": 1
           }
         },
@@ -3787,7 +3787,7 @@ const seedAllTemplates = async () => {
             "headerLevel": "h3",
             "headerFontSize": 18,
             "fontSize": 12,
-            "lineSpacing": 1,
+            "lineSpacing": 1.3,
             "sectionSpacing": 1
           }
         },
