@@ -641,7 +641,7 @@ router.get('/:id/preview/pdf-images', protect, async (req, res) => {
           template: {
             headerLevel: 'h3',
             fontSize: 16,
-            lineSpacing: 1.5,
+            lineSpacing: 1.3,
             sectionSpacing: 1
           }
         };
@@ -944,7 +944,7 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
           template: {
             headerLevel: 'h3',
             fontSize: 16,
-            lineSpacing: 1.5,
+            lineSpacing: 1.3,
             sectionSpacing: 1
           }
         };
@@ -1240,7 +1240,7 @@ router.get('/:id/download/docx', protect, async (req, res) => {
           template: {
             headerLevel: 'h3',
             fontSize: 16,
-            lineSpacing: 1.5,
+            lineSpacing: 1.3,
             sectionSpacing: 1
           }
         };
