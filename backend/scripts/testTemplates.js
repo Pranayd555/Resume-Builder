@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const Template = require('../models/Template');
-const TemplateRenderer = require('../utils/templateRenderer');
+const OptimizedTemplateRenderer = require('../utils/templateRenderer');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
@@ -16,7 +16,7 @@ const testTemplates = async () => {
     console.log('🧪 Testing Template Rendering System\n');
     
     // Initialize template renderer
-    const renderer = new TemplateRenderer();
+    const renderer = new OptimizedTemplateRenderer();
     
     // Generate sample data
     const sampleData = renderer.generateSampleData();

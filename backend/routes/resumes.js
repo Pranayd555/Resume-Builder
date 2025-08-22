@@ -4,7 +4,7 @@ const { protect, checkResumeLimit, checkTemplateAccess, checkExportFormat, track
 const Resume = require('../models/Resume');
 const Template = require('../models/Template');
 const Subscription = require('../models/Subscription');
-const TemplateRenderer = require('../utils/templateRenderer');
+const OptimizedTemplateRenderer = require('../utils/templateRenderer');
 const logger = require('../utils/logger');
 const puppeteer = require('puppeteer');
 const chromium = require('@sparticuz/chromium');
@@ -549,7 +549,7 @@ router.get('/:id/preview', protect, async (req, res) => {
     }
 
     // Initialize template renderer
-    const renderer = new TemplateRenderer();
+    const renderer = new OptimizedTemplateRenderer();
     
     // Prepare resume data for rendering
     const resumeData = {
@@ -963,7 +963,7 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
     }
 
     // Initialize template renderer
-    const renderer = new TemplateRenderer();
+    const renderer = new OptimizedTemplateRenderer();
     
     // Prepare resume data for rendering
     const resumeData = {
@@ -1275,7 +1275,7 @@ router.get('/:id/download/docx', protect, async (req, res) => {
     }
 
     // Initialize template renderer
-    const renderer = new TemplateRenderer();
+    const renderer = new OptimizedTemplateRenderer();
     
     // Prepare resume data for rendering
     const resumeData = {
