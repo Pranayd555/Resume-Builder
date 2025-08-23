@@ -344,7 +344,7 @@ router.put('/:id/template', [
         headerLevel: template.styling?.template?.headerLevel || 'h3',
         headerFontSize: template.styling?.template?.headerFontSize || template.styling?.fonts?.sizes?.heading || 18,
         fontSize: template.styling?.template?.fontSize || template.styling?.fonts?.sizes?.body || 14,
-        lineSpacing: template.styling?.template?.lineSpacing || 1,
+        lineSpacing: template.styling?.template?.lineSpacing || 1.3,
         sectionSpacing: template.styling?.template?.sectionSpacing || 1
       }
     };
@@ -483,7 +483,7 @@ router.get('/:id/preview', protect, async (req, res) => {
             headerLevel: classicTemplate.styling?.template?.headerLevel || 'h3',
             headerFontSize: classicTemplate.styling?.template?.headerFontSize || classicTemplate.styling?.fonts?.sizes?.heading || 18,
             fontSize: classicTemplate.styling?.template?.fontSize || classicTemplate.styling?.fonts?.sizes?.body || 14,
-            lineSpacing: classicTemplate.styling?.template?.lineSpacing || 1,
+            lineSpacing: classicTemplate.styling?.template?.lineSpacing || 1.3,
             sectionSpacing: classicTemplate.styling?.template?.sectionSpacing || 1
           }
         };
@@ -542,7 +542,7 @@ router.get('/:id/preview', protect, async (req, res) => {
         headerLevel: resume.template.styling?.template?.headerLevel || 'h3',
         headerFontSize: resume.template.styling?.template?.headerFontSize || resume.template.styling?.fonts?.sizes?.heading || 18,
         fontSize: resume.template.styling?.template?.fontSize || resume.template.styling?.fonts?.sizes?.body || 14,
-        lineSpacing: resume.template.styling?.template?.lineSpacing || 1,
+        lineSpacing: resume.template.styling?.template?.lineSpacing || 1.3,
         sectionSpacing: resume.template.styling?.template?.sectionSpacing || 1
       };
       await resume.save();
@@ -1268,7 +1268,7 @@ router.get('/:id/download/docx', protect, async (req, res) => {
         headerLevel: resume.template.styling?.template?.headerLevel || 'h3',
         headerFontSize: resume.template.styling?.template?.headerFontSize || resume.template.styling?.fonts?.sizes?.heading || 18,
         fontSize: resume.template.styling?.template?.fontSize || resume.template.styling?.fonts?.sizes?.body || 14,
-        lineSpacing: resume.template.styling?.template?.lineSpacing || 1,
+        lineSpacing: resume.template.styling?.template?.lineSpacing || 1.3,
         sectionSpacing: resume.template.styling?.template?.sectionSpacing || 1
       };
       await resume.save();
@@ -2012,7 +2012,7 @@ router.get('/:id', protect, async (req, res) => {
         headerLevel: resume.template.styling?.template?.headerLevel || 'h3',
         headerFontSize: resume.template.styling?.template?.headerFontSize || resume.template.styling?.fonts?.sizes?.heading || 18,
         fontSize: resume.template.styling?.template?.fontSize || resume.template.styling?.fonts?.sizes?.body || 14,
-        lineSpacing: resume.template.styling?.template?.lineSpacing || 1,
+        lineSpacing: resume.template.styling?.template?.lineSpacing || 1.3,
         sectionSpacing: resume.template.styling?.template?.sectionSpacing || 1
       };
     }

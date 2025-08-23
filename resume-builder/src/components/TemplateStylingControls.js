@@ -1,14 +1,17 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { resumeAPI } from '../services/api';
 import { 
   SwatchIcon, 
   ChevronUpDownIcon, 
   ArrowsPointingOutIcon,
-  InformationCircleIcon 
+  InformationCircleIcon,
+  CheckIcon,
+  XMarkIcon,
+  ArrowPathIcon
 } from '@heroicons/react/24/outline';
 
-const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, defaultStyling }) => {
+const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, defaultStyling, onClose }) => {
   const [styling, setStyling] = useState({
     headerLevel: 'h3',
     headerFontSize: 18,
@@ -16,11 +19,12 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
     lineSpacing: 1.3,
     sectionSpacing: 1
   });
+  const [originalStyling, setOriginalStyling] = useState(null);
+  const [pendingStyling, setPendingStyling] = useState(null);
   const [updating, setUpdating] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const debounceTimeoutRef = useRef(null);
+  const [hasChanges, setHasChanges] = useState(false);
 
-  // Initialize styling with backend defaults or current styling
+  // Initialize styling and check for changes
   useEffect(() => {
     let initialStyling = {
       headerLevel: 'h3',
@@ -52,7 +56,17 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
     }
 
     setStyling(initialStyling);
+    setOriginalStyling(initialStyling);
+    setPendingStyling(initialStyling);
   }, [currentStyling, defaultStyling]);
+
+  // Check for changes when pending styling changes
+  useEffect(() => {
+    if (originalStyling && pendingStyling) {
+      const changed = JSON.stringify(originalStyling) !== JSON.stringify(pendingStyling);
+      setHasChanges(changed);
+    }
+  }, [originalStyling, pendingStyling]);
 
   // Prepare styling data in the correct format for backend
   const prepareStylingData = (stylingData) => {
@@ -69,78 +83,58 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
     };
   };
 
-  // Debounced API call function
-  const debouncedStylingUpdate = useCallback((newStyling) => {
-    // Clear existing timeout
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
+  // Handle styling changes (no real-time updates)
+  const handleStylingChange = (key, value) => {
+    const newPendingStyling = { ...pendingStyling, [key]: value };
+    setPendingStyling(newPendingStyling);
+    setStyling(newPendingStyling); // Update the display
+  };
+
+  // Apply changes
+  const handleApply = async () => {
+    if (!hasChanges) {
+      toast.info('No changes to apply');
+      return;
     }
-
-    // Set new timeout for API call
-    debounceTimeoutRef.current = setTimeout(async () => {
-      try {
-        setUpdating(true);
-        const stylingData = prepareStylingData(newStyling);
-        const response = await resumeAPI.updateTemplateStyling(resumeId, stylingData);
-        
-        if (response.success) {
-          // Call the parent callback to update the preview
-          if (onStylingUpdate) {
-            onStylingUpdate(response.data.resume);
-          }
-          toast.success('Template styling updated!');
-        } else {
-          throw new Error(response.error || 'Failed to update styling');
-        }
-      } catch (error) {
-        console.error('Error updating template styling:', error);
-        toast.error('Failed to update template styling');
-        // Revert the change
-        setStyling(prev => ({ ...prev }));
-      } finally {
-        setUpdating(false);
-        setIsDragging(false);
-      }
-    }, 1000); // 1 second delay
-  }, [resumeId, onStylingUpdate]);
-
-  // Immediate update for non-range inputs (like header level buttons)
-  const handleImmediateStylingChange = async (key, value) => {
-    const newStyling = { ...styling, [key]: value };
-    setStyling(newStyling);
 
     try {
       setUpdating(true);
-      const stylingData = prepareStylingData(newStyling);
+      const stylingData = prepareStylingData(pendingStyling);
       const response = await resumeAPI.updateTemplateStyling(resumeId, stylingData);
       
       if (response.success) {
+        // Update original styling to reflect applied changes
+        setOriginalStyling(pendingStyling);
+        setHasChanges(false);
+        
+        // Call the parent callback to update the preview
         if (onStylingUpdate) {
           onStylingUpdate(response.data.resume);
         }
-        toast.success('Template styling updated!');
+        toast.success('Template styling applied successfully!');
       } else {
-        throw new Error(response.error || 'Failed to update styling');
+        throw new Error(response.error || 'Failed to apply styling');
       }
     } catch (error) {
-      console.error('Error updating template styling:', error);
-      toast.error('Failed to update template styling');
-      setStyling(prev => ({ ...prev, [key]: styling[key] }));
+      console.error('Error applying template styling:', error);
+      toast.error('Failed to apply template styling');
     } finally {
       setUpdating(false);
     }
   };
 
-  // Debounced update for range inputs
-  const handleDebouncedStylingChange = (key, value) => {
-    const newStyling = { ...styling, [key]: value };
-    setStyling(newStyling);
-    setIsDragging(true);
-    debouncedStylingUpdate(newStyling);
+  // Cancel changes
+  const handleCancel = () => {
+    if (hasChanges) {
+      setPendingStyling(originalStyling);
+      setStyling(originalStyling);
+      setHasChanges(false);
+      toast.info('Changes cancelled');
+    }
   };
 
   // Reset to template defaults
-  const handleResetToDefaults = async () => {
+  const handleReset = () => {
     if (!defaultStyling) {
       toast.info('No default styling available for this template');
       return;
@@ -154,37 +148,11 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
       sectionSpacing: defaultStyling.sectionSpacing || 1
     };
 
+    setPendingStyling(defaultValues);
     setStyling(defaultValues);
-
-    try {
-      setUpdating(true);
-      const stylingData = prepareStylingData(defaultValues);
-      const response = await resumeAPI.updateTemplateStyling(resumeId, stylingData);
-      
-      if (response.success) {
-        if (onStylingUpdate) {
-          onStylingUpdate(response.data.resume);
-        }
-        toast.success('Reset to template defaults!');
-      } else {
-        throw new Error(response.error || 'Failed to reset styling');
-      }
-    } catch (error) {
-      console.error('Error resetting template styling:', error);
-      toast.error('Failed to reset template styling');
-    } finally {
-      setUpdating(false);
-    }
+    setHasChanges(true);
+    toast.info('Reset to template defaults (click Apply to save)');
   };
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-    };
-  }, []);
 
   const headerLevels = [
     { value: 'h1', label: 'H1', icon: 'H1' },
@@ -204,21 +172,14 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
           <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Template Styling</span>
         </h3>
         
-        {defaultStyling && (
+        {/* Close button for mobile popup */}
+        {onClose && (
           <button
-            onClick={handleResetToDefaults}
-            disabled={updating}
-            className="px-3 py-1.5 text-xs sm:text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+            onClick={onClose}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            Reset to Defaults
+            <XMarkIcon className="w-5 h-5" />
           </button>
-        )}
-        
-        {isDragging && (
-          <div className="flex items-center gap-2 text-sm text-purple-600">
-            <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-            <span>Updating...</span>
-          </div>
         )}
       </div>
 
@@ -232,7 +193,7 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
           {headerLevels.map((level) => (
             <button
               key={level.value}
-              onClick={() => handleImmediateStylingChange('headerLevel', level.value)}
+              onClick={() => handleStylingChange('headerLevel', level.value)}
               disabled={updating}
               className={`px-2 py-2 rounded-lg border-2 transition-all duration-300 flex items-center justify-center text-sm font-bold min-h-[40px] transform hover:scale-105 active:scale-95 ${
                 styling.headerLevel === level.value
@@ -262,7 +223,7 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
             min="12"
             max="24"
             value={styling.headerFontSize}
-            onChange={(e) => handleDebouncedStylingChange('headerFontSize', parseInt(e.target.value))}
+            onChange={(e) => handleStylingChange('headerFontSize', parseInt(e.target.value))}
             disabled={updating}
             className="w-full h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg appearance-none cursor-pointer slider"
           />
@@ -289,7 +250,7 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
             min="12"
             max="18"
             value={styling.fontSize}
-            onChange={(e) => handleDebouncedStylingChange('fontSize', parseInt(e.target.value))}
+            onChange={(e) => handleStylingChange('fontSize', parseInt(e.target.value))}
             disabled={updating}
             className="w-full h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg appearance-none cursor-pointer slider"
           />
@@ -317,7 +278,7 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
             max="3"
             step="0.1"
             value={styling.lineSpacing}
-            onChange={(e) => handleDebouncedStylingChange('lineSpacing', parseFloat(e.target.value))}
+            onChange={(e) => handleStylingChange('lineSpacing', parseFloat(e.target.value))}
             disabled={updating}
             className="w-full h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg appearance-none cursor-pointer slider"
           />
@@ -345,7 +306,7 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
             max="5"
             step="0.1"
             value={styling.sectionSpacing}
-            onChange={(e) => handleDebouncedStylingChange('sectionSpacing', parseFloat(e.target.value))}
+            onChange={(e) => handleStylingChange('sectionSpacing', parseFloat(e.target.value))}
             disabled={updating}
             className="w-full h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg appearance-none cursor-pointer slider"
           />
@@ -356,11 +317,65 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
         </div>
       </div>
 
+      {/* Action Buttons */}
+      <div className="space-y-3 mb-4">
+        {/* Apply Button */}
+        <button
+          onClick={handleApply}
+          disabled={updating || !hasChanges}
+          className={`w-full px-4 py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
+            hasChanges && !updating
+              ? 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 shadow-lg hover:shadow-xl transform hover:scale-105'
+              : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+          }`}
+        >
+          {updating ? (
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          ) : (
+            <CheckIcon className="w-5 h-5" />
+          )}
+          {updating ? 'Applying...' : 'Apply Changes'}
+        </button>
+
+        {/* Cancel Button */}
+        <button
+          onClick={handleCancel}
+          disabled={updating || !hasChanges}
+          className={`w-full px-4 py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
+            hasChanges && !updating
+              ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+              : 'bg-gray-50 text-gray-400 cursor-not-allowed'
+          }`}
+        >
+          <XMarkIcon className="w-5 h-5" />
+          Cancel Changes
+        </button>
+
+        {/* Reset Button */}
+        <button
+          onClick={handleReset}
+          disabled={updating || !defaultStyling}
+          className={`w-full px-4 py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
+            defaultStyling && !updating
+              ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-lg hover:shadow-xl'
+              : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+          }`}
+        >
+          <ArrowPathIcon className="w-5 h-5" />
+          Reset to Defaults
+        </button>
+      </div>
+
       {/* Info Text */}
       <div className="text-sm text-gray-600 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-3 border border-purple-100 shadow-sm">
         <div className="flex items-center gap-2">
           <InformationCircleIcon className="w-4 h-4 text-purple-600" />
-          <p className="font-medium">Changes are applied instantly to your resume preview and saved automatically.</p>
+          <p className="font-medium">
+            {hasChanges 
+              ? 'You have unsaved changes. Click "Apply Changes" to save them to your resume.'
+              : 'Make changes to customize your resume styling. Click "Apply Changes" when ready.'
+            }
+          </p>
         </div>
       </div>
 
@@ -409,4 +424,4 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
   );
 };
 
-export default TemplateStylingControls; 
+export default TemplateStylingControls;
