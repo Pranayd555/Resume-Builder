@@ -140,6 +140,12 @@ function ResumePreviewEnhanced() {
     setShowStylingControls(false);
   }, []);
 
+  // Memoized error handler for PDFViewer to prevent re-renders
+  const handlePDFError = useCallback((error) => {
+    console.error('PDF Viewer error:', error);
+    toast.error('Failed to load PDF preview');
+  }, []);
+
   // Fetch resume data and load PDF preview
   useEffect(() => {
     const fetchResumePreview = async () => {
@@ -155,6 +161,14 @@ function ResumePreviewEnhanced() {
           // Store default template styling data if available
           if (resumeResp.data.defaultTemplateStyling) {
             setDefaultTemplateStyling(resumeResp.data.defaultTemplateStyling);
+          } else {
+            setDefaultTemplateStyling({
+              headerLevel: 'h3',
+              headerFontSize: 18,
+              fontSize:  14,
+              lineSpacing: 1.3,
+              sectionSpacing: 1
+            });
           }
         }
         
@@ -219,7 +233,7 @@ function ResumePreviewEnhanced() {
                 <svg className="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                <span className="hidden sm:inline text-sm sm:text-base">Back to Resume List</span>
+                <span className="text-sm sm:text-base">Back to Resume List</span>
               </button>
             </div>
             
@@ -391,32 +405,46 @@ function ResumePreviewEnhanced() {
                       </div>
                     </div>
                   </div>
-                ) : pdfData ? (
-                  <div className="mx-auto w-full animate-fade-in">
-                    {/* PDF Viewer using PDF.js - Responsive */}
-                    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-lg transform transition-all duration-500 ease-out">
-                      <PDFViewer 
-                        pdfUrl={pdfData.url}
-                        showLoader={false}
-                        onError={(error) => {
-                          console.error('PDF Viewer error:', error);
-                          toast.error('Failed to load PDF preview');
-                        }}
-                        settingsButton={
-                          <button
-                            onClick={handleDesignSettingsClick}
-                            className="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-all duration-200 flex items-center gap-2 text-sm font-medium shadow-sm hover:shadow-md transform hover:scale-105"
-                          >
-                            <PrinterIcon className="h-4 w-4" />
-                            <span className="hidden sm:inline">
-                              {showStylingControls || showMobileStylingPopup ? 'Hide Settings' : 'Design Settings'}
-                            </span>
-                            <span className="sm:hidden">Settings</span>
-                          </button>
-                        }
-                      />
-                    </div>
-                  </div>
+                                 ) : pdfData ? (
+                   <div className="mx-auto w-full animate-fade-in">
+                     {/* PDF Viewer using PDF.js - Responsive */}
+                     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-lg transform transition-all duration-500 ease-out relative">
+                       <PDFViewer 
+                         pdfUrl={pdfData.url}
+                         showLoader={false}
+                         onError={handlePDFError}
+                         settingsButton={
+                           <button
+                             onClick={handleDesignSettingsClick}
+                             className="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-all duration-200 flex items-center gap-2 text-sm font-medium shadow-sm hover:shadow-md transform hover:scale-105"
+                           >
+                             <PrinterIcon className="h-4 w-4" />
+                             <span className="hidden sm:inline">
+                               {showStylingControls || showMobileStylingPopup ? 'Hide Settings' : 'Design Settings'}
+                             </span>
+                           </button>
+                         }
+                       />
+                       
+                       {/* Download PDF Button - Positioned on bottom-right of PDF card */}
+                       <div className="absolute bottom-4 right-4 z-10">
+                         <button
+                           onClick={handleDownloadPDF}
+                           disabled={downloading}
+                           className={`p-3 sm:p-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full hover:from-red-600 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-110 ${
+                             downloading && downloadFormat === 'pdf' ? 'animate-pulse' : ''
+                           }`}
+                           title="Download PDF"
+                         >
+                           {downloading && downloadFormat === 'pdf' ? (
+                             <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                           ) : (
+                             <DocumentArrowDownIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+                           )}
+                         </button>
+                       </div>
+                     </div>
+                   </div>
                 ) : (
                   <div className="text-center py-8 sm:py-12">
                     <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -428,25 +456,7 @@ function ResumePreviewEnhanced() {
                     <p className="text-sm sm:text-base text-gray-600 mb-4">Unable to load PDF preview. Please try refreshing the page.</p>
                   </div>
                 )}
-              </div>
-              
-              {/* Download PDF Button - Fixed Position Bottom Right */}
-              <div className="fixed bottom-6 right-6 z-50">
-                <button
-                  onClick={handleDownloadPDF}
-                  disabled={downloading}
-                  className={`p-3 sm:p-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full hover:from-red-600 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-110 ${
-                    downloading && downloadFormat === 'pdf' ? 'animate-pulse' : ''
-                  }`}
-                  title="Download PDF"
-                >
-                  {downloading && downloadFormat === 'pdf' ? (
-                    <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <DocumentArrowDownIcon className="h-5 w-5 sm:h-6 sm:w-6" />
-                  )}
-                </button>
-              </div>
+                             </div>
             </div>
           </div>
         </div>
