@@ -11,7 +11,7 @@ import {
 // Set up PDF.js worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
 
-const PDFViewer = ({ pdfUrl, onError, showLoader = true }) => {
+const PDFViewer = React.memo(({ pdfUrl, onError, showLoader = true, settingsButton }) => {
   const canvasRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -215,7 +215,7 @@ const PDFViewer = ({ pdfUrl, onError, showLoader = true }) => {
     <div className="flex flex-col h-full">
              {/* PDF Controls */}
        <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-200 p-4 flex items-center justify-between flex-wrap gap-3">
-         {/* Mobile: Centered page navigation */}
+         {/* Mobile: Centered page navigation with settings button */}
          <div className="flex md:hidden items-center justify-center w-full">
            <div className="flex items-center gap-3">
              <button
@@ -239,6 +239,13 @@ const PDFViewer = ({ pdfUrl, onError, showLoader = true }) => {
              >
                <ChevronRightIcon className="w-4 h-4" />
              </button>
+             
+             {/* Settings button on mobile - replaces zoom controls */}
+             {settingsButton && (
+               <div className="ml-3">
+                 {settingsButton}
+               </div>
+             )}
            </div>
          </div>
 
@@ -266,6 +273,13 @@ const PDFViewer = ({ pdfUrl, onError, showLoader = true }) => {
              <ChevronRightIcon className="w-4 h-4" />
            </button>
          </div>
+
+         {/* Desktop: Settings button between pagination and zoom controls */}
+         {settingsButton && (
+           <div className="hidden md:flex items-center">
+             {settingsButton}
+           </div>
+         )}
 
         <div className="hidden md:flex items-center gap-3">
           <button
@@ -310,6 +324,6 @@ const PDFViewer = ({ pdfUrl, onError, showLoader = true }) => {
       </div>
     </div>
   );
-};
+});
 
 export default PDFViewer;

@@ -19,7 +19,8 @@ import {
   TrashIcon,
   EllipsisVerticalIcon,
   ChatBubbleLeftRightIcon,
-  CurrencyDollarIcon
+  CurrencyDollarIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import { resumeAPI, apiHelpers } from '../services/api';
 import { createResumeModel } from '../models/dataModels';
@@ -52,6 +53,59 @@ function ResumeList() {
   const dropdownButtonRefs = useRef({});
   // Track downloading resumes to show loaders
   const [downloadingResumes, setDownloadingResumes] = useState(new Set());
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [resumeToDelete, setResumeToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Get subscription info from localStorage
+  const getSubscriptionInfo = () => {
+    try {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        return user.subscription || { plan: 'free', isActive: false };
+      }
+    } catch (error) {
+      console.error('Error parsing user data from localStorage:', error);
+    }
+    return { plan: 'free', isActive: false };
+  };
+
+  // Check if user can create new resume based on subscription and current count
+  const canCreateNewResume = () => {
+    const subscription = getSubscriptionInfo();
+    const currentResumeCount = resumes.length;
+    
+    if (subscription.plan === 'free') {
+      return currentResumeCount < 2;
+    } else if (subscription.plan === 'pro') {
+      return currentResumeCount < 5;
+    }
+    
+    return true; // Default fallback
+  };
+
+  // Get subscription limit message
+  const getSubscriptionLimitMessage = () => {
+    const subscription = getSubscriptionInfo();
+    const currentResumeCount = resumes.length;
+    
+    if (subscription.plan === 'free' && currentResumeCount >= 2) {
+      return {
+        type: 'warning',
+        message: 'Free plan limit reached! Delete old resumes or upgrade to Pro for unlimited resumes.',
+        action: 'Upgrade to Pro'
+      };
+    } else if (subscription.plan === 'pro' && currentResumeCount >= 5) {
+      return {
+        type: 'info',
+        message: 'Pro plan limit reached! Please delete some old resumes to create new ones.',
+        action: null
+      };
+    }
+    
+    return null;
+  };
 
   // Handle click outside to close status dropdown
   useEffect(() => {
@@ -185,7 +239,32 @@ function ResumeList() {
     fetchResumes();
   }, [fetchResumes]);
 
+  // Update subscription info when resumes change (for reactive UI updates)
+  useEffect(() => {
+    // This effect ensures the UI updates when resume count changes
+    // The subscription info is read from localStorage on each render
+  }, [resumes.length]);
+
   const handleCreateNew = () => {
+    if (!canCreateNewResume()) {
+      const limitMessage = getSubscriptionLimitMessage();
+      if (limitMessage) {
+        if (limitMessage.action === 'Upgrade to Pro') {
+          toast.warning(limitMessage.message, {
+            onClick: () => navigate('/subscription'),
+            closeButton: true,
+            autoClose: 5000
+          });
+        } else {
+          toast.info(limitMessage.message, {
+            closeButton: true,
+            autoClose: 4000
+          });
+        }
+      }
+      return;
+    }
+    
     // Clear any existing form data from localStorage to ensure fresh form
     localStorage.removeItem('resume_form_data');
     // Navigate to resume form with fresh start state
@@ -228,21 +307,43 @@ function ResumeList() {
   };
 
   const handleDeleteResume = async (resumeId) => {
-    if (window.confirm('Are you sure you want to delete this resume? This action cannot be undone.')) {
-      try {
-        const response = await resumeAPI.deleteResume(resumeId);
-        if (response.success) {
-          toast.success('Resume deleted successfully!');
-          fetchResumes(); // Refresh the list
-        } else {
-          throw new Error(response.error || 'Failed to delete resume');
-        }
-      } catch (err) {
-        const errorMessage = apiHelpers.formatError(err);
-        toast.error(errorMessage);
-      }
-    }
+    const resume = resumes.find(r => r.id === resumeId);
+    setResumeToDelete(resume);
+    setShowDeleteModal(true);
     setOpenDropdownId(null);
+  };
+
+  const confirmDeleteResume = async () => {
+    if (!resumeToDelete) return;
+    
+    setIsDeleting(true);
+    
+    try {
+      const response = await resumeAPI.deleteResume(resumeToDelete.id);
+      if (response.success) {
+        toast.success('Resume deleted successfully!');
+        
+        // Fetch updated resumes
+        try {
+          await fetchResumes();
+        } catch (fetchError) {
+          console.error('Failed to fetch resumes after delete:', fetchError);
+          toast.error('Resume deleted but failed to refresh the list. Please refresh the page.');
+        }
+        
+        // Close modal and reset state
+        setShowDeleteModal(false);
+        setResumeToDelete(null);
+      } else {
+        throw new Error(response.error || 'Failed to delete resume');
+      }
+    } catch (err) {
+      const errorMessage = apiHelpers.formatError(err);
+      toast.error(errorMessage);
+      // Keep modal open on delete failure
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleFeedback = () => {
@@ -533,15 +634,67 @@ function ResumeList() {
               My Resumes
             </h1>
             <p className="text-gray-600 text-base sm:text-lg">Create and manage your professional resumes</p>
+            
           </div>
-          <button
-            onClick={handleCreateNew}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2 sm:gap-3 font-semibold text-sm sm:text-base min-w-[140px] sm:min-w-auto"
-          >
-            <PlusIcon className="w-5 h-5 sm:w-6 sm:h-6" />
-            <span className="whitespace-nowrap">Create New</span>
-          </button>
+                     {canCreateNewResume() && (
+             <div className="flex flex-col items-end gap-2">
+               <button
+                 onClick={handleCreateNew}
+                 className="px-6 sm:px-8 py-3 sm:py-4 rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2 sm:gap-3 font-semibold text-sm sm:text-base min-w-[140px] sm:min-w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 hover:shadow-xl transform hover:scale-105"
+               >
+                 <PlusIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+                 <span className="whitespace-nowrap">Create New</span>
+               </button>
+             </div>
+           )}
         </div>
+        
+        {/* Subscription Limit Banner */}
+        {!canCreateNewResume() && getSubscriptionInfo().plan === 'free' && (
+          <div className="backdrop-blur-md bg-orange-50/80 border border-orange-200 rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                  <CurrencyDollarIcon className="w-6 h-6 text-orange-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-orange-800 mb-1">
+                    Free Plan Limit Reached
+                  </h3>
+                  <p className="text-orange-700 text-sm sm:text-base">
+                    You've reached the maximum of 2 resumes on the free plan. Upgrade to Pro for unlimited resumes and premium features.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate('/subscription')}
+                className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-xl hover:from-orange-600 hover:to-red-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold text-sm sm:text-base whitespace-nowrap"
+              >
+                Upgrade to Pro
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {!canCreateNewResume() && getSubscriptionInfo().plan === 'pro' && (
+          <div className="backdrop-blur-md bg-blue-50/80 border border-blue-200 rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                  <DocumentTextIcon className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-blue-800 mb-1">
+                    Pro Plan Limit Reached
+                  </h3>
+                  <p className="text-blue-700 text-sm sm:text-base">
+                    You've reached the maximum of 5 resumes on the Pro plan. Please delete some old resumes to create new ones.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Search and Filter */}
         <div className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-4 sm:p-6 mb-8">
@@ -724,84 +877,102 @@ function ResumeList() {
                               width: '192px'
                             }}
                           >
-                            <div className="py-1">
-                              <button
-                                onClick={() => handleEditResume(resume.id)}
-                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                              >
-                                <PencilIcon className="w-4 h-4" />
-                                Edit Resume
-                              </button>
-                              {resume.status === 'published' && (
-                                <button
-                                  onClick={() => handleToggleActive(resume.id, resume.status)}
-                                  className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
-                                    resume.isActive 
-                                      ? 'text-red-600 hover:bg-red-50' 
-                                      : 'text-green-600 hover:bg-green-50'
-                                  }`}
-                                >
-                                  {resume.isActive ? (
-                                    <EyeSlashIcon className="w-4 h-4" />
-                                  ) : (
-                                    <EyeIcon className="w-4 h-4" />
-                                  )}
-                                  {resume.isActive ? 'Deactivate' : 'Activate'}
-                                </button>
-                              )}
-                              <button
-                                onClick={() => handleDuplicateResume(resume.id)}
-                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                              >
-                                <DocumentDuplicateIcon className="w-4 h-4" />
-                                Duplicate
-                              </button>
-                              <button
-                                onClick={() => handleDownload(resume.id)}
-                                disabled={resume.status === 'draft' || downloadingResumes.has(resume.id)}
-                                className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
-                                  resume.status === 'draft' || downloadingResumes.has(resume.id)
-                                    ? 'text-gray-400 cursor-not-allowed'
-                                    : 'text-gray-700 hover:bg-gray-100'
-                                }`}
-                                title={resume.status === 'draft' ? 'Publish resume to download' : 'Download PDF'}
-                              >
-                                {downloadingResumes.has(resume.id) ? (
-                                  <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                  </svg>
-                                ) : (
-                                  <ArrowDownTrayIcon className="w-4 h-4" />
-                                )}
-                                {downloadingResumes.has(resume.id) ? 'Downloading...' : 'Download PDF'}
-                              </button>
-                              <button
-                                onClick={() => handleDownloadDOCX(resume.id)}
-                                disabled={resume.status === 'draft' || downloadingResumes.has(resume.id)}
-                                className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
-                                  resume.status === 'draft' || downloadingResumes.has(resume.id)
-                                    ? 'text-gray-400 cursor-not-allowed'
-                                    : 'text-gray-700 hover:bg-gray-100'
-                                }`}
-                                title={resume.status === 'draft' ? 'Publish resume to download' : 'Download DOCX'}
-                              >
-                                {downloadingResumes.has(resume.id) ? (
-                                  <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                  </svg>
-                                ) : (
-                                  <ArrowDownTrayIcon className="w-4 h-4" />
-                                )}
-                                {downloadingResumes.has(resume.id) ? 'Downloading...' : 'Download DOCX'}
-                              </button>
-                              <button
-                                onClick={() => handleDeleteResume(resume.id)}
-                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                              >
-                                <TrashIcon className="w-4 h-4" />
-                                Delete
-                              </button>
-                            </div>
+                                                         <div className="py-1">
+                               <button
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   handleEditResume(resume.id);
+                                 }}
+                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                               >
+                                 <PencilIcon className="w-4 h-4" />
+                                 Edit Resume
+                               </button>
+                               {resume.status === 'published' && (
+                                 <button
+                                   onClick={(e) => {
+                                     e.stopPropagation();
+                                     handleToggleActive(resume.id, resume.status);
+                                   }}
+                                   className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
+                                     resume.isActive 
+                                       ? 'text-red-600 hover:bg-red-50' 
+                                       : 'text-green-600 hover:bg-green-50'
+                                   }`}
+                                 >
+                                   {resume.isActive ? (
+                                     <EyeSlashIcon className="w-4 h-4" />
+                                   ) : (
+                                     <EyeIcon className="w-4 h-4" />
+                                   )}
+                                   {resume.isActive ? 'Deactivate' : 'Activate'}
+                                 </button>
+                               )}
+                               <button
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   handleDuplicateResume(resume.id);
+                                 }}
+                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                               >
+                                 <DocumentDuplicateIcon className="w-4 h-4" />
+                                 Duplicate
+                               </button>
+                               <button
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   handleDownload(resume.id);
+                                 }}
+                                 disabled={resume.status === 'draft' || downloadingResumes.has(resume.id)}
+                                 className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
+                                   resume.status === 'draft' || downloadingResumes.has(resume.id)
+                                     ? 'text-gray-400 cursor-not-allowed'
+                                     : 'text-gray-700 hover:bg-gray-100'
+                                 }`}
+                                 title={resume.status === 'draft' ? 'Publish resume to download' : 'Download PDF'}
+                               >
+                                 {downloadingResumes.has(resume.id) ? (
+                                   <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                   </svg>
+                                 ) : (
+                                   <ArrowDownTrayIcon className="w-4 h-4" />
+                                 )}
+                                 {downloadingResumes.has(resume.id) ? 'Downloading...' : 'Download PDF'}
+                               </button>
+                               <button
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   handleDownloadDOCX(resume.id);
+                                 }}
+                                 disabled={resume.status === 'draft' || downloadingResumes.has(resume.id)}
+                                 className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
+                                   resume.status === 'draft' || downloadingResumes.has(resume.id)
+                                     ? 'text-gray-400 cursor-not-allowed'
+                                     : 'text-gray-700 hover:bg-gray-100'
+                                 }`}
+                                 title={resume.status === 'draft' ? 'Publish resume to download' : 'Download DOCX'}
+                               >
+                                 {downloadingResumes.has(resume.id) ? (
+                                   <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                   </svg>
+                                 ) : (
+                                   <ArrowDownTrayIcon className="w-4 h-4" />
+                                 )}
+                                 {downloadingResumes.has(resume.id) ? 'Downloading...' : 'Download DOCX'}
+                               </button>
+                               <button
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   handleDeleteResume(resume.id);
+                                 }}
+                                 className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                               >
+                                 <TrashIcon className="w-4 h-4" />
+                                 Delete
+                               </button>
+                             </div>
                           </div>,
                           document.body
                         )}
@@ -991,6 +1162,100 @@ function ResumeList() {
                 </div>
               </div>
             </button>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && resumeToDelete && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-sm sm:max-w-md mx-auto transform transition-all">
+              {/* Header */}
+              <div className="px-4 sm:px-6 pt-6 sm:pt-8 pb-4 sm:pb-6 border-b border-gray-100">
+                <div className="flex items-center">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-red-50 to-red-100 rounded-xl sm:rounded-2xl flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0 shadow-lg">
+                    <ExclamationTriangleIcon className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-0.5 sm:mb-1">Delete Resume</h3>
+                    <p className="text-sm sm:text-base text-gray-500 font-medium">Permanent Action</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Content */}
+              <div className="px-4 sm:px-6 py-4 sm:py-6">
+                <div className="space-y-3 sm:space-y-4">
+                  {/* Main Message */}
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-blue-100">
+                    <p className="text-gray-800 text-sm sm:text-base leading-relaxed font-medium">
+                      Are you sure you want to permanently delete{' '}
+                      <span className="font-bold text-gray-900 bg-yellow-100 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded break-words">
+                        "{resumeToDelete.title}"
+                      </span>?
+                    </p>
+                  </div>
+                  
+                  {/* Warning Section */}
+                  <div className="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-lg sm:rounded-xl p-3 sm:p-4">
+                    <div className="flex items-start">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-red-100 rounded-lg sm:rounded-xl flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0 shadow-sm">
+                        <ExclamationTriangleIcon className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-red-800 font-bold text-sm sm:text-base mb-1.5 sm:mb-2"> Irreversible Action</h4>
+                        <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-red-700 leading-relaxed">
+                          <p>This will permanently remove:</p>
+                          <ul className="list-disc list-inside space-y-0.5 sm:space-y-1 ml-2">
+                            <li>The resume and all its content</li>
+                            <li>Analytics and view statistics</li>
+                            <li>Download history and shared links</li>
+                            <li>All associated metadata</li>
+                          </ul>
+                          <p className="font-semibold mt-2 sm:mt-3 text-red-800">
+                            This action cannot be undone.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Footer */}
+              <div className="px-4 sm:px-6 pb-6 sm:pb-8 pt-4 sm:pt-6 border-t border-gray-100">
+                <div className="flex flex-col sm:flex-row sm:justify-end gap-3 sm:gap-4">
+                  <button
+                    onClick={() => {
+                      if (!isDeleting) {
+                        setShowDeleteModal(false);
+                        setResumeToDelete(null);
+                      }
+                    }}
+                    disabled={isDeleting}
+                    className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 text-gray-600 hover:text-gray-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-semibold rounded-lg sm:rounded-xl hover:bg-gray-50 border border-gray-200 text-sm sm:text-base"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmDeleteResume}
+                    disabled={isDeleting}
+                    className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg sm:rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-200 flex items-center justify-center space-x-2 sm:space-x-3 disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 text-sm sm:text-base"
+                  >
+                    {isDeleting ? (
+                      <>
+                        <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Deleting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <TrashIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <span>Delete Permanently</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
