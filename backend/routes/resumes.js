@@ -2327,8 +2327,7 @@ router.post('/:id/export', [
 
     await resume.save();
 
-    // Update subscription usage
-    await subscription.incrementUsage('export');
+    // Export tracking removed - unlimited exports for all users
 
     // In a real implementation, you would generate the actual file here
     // For now, we'll return a success response

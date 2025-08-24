@@ -7,13 +7,11 @@ function Subscription() {
   const [searchParams] = useSearchParams();
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [billingCycle, setBillingCycle] = useState('monthly');
-  const [plans, setPlans] = useState([]);
   const [currentSubscription, setCurrentSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
   const [trialLoading, setTrialLoading] = useState(false);
   const [successLoading, setSuccessLoading] = useState(false);
   const [showManagement, setShowManagement] = useState(false);
-  const [billingHistory, setBillingHistory] = useState([]);
   const [cancelLoading, setCancelLoading] = useState(false);
   
   // Use a single ref to track initialization
@@ -29,15 +27,8 @@ function Subscription() {
 
     const initializeComponent = async () => {
       try {
-        // Fetch plans and subscription in parallel
-        const [plansResponse, subscriptionResponse] = await Promise.all([
-          subscriptionAPI.getPlans(),
-          subscriptionAPI.getCurrentSubscription()
-        ]);
-
-        if (plansResponse.success) {
-          setPlans(plansResponse.data.plans);
-        }
+        // Fetch subscription
+        const subscriptionResponse = await subscriptionAPI.getCurrentSubscription();
 
         if (subscriptionResponse.success) {
           // Store subscription plus weekly usage summary (if provided by backend)
@@ -81,16 +72,7 @@ function Subscription() {
     }
   }, [searchParams, navigate, successLoading]);
 
-  const fetchBillingHistory = async () => {
-    try {
-      const response = await subscriptionAPI.getBillingHistory();
-      if (response.success) {
-        setBillingHistory(response.data.history);
-      }
-    } catch (error) {
-      console.error('Error fetching billing history:', error);
-    }
-  };
+
 
   const handlePlanSelect = (plan) => {
     setSelectedPlan(plan);
@@ -157,16 +139,7 @@ function Subscription() {
     navigate('/resume-list');
   };
 
-  const getPrice = (plan) => {
-    return billingCycle === 'monthly' ? plan.price.monthly : plan.price.yearly;
-  };
 
-  const getSavings = (plan) => {
-    if (plan.price.monthly === 0) return 0;
-    const monthlyTotal = plan.price.monthly * 12;
-    const yearlyPrice = plan.price.yearly;
-    return monthlyTotal - yearlyPrice;
-  };
 
   const isCurrentPlan = (plan) => {
     return currentSubscription?.plan === plan.id;
@@ -181,21 +154,18 @@ function Subscription() {
 
   const toggleManagement = () => {
     setShowManagement(!showManagement);
-    if (!showManagement && currentSubscription?.plan !== 'free') {
-      fetchBillingHistory();
-    }
   };
 
   // Define features for comparison table
   const features = [
-    { name: 'Resume Templates', free: '1 template', pro: 'Unlimited premium templates' },
-    { name: 'Resume Projects', free: '1 project', pro: 'Unlimited projects' },
-    { name: 'AI Actions', free: '1-2 per month', pro: '100 per month' },
-    { name: 'Export Formats', free: 'PDF (with watermark)', pro: 'PDF + DOCX (no watermark)' },
+    { name: 'Resume Creation', free: '2 total', pro: '5 total' },
+    { name: 'Template Access', free: 'Free templates only', pro: 'All templates' },
+    { name: 'AI Actions', free: '1 per week', pro: 'Unlimited' },
+    { name: 'Export Formats', free: 'PDF only', pro: 'PDF + DOCX' },
     { name: 'Resume Feedback', free: 'Basic', pro: 'ATS score + grammar analysis' },
     { name: 'Cloud Storage', free: 'No', pro: 'Unlimited cloud history' },
     { name: 'Support', free: 'Email support', pro: 'Priority support' },
-    { name: 'Exports', free: 'Limited', pro: 'Unlimited exports' }
+    { name: 'Exports', free: 'Unlimited', pro: 'Unlimited exports' }
   ];
 
   if (loading || successLoading) {
@@ -212,7 +182,7 @@ function Subscription() {
   }
 
   return (
-    <div className="min-h-screen pt-16 bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="min-h-screen pt-16">
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8 sm:mb-12">
@@ -235,20 +205,20 @@ function Subscription() {
         {/* Current Subscription Status */}
         {currentSubscription && (
           <div className="mb-8">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">
+                    <h3 className="text-lg font-bold text-gray-900">
                       {currentSubscription.plan.charAt(0).toUpperCase() + currentSubscription.plan.slice(1)} Plan
                     </h3>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                         currentSubscription.status === 'trialing' 
                           ? 'bg-orange-100 text-orange-800'
                           : currentSubscription.status === 'active'
@@ -258,7 +228,7 @@ function Subscription() {
                         {currentSubscription.status === 'trialing' ? 'Trial Active' : currentSubscription.status}
                       </span>
                       {currentSubscription.isTrial && (
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                           ⏰ {currentSubscription.trialRemainingDays} days left
                         </span>
                       )}
@@ -269,14 +239,14 @@ function Subscription() {
                   {currentSubscription.status === 'trialing' && (
                     <button
                       onClick={handleSubscribe}
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
                     >
                       Upgrade Now
                     </button>
                   )}
                   <button
                     onClick={toggleManagement}
-                    className="bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-200"
+                    className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors"
                   >
                     {showManagement ? 'Hide Details' : 'Manage'}
                   </button>
@@ -286,53 +256,27 @@ function Subscription() {
 
             {/* Subscription Management Details */}
             {showManagement && (
-              <div className="mt-6 bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
-                <h4 className="text-xl font-bold text-gray-900 mb-6">Subscription Details</h4>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <div className="space-y-4">
-                    <div className="bg-blue-50 rounded-xl p-4">
-                      <h5 className="font-semibold text-gray-900 mb-3">Billing Information</h5>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Plan:</span>
-                          <span className="font-medium text-gray-900">{currentSubscription.plan.charAt(0).toUpperCase() + currentSubscription.plan.slice(1)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Billing Cycle:</span>
-                          <span className="font-medium text-gray-900">{currentSubscription.billing?.cycle || 'N/A'}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Amount:</span>
-                          <span className="font-medium text-gray-900">${currentSubscription.billing?.amount || 0} {currentSubscription.billing?.currency || 'USD'}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Next Billing:</span>
-                          <span className="font-medium text-gray-900">{currentSubscription.billing?.nextBillingDate ? new Date(currentSubscription.billing.nextBillingDate).toLocaleDateString() : 'N/A'}</span>
-                        </div>
+              <div className="mt-6 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 p-6">
+                <h4 className="text-lg font-bold text-gray-900 mb-4">Subscription Details</h4>
+                <div className="space-y-4">
+                  <div className="bg-blue-50 rounded-xl p-4">
+                    <h5 className="font-semibold text-gray-900 mb-3">Billing Information</h5>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Plan:</span>
+                        <span className="font-medium text-gray-900">{currentSubscription.plan.charAt(0).toUpperCase() + currentSubscription.plan.slice(1)}</span>
                       </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="bg-green-50 rounded-xl p-4">
-                      <h5 className="font-semibold text-gray-900 mb-3">Usage Statistics</h5>
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">Resumes Created</span>
-                          <span className="text-sm font-medium text-gray-900">
-                            {currentSubscription.usage?.resumesCreated || 0} / {currentSubscription.features?.resumeLimit || 1}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">Exports This Month</span>
-                          <span className="text-sm font-medium text-gray-900">{currentSubscription.usage?.exportsThisMonth || 0}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">AI Actions This Month</span>
-                          <span className="text-sm font-medium text-gray-900">
-                            {currentSubscription.usage?.aiActionsThisMonth || 0} / {currentSubscription.features?.aiActionsLimit || 2}
-                          </span>
-                        </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Billing Cycle:</span>
+                        <span className="font-medium text-gray-900">{currentSubscription.billing?.cycle || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Amount:</span>
+                        <span className="font-medium text-gray-900">${currentSubscription.billing?.amount || 0} {currentSubscription.billing?.currency || 'USD'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Next Billing:</span>
+                        <span className="font-medium text-gray-900">{currentSubscription.billing?.nextBillingDate ? new Date(currentSubscription.billing.nextBillingDate).toLocaleDateString() : 'N/A'}</span>
                       </div>
                     </div>
                   </div>
@@ -363,13 +307,13 @@ function Subscription() {
 
         {/* Billing Toggle */}
         <div className="flex justify-center mb-12">
-          <div className="bg-white rounded-2xl p-2 shadow-lg border border-gray-200">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-2 shadow-lg border border-gray-200">
             <div className="flex">
               <button
                 onClick={() => setBillingCycle('monthly')}
-                className={`px-8 py-4 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                className={`px-6 py-3 rounded-lg text-sm font-medium transition-colors ${
                   billingCycle === 'monthly'
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                    ? 'bg-blue-600 text-white shadow-md'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
@@ -377,9 +321,9 @@ function Subscription() {
               </button>
               <button
                 onClick={() => setBillingCycle('yearly')}
-                className={`px-8 py-4 rounded-xl text-sm font-semibold transition-all duration-300 relative ${
+                className={`px-6 py-3 rounded-lg text-sm font-medium transition-colors relative ${
                   billingCycle === 'yearly'
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                    ? 'bg-blue-600 text-white shadow-md'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
@@ -397,7 +341,7 @@ function Subscription() {
                           {/* Pricing Table */}
          <div className="max-w-4xl mx-auto mb-12">
            {/* Desktop Table */}
-           <div className="hidden lg:block bg-white rounded-2xl shadow-xl border border-gray-200 overflow-visible">
+           <div className="hidden lg:block bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-gray-200 overflow-visible">
              {/* Table Header */}
              <div className="grid grid-cols-3 bg-gradient-to-r from-gray-50 to-blue-50 relative">
                <div className="p-6 border-r border-gray-200">
@@ -497,10 +441,10 @@ function Subscription() {
              </div>
            </div>
 
-           {/* Mobile Cards */}
-           <div className="lg:hidden space-y-6">
-             {/* Free Plan Card */}
-             <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6">
+                        {/* Mobile Cards */}
+             <div className="lg:hidden space-y-6">
+               {/* Free Plan Card */}
+               <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-gray-200 p-6">
                <div className="text-center mb-6">
                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Free</h3>
                  <div className="text-4xl font-bold text-gray-900 mb-1">$0</div>
@@ -530,7 +474,7 @@ function Subscription() {
              </div>
 
              {/* Pro Plan Card */}
-             <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6 relative">
+             <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-gray-200 p-6 relative">
                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
                  <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg border-2 border-white">
                    Most Popular
@@ -598,7 +542,7 @@ function Subscription() {
          </div>
 
         {/* FAQ Section */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 p-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
             <p className="text-gray-600 text-lg">Everything you need to know about our subscription plans</p>

@@ -84,9 +84,6 @@ router.post('/resume/:id/download', protect, async (req, res) => {
     resume.analytics.lastDownloaded = new Date();
     await resume.save();
 
-    // Update subscription usage
-    await subscription.incrementUsage('export');
-
     // If resume has a template, increment template usage
     if (resume.template) {
       await Template.findByIdAndUpdate(
@@ -176,8 +173,10 @@ router.get('/summary', protect, async (req, res) => {
     
     const totalViews = resumes.reduce((sum, resume) => sum + (resume.analytics.views || 0), 0);
     const totalDownloads = resumes.reduce((sum, resume) => sum + (resume.analytics.downloads || 0), 0);
-    const totalShares = resumes.reduce((sum, resume) => sum + (resume.analytics.shares || 0), 0);
 
+    // Get subscription info
+    const subscription = await Subscription.findOne({ user: req.user.id });
+    
     // Get templates used by user
     const templatesUsed = await Template.find({
       'usage.uniqueUsers': req.user.id
@@ -188,9 +187,15 @@ router.get('/summary', protect, async (req, res) => {
         total: resumes.length,
         totalViews,
         totalDownloads,
-        totalShares,
         averageViews: resumes.length > 0 ? Math.round(totalViews / resumes.length) : 0,
         averageDownloads: resumes.length > 0 ? Math.round(totalDownloads / resumes.length) : 0
+      },
+      subscription: {
+        plan: subscription?.plan || 'free',
+        resumeLimit: subscription?.features?.resumeLimit || 2,
+        resumesCreated: subscription?.usage?.resumesCreated || 0,
+        aiActionsLimit: subscription?.features?.aiActionsLimit || 1,
+        aiActionsUsed: subscription?.usage?.aiActionsThisWeek || 0
       },
       templates: {
         totalUsed: templatesUsed.length,

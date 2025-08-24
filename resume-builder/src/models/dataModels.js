@@ -26,45 +26,23 @@ export const createUserModel = (data = {}) => ({
 export const createSubscriptionModel = (data = {}) => ({
   plan: data.plan || 'free',
   status: data.status || 'active',
-  startDate: data.startDate || new Date().toISOString(),
-  endDate: data.endDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-  billing: data.billing || {
-    cycle: 'monthly',
-    amount: 0,
-    currency: 'USD',
-    nextBillingDate: null,
-    trialEnd: null,
-    trialType: null
+  features: {
+    resumeLimit: data.features?.resumeLimit || 2,
+    templateAccess: data.features?.templateAccess || ['free'],
+    exportFormats: data.features?.exportFormats || ['pdf'],
+    aiActionsLimit: data.features?.aiActionsLimit || 1,
+    aiReview: data.features?.aiReview || false,
+    prioritySupport: data.features?.prioritySupport || false,
+    customBranding: data.features?.customBranding || false,
+    watermark: data.features?.watermark || true,
+    unlimitedExports: data.features?.unlimitedExports || false
   },
-  features: data.features || {
-    resumeLimit: 1,
-    templateAccess: ['free'],
-    exportFormats: ['pdf'],
-    aiActionsLimit: 2,
-    aiReview: false,
-    prioritySupport: false,
-    customBranding: false,
-    watermark: true,
-    unlimitedExports: false
+  usage: {
+    resumesCreated: data.usage?.resumesCreated || 0,
+    aiActionsThisWeek: data.usage?.aiActionsThisWeek || 0
   },
-  usage: data.usage || {
-    resumesCreated: 0,
-    exportsThisMonth: 0,
-    aiActionsThisMonth: 0,
-    lastResetDate: new Date().toISOString()
-  },
-  stripe: data.stripe || {
-    customerId: '',
-    subscriptionId: '',
-    priceId: '',
-    paymentMethodId: ''
-  },
-  isTrial: data.isTrial || false,
-  trialRemainingDays: data.trialRemainingDays || 0,
-  remainingDays: data.remainingDays || 0,
-  monthlyValue: data.monthlyValue || 0,
-  isExpired: data.isExpired || false,
-  hasHadTrial: data.hasHadTrial || false
+  billing: data.billing || {},
+  ...data
 });
 
 // Usage model
@@ -204,12 +182,12 @@ export const createStylingModel = (data = {}) => ({
   sectionSpacing: data.sectionSpacing || 'normal',
 });
 
-// Analytics model
+// Analytics model (simplified)
 export const createAnalyticsModel = (data = {}) => ({
   views: data.views || 0,
   downloads: data.downloads || 0,
   lastViewed: data.lastViewed || null,
-  lastDownloaded: data.lastDownloaded || null,
+  lastDownloaded: data.lastDownloaded || null
 });
 
 // Template model

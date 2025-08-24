@@ -20,6 +20,7 @@ import Feedback from './components/feedback';
 import Subscription from './components/subscription';
 import Profile from './components/Profile';
 import PrivacyPolicy from './components/PrivacyPolicy';
+import AnalyticsDashboard from './components/AnalyticsDashboard';
 
 import ProtectedRoute, { UnauthorizedPage } from './components/ProtectedRoute';
 import AuthCallback from './components/AuthCallback';
@@ -146,8 +147,14 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
-              
-
+              <Route 
+                path="/analytics" 
+                element={
+                  <ProtectedRoute>
+                    <AnalyticsDashboard />
+                  </ProtectedRoute>
+                } 
+              />
               
               {/* 404 Route */}
               <Route path="*" element={<Navigate to="/login" replace />} />
