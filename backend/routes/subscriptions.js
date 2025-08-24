@@ -32,10 +32,10 @@ router.get('/plans', async (req, res) => {
           '1-2 AI suggestions per month'
         ],
         limits: {
-          resumes: 1,
+          resumes: 2,
           templates: ['free'],
           exports: ['pdf'],
-          aiActions: 2
+          aiActions: 1
         },
         popular: false
       },
@@ -44,9 +44,9 @@ router.get('/plans', async (req, res) => {
         name: 'Pro',
         price: { monthly: 9.99, yearly: 79 },
         features: [
-          'Unlimited resume projects',
+          '5 resume projects total',
           'Full access to all premium templates',
-          '100 AI actions/month (rewrite, summarize, keyword-enhance, tone adjust)',
+          'Unlimited AI actions (rewrite, summarize, keyword-enhance, tone adjust)',
           'Resume feedback analysis (ATS score, grammar)',
           'Export in DOCX + PDF',
           'No watermark, unlimited exports',
@@ -54,10 +54,10 @@ router.get('/plans', async (req, res) => {
           'Priority support'
         ],
         limits: {
-          resumes: 50,
+          resumes: 5,
           templates: ['free', 'pro'],
           exports: ['pdf', 'docx'],
-          aiActions: 100
+          aiActions: -1
         },
         popular: true,
         trial: {
@@ -156,8 +156,6 @@ router.get('/current', protect, async (req, res) => {
     }
 
     // Compute current weekly window and limits
-    const weeklyLimit = subscription.plan === 'pro' || subscription.isTrialActive() ? 7 : 3;
-    const aiWeeklyLimit = subscription.plan === 'pro' || subscription.isTrialActive() ? 20 : 0;
     const usage = subscription.usage || {};
     res.json({
       success: true,
@@ -165,16 +163,12 @@ router.get('/current', protect, async (req, res) => {
         subscription,
         weekly: {
           resumes: {
-            used: usage.resumesCreatedThisWeek || 0,
-            limit: weeklyLimit
-          },
-          exports: {
-            used: usage.exportsThisWeek || 0,
-            limit: null // unlimited per requirements
+            used: usage.resumesCreated || 0,
+            limit: subscription.features?.resumeLimit || 2
           },
           aiActions: {
             used: usage.aiActionsThisWeek || 0,
-            limit: aiWeeklyLimit
+            limit: subscription.features?.aiActionsLimit || 1
           }
         }
       }
@@ -244,9 +238,8 @@ router.post('/start-trial', [
       // Reset usage for trial
       subscription.usage = {
         resumesCreated: 0,
-        exportsThisMonth: 0,
-        aiActionsThisMonth: 0,
-        lastResetDate: new Date()
+        aiActionsThisWeek: 0,
+        weekStartAtUtc: new Date()
       };
       
       // Clear any existing Stripe data for trial

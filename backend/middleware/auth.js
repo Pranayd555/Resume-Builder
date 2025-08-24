@@ -119,10 +119,10 @@ const checkResumeLimit = async (req, res, next) => {
     }
 
     if (!subscription.canCreateResume()) {
-      const weeklyLimit = subscription.plan === 'pro' || subscription.isTrialActive() ? 7 : 3;
+      const limit = subscription.features?.resumeLimit || 2;
       return res.status(403).json({
         success: false,
-        error: `Weekly resume creation limit reached (${weeklyLimit}/week).`
+        error: `Resume creation limit reached (${limit} total). Please upgrade to Pro to create more resumes.`
       });
     }
 
@@ -158,10 +158,10 @@ const checkAIActionLimit = async (req, res, next) => {
     }
 
     if (!subscription.canUseAIAction()) {
-      const limit = subscription.plan === 'pro' || subscription.isTrialActive() ? 20 : 0;
+      const limit = subscription.features?.aiActionsLimit || 1;
       return res.status(403).json({
         success: false,
-        error: `Weekly AI action limit reached (${limit}/week).`
+        error: `Weekly AI action limit reached (${limit}/week). Please upgrade to Pro for unlimited AI actions.`
       });
     }
 

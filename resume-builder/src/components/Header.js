@@ -107,6 +107,10 @@ function Header() {
     navigate('/subscription');
   };
 
+  const handleAnalytics = () => {
+    navigate('/analytics');
+  };
+
   const handlePrivacyPolicy = () => {
     navigate('/privacy-policy');
   };
@@ -172,6 +176,12 @@ function Header() {
               className="text-gray-600 hover:text-gray-900 px-2 py-1 lg:px-3 lg:py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-200 hover:bg-white/50 hover:shadow-sm"
             >
               Subscription
+            </button>
+            <button
+              onClick={handleAnalytics}
+              className="text-gray-600 hover:text-gray-900 px-2 py-1 lg:px-3 lg:py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-200 hover:bg-white/50 hover:shadow-sm"
+            >
+              Analytics
             </button>
             <button
               onClick={handlePrivacyPolicy}
@@ -247,6 +257,12 @@ function Header() {
                 className="text-gray-600 hover:text-gray-900 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-white/50 w-full text-left"
               >
                 Subscription
+              </button>
+              <button
+                onClick={handleAnalytics}
+                className="text-gray-600 hover:text-gray-900 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-white/50 w-full text-left"
+              >
+                Analytics
               </button>
               <button
                 onClick={handlePrivacyPolicy}
