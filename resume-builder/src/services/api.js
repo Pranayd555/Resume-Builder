@@ -208,6 +208,29 @@ export const resumeAPI = {
   },
 };
 
+// Analytics API calls
+export const analyticsAPI = {
+  trackResumeView: async (resumeId) => {
+    const response = await api.post(`/analytics/resume/${resumeId}/view`);
+    return response.data;
+  },
+
+  trackResumeDownload: async (resumeId, format = 'pdf') => {
+    const response = await api.post(`/analytics/resume/${resumeId}/download`, { format });
+    return response.data;
+  },
+
+  trackTemplateUsage: async (templateId) => {
+    const response = await api.post(`/analytics/template/${templateId}/use`);
+    return response.data;
+  },
+
+  getAnalyticsSummary: async () => {
+    const response = await api.get('/analytics/summary');
+    return response.data;
+  },
+};
+
 // Template API calls
 export const templateAPI = {
   getTemplates: async (params = {}) => {

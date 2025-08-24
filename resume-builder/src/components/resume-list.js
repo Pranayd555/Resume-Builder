@@ -22,7 +22,7 @@ import {
   CurrencyDollarIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
-import { resumeAPI, apiHelpers } from '../services/api';
+import { resumeAPI, analyticsAPI, apiHelpers } from '../services/api';
 import { createResumeModel } from '../models/dataModels';
 import { toast } from 'react-toastify';
 
@@ -373,6 +373,8 @@ function ResumeList() {
     setDownloadingResumes(prev => new Set(prev).add(resumeId));
 
     try {
+      // Track download analytics
+
       const response = await resumeAPI.downloadPDF(resumeId);
       
       // Create blob and download
@@ -385,6 +387,14 @@ function ResumeList() {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
+      try {
+        const downloadAnalytics = await analyticsAPI.trackResumeDownload(resumeId, 'pdf');
+        resume.analytics.downloads = downloadAnalytics.data.downloads;
+        resume.analytics.lastDownloaded = downloadAnalytics.data.lastDownloaded;
+        console.log('Download analytics:', downloadAnalytics);
+      } catch (analyticsError) {
+        console.warn('Failed to track download:', analyticsError);
+      }
       
       toast.success('Resume downloaded successfully!');
     } catch (err) {
@@ -452,6 +462,13 @@ function ResumeList() {
     setDownloadingResumes(prev => new Set(prev).add(resumeId));
 
     try {
+      // Track download analytics
+      try {
+        await analyticsAPI.trackResumeDownload(resumeId, 'docx');
+      } catch (analyticsError) {
+        console.warn('Failed to track download:', analyticsError);
+      }
+
       const response = await resumeAPI.downloadDOCX(resumeId);
       
       // Create blob and download
@@ -650,7 +667,7 @@ function ResumeList() {
         </div>
         
         {/* Subscription Limit Banner */}
-        {!canCreateNewResume() && getSubscriptionInfo().plan === 'free' && (
+        {!canCreateNewResume() && getSubscriptionInfo().plan === 'pro' && (
           <div className="backdrop-blur-md bg-orange-50/80 border border-orange-200 rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-start gap-3">
@@ -676,7 +693,7 @@ function ResumeList() {
           </div>
         )}
         
-        {!canCreateNewResume() && getSubscriptionInfo().plan === 'pro' && (
+        {!canCreateNewResume() && getSubscriptionInfo().plan === 'free' && (
           <div className="backdrop-blur-md bg-blue-50/80 border border-blue-200 rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-start gap-3">
@@ -688,7 +705,7 @@ function ResumeList() {
                     Pro Plan Limit Reached
                   </h3>
                   <p className="text-blue-700 text-sm sm:text-base">
-                    You've reached the maximum of 5 resumes on the Pro plan. Please delete some old resumes to create new ones.
+                    You can create up to 5 resumes. Please delete some old resumes to create new ones.
                   </p>
                 </div>
               </div>
@@ -909,11 +926,16 @@ function ResumeList() {
                                  </button>
                                )}
                                <button
+                                 disabled={resume.status === 'draft' || !canCreateNewResume()}
                                  onClick={(e) => {
                                    e.stopPropagation();
                                    handleDuplicateResume(resume.id);
                                  }}
-                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                                 className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
+                                  resume.status === 'draft' || !canCreateNewResume()
+                                    ? 'text-gray-400 cursor-not-allowed'
+                                    : 'text-gray-700 hover:bg-gray-100'
+                                }`}
                                >
                                  <DocumentDuplicateIcon className="w-4 h-4" />
                                  Duplicate
@@ -940,7 +962,7 @@ function ResumeList() {
                                  )}
                                  {downloadingResumes.has(resume.id) ? 'Downloading...' : 'Download PDF'}
                                </button>
-                               <button
+                               {/* <button
                                  onClick={(e) => {
                                    e.stopPropagation();
                                    handleDownloadDOCX(resume.id);
@@ -961,7 +983,7 @@ function ResumeList() {
                                    <ArrowDownTrayIcon className="w-4 h-4" />
                                  )}
                                  {downloadingResumes.has(resume.id) ? 'Downloading...' : 'Download DOCX'}
-                               </button>
+                               </button> */}
                                <button
                                  onClick={(e) => {
                                    e.stopPropagation();

@@ -18,6 +18,7 @@ const subscriptionRoutes = require('./routes/subscriptions');
 const uploadRoutes = require('./routes/uploads');
 const emailTestRoutes = require('./routes/email-test');
 const feedbackRoutes = require('./routes/feedback');
+const analyticsRoutes = require('./routes/analytics');
 
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./utils/logger');
@@ -188,6 +189,7 @@ app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/email-test', emailTestRoutes);
 app.use('/api/feedback', feedbackRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
