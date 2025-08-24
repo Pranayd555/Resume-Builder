@@ -179,6 +179,10 @@ const subscriptionSchema = new mongoose.Schema({
   
   // Usage Tracking
   usage: {
+    resumesCreated: {
+      type: Number,
+      default: 0
+    },
     resumesCreatedThisWeek: {
       type: Number,
       default: 0
@@ -441,7 +445,20 @@ subscriptionSchema.pre('save', function(next) {
 function ensureWeeklyWindow(subscriptionDoc) {
   const { getIstWeekStartUtc } = require('../utils/istWeek');
   const currentWeekStartUtc = getIstWeekStartUtc(new Date());
-  const stored = subscriptionDoc.usage?.weekStartAtUtc;
+  
+  // Ensure usage object exists
+  if (!subscriptionDoc.usage) {
+    subscriptionDoc.usage = {
+      resumesCreated: 0,
+      resumesCreatedThisWeek: 0,
+      exportsThisWeek: 0,
+      aiActionsThisWeek: 0,
+      weekStartAtUtc: currentWeekStartUtc
+    };
+    return;
+  }
+  
+  const stored = subscriptionDoc.usage.weekStartAtUtc;
   if (!stored || new Date(stored).getTime() !== currentWeekStartUtc.getTime()) {
     subscriptionDoc.usage.weekStartAtUtc = currentWeekStartUtc;
     subscriptionDoc.usage.resumesCreatedThisWeek = 0;
@@ -502,6 +519,7 @@ subscriptionSchema.methods.incrementUsage = function(type) {
   switch (type) {
     case 'resume':
       this.usage.resumesCreatedThisWeek += 1;
+      this.usage.resumesCreated += 1;
       break;
     case 'export':
       this.usage.exportsThisWeek += 1;
@@ -590,9 +608,10 @@ subscriptionSchema.statics.createTrial = function(userId, trialType = 'free', da
     },
     usage: {
       resumesCreated: 0,
-      exportsThisMonth: 0,
-      aiActionsThisMonth: 0,
-      lastResetDate: new Date()
+      resumesCreatedThisWeek: 0,
+      exportsThisWeek: 0,
+      aiActionsThisWeek: 0,
+      weekStartAtUtc: new Date()
     }
   });
 };

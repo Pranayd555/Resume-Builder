@@ -400,22 +400,7 @@ const resumeSchema = new mongoose.Schema({
     default: false
   },
   
-  // Export History
-  exports: [{
-    format: {
-      type: String,
-      enum: ['pdf', 'docx', 'html'],
-      required: true
-    },
-    exportedAt: {
-      type: Date,
-      default: Date.now
-    },
-    downloadCount: {
-      type: Number,
-      default: 0
-    }
-  }],
+
   
   // Analytics
   analytics: {

@@ -1133,26 +1133,6 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
       });
     });
 
-    // Update resume export statistics
-    const exportRecord = {
-      format: 'pdf',
-      exportedAt: new Date(),
-      downloadCount: 1
-    };
-    resume.exports.push(exportRecord);
-    
-    // Update resume analytics
-    if (!resume.analytics.downloads) {
-      resume.analytics.downloads = 0;
-    }
-    resume.analytics.downloads += 1;
-    resume.analytics.lastDownloaded = new Date();
-    
-    await resume.save();
-
-    // Track export usage weekly (for analytics; not enforcing limits)
-    await subscription.incrementUsage('export');
-
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename="${resume.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf"`,
@@ -1423,26 +1403,6 @@ router.get('/:id/download/docx', protect, async (req, res) => {
     });
 
     await browser.close();
-
-    // Update resume export statistics
-    const exportRecord = {
-      format: 'docx',
-      exportedAt: new Date(),
-      downloadCount: 1
-    };
-    resume.exports.push(exportRecord);
-    
-    // Update resume analytics
-    if (!resume.analytics.downloads) {
-      resume.analytics.downloads = 0;
-    }
-    resume.analytics.downloads += 1;
-    resume.analytics.lastDownloaded = new Date();
-    
-    await resume.save();
-
-    // Update subscription usage
-    await subscription.incrementUsage('export');
 
     const filename = `${resume.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
 
@@ -1997,9 +1957,7 @@ router.get('/:id', protect, async (req, res) => {
       });
     }
 
-    // Increment view count
-    resume.analytics.views += 1;
-    await resume.save();
+
 
     // Prepare response with default template styling
     const responseData = {
@@ -2100,11 +2058,7 @@ router.post('/', [
     const resume = new Resume(resumeData);
     await resume.save();
 
-    // Update subscription usage
-    await subscription.incrementUsage('resume');
 
-    // Increment template usage
-    await template.incrementUsage(req.user.id);
 
     await resume.populate('template', 'name category preview');
 
@@ -2247,24 +2201,69 @@ router.post('/:id/duplicate', protect, async (req, res) => {
       });
     }
 
-    // Create duplicate
-    const duplicateData = originalResume.toObject();
+    // Create duplicate - use a more robust approach
+    const duplicateData = JSON.parse(JSON.stringify(originalResume.toObject()));
+    
+    // Remove fields that should not be duplicated
     delete duplicateData._id;
     delete duplicateData.createdAt;
     delete duplicateData.updatedAt;
     delete duplicateData.analytics;
-    delete duplicateData.exports;
 
     duplicateData.title = `${duplicateData.title} (Copy)`;
     duplicateData.status = 'draft';
-    duplicateData.analytics = { views: 0, shares: 0 };
-    duplicateData.exports = [];
+    duplicateData.analytics = { views: 0, shares: 0, downloads: 0, lastViewed: new Date(), lastDownloaded: new Date() };
+    
+    // Validate that we don't have any conflicting _id fields
+    if (duplicateData._id) {
+      logger.error('Duplicate data still contains _id field:', duplicateData._id);
+      return res.status(500).json({
+        success: false,
+        error: 'Internal server error during duplication'
+      });
+    }
+    
+    const resumeData = {
+      user: req.user.id,
+      title: duplicateData.title || 'Untitled Resume',
+      personalInfo: duplicateData.personalInfo || {},
+      summary: duplicateData.summary || '',
+      workExperience: duplicateData.workExperience || [],
+      education: duplicateData.education || [],
+      skills: duplicateData.skills || [],
+      projects: duplicateData.projects || [],
+      achievements: duplicateData.achievements || [],
+      certifications: duplicateData.certifications || [],
+      languages: duplicateData.languages || [],
+      customFields: duplicateData.customFields || [],
+      status: 'draft'
+    };
 
-    const duplicateResume = new Resume(duplicateData);
-    await duplicateResume.save();
+
+    const duplicateResume = new Resume(resumeData);
+    logger.info('Creating duplicate resume:', { 
+      originalId: originalResume._id, 
+      duplicateTitle: duplicateData.title,
+      duplicateId: duplicateResume._id // This should be a new ObjectId
+    });
+    
+    try {
+      await duplicateResume.save();
+      logger.info('Duplicate resume saved successfully with ID:', duplicateResume._id);
+    } catch (saveError) {
+      logger.error('Failed to save duplicate resume:', saveError);
+      if (saveError.code === 11000) {
+        return res.status(500).json({
+          success: false,
+          error: 'Duplicate key error occurred. Please try again.'
+        });
+      }
+      throw saveError;
+    }
 
     // Update subscription usage
     await subscription.incrementUsage('resume');
+    logger.info('Subscription usage updated');
 
     await duplicateResume.populate('template', 'name category preview');
 
@@ -2276,9 +2275,11 @@ router.post('/:id/duplicate', protect, async (req, res) => {
     });
   } catch (error) {
     logger.error('Duplicate resume error:', error);
+    logger.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
-      error: 'Server error'
+      error: 'Server error',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
@@ -2324,14 +2325,6 @@ router.post('/:id/export', [
       });
     }
 
-    // Add to export history
-    const exportRecord = {
-      format,
-      exportedAt: new Date(),
-      downloadCount: 0
-    };
-
-    resume.exports.push(exportRecord);
     await resume.save();
 
     // Update subscription usage
@@ -2342,9 +2335,7 @@ router.post('/:id/export', [
     res.json({
       success: true,
       data: {
-        message: `Resume exported in ${format.toUpperCase()} format`,
-        exportId: exportRecord._id,
-        downloadUrl: `/api/resumes/${resume._id}/download/${exportRecord._id}`
+        message: `Resume exported in ${format.toUpperCase()} format`
       }
     });
   } catch (error) {

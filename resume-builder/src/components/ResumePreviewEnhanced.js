@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { resumeAPI } from '../services/api';
+import { resumeAPI, analyticsAPI } from '../services/api';
 import TemplateStylingControls from './TemplateStylingControls';
 import PDFViewer from './PDFViewer';
 import { ArrowsRightLeftIcon, DocumentArrowDownIcon, DocumentTextIcon, PencilSquareIcon, PrinterIcon } from '@heroicons/react/24/outline';
@@ -46,6 +46,13 @@ function ResumePreviewEnhanced() {
       setDownloading(true);
       setDownloadFormat('pdf');
       
+      // Track download analytics
+      try {
+        await analyticsAPI.trackResumeDownload(resumeId, 'pdf');
+      } catch (analyticsError) {
+        console.warn('Failed to track download:', analyticsError);
+      }
+      
       if (pdfData) {
         // Use cached PDF data
         const link = document.createElement('a');
@@ -67,6 +74,8 @@ function ResumePreviewEnhanced() {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
       }
+      
+      toast.success('PDF downloaded successfully!');
     } catch (error) {
       const errorMessage = error.response?.data?.error || error.message || 'Download failed';
       toast.error(errorMessage);
@@ -174,6 +183,14 @@ function ResumePreviewEnhanced() {
         
         // Load PDF preview
         await loadPDFPreview();
+        
+        // Track resume view
+        try {
+          await analyticsAPI.trackResumeView(resumeId);
+        } catch (analyticsError) {
+          console.warn('Failed to track resume view:', analyticsError);
+        }
+        
         toast.success('Preview generated successfully!');
         
       } catch (error) {
