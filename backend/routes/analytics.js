@@ -194,8 +194,8 @@ router.get('/summary', protect, async (req, res) => {
         plan: subscription?.plan || 'free',
         resumeLimit: subscription?.features?.resumeLimit || 2,
         resumesCreated: subscription?.usage?.resumesCreated || 0,
-        aiActionsLimit: subscription?.features?.aiActionsLimit || 1,
-        aiActionsUsed: subscription?.usage?.aiActionsThisWeek || 0
+        aiActionsLimit: subscription?.features?.aiActionsLimit || 10,
+        aiActionsUsed: subscription?.usage?.aiActionsThisMonth || 0
       },
       templates: {
         totalUsed: templatesUsed.length,

@@ -118,11 +118,18 @@ const checkResumeLimit = async (req, res, next) => {
       subscription = await Subscription.findOne({ user: req.user.id });
     }
 
-    if (!subscription.canCreateResume()) {
+    const canCreate = await subscription.canCreateResume();
+    if (!canCreate) {
+      const currentUsage = subscription.usage.resumesCreated || 0;
       const limit = subscription.features?.resumeLimit || 2;
+      const planName = subscription.plan === 'free' ? 'Free' : 'Pro';
       return res.status(403).json({
         success: false,
-        error: `Resume creation limit reached (${limit} total). Please upgrade to Pro to create more resumes.`
+        error: `Resume creation limit reached. You have created ${currentUsage}/${limit} resumes on your ${planName} plan. Please upgrade to create more resumes.`,
+        limitReached: true,
+        currentUsage,
+        limit,
+        plan: subscription.plan
       });
     }
 
@@ -158,10 +165,16 @@ const checkAIActionLimit = async (req, res, next) => {
     }
 
     if (!subscription.canUseAIAction()) {
-      const limit = subscription.features?.aiActionsLimit || 1;
+      const currentUsage = subscription.usage.aiActionsThisMonth || 0;
+      const limit = subscription.features?.aiActionsLimit || 10;
+      const planName = subscription.plan === 'free' ? 'Free' : 'Pro';
       return res.status(403).json({
         success: false,
-        error: `Weekly AI action limit reached (${limit}/week). Please upgrade to Pro for unlimited AI actions.`
+        error: `Monthly AI action limit reached. You have used ${currentUsage}/${limit} AI actions this month on your ${planName} plan. Please upgrade to use more AI actions.`,
+        limitReached: true,
+        currentUsage,
+        limit,
+        plan: subscription.plan
       });
     }
 

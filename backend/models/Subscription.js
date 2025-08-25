@@ -139,10 +139,10 @@ const subscriptionSchema = new mongoose.Schema({
       type: Number,
       default: function() {
         const limits = {
-          free: 1,
-          pro: -1 // -1 means unlimited
+          free: 10,
+          pro: 200
         };
-        return limits[this.plan] || 1;
+        return limits[this.plan] || 10;
       }
     },
     aiReview: {
@@ -177,17 +177,17 @@ const subscriptionSchema = new mongoose.Schema({
     }
   },
   
-  // Usage Tracking (Simplified)
+  // Usage Tracking (Simplified - Monthly for AI, Total for resumes)
   usage: {
     resumesCreated: {
       type: Number,
       default: 0
     },
-    aiActionsThisWeek: {
+    aiActionsThisMonth: {
       type: Number,
       default: 0
     },
-    weekStartAtUtc: {
+    monthStartAtUtc: {
       type: Date,
       default: Date.now
     }
@@ -365,7 +365,7 @@ subscriptionSchema.methods.expireTrial = function() {
     this.features.resumeLimit = 2;
     this.features.templateAccess = ['free'];
     this.features.exportFormats = ['pdf'];
-    this.features.aiActionsLimit = 1;
+    this.features.aiActionsLimit = 10;
     this.features.aiReview = false;
     this.features.prioritySupport = false;
     this.features.customBranding = false;
@@ -390,7 +390,7 @@ subscriptionSchema.pre('save', function(next) {
     this.features.resumeLimit = 2;
     this.features.templateAccess = ['free'];
     this.features.exportFormats = ['pdf'];
-    this.features.aiActionsLimit = 1;
+    this.features.aiActionsLimit = 10;
     this.features.aiReview = false;
     this.features.prioritySupport = false;
     this.features.customBranding = false;
@@ -416,14 +416,14 @@ subscriptionSchema.pre('save', function(next) {
     };
     
     const aiLimits = {
-      free: 1,
-      pro: -1 // -1 means unlimited
+      free: 10,
+      pro: 200
     };
     
     this.features.resumeLimit = limits[this.plan] || 2;
     this.features.templateAccess = templateAccess[this.plan] || ['free'];
     this.features.exportFormats = exportFormats[this.plan] || ['pdf'];
-    this.features.aiActionsLimit = aiLimits[this.plan] || 1;
+    this.features.aiActionsLimit = aiLimits[this.plan] || 10;
     this.features.aiReview = this.plan === 'pro';
     this.features.prioritySupport = this.plan === 'pro';
     this.features.customBranding = this.plan === 'pro';
@@ -433,31 +433,39 @@ subscriptionSchema.pre('save', function(next) {
   next();
 });
 
-// Ensure weekly window is aligned to Monday 00:00 IST; reset counters if week changed
-function ensureWeeklyWindow(subscriptionDoc) {
-  const { getIstWeekStartUtc } = require('../utils/istWeek');
-  const currentWeekStartUtc = getIstWeekStartUtc(new Date());
+// Ensure monthly window is aligned to 1st of month 00:00 UTC; reset counters if month changed
+function ensureMonthlyWindow(subscriptionDoc) {
+  const now = new Date();
+  const currentMonthStartUtc = new Date(now.getFullYear(), now.getMonth(), 1);
   
   // Ensure usage object exists
   if (!subscriptionDoc.usage) {
     subscriptionDoc.usage = {
       resumesCreated: 0,
-      aiActionsThisWeek: 0,
-      weekStartAtUtc: currentWeekStartUtc
+      aiActionsThisMonth: 0,
+      monthStartAtUtc: currentMonthStartUtc
     };
     return;
   }
   
-  const stored = subscriptionDoc.usage.weekStartAtUtc;
-  if (!stored || new Date(stored).getTime() !== currentWeekStartUtc.getTime()) {
-    subscriptionDoc.usage.weekStartAtUtc = currentWeekStartUtc;
-    subscriptionDoc.usage.aiActionsThisWeek = 0;
+  const stored = subscriptionDoc.usage.monthStartAtUtc;
+  if (!stored || new Date(stored).getTime() !== currentMonthStartUtc.getTime()) {
+    subscriptionDoc.usage.monthStartAtUtc = currentMonthStartUtc;
+    subscriptionDoc.usage.aiActionsThisMonth = 0;
   }
 }
 
 // Method to check if user can create resume (total limit, not weekly)
-subscriptionSchema.methods.canCreateResume = function() {
-  return this.usage.resumesCreated < this.features.resumeLimit;
+subscriptionSchema.methods.canCreateResume = async function() {
+  const Resume = require('./Resume');
+  
+  // Count actual resumes in database for this user
+  const actualResumeCount = await Resume.countDocuments({ user: this.user });
+  
+  // Update the usage tracking to reflect actual count
+  this.usage.resumesCreated = actualResumeCount;
+  
+  return actualResumeCount < this.features.resumeLimit;
 };
 
 // Method to check if user can access template
@@ -478,17 +486,25 @@ subscriptionSchema.methods.canExportFormat = function(format) {
   return ['pdf'].includes(format);
 };
 
-// Method to check if user can use AI action (weekly for free, unlimited for pro)
+// Method to check if user can use AI action (monthly limits for both plans)
 subscriptionSchema.methods.canUseAIAction = function() {
-  ensureWeeklyWindow(this);
+  ensureMonthlyWindow(this);
   
-  // Pro users have unlimited AI actions
-  if (this.plan === 'pro' || this.isTrialActive()) {
-    return true;
+  // Check if user has exceeded monthly AI action limit
+  return this.usage.aiActionsThisMonth < this.features.aiActionsLimit;
+};
+
+// Method to ensure monthly window and save if changed
+subscriptionSchema.methods.ensureMonthlyWindowAndSave = function() {
+  const beforeCount = this.usage.aiActionsThisMonth;
+  ensureMonthlyWindow(this);
+  const afterCount = this.usage.aiActionsThisMonth;
+  
+  // If the count changed (reset happened), save the document
+  if (beforeCount !== afterCount) {
+    return this.save();
   }
-  
-  // Free users have 1 AI action per week
-  return this.usage.aiActionsThisWeek < this.features.aiActionsLimit;
+  return Promise.resolve(this);
 };
 
 // Method to check if export should have watermark
@@ -507,13 +523,13 @@ subscriptionSchema.methods.canStartTrial = function() {
 
 // Method to increment usage (simplified)
 subscriptionSchema.methods.incrementUsage = function(type) {
-  ensureWeeklyWindow(this);
   switch (type) {
     case 'resume':
       this.usage.resumesCreated += 1;
       break;
     case 'aiAction':
-      this.usage.aiActionsThisWeek += 1;
+      ensureMonthlyWindow(this);
+      this.usage.aiActionsThisMonth += 1;
       break;
   }
   return this.save();
@@ -596,8 +612,8 @@ subscriptionSchema.statics.createTrial = function(userId, trialType = 'free', da
     },
     usage: {
       resumesCreated: 0,
-      aiActionsThisWeek: 0,
-      weekStartAtUtc: new Date()
+      aiActionsThisMonth: 0,
+      monthStartAtUtc: new Date()
     }
   });
 };

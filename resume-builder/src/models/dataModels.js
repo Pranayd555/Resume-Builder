@@ -30,7 +30,7 @@ export const createSubscriptionModel = (data = {}) => ({
     resumeLimit: data.features?.resumeLimit || 2,
     templateAccess: data.features?.templateAccess || ['free'],
     exportFormats: data.features?.exportFormats || ['pdf'],
-    aiActionsLimit: data.features?.aiActionsLimit || 1,
+    aiActionsLimit: data.features?.aiActionsLimit || 10,
     aiReview: data.features?.aiReview || false,
     prioritySupport: data.features?.prioritySupport || false,
     customBranding: data.features?.customBranding || false,
@@ -39,7 +39,7 @@ export const createSubscriptionModel = (data = {}) => ({
   },
   usage: {
     resumesCreated: data.usage?.resumesCreated || 0,
-    aiActionsThisWeek: data.usage?.aiActionsThisWeek || 0
+    aiActionsThisMonth: data.usage?.aiActionsThisMonth || 0
   },
   billing: data.billing || {},
   ...data

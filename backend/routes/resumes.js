@@ -146,13 +146,14 @@ router.post('/auto-save', [
         });
       }
 
-      if (!subscription.canCreateResume()) {
-        const currentUsage = subscription.usage.resumesCreatedThisWeek || 0;
-        const limit = (subscription.plan === 'pro' || subscription.isTrialActive()) ? 7 : 3;
+      const canCreate = await subscription.canCreateResume();
+      if (!canCreate) {
+        const currentUsage = subscription.usage.resumesCreated || 0;
+        const limit = subscription.features?.resumeLimit || 2;
         const planName = subscription.plan === 'free' ? 'Free' : 'Pro';
         return res.status(403).json({
           success: false,
-          error: `Weekly resume creation limit reached. You have created ${currentUsage}/${limit} resumes this week on your ${planName} plan.`,
+          error: `Resume creation limit reached. You have created ${currentUsage}/${limit} resumes on your ${planName} plan. Please upgrade to create more resumes.`,
           limitReached: true,
           currentUsage,
           limit,
@@ -231,21 +232,6 @@ router.put('/:id/complete', protect, async (req, res) => {
           error: 'No active subscription found. Please subscribe to create resumes.'
         });
       }
-
-      if (!subscription.canCreateResume()) {
-        const currentUsage = subscription.usage.resumesCreated;
-        const limit = subscription.isTrialActive() ? 50 : subscription.features.resumeLimit;
-        const planName = subscription.plan === 'free' ? 'Free' : 'Pro';
-        
-        return res.status(403).json({
-          success: false,
-          error: `Resume creation limit reached. You have created ${currentUsage}/${limit} resumes on your ${planName} plan. Please upgrade your subscription to create more resumes.`,
-          limitReached: true,
-          currentUsage,
-          limit,
-          plan: subscription.plan
-        });
-      }
     }
 
     // Mark as completed (published)
@@ -262,11 +248,7 @@ router.put('/:id/complete', protect, async (req, res) => {
         }
       );
       
-      // Also update subscription usage
-      const subscription = await Subscription.findOne({ user: req.user.id });
-      if (subscription) {
-        await subscription.incrementUsage('resume');
-      }
+      // Note: Resume count is now tracked automatically by counting actual resumes in database
       
       logger.info(`Resume created and published: ${resume.title} by user ${req.user.email} (resumesCreated: +1)`);
     } else {
@@ -1957,7 +1939,43 @@ router.get('/:id', protect, async (req, res) => {
       });
     }
 
+    // Handle missing template - automatically assign Classic Traditional template
+    if (!resume.template) {
+      console.log('Resume has no template, assigning Classic Traditional template as default');
+      
+      // Find the Classic Traditional template
+      const classicTemplate = await Template.findOne({
+        name: 'Classic Traditional',
+        'availability.isActive': true,
+        'availability.isPublic': true
+      });
 
+      if (classicTemplate) {
+          // Assign the template to the resume
+          resume.template = classicTemplate._id;
+          resume.styling = {
+            ...classicTemplate.styling,
+            template: {
+              headerLevel: 'h3',
+              headerFontSize: 18,
+              fontSize: 14,
+              lineSpacing: 1.3,
+              sectionSpacing: 1
+            }
+          };
+        await resume.save();
+        
+        // Re-populate the template for rendering
+        await resume.populate('template', 'name category styling templateCode');
+        
+        console.log('Classic Traditional template assigned successfully');
+      } else {
+        return res.status(400).json({
+          success: false,
+          error: 'No default template available'
+        });
+      }
+    }
 
     // Prepare response with default template styling
     const responseData = {
@@ -2015,10 +2033,26 @@ router.post('/', [
     // Check subscription limits
     const subscription = await Subscription.findOne({ user: req.user.id });
     
-    if (!subscription || !subscription.canCreateResume()) {
+    if (!subscription) {
       return res.status(403).json({
         success: false,
-        error: `Weekly resume creation limit reached (${subscription.plan === 'pro' || subscription.isTrialActive() ? 7 : 3}/week).`
+        error: 'No active subscription found. Please subscribe to create resumes.',
+        limitReached: true
+      });
+    }
+    
+    const canCreate = await subscription.canCreateResume();
+    if (!canCreate) {
+      const currentUsage = subscription.usage.resumesCreated || 0;
+      const limit = subscription.features?.resumeLimit || 2;
+      const planName = subscription.plan === 'free' ? 'Free' : 'Pro';
+      return res.status(403).json({
+        success: false,
+        error: `Resume creation limit reached. You have created ${currentUsage}/${limit} resumes on your ${planName} plan. Please upgrade to create more resumes.`,
+        limitReached: true,
+        currentUsage,
+        limit,
+        plan: subscription.plan
       });
     }
 
@@ -2194,10 +2228,26 @@ router.post('/:id/duplicate', protect, async (req, res) => {
     // Check subscription limits
     const subscription = await Subscription.findOne({ user: req.user.id });
     
-    if (!subscription || !subscription.canCreateResume()) {
+    if (!subscription) {
       return res.status(403).json({
         success: false,
-        error: 'Resume creation limit reached. Please upgrade your subscription.'
+        error: 'No active subscription found. Please subscribe to create resumes.',
+        limitReached: true
+      });
+    }
+    
+    const canCreate = await subscription.canCreateResume();
+    if (!canCreate) {
+      const currentUsage = subscription.usage.resumesCreated || 0;
+      const limit = subscription.features?.resumeLimit || 2;
+      const planName = subscription.plan === 'free' ? 'Free' : 'Pro';
+      return res.status(403).json({
+        success: false,
+        error: `Resume creation limit reached. You have created ${currentUsage}/${limit} resumes on your ${planName} plan. Please upgrade to create more resumes.`,
+        limitReached: true,
+        currentUsage,
+        limit,
+        plan: subscription.plan
       });
     }
 
@@ -2261,9 +2311,8 @@ router.post('/:id/duplicate', protect, async (req, res) => {
       throw saveError;
     }
 
-    // Update subscription usage
-    await subscription.incrementUsage('resume');
-    logger.info('Subscription usage updated');
+    // Note: Resume count is now tracked automatically by counting actual resumes in database
+    logger.info('Duplicate resume created successfully');
 
     await duplicateResume.populate('template', 'name category preview');
 

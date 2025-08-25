@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { subscriptionAPI } from '../services/api';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 function Subscription() {
   const navigate = useNavigate();
@@ -160,7 +161,7 @@ function Subscription() {
   const features = [
     { name: 'Resume Creation', free: '2 total', pro: '5 total' },
     { name: 'Template Access', free: 'Free templates only', pro: 'All templates' },
-    { name: 'AI Actions', free: '1 per week', pro: 'Unlimited' },
+    { name: 'AI Actions', free: '10 per month', pro: '200 per month' },
     { name: 'Export Formats', free: 'PDF only', pro: 'PDF + DOCX' },
     { name: 'Resume Feedback', free: 'Basic', pro: 'ATS score + grammar analysis' },
     { name: 'Cloud Storage', free: 'No', pro: 'Unlimited cloud history' },
@@ -191,9 +192,7 @@ function Subscription() {
               onClick={handleBack}
               className="mr-4 sm:mr-6 text-gray-600 hover:text-gray-900 transition-colors p-2 rounded-lg hover:bg-white/50 backdrop-blur-sm flex-shrink-0"
             >
-              <svg className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
+              <ArrowLeftIcon className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
             <div className="min-w-0 flex-1">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Choose Your Plan</h1>
@@ -235,22 +234,30 @@ function Subscription() {
                     </div>
                   </div>
                 </div>
-                <div className="flex gap-3">
-                  {currentSubscription.status === 'trialing' && (
-                    <button
-                      onClick={handleSubscribe}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-                    >
-                      Upgrade Now
-                    </button>
-                  )}
-                  <button
-                    onClick={toggleManagement}
-                    className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-200 transition-colors"
-                  >
-                    {showManagement ? 'Hide Details' : 'Manage'}
-                  </button>
-                </div>
+                                 <div className="flex flex-col sm:flex-row gap-3">
+                   <div className="flex flex-col sm:flex-row gap-3">
+                     {(currentSubscription.status === 'trialing' || currentSubscription.plan === 'free') && (
+                       <button
+                         onClick={handleSubscribe}
+                         className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 text-sm sm:text-base"
+                       >
+                         Upgrade Now
+                       </button>
+                     )}
+                     <button
+                       onClick={() => navigate('/analytics')}
+                       className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-all duration-200 text-sm sm:text-base"
+                     >
+                       Analytics
+                     </button>
+                     <button
+                       onClick={toggleManagement}
+                       className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm sm:text-base"
+                     >
+                       {showManagement ? 'Hide Details' : 'Manage Plan'}
+                     </button>
+                   </div>
+                 </div>
               </div>
             </div>
 
@@ -283,7 +290,7 @@ function Subscription() {
                 </div>
 
                 {/* Cancel Subscription */}
-                {currentSubscription.status === 'active' && (
+                {(currentSubscription.status === 'active' && currentSubscription.plan === 'pro') && (
                   <div className="mt-8 pt-6 border-t border-gray-200">
                     <div className="bg-red-50 rounded-xl p-4">
                       <h5 className="font-semibold text-gray-900 mb-3">Cancel Subscription</h5>

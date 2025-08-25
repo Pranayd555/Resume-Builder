@@ -191,8 +191,6 @@ function ResumePreviewEnhanced() {
           console.warn('Failed to track resume view:', analyticsError);
         }
         
-        toast.success('Preview generated successfully!');
-        
       } catch (error) {
         console.error('Failed to load resume data:', error);
         toast.error('Failed to load preview');

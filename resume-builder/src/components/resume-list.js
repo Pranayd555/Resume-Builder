@@ -93,13 +93,13 @@ function ResumeList() {
     if (subscription.plan === 'free' && currentResumeCount >= 2) {
       return {
         type: 'warning',
-        message: 'Free plan limit reached! Delete old resumes or upgrade to Pro for unlimited resumes.',
+        message: 'Free plan limit reached! Delete old resumes or upgrade to Pro to create more resumes.',
         action: 'Upgrade to Pro'
       };
     } else if (subscription.plan === 'pro' && currentResumeCount >= 5) {
       return {
         type: 'info',
-        message: 'Pro plan limit reached! Please delete some old resumes to create new ones.',
+        message: 'Total resume limit reached! Please delete some old resumes to create new ones.',
         action: null
       };
     }
@@ -443,93 +443,7 @@ function ResumeList() {
     setOpenDropdownId(null);
   };
 
-  const handleDownloadDOCX = async (resumeId) => {
-    // Find the resume to check its status
-    const resume = resumes.find(r => r.id === resumeId);
-    if (!resume) {
-      toast.error('Resume not found');
-      return;
-    }
 
-    // Check if resume is in draft status
-    if (resume.status === 'draft') {
-      toast.error('Cannot download draft resumes. Please publish the resume first.');
-      setOpenDropdownId(null);
-      return;
-    }
-
-    // Add resume to downloading set to show loader
-    setDownloadingResumes(prev => new Set(prev).add(resumeId));
-
-    try {
-      // Track download analytics
-      try {
-        await analyticsAPI.trackResumeDownload(resumeId, 'docx');
-      } catch (analyticsError) {
-        console.warn('Failed to track download:', analyticsError);
-      }
-
-      const response = await resumeAPI.downloadDOCX(resumeId);
-      
-      // Create blob and download
-      const blob = new Blob([response.data], { 
-        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
-      });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `resume-${resumeId}.docx`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      
-      toast.success('Resume downloaded as DOCX successfully!');
-    } catch (err) {
-      const errorMessage = apiHelpers.formatError(err);
-      
-      // Handle specific subscription-related errors
-      if (errorMessage.includes('upgrade to Pro') || errorMessage.includes('subscription plan')) {
-        toast.error(
-          <div>
-            <div className="font-semibold">Upgrade Required</div>
-            <div className="text-sm">{errorMessage}</div>
-            <button 
-              onClick={() => navigate('/subscription')}
-              className="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700"
-            >
-              Upgrade Now
-            </button>
-          </div>,
-          { duration: 5000 }
-        );
-      } else if (errorMessage.includes('Export limit reached')) {
-        toast.error(
-          <div>
-            <div className="font-semibold">Export Limit Reached</div>
-            <div className="text-sm">{errorMessage}</div>
-            <button 
-              onClick={() => navigate('/subscription')}
-              className="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700"
-            >
-              Upgrade for Unlimited Exports
-            </button>
-          </div>,
-          { duration: 5000 }
-        );
-      } else {
-        toast.error(errorMessage);
-      }
-    } finally {
-      // Remove resume from downloading set
-      setDownloadingResumes(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(resumeId);
-        return newSet;
-      });
-    }
-    setOpenDropdownId(null);
-  };
 
   const handleToggleActive = async (resumeId, currentStatus) => {
     try {
@@ -667,7 +581,7 @@ function ResumeList() {
         </div>
         
         {/* Subscription Limit Banner */}
-        {!canCreateNewResume() && getSubscriptionInfo().plan === 'pro' && (
+        {!canCreateNewResume() && getSubscriptionInfo().plan === 'free' && (
           <div className="backdrop-blur-md bg-orange-50/80 border border-orange-200 rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-start gap-3">
@@ -693,7 +607,7 @@ function ResumeList() {
           </div>
         )}
         
-        {!canCreateNewResume() && getSubscriptionInfo().plan === 'free' && (
+        {!canCreateNewResume() && getSubscriptionInfo().plan === 'pro' && (
           <div className="backdrop-blur-md bg-blue-50/80 border border-blue-200 rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-start gap-3">
@@ -702,7 +616,7 @@ function ResumeList() {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-blue-800 mb-1">
-                    Pro Plan Limit Reached
+                    Total Resume Limit Reached
                   </h3>
                   <p className="text-blue-700 text-sm sm:text-base">
                     You can create up to 5 resumes. Please delete some old resumes to create new ones.
