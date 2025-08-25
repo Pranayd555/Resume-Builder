@@ -25,17 +25,17 @@ router.get('/plans', async (req, res) => {
         name: 'Free',
         price: { monthly: 0, yearly: 0 },
         features: [
-          '1 resume template',
-          'Basic editing tools',
+          '2 resume projects total',
+          'Basic templates only',
           'PDF export (with watermark)',
           'Email support',
-          '1-2 AI suggestions per month'
+          '10 AI actions per month'
         ],
         limits: {
           resumes: 2,
           templates: ['free'],
           exports: ['pdf'],
-          aiActions: 1
+          aiActions: 10
         },
         popular: false
       },
@@ -46,7 +46,7 @@ router.get('/plans', async (req, res) => {
         features: [
           '5 resume projects total',
           'Full access to all premium templates',
-          'Unlimited AI actions (rewrite, summarize, keyword-enhance, tone adjust)',
+          '200 AI actions per month',
           'Resume feedback analysis (ATS score, grammar)',
           'Export in DOCX + PDF',
           'No watermark, unlimited exports',
@@ -57,7 +57,7 @@ router.get('/plans', async (req, res) => {
           resumes: 5,
           templates: ['free', 'pro'],
           exports: ['pdf', 'docx'],
-          aiActions: -1
+          aiActions: 200
         },
         popular: true,
         trial: {
@@ -161,14 +161,14 @@ router.get('/current', protect, async (req, res) => {
       success: true,
       data: {
         subscription,
-        weekly: {
+        usage: {
           resumes: {
             used: usage.resumesCreated || 0,
             limit: subscription.features?.resumeLimit || 2
           },
           aiActions: {
-            used: usage.aiActionsThisWeek || 0,
-            limit: subscription.features?.aiActionsLimit || 1
+            used: usage.aiActionsThisMonth || 0,
+            limit: subscription.features?.aiActionsLimit || 10
           }
         }
       }
@@ -238,8 +238,8 @@ router.post('/start-trial', [
       // Reset usage for trial
       subscription.usage = {
         resumesCreated: 0,
-        aiActionsThisWeek: 0,
-        weekStartAtUtc: new Date()
+        aiActionsThisMonth: 0,
+        monthStartAtUtc: new Date()
       };
       
       // Clear any existing Stripe data for trial

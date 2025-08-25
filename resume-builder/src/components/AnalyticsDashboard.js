@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { analyticsAPI } from '../services/api';
 import { toast } from 'react-toastify';
 import { 
@@ -6,16 +7,22 @@ import {
   DocumentArrowDownIcon, 
   DocumentTextIcon,
   SparklesIcon,
-  ChartBarIcon
+  ChartBarIcon,
+  ArrowLeftIcon
 } from '@heroicons/react/24/outline';
 
 function AnalyticsDashboard() {
+  const navigate = useNavigate();
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchAnalytics();
   }, []);
+
+  const handleBack = () => {
+    navigate('/resume-list');
+  };
 
   const fetchAnalytics = async () => {
     try {
@@ -73,8 +80,18 @@ function AnalyticsDashboard() {
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
-          <p className="mt-2 text-gray-600">Track your resume performance and usage</p>
+          <div className="flex items-center">
+            <button
+              onClick={handleBack}
+              className="mr-4 text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <ArrowLeftIcon className="h-6 w-6" />
+            </button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
+              <p className="mt-2 text-gray-600">Track your resume performance and usage</p>
+            </div>
+          </div>
         </div>
 
         {/* Stats Grid */}
@@ -168,10 +185,17 @@ function AnalyticsDashboard() {
                 </div>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-500">AI Actions This Week</p>
+
+                <p className="text-sm font-medium text-gray-500">AI Actions This Month</p>
                 <p className="text-lg font-semibold text-gray-900">
                   {subscription.aiActionsUsed} / {subscription.aiActionsLimit === -1 ? '∞' : subscription.aiActionsLimit}
                 </p>
+                <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                  <div 
+                    className="bg-orange-600 h-2 rounded-full" 
+                    style={{ width: `${Math.min((subscription.aiActionsUsed / subscription.aiActionsLimit) * 100, 100)}%` }}
+                  ></div>
+                </div>
               </div>
             </div>
           </div>
