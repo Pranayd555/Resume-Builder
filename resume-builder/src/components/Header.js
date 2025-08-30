@@ -5,6 +5,7 @@ import {
   Bars3Icon,
   ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline';
+import { apiHelpers } from '../services/api';
 
 function Header() {
   const navigate = useNavigate();
@@ -25,7 +26,8 @@ function Header() {
     if (userData.profilePicture.type === 'avatar' && userData.profilePicture.avatarUrl) {
       url = userData.profilePicture.avatarUrl;
     } else if (userData.profilePicture.type === 'uploaded' && userData.profilePicture.uploadedPhoto) {
-      url = userData.profilePicture.uploadedPhoto.thumbnailUrl || userData.profilePicture.uploadedPhoto.url;
+      url = userData.profilePicture.uploadedPhoto.thumbnailUrl || userData.profilePicture.uploadedPhoto.avatarUrl;
+      url = apiHelpers.normalizeUrl(url);
     }
     
     // Legacy support for old structure

@@ -12,7 +12,6 @@ import Layout from './components/Layout';
 import Login from './components/login';
 import Register from './components/Register';
 import ResumeList from './components/resume-list';
-import ResumeEditor from './components/resume-editor';
 import ResumeTemplates from './components/resume-templates';
 import ResumeForm from './components/ResumeForm';
 import TemplateSelection from './components/TemplateSelection';
@@ -99,22 +98,7 @@ function App() {
                 } 
               />
 
-              <Route 
-                path="/resume-editor" 
-                element={
-                  <ProtectedRoute>
-                    <ResumeEditor />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/resume-editor/:id" 
-                element={
-                  <ProtectedRoute>
-                    <ResumeEditor />
-                  </ProtectedRoute>
-                } 
-              />
+
               <Route 
                 path="/resume-templates" 
                 element={

@@ -32,6 +32,19 @@ const app = express();
 // Trust proxy for deployment
 app.set('trust proxy', 1);
 
+// Set server timeout for long-running requests (like AI model initialization)
+app.use((req, res, next) => {
+  // Set timeout to 5 minutes for AI-related endpoints
+  if (req.path.includes('/parse-resume') || req.path.includes('/ai/')) {
+    req.setTimeout(300000); // 5 minutes
+    res.setTimeout(300000); // 5 minutes
+  } else {
+    req.setTimeout(30000); // 30 seconds for other requests
+    res.setTimeout(30000); // 30 seconds for other requests
+  }
+  next();
+});
+
 // Security middleware
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },

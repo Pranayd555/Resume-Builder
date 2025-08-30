@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { subscriptionAPI } from '../services/api';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 function Subscription() {
   const navigate = useNavigate();
@@ -190,9 +189,11 @@ function Subscription() {
           <div className="flex items-center flex-1 min-w-0">
             <button
               onClick={handleBack}
-              className="mr-4 sm:mr-6 text-gray-600 hover:text-gray-900 transition-colors p-2 rounded-lg hover:bg-white/50 backdrop-blur-sm flex-shrink-0"
+              className="mr-4 sm:mr-6 text-gray-600 hover:text-gray-900 transition-colors p-2 rounded-lg hover:bg-white/50 backdrop-blur-sm flex-shrink-0 group"
             >
-              <ArrowLeftIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
             </button>
             <div className="min-w-0 flex-1">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Choose Your Plan</h1>

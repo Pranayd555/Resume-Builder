@@ -6,6 +6,8 @@ const fs = require('fs').promises;
 const { protect } = require('../middleware/auth');
 const User = require('../models/User');
 const logger = require('../utils/logger');
+const pdfParse = require('pdf-parse');
+const mammoth = require('mammoth');
 
 const router = express.Router();
 
@@ -14,14 +16,14 @@ const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 10 * 1024 * 1024, // 10MB limit for PDFs
   },
   fileFilter: (req, file, cb) => {
-    // Allow images only
-    if (file.mimetype.startsWith('image/')) {
+    // Allow images and PDFs
+    if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf' || file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
       cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed!'), false);
+      cb(new Error('Only image, PDF, and Word files are allowed!'), false);
     }
   },
 });
@@ -29,8 +31,10 @@ const upload = multer({
 // Ensure uploads directory exists
 const ensureUploadDirs = async () => {
   const uploadDir = path.join(__dirname, '..', 'uploads', 'profile-pictures');
+  const resumeDir = path.join(__dirname, '..', 'uploads', 'resumes');
   try {
     await fs.mkdir(uploadDir, { recursive: true });
+    await fs.mkdir(resumeDir, { recursive: true });
   } catch (error) {
     logger.error('Failed to create upload directories:', error);
   }
@@ -45,7 +49,7 @@ const handleMulterError = (error, req, res, next) => {
     if (error.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({
         success: false,
-        error: 'File too large. Maximum size is 5MB.'
+        error: 'File too large. Maximum size is 10MB.'
       });
     }
     if (error.code === 'UNEXPECTED_FIELD') {
@@ -60,15 +64,104 @@ const handleMulterError = (error, req, res, next) => {
     });
   }
   
-  if (error.message === 'Only image files are allowed!') {
+  if (error.message === 'Only image, PDF, and Word files are allowed!') {
     return res.status(400).json({
       success: false,
-      error: 'Only image files are allowed'
+      error: 'Only image, PDF, and Word files are allowed'
     });
   }
 
   next(error);
 };
+
+// @desc    Upload and parse resume (PDF/Word)
+// @route   POST /api/uploads/parse-resume
+// @access  Private
+router.post('/parse-resume', protect, (req, res, next) => {
+  upload.single('file')(req, res, (err) => {
+    if (err) {
+      return handleMulterError(err, req, res, next);
+    }
+    next();
+  });
+}, async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'No file uploaded'
+      });
+    }
+
+    const { originalname, mimetype, buffer } = req.file;
+    logger.info(`Resume upload request: ${originalname} (${mimetype}) by user ${req.user.email}`);
+
+    // Validate file type
+    const allowedTypes = [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/msword'
+    ];
+
+    if (!allowedTypes.includes(mimetype)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Unsupported file type. Please upload a PDF or Word document.'
+      });
+    }
+
+    let extractedText = '';
+
+    // Extract text based on file type
+    try {
+      if (mimetype === 'application/pdf') {
+        logger.info('Extracting text from PDF using pdf-parse');
+        const pdfData = await pdfParse(buffer);
+        extractedText = pdfData.text;
+        logger.info(`PDF text extracted successfully: ${originalname}`);
+      } else if (mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
+                 mimetype === 'application/msword') {
+        logger.info('Extracting text from Word document using mammoth');
+        const result = await mammoth.extractRawText({ buffer });
+        extractedText = result.value;
+        logger.info(`Word document text extracted successfully: ${originalname}`);
+      }
+
+      if (!extractedText || extractedText.trim().length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'No text could be extracted from the file. Please ensure the document contains readable text.'
+        });
+      }
+
+      logger.info(`Resume text extracted successfully: ${originalname} by user ${req.user.email}`);
+      logger.info(`Extracted text length: ${extractedText.length} characters`);
+
+      res.json({
+        success: true,
+        data: {
+          originalText: extractedText,
+          fileName: originalname,
+          message: 'Resume text extracted successfully'
+        }
+      });
+
+    } catch (extractionError) {
+      logger.error('Text extraction error:', extractionError);
+      return res.status(400).json({
+        success: false,
+        error: 'Failed to extract text from the file. Please ensure it contains readable text.'
+      });
+    }
+
+  } catch (error) {
+    logger.error('Resume parsing error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error during resume parsing'
+    });
+  }
+});
 
 // @desc    Upload profile picture
 // @route   POST /api/uploads/profile-picture

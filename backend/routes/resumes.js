@@ -1320,10 +1320,20 @@ router.get('/:id/download/docx', protect, async (req, res) => {
               ul, ol {
                   margin-left: 20pt;
                   margin-bottom: 6pt;
+                  padding-left: 1rem;
               }
               
               li {
                   margin-bottom: 3pt;
+                  line-height: 1.3;
+              }
+              
+              ul {
+                  list-style-type: disc;
+              }
+              
+              ol {
+                  list-style-type: decimal;
               }
           </style>
       </head>

@@ -1,0 +1,79 @@
+import React, { useEffect, useRef } from 'react';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import './CKEditor.css';
+
+const CKEditor = ({
+  value,
+  onChange,
+  placeholder = "",
+  className = "",
+  readOnly = false
+}) => {
+  const editorRef = useRef(null);
+  const editorInstanceRef = useRef(null);
+  const onChangeRef = useRef(onChange);
+
+  // Update the ref when onChange changes
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  // Initialize editor only once
+  useEffect(() => {
+    if (editorRef.current && !editorInstanceRef.current) {
+      ClassicEditor
+        .create(editorRef.current, {
+          toolbar: {
+            items: [
+              'bold',
+              'italic',
+              '|',
+              'bulletedList',
+              'numberedList'
+            ]
+          },
+          placeholder: placeholder,
+          readOnly: readOnly
+        })
+        .then(editor => {
+          editorInstanceRef.current = editor;
+          
+          // Set initial content
+          if (value) {
+            editor.setData(value);
+          }
+          
+          // Listen for changes
+          editor.model.document.on('change:data', () => {
+            const data = editor.getData();
+            onChangeRef.current(data);
+          });
+        })
+        .catch(error => {
+          console.error('CKEditor initialization error:', error);
+        });
+    }
+
+    return () => {
+      if (editorInstanceRef.current) {
+        editorInstanceRef.current.destroy();
+        editorInstanceRef.current = null;
+      }
+    };
+  },); // Removed handleChange from dependencies
+
+  // Handle value updates separately
+  useEffect(() => {
+    if (editorInstanceRef.current && value !== editorInstanceRef.current.getData()) {
+      editorInstanceRef.current.setData(value || '');
+    }
+  }, [value]);
+
+  return (
+    <div className={`ckeditor-container ${className}`}>
+      <div ref={editorRef}></div>
+    </div>
+  );
+};
+
+export default CKEditor;
