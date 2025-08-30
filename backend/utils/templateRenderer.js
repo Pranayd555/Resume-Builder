@@ -32,6 +32,11 @@ handlebars.registerHelper('isCurrentlyStudying', function(education) {
   return education && education.some(edu => edu.isCurrentlyStudying);
 });
 
+handlebars.registerHelper('join', function(array, separator) {
+  if (!array || !Array.isArray(array)) return '';
+  return array.join(separator || ', ');
+});
+
 /**
  * Optimized Template Renderer with CSS Caching
  * Replaces inefficient string concatenation with template-based CSS generation
@@ -293,6 +298,22 @@ class OptimizedTemplateRenderer {
       .${uniqueId} .content-grid > *:last-child {
         margin-bottom: 0 !important;
         padding-bottom: 0 !important;
+      }
+      
+      /* General list styling for HTML content in descriptions */
+      .${uniqueId} ul, .${uniqueId} ol { 
+        margin: 0.25rem 0; 
+        padding-left: 1rem; 
+      }
+      .${uniqueId} ul li, .${uniqueId} ol li { 
+        margin-bottom: 0.125rem; 
+        line-height: 1.3; 
+      }
+      .${uniqueId} ul { 
+        list-style-type: disc; 
+      }
+      .${uniqueId} ol { 
+        list-style-type: decimal; 
       }
       
       /* Also remove bottom spacing from last items within sections */

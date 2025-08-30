@@ -238,6 +238,19 @@ router.put('/profile', [
     if (value === '' || value === null || value === undefined) {
       return true; // Allow empty values for clearing profile picture
     }
+    
+    // Check if it's a localhost URL
+    if (value.includes('localhost') || value.includes('127.0.0.1')) {
+      // For localhost URLs, just check if it has a valid URL structure
+      try {
+        const url = new URL(value);
+        return url.protocol === 'http:' || url.protocol === 'https:';
+      } catch (error) {
+        return false;
+      }
+    }
+    
+    // For non-localhost URLs, use the validator
     return validator.isURL(value);
   }).withMessage('Profile picture must be a valid URL or empty to clear'),
   body('profilePictureType').optional().isIn(['uploaded', 'avatar']).withMessage('Profile picture type must be either "uploaded" or "avatar"')
