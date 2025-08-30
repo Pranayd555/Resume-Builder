@@ -1,14 +1,15 @@
 #!/usr/bin/env node
 
 /**
- * Render build script - extracts deployment package and sets up environment
+ * Optimized Render build script - extracts deployment package and installs dependencies
+ * Handles optimized packages without node_modules for faster deployment
  */
 
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-console.log('🚀 Render build process starting...');
+console.log('🚀 Optimized Render build process starting...');
 
 // Check if deployment zip exists
 const zipPath = path.join(__dirname, '..', 'render-deployment.zip');
@@ -20,7 +21,7 @@ if (!fs.existsSync(zipPath)) {
 }
 
 try {
-    console.log('📦 Extracting deployment package...');
+    console.log('📦 Extracting optimized deployment package...');
     
     // Remove existing .npmrc if it exists to avoid conflicts
     const npmrcPath = path.join(__dirname, '..', '.npmrc');
@@ -48,7 +49,7 @@ try {
         });
     }
     
-    console.log('✅ Deployment package extracted successfully');
+    console.log('✅ Optimized deployment package extracted successfully');
     
     // Remove the zip file to save space
     try {
@@ -59,7 +60,7 @@ try {
     }
     
     // Verify essential files exist
-    const essentialFiles = ['package.json', 'server.js'];
+    const essentialFiles = ['package.json', 'package-lock.json', 'server.js'];
     essentialFiles.forEach(file => {
         if (!fs.existsSync(path.join(__dirname, '..', file))) {
             throw new Error(`Essential file missing: ${file}`);
@@ -74,6 +75,39 @@ try {
     }
     
     console.log('✅ Build verification completed');
+    
+    // Install dependencies using package-lock.json for faster, deterministic installs
+    console.log('📦 Installing dependencies from package-lock.json...');
+    try {
+        // Set environment variables for optimized npm install
+        process.env.NODE_ENV = 'production';
+        process.env.NPM_CONFIG_PREFER_OFFLINE = 'true';
+        process.env.NPM_CONFIG_NO_AUDIT = 'true';
+        process.env.NPM_CONFIG_NO_OPTIONAL = 'true';
+        process.env.NPM_CONFIG_PROGRESS = 'false';
+        
+        // Install using package-lock.json for faster, deterministic installs
+        execSync('npm ci --only=production --no-audit --progress=false', {
+            stdio: 'inherit',
+            cwd: path.join(__dirname, '..'),
+            timeout: 300000 // 5 minutes timeout
+        });
+        console.log('✅ Dependencies installed successfully using package-lock.json');
+        
+    } catch (installError) {
+        console.log('⚠️ npm ci failed, trying npm install...');
+        try {
+            execSync('npm install --only=production --no-audit --progress=false', {
+                stdio: 'inherit',
+                cwd: path.join(__dirname, '..'),
+                timeout: 300000
+            });
+            console.log('✅ Dependencies installed successfully using npm install');
+        } catch (fallbackError) {
+            console.log('❌ Both npm ci and npm install failed');
+            throw fallbackError;
+        }
+    }
     
     // Handle platform-specific dependencies for Linux deployment
     console.log('🔧 Handling platform-specific dependencies...');
@@ -121,9 +155,18 @@ try {
         }
     }
     
-    // Skip trying to install Chromium on Render. We use @sparticuz/chromium which bundles a compatible binary.
+    // Verify final installation
+    console.log('🔍 Verifying installation...');
+    const nodeModulesPath = path.join(__dirname, '..', 'node_modules');
+    if (fs.existsSync(nodeModulesPath)) {
+        const nodeModulesStats = fs.statSync(nodeModulesPath);
+        console.log(`✅ node_modules created: ${nodeModulesStats.size} bytes`);
+    } else {
+        throw new Error('node_modules directory not found after installation');
+    }
     
     console.log('🚀 Ready to start application');
+    console.log('⚡ Optimized build completed successfully!');
     
 } catch (error) {
     console.error('❌ Build failed:', error.message);
