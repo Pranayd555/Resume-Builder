@@ -45,140 +45,245 @@ class PuppeteerThumbnailGenerator {
 
   generateSampleData() {
     return {
-      personalInfo: {
-        fullName: 'John Smith',
-        email: 'john.smith@email.com',
-        phone: '(555) 123-4567',
-        address: 'New York, NY',
-        linkedin: 'linkedin.com/in/johnsmith',
-        website: 'johnsmith.dev'
-      },
-      summary: 'Experienced software engineer with 5+ years of expertise in full-stack development, cloud architecture, and team leadership. Proven track record of delivering scalable solutions and mentoring junior developers.',
-      workExperience: [
+      "personalInfo": {
+        "fullName": "John Doe",
+        "email": "John@yopmail.com",
+        "phone": "+91 7689878934",
+        "address": "DN-53, Salt Lake, Sector-v",
+        "website": "",
+        "linkedin": "https://linkedin.com/john",
+        "github": "https://github.com/john"
+    },
+    "styling": {
+        "template": {
+            "headerLevel": "h3",
+            "headerFontSize": 18,
+            "fontSize": 12,
+            "lineSpacing": 1.3,
+            "sectionSpacing": 1
+        },
+        "header": {
+            "labelSize": "medium",
+            "size": "medium",
+            "spacing": "normal",
+            "textSize": "medium"
+        },
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "primaryColor": "#2563eb",
+        "secondaryColor": "#64748b"
+    },
+    "analytics": {
+        "views": 52,
+        "shares": 0,
+        "lastViewed": "2025-08-29T16:01:43.307Z",
+        "downloads": 6,
+        "lastDownloaded": "2025-08-29T16:00:48.195Z"
+    },
+    "title": "aaaBBDJSd",
+    "summary": "<p>A Senior Software Developer is a highly experienced professional responsible for designing, defveloping, testing, and maintaining complex software applications. They lead development teams, make architectural decisions, mentor junior developers, and ensure high-quality code through best practices and efficient workflows.ffcvvcvcvcv</p><p>fdfd</p>",
+    "workExperience": [
         {
-          jobTitle: 'Senior Software Engineer',
-          company: 'Tech Corp',
-          location: 'New York, NY',
-          startDate: '2022-01-01',
-          endDate: null,
-          isCurrentJob: true,
-          description: 'Lead development of microservices architecture serving 1M+ users',
-          achievements: [
-            'Reduced system latency by 40% through optimization',
-            'Mentored 5 junior developers and improved team productivity',
-            'Implemented CI/CD pipeline reducing deployment time by 60%'
-          ]
+            "jobTitle": "trainee",
+            "company": "TCS",
+            "location": "Kolkata",
+            "startDate": "2018-01-04T00:00:00.000Z",
+            "endDate": null,
+            "isCurrentJob": true,
+            "description": "<ul><li>A Senior Software Developer is a highly experienced professional responsible for designing, developing, testing, and maintaining complex software applications.&nbsp;</li><li>They lead development teams, make architectural decisions, mentor junior developers, and ensure high-quality code through best practices and efficient workflows.</li></ul>",
+            "achievements": [],
+            "_id": "68b1be4539fdbe1114618348",
+            "id": "68b1be4539fdbe1114618348"
         },
         {
-          jobTitle: 'Software Engineer',
-          company: 'StartupXYZ',
-          location: 'San Francisco, CA',
-          startDate: '2020-06-01',
-          endDate: '2021-12-31',
-          isCurrentJob: false,
-          description: 'Developed full-stack applications using React, Node.js, and AWS',
-          achievements: [
-            'Built customer dashboard serving 10K+ users',
-            'Integrated payment processing system with 99.9% uptime'
-          ]
+            "jobTitle": "Software developer",
+            "company": "ITC",
+            "location": "Kolkata",
+            "startDate": "2022-07-19T00:00:00.000Z",
+            "endDate": null,
+            "isCurrentJob": true,
+            "description": "<ol><li>A Senior Software Developer is a highly experienced professional responsible for designing, developing, testing, and maintaining complex software applications.&nbsp;</li><li>They lead development teams, make architectural decisions, mentor junior developers, and ensure high-quality code through best practices and efficient workflows.</li></ol>",
+            "achievements": [],
+            "_id": "68b1be4539fdbe1114618349",
+            "id": "68b1be4539fdbe1114618349"
         }
-      ],
-      education: [
+    ],
+    "education": [
         {
-          degree: 'Master of Science in Computer Science',
-          institution: 'Stanford University',
-          location: 'Stanford, CA',
-          startDate: '2018-09-01',
-          endDate: '2020-05-01',
-          isCurrentlyStudying: false,
-          gpa: '3.8',
-          description: 'Specialized in Machine Learning and Distributed Systems'
+            "degree": "Btech",
+            "institution": "MAKAUT",
+            "location": "Kolkata",
+            "startDate": "2013-02-05T00:00:00.000Z",
+            "endDate": "2018-05-31T00:00:00.000Z",
+            "isCurrentlyStudying": false,
+            "gpa": 7.6,
+            "description": "",
+            "_id": "68b1be4539fdbe111461834a",
+            "id": "68b1be4539fdbe111461834a"
         },
         {
-          degree: 'Bachelor of Science in Computer Science',
-          institution: 'UC Berkeley',
-          location: 'Berkeley, CA',
-          startDate: '2014-09-01',
-          endDate: '2018-05-01',
-          isCurrentlyStudying: false,
-          gpa: '3.6'
+            "degree": "12th",
+            "institution": "A B C High School",
+            "location": "Kolkata",
+            "startDate": "2013-02-05T00:00:00.000Z",
+            "endDate": "2018-05-31T00:00:00.000Z",
+            "isCurrentlyStudying": false,
+            "gpa": 7.6,
+            "description": "",
+            "_id": "68b1be4539fdbe111461834a",
+            "id": "68b1be4539fdbe111461834a"
+        },
+        {
+            "degree": "10th",
+            "institution": "D A V Public School",
+            "location": "Kolkata",
+            "startDate": "2013-02-05T00:00:00.000Z",
+            "endDate": "2018-05-31T00:00:00.000Z",
+            "isCurrentlyStudying": false,
+            "gpa": 7.6,
+            "description": "",
+            "_id": "68b1be4539fdbe111461834a",
+            "id": "68b1be4539fdbe111461834a"
         }
-      ],
-      skills: [
+    ],
+    "skills": [
         {
-          category: 'Programming Languages',
-          items: [
-            { name: 'JavaScript', level: 90 },
-            { name: 'Python', level: 85 },
-            { name: 'Java', level: 80 },
-            { name: 'TypeScript', level: 85 }
-          ]
+            "category": "Technical",
+            "items": [
+                {
+                    "name": "Angular",
+                    "level": "intermediate",
+                    "_id": "68b1be4539fdbe111461834c",
+                    "id": "68b1be4539fdbe111461834c"
+                },
+                {
+                    "name": "Javascript",
+                    "level": "intermediate",
+                    "_id": "68b1be4539fdbe111461834d",
+                    "id": "68b1be4539fdbe111461834d"
+                },
+                {
+                    "name": "HTML",
+                    "level": "intermediate",
+                    "_id": "68b1be4539fdbe111461834e",
+                    "id": "68b1be4539fdbe111461834e"
+                },
+                {
+                    "name": "CSS",
+                    "level": "intermediate",
+                    "_id": "68b1be4539fdbe111461834f",
+                    "id": "68b1be4539fdbe111461834f"
+                },
+                {
+                    "name": "React",
+                    "level": "intermediate",
+                    "_id": "68b1be4539fdbe1114618350",
+                    "id": "68b1be4539fdbe1114618350"
+                }
+            ],
+            "_id": "68b1be4539fdbe111461834b",
+            "id": "68b1be4539fdbe111461834b"
         },
         {
-          category: 'Frameworks & Libraries',
-          items: [
-            { name: 'React', level: 90 },
-            { name: 'Node.js', level: 85 },
-            { name: 'Express.js', level: 85 },
-            { name: 'Django', level: 75 }
-          ]
-        },
-        {
-          category: 'Tools & Technologies',
-          items: [
-            { name: 'AWS', level: 80 },
-            { name: 'Docker', level: 75 },
-            { name: 'Git', level: 90 },
-            { name: 'MongoDB', level: 80 }
-          ]
+            "category": "Management skills",
+            "items": [
+                {
+                    "name": "Jira",
+                    "level": "intermediate",
+                    "_id": "68b1be4539fdbe1114618352",
+                    "id": "68b1be4539fdbe1114618352"
+                },
+                {
+                    "name": "Azure",
+                    "level": "intermediate",
+                    "_id": "68b1be4539fdbe1114618353",
+                    "id": "68b1be4539fdbe1114618353"
+                },
+                {
+                    "name": "Github",
+                    "level": "intermediate",
+                    "_id": "68b1be4539fdbe1114618354",
+                    "id": "68b1be4539fdbe1114618354"
+                }
+            ],
+            "_id": "68b1be4539fdbe1114618351",
+            "id": "68b1be4539fdbe1114618351"
         }
-      ],
-      projects: [
+    ],
+    "projects": [
         {
-          name: 'E-commerce Platform',
-          description: 'Full-stack e-commerce solution with React frontend and Node.js backend',
-          technologies: ['React', 'Node.js', 'MongoDB', 'Stripe'],
-          url: 'https://github.com/johnsmith/ecommerce',
-          startDate: '2023-01-01',
-          endDate: '2023-06-01'
+            "name": "OMSA",
+            "description": "It was a development project",
+            "technologies": [
+                "Angular",
+                "Nodejs",
+                "Jqurey",
+                "Rxjs"
+            ],
+            "url": "",
+            "githubUrl": "",
+            "startDate": null,
+            "endDate": null,
+            "_id": "68b1be4539fdbe1114618355",
+            "id": "68b1be4539fdbe1114618355"
         },
         {
-          name: 'Real-time Chat Application',
-          description: 'WebSocket-based chat application with real-time messaging',
-          technologies: ['Socket.io', 'React', 'Express.js', 'Redis'],
-          url: 'https://github.com/johnsmith/chatapp',
-          startDate: '2022-08-01',
-          endDate: '2022-12-01'
+            "name": "Mondee",
+            "description": "It was an enhancement project",
+            "technologies": [
+                "Angular",
+                "Nodejs",
+                "Jqurey",
+                "Rxjs"
+            ],
+            "url": "",
+            "githubUrl": "",
+            "startDate": null,
+            "endDate": null,
+            "_id": "68b1be4539fdbe1114618356",
+            "id": "68b1be4539fdbe1114618356"
         }
-      ],
-      certifications: [
+    ],
+    "achievements": [
         {
-          name: 'AWS Certified Solutions Architect',
-          issuer: 'Amazon Web Services',
-          date: '2023-03-01',
-          credentialId: 'AWS-SA-2023-001'
+            "title": "On the spot team award",
+            "description": "",
+            "date": null,
+            "issuer": "TCS",
+            "_id": "68b1be4539fdbe1114618357",
+            "id": "68b1be4539fdbe1114618357"
         },
         {
-          name: 'Google Cloud Professional Developer',
-          issuer: 'Google Cloud',
-          date: '2022-11-01',
-          credentialId: 'GCP-PD-2022-001'
+            "title": "Best team award",
+            "description": "",
+            "date": null,
+            "issuer": "TCS",
+            "_id": "68b1be4539fdbe1114618358",
+            "id": "68b1be4539fdbe1114618358"
         }
-      ],
-      achievements: [
+    ],
+    "certifications": [
         {
-          title: 'Employee of the Year',
-          description: 'Recognized for outstanding contribution to company growth',
-          date: '2023-01-01',
-          issuer: 'Tech Corp'
+            "name": "Javascript fundamentals",
+            "issuer": "Meta",
+            "date": null,
+            "expiryDate": null,
+            "credentialId": "",
+            "url": "",
+            "_id": "68b1be4539fdbe1114618359",
+            "id": "68b1be4539fdbe1114618359"
         },
         {
-          title: 'Hackathon Winner',
-          description: 'First place in company-wide innovation hackathon',
-          date: '2022-06-01',
-          issuer: 'StartupXYZ'
+            "name": "Angular Intermediate",
+            "issuer": "Jobsschool",
+            "date": null,
+            "expiryDate": null,
+            "credentialId": "",
+            "url": "",
+            "_id": "68b1be4539fdbe111461835a",
+            "id": "68b1be4539fdbe111461835a"
         }
-      ],
+    ],
       languages: [
         { name: 'English', proficiency: 'Native' },
         { name: 'Spanish', proficiency: 'Conversational' },
