@@ -4,7 +4,7 @@ import { API_BASE_URL } from '../config/api';
 // Create axios instance with base configuration
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 30000, // Increased from 10 seconds to 30 seconds
   headers: {
     'Content-Type': 'application/json',
   },
@@ -346,6 +346,16 @@ export const uploadAPI = {
 
   deleteFile: async (fileId) => {
     const response = await api.delete(`/uploads/${fileId}`);
+    return response.data;
+  },
+
+  uploadResume: async (formData) => {
+    const response = await api.post('/uploads/parse-resume', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      timeout: 300000, // Increased to 5 minutes for AI model initialization
+    });
     return response.data;
   },
 };
