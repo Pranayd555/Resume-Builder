@@ -264,6 +264,15 @@ function ResumeList() {
       }
       return;
     }
+
+    const userData = apiHelpers.getCurrentUserData();
+    if (!userData) {
+      toast.error('Please login to create a new resume');
+      return;
+    } else if (!userData.firstName || !userData.lastName || !userData.email || !userData.phone) {
+      toast.error('Please complete your profile before creating a new resume');
+      return;
+    }
     
     // Clear any existing form data from localStorage to ensure fresh form
     localStorage.removeItem('resume_form_data');
@@ -274,7 +283,11 @@ function ResumeList() {
     });
   };
 
-  const handleResumeClick = (resumeId) => {
+  const handleResumeClick = (resumeId, resumeStatus) => {
+    if (resumeStatus === 'draft') {
+      toast.error('Cannot preview draft resumes. Please publish the resume first.');
+      return;
+    }
     navigate(`/resume-preview/${resumeId}`);
   };
 
@@ -777,7 +790,7 @@ function ResumeList() {
               <div 
                 key={resume.id}
                 className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 overflow-hidden cursor-pointer hover:bg-white/80 transition-all duration-200 hover:shadow-2xl hover:scale-105 group"
-                onClick={() => handleResumeClick(resume.id)}
+                onClick={() => handleResumeClick(resume.id, resume.status)}
               >
                 {/* Card Header */}
                 <div className="p-6 pb-4">

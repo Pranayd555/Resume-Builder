@@ -57,7 +57,7 @@ function ResumeTemplates() {
   const handleApplyTemplate = () => {
     if (selectedTemplate) {
       console.log('Applying template:', selectedTemplate);
-      navigate('/resume-editor', { state: { template: selectedTemplate } });
+      navigate('/resume-form', { state: { template: selectedTemplate } });
     }
   };
 
