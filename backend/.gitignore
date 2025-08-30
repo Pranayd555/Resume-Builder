@@ -128,4 +128,5 @@ public/uploads/
 # Large zip files - excluded from git completely
 *.zip
 node_modules.zip
-render-deployment.zip 
+# Allow render-deployment.zip for automated deployments
+!render-deployment.zip 
