@@ -26,6 +26,45 @@
   .form-input {
     @apply focus:outline-none focus:ring-0 border-none;
   }
+  
+  /* A4 Aspect Ratio Container */
+  .aspect-a4 {
+    aspect-ratio: 1 / 1.414;
+  }
+  
+  /* Resume Template Card */
+  .template-card {
+    @apply bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-xl;
+  }
+  
+  .template-card:hover {
+    @apply transform scale-105;
+  }
+  
+  /* Template Image Container */
+  .template-image-container {
+    @apply w-full aspect-a4 bg-white flex items-center justify-center overflow-hidden p-2;
+  }
+  
+  .template-image {
+    @apply w-full h-full object-contain max-w-full max-h-full;
+  }
+  
+  /* Carousel Navigation */
+  .carousel-nav-button {
+    @apply w-10 h-10 bg-white rounded-full shadow-lg border border-gray-200 text-gray-600 hover:text-blue-600 hover:shadow-xl transition-all duration-200;
+  }
+  
+  /* Mobile Optimizations */
+  @media (max-width: 640px) {
+    .template-card {
+      @apply shadow-md;
+    }
+    
+    .template-card:hover {
+      @apply transform-none;
+    }
+  }
 }
 
 @layer utilities {
@@ -69,5 +108,43 @@
   .scrollbar-hide {
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
+  }
+  
+  /* Line clamp utilities */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+  
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+  
+  /* Swiper customizations */
+  .swiper-pagination-bullet {
+    @apply bg-blue-400 opacity-50 transition-all duration-300;
+  }
+  
+  .swiper-pagination-bullet-active {
+    @apply bg-blue-600 opacity-100 transform scale-125;
+  }
+  
+  /* Mobile touch optimizations */
+  @media (max-width: 640px) {
+    .swiper-slide {
+      @apply touch-pan-y;
+    }
   }
 }
