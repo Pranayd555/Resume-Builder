@@ -82,6 +82,7 @@ export const createResumeModel = (data = {}) => ({
   isPublic: data.isPublic || false,
   isActive: data.isActive || false,
   analytics: data.analytics || createAnalyticsModel(),
+  extractedText: data.extractedText || '', // Store extracted text from uploaded resume
   createdAt: data.createdAt || new Date().toISOString(),
   updatedAt: data.updatedAt || new Date().toISOString(),
 });

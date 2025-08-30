@@ -14,7 +14,6 @@ import {
   EyeIcon,
   ExclamationTriangleIcon,
   TrashIcon,
-  ArrowLeftIcon,
   InformationCircleIcon,
   LockClosedIcon
 } from '@heroicons/react/24/outline';
@@ -48,9 +47,62 @@ function Profile() {
     confirmPassword: ''
   });
   
+  // Validation state
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
+  
   // State for scroll functionality
   const [justSaved, setJustSaved] = useState(false);
   
+  // Validation functions
+  const validateField = (name, value) => {
+    switch (name) {
+      case 'firstName':
+        if (!value.trim()) return 'First name is required';
+        if (value.trim().length < 2) return 'First name must be at least 2 characters';
+        if (value.trim().length > 50) return 'First name must be less than 50 characters';
+        if (!/^[a-zA-Z\s'-]+$/.test(value.trim())) return 'First name can only contain letters, spaces, hyphens, and apostrophes';
+        return '';
+      
+      case 'lastName':
+        if (!value.trim()) return 'Last name is required';
+        if (value.trim().length < 2) return 'Last name must be at least 2 characters';
+        if (value.trim().length > 50) return 'Last name must be less than 50 characters';
+        if (!/^[a-zA-Z\s'-]+$/.test(value.trim())) return 'Last name can only contain letters, spaces, hyphens, and apostrophes';
+        return '';
+      
+      case 'email':
+        if (!value.trim()) return 'Email is required';
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value.trim())) return 'Please enter a valid email address';
+        return '';
+      
+                           case 'phone':
+          if (!value.trim()) return 'Phone number is required';
+          const phoneRegex = /^[+]?[1-9][\d]{0,15}$/;
+          const cleanPhone = value.replace(/[\s\-().]/g, '');
+          if (!phoneRegex.test(cleanPhone)) return 'Please enter a valid phone number';
+          return '';
+      
+      
+      
+      default:
+        return '';
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    Object.keys(profile).forEach(key => {
+      if (key !== 'profilePicture' && key !== 'profilePictureOriginal' && key !== 'profilePictureAvatar') {
+        const error = validateField(key, profile[key]);
+        if (error) newErrors[key] = error;
+      }
+    });
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   // Auto-scroll hooks (declared after all state variables)
   const { ref: profilePhotoRef } = useAutoScroll(false, { 
     block: 'center', 
@@ -198,7 +250,8 @@ function Profile() {
         bio: user.bio || '',
         profilePicture: profilePictureUrl,
         profilePictureOriginal: profilePictureOriginalUrl,
-        profilePictureAvatar: profilePictureAvatarUrl
+        profilePictureAvatar: profilePictureAvatarUrl,
+        
       };
       setProfile(userProfile);
       setOriginalProfile(userProfile);
@@ -210,6 +263,28 @@ function Profile() {
       ...prev,
       [field]: value
     }));
+    
+    // Validate field on change if it has been touched
+    if (touched[field]) {
+      const error = validateField(field, value);
+      setErrors(prev => ({
+        ...prev,
+        [field]: error
+      }));
+    }
+  };
+
+  const handleFieldBlur = (field) => {
+    setTouched(prev => ({
+      ...prev,
+      [field]: true
+    }));
+    
+    const error = validateField(field, profile[field]);
+    setErrors(prev => ({
+      ...prev,
+      [field]: error
+    }));
   };
 
   const handlePasswordChange = (field, value) => {
@@ -220,6 +295,21 @@ function Profile() {
   };
 
   const handleSave = async () => {
+    // Mark all fields as touched and validate
+    const allTouched = {};
+    Object.keys(profile).forEach(key => {
+      if (key !== 'profilePicture' && key !== 'profilePictureOriginal' && key !== 'profilePictureAvatar') {
+        allTouched[key] = true;
+      }
+    });
+    setTouched(allTouched);
+    
+    // Validate form
+    if (!validateForm()) {
+      toast.error('Please fill in all the required fields');
+      return;
+    }
+    
     try {
       setLoading(true);
       const response = await authAPI.updateProfile(profile);
@@ -228,6 +318,10 @@ function Profile() {
         updateAuthUser(response.data.user);
         setOriginalProfile(profile);
         setIsEditing(false);
+        
+        // Clear errors and touched state
+        setErrors({});
+        setTouched({});
         
         // Trigger scroll to top after successful save
         setJustSaved(true);
@@ -248,6 +342,10 @@ function Profile() {
   const handleCancel = () => {
     setProfile(originalProfile);
     setIsEditing(false);
+    
+    // Clear validation state
+    setErrors({});
+    setTouched({});
     
     // Scroll to top when canceling edit
     setTimeout(() => {
@@ -492,9 +590,11 @@ function Profile() {
           <div className="flex items-center">
             <button
               onClick={handleBack}
-              className="mr-4 text-gray-600 hover:text-gray-900 transition-colors"
+              className="mr-4 text-gray-600 hover:text-gray-900 transition-colors group"
             >
-              <ArrowLeftIcon className="h-6 w-6" />
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
             </button>
             <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
           </div>
@@ -651,30 +751,48 @@ function Profile() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    First Name
+                    First Name <span className="text-red-500">*</span>
                   </label>
                   {isEditing ? (
-                    <input
-                      type="text"
-                      value={profile.firstName}
-                      onChange={(e) => handleInputChange('firstName', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm"
-                    />
+                    <div>
+                      <input
+                        type="text"
+                        value={profile.firstName}
+                        onChange={(e) => handleInputChange('firstName', e.target.value)}
+                        onBlur={() => handleFieldBlur('firstName')}
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm ${
+                          errors.firstName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+                        }`}
+                        placeholder="Enter your first name"
+                      />
+                      {errors.firstName && (
+                        <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
+                      )}
+                    </div>
                   ) : (
                     <p className="text-gray-900 font-medium">{profile.firstName}</p>
                   )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Last Name
+                    Last Name <span className="text-red-500">*</span>
                   </label>
                   {isEditing ? (
-                    <input
-                      type="text"
-                      value={profile.lastName}
-                      onChange={(e) => handleInputChange('lastName', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm"
-                    />
+                    <div>
+                      <input
+                        type="text"
+                        value={profile.lastName}
+                        onChange={(e) => handleInputChange('lastName', e.target.value)}
+                        onBlur={() => handleFieldBlur('lastName')}
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm ${
+                          errors.lastName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+                        }`}
+                        placeholder="Enter your last name"
+                      />
+                      {errors.lastName && (
+                        <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
+                      )}
+                    </div>
                   ) : (
                     <p className="text-gray-900 font-medium">{profile.lastName}</p>
                   )}
@@ -683,31 +801,49 @@ function Profile() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email
+                  Email <span className="text-red-500">*</span>
                 </label>
                 {isEditing ? (
-                  <input
-                    type="email"
-                    value={profile.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm"
-                  />
+                  <div>
+                    <input
+                      type="email"
+                      value={profile.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      onBlur={() => handleFieldBlur('email')}
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm ${
+                        errors.email ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="Enter your email address"
+                    />
+                    {errors.email && (
+                      <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                    )}
+                  </div>
                 ) : (
                   <p className="text-gray-900 font-medium">{profile.email}</p>
                 )}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Phone
-                </label>
+                             <div>
+                 <label className="block text-sm font-medium text-gray-700 mb-2">
+                   Phone <span className="text-red-500">*</span>
+                 </label>
                 {isEditing ? (
-                  <input
-                    type="tel"
-                    value={profile.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm"
-                  />
+                  <div>
+                    <input
+                      type="tel"
+                      value={profile.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      onBlur={() => handleFieldBlur('phone')}
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm ${
+                        errors.phone ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+                      }`}
+                                             placeholder="Enter your phone number"
+                    />
+                    {errors.phone && (
+                      <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
+                    )}
+                  </div>
                 ) : (
                   <p className="text-gray-900 font-medium">{profile.phone}</p>
                 )}
@@ -723,11 +859,14 @@ function Profile() {
                     value={profile.location}
                     onChange={(e) => handleInputChange('location', e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm"
+                    placeholder="Enter your location (optional)"
                   />
                 ) : (
                   <p className="text-gray-900 font-medium">{profile.location}</p>
                 )}
               </div>
+
+              
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -739,9 +878,10 @@ function Profile() {
                     onChange={(e) => handleInputChange('bio', e.target.value)}
                     rows={3}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm resize-none"
+                    placeholder="Tell us about yourself (optional)"
                   />
                 ) : (
-                  <p className="text-gray-900 leading-relaxed">{profile.bio}</p>
+                  <p className="text-gray-900 leading-relaxed">{profile.bio || <span className="text-gray-500 italic">No bio provided</span>}</p>
                 )}
               </div>
             </div>

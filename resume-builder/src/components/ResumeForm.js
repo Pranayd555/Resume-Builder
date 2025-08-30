@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { resumeAPI, apiHelpers } from '../services/api';
+import { resumeAPI, apiHelpers, uploadAPI } from '../services/api';
 import { toast } from 'react-toastify';
 import { validators } from '../models/dataModels';
 import { useFormScroll, useScrollToTop } from '../hooks/useAutoScroll';
+import { useAuth } from '../contexts/AuthContext';
+import CKEditor from './CKEditor';
+import { ensureHtmlContent } from '../utils/htmlUtils';
+
 import { 
   PlusIcon, 
   TrashIcon,
@@ -11,14 +15,12 @@ import {
   BoltIcon
 } from '@heroicons/react/24/outline';
 
-// Add after the imports and before the ResumeForm function
+// Utility functions
 const formatDateForInput = (dateString) => {
   if (!dateString) return '';
-  // If it's already in YYYY-MM-DD format, return as is
   if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
     return dateString;
   }
-  // If it's an ISO string, convert to YYYY-MM-DD
   try {
     const date = new Date(dateString);
     return date.toISOString().split('T')[0];
@@ -28,9 +30,104 @@ const formatDateForInput = (dateString) => {
   }
 };
 
+// Reusable components
+const FormField = ({ 
+  label, 
+  type = "text", 
+  value, 
+  onChange, 
+  onBlur, 
+  required = false, 
+  placeholder = "", 
+  error = null, 
+  readOnly = false,
+  className = "",
+  ...props 
+}) => {
+  const baseClasses = "w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200";
+  const errorClasses = error ? "border-red-300 focus:border-red-500" : "border-gray-300";
+  const readOnlyClasses = readOnly ? "bg-gray-50 cursor-not-allowed" : "";
+  
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
+      <input
+        type={type}
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+        readOnly={readOnly}
+        className={`${baseClasses} ${errorClasses} ${readOnlyClasses} ${className}`}
+        placeholder={placeholder}
+        {...props}
+      />
+      {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
+    </div>
+  );
+};
+
+const TextAreaField = ({ 
+  label, 
+  value, 
+  onChange, 
+  rows = 3, 
+  placeholder = "", 
+  className = "" 
+}) => (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2">
+      {label}
+    </label>
+    <CKEditor
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      className={className}
+    />
+  </div>
+);
+
+const EmptyState = ({ icon, message }) => (
+  <div className="text-center py-8 text-gray-500">
+    <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      {icon}
+    </svg>
+    <p>{message}</p>
+  </div>
+);
+
+
+const ErrorBanner = ({ message }) => (
+  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+    <div className="flex items-center gap-2">
+      <ExclamationTriangleIcon className="w-5 h-5 text-red-600" />
+      <p className="text-red-700 text-sm font-medium">{message}</p>
+    </div>
+  </div>
+);
+
+// Local storage utility
+const saveToLocalStorage = (formData, currentStep, isEditMode) => {
+  if (isEditMode) return;
+  
+  try {
+    const dataToSave = {
+      formData,
+      currentStep,
+      timestamp: new Date().toISOString()
+    };
+    localStorage.setItem('resume_form_data', JSON.stringify(dataToSave));
+  } catch (error) {
+    console.error('Error saving form data:', error);
+  }
+};
+
 function ResumeForm() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [validationErrors, setValidationErrors] = useState({});
@@ -39,7 +136,6 @@ function ResumeForm() {
   const [showClearModal, setShowClearModal] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
   
-  // Add ref to prevent duplicate API calls during StrictMode
   const hasInitializedRef = useRef(false);
   
   const [formData, setFormData] = useState({
@@ -60,16 +156,17 @@ function ResumeForm() {
     projects: [],
     achievements: [],
     certifications: [],
-    languages: []
+    languages: [],
+    extractedText: '' // Store extracted text from uploaded resume
   });
 
-  // Store raw technologies input for better UX
   const [technologiesInput, setTechnologiesInput] = useState({});
+  const [uploadingResume, setUploadingResume] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState('');
+  const fileInputRef = useRef(null);
 
   const totalSteps = 8;
-  const FORM_STORAGE_KEY = 'resume_form_data';
   
-  // Form scroll functionality
   const fieldOrder = [
     'title', 'fullName', 'email', 'phone', 'address',
     'workExperience_0_jobTitle', 'workExperience_0_company', 'workExperience_0_startDate',
@@ -79,7 +176,154 @@ function ResumeForm() {
   const { scrollToFirstError } = useFormScroll(validationErrors, fieldOrder);
   const { scrollToTop } = useScrollToTop();
 
-  // Helper function to format validation errors from API
+  // Resume upload functions
+  const validateResumeFile = (file) => {
+    const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword'];
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Please upload a PDF or Word document');
+      return false;
+    }
+    
+    if (file.size > maxSize) {
+      toast.error('File size must be less than 10MB');
+      return false;
+    }
+    
+    return true;
+  };
+
+  const handleResumeUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (!validateResumeFile(file)) {
+      event.target.value = '';
+      return;
+    }
+    
+    try {
+      setUploadingResume(true);
+      setUploadedFileName(file.name);
+      
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', 'resume');
+      
+      const response = await uploadAPI.uploadResume(formData);
+      
+      if (response.success) {
+        // Store the extracted text data
+        const extractedText = response.data.originalText;
+        
+        if (extractedText) {
+          // Store the extracted text in form data for reference
+          setFormData(prev => ({
+            ...prev,
+            extractedText: extractedText
+          }));
+          
+          toast.success('Resume text extracted successfully! The extracted content is now available for reference while filling the form.');
+        } else {
+          toast.info('Resume processed successfully! Please manually fill in the form fields.');
+        }
+      } else {
+        throw new Error(response.error || 'Failed to upload resume');
+      }
+    } catch (error) {
+      console.error('Resume upload error:', error);
+      const errorMessage = apiHelpers.formatError(error);
+      toast.error(errorMessage);
+      setUploadedFileName('');
+    } finally {
+      setUploadingResume(false);
+      event.target.value = '';
+    }
+  };
+
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const removeUploadedFile = () => {
+    setUploadedFileName('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Helper functions
+  const loadProfileData = () => {
+    try {
+      const userData = apiHelpers.getCurrentUserData();
+      if (userData) {
+        const fullName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim();
+        const email = userData.email || '';
+        const phone = userData.phone || '';
+        
+        setFormData(prev => ({
+          ...prev,
+          personalInfo: {
+            ...prev.personalInfo,
+            fullName, email, phone
+          }
+        }));
+        
+        return { fullName, email, phone };
+      }
+    } catch (error) {
+      console.error('Error loading profile data:', error);
+    }
+    return { fullName: '', email: '', phone: '' };
+  };
+
+  const validateProfileData = () => {
+    const errors = {};
+    const userData = apiHelpers.getCurrentUserData();
+    
+    if (!userData) {
+      errors.fullName = 'Update your profile to populate full name';
+      errors.email = 'Update your profile to populate email';
+      errors.phone = 'Update your profile to populate phone number';
+      return errors;
+    }
+    
+    const fullName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim();
+    const email = userData.email || '';
+    const phone = userData.phone || '';
+    
+    if (!fullName) errors.fullName = 'Update your profile to populate full name';
+    if (!email) errors.email = 'Update your profile to populate email';
+    if (!phone) errors.phone = 'Update your profile to populate phone number';
+    
+    return errors;
+  };
+
+  // Process form data loaded from localStorage to ensure HTML content is properly handled
+  const processLoadedFormData = (data) => {
+    return {
+      ...data,
+      summary: ensureHtmlContent(data.summary || ''),
+      workExperience: (data.workExperience || []).map(exp => ({
+        ...exp,
+        description: ensureHtmlContent(exp.description || '')
+      })),
+      education: (data.education || []).map(edu => ({
+        ...edu,
+        description: ensureHtmlContent(edu.description || '')
+      })),
+      projects: (data.projects || []).map(proj => ({
+        ...proj,
+        description: ensureHtmlContent(proj.description || '')
+      })),
+      achievements: (data.achievements || []).map(ach => ({
+        ...ach,
+        description: ensureHtmlContent(ach.description || '')
+      }))
+    };
+  };
+
   const formatValidationErrors = (apiErrors) => {
     const formattedErrors = {};
     apiErrors.forEach(error => {
@@ -90,15 +334,13 @@ function ResumeForm() {
       } else if (error.path === 'title') {
         formattedErrors.title = error.msg;
       } else {
-        // For other fields, use the path as key
         formattedErrors[error.path] = error.msg;
       }
     });
     return formattedErrors;
   };
 
-  // Helper function to validate required fields for draft saving (minimal requirements)
-  const validateDraftFields = () => {
+  const validateForm = (isDraft = false) => {
     const errors = {};
     
     // Check title
@@ -106,20 +348,59 @@ function ResumeForm() {
       errors.title = 'Resume title is required';
     }
     
-    // Check full name
-    if (!formData.personalInfo.fullName || formData.personalInfo.fullName.trim() === '') {
-      errors.fullName = 'Full name is required';
-    }
+    // Check profile data availability
+    const profileErrors = validateProfileData();
+    Object.assign(errors, profileErrors);
     
-    // Check email
-    if (!formData.personalInfo.email || formData.personalInfo.email.trim() === '') {
-      errors.email = 'Email is required';
-    } else {
-      // Validate email format
+    // Email validation
+    if (!profileErrors.email && formData.personalInfo.email) {
       const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
       if (!emailRegex.test(formData.personalInfo.email)) {
         errors.email = 'Please provide a valid email';
       }
+    }
+
+    if (!isDraft) {
+      // Additional validation for final submission
+      if (!formData.personalInfo.address || formData.personalInfo.address.trim() === '') {
+        errors.address = 'Address is required';
+      }
+
+      // Work experience validation
+      let hasValidWorkExperience = false;
+      formData.workExperience.forEach((exp) => {
+        if (exp.jobTitle && exp.company && exp.startDate) {
+          hasValidWorkExperience = true;
+        }
+      });
+      if (!hasValidWorkExperience) {
+        errors.workExperience = 'At least one work experience entry is required (Job Title, Company, and Start Date)';
+      }
+
+      // Education validation
+      let hasValidEducation = false;
+      formData.education.forEach((edu) => {
+        if (edu.degree && edu.institution && edu.startDate && edu.gpa) {
+          hasValidEducation = true;
+        }
+      });
+      if (!hasValidEducation) {
+        errors.education = 'At least one education entry is required (Degree, Institution, Start Date, and GPA)';
+      }
+
+      // Certification validation
+      formData.certifications.forEach((cert, index) => {
+        const hasStartedCertification = cert.name || cert.issuer || cert.date || cert.expiryDate || cert.credentialId || cert.url;
+        
+        if (hasStartedCertification) {
+          if (!validators.required(cert.name)) {
+            errors[`certifications_${index}_name`] = 'Certification name is required';
+          }
+          if (!validators.required(cert.issuer)) {
+            errors[`certifications_${index}_issuer`] = 'Issuer is required';
+          }
+        }
+      });
     }
     
     return {
@@ -128,86 +409,184 @@ function ResumeForm() {
     };
   };
 
-  // Helper function to validate required fields for final submission (comprehensive requirements)
-  const validateRequiredFields = () => {
-    const errors = {};
-    
-    // Check title
-    if (!formData.title || formData.title.trim() === '') {
-      errors.title = 'Resume title is required';
-    }
-    
-    // Check full name
-    if (!formData.personalInfo.fullName || formData.personalInfo.fullName.trim() === '') {
-      errors.fullName = 'Full name is required';
-    }
-    
-    // Check email
-    if (!formData.personalInfo.email || formData.personalInfo.email.trim() === '') {
-      errors.email = 'Email is required';
-    } else {
-      // Validate email format
-      const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
-      if (!emailRegex.test(formData.personalInfo.email)) {
-        errors.email = 'Please provide a valid email';
-      }
-    }
-
-    // Check phone number
-    if (!formData.personalInfo.phone || formData.personalInfo.phone.trim() === '') {
-      errors.phone = 'Phone number is required';
-    }
-
-    // Check address
-    if (!formData.personalInfo.address || formData.personalInfo.address.trim() === '') {
-      errors.address = 'Address is required';
-    }
-
-    // Check work experience - at least one complete entry
-    let hasValidWorkExperience = false;
-    formData.workExperience.forEach((exp, index) => {
-      if (exp.jobTitle && exp.company && exp.startDate) {
-        hasValidWorkExperience = true;
-      }
-    });
-    if (!hasValidWorkExperience) {
-      errors.workExperience = 'At least one work experience entry is required (Job Title, Company, and Start Date)';
-    }
-
-    // Check education - at least one complete entry
-    let hasValidEducation = false;
-    formData.education.forEach((edu, index) => {
-      if (edu.degree && edu.institution && edu.startDate && edu.gpa) {
-        hasValidEducation = true;
-      }
-    });
-    if (!hasValidEducation) {
-      errors.education = 'At least one education entry is required (Degree, Institution, Start Date, and GPA)';
-    }
-
-    // Check certifications - only validate if user has actually started adding a certification
-    formData.certifications.forEach((cert, index) => {
-      // Check if user has started filling this certification entry
-      const hasStartedCertification = cert.name || cert.issuer || cert.date || cert.expiryDate || cert.credentialId || cert.url;
+  // Event handlers
+  const handleInputChange = (section, field, value, index = null) => {
+    setFormData(prev => {
+      const newFormData = (() => {
+        if (section === 'root') {
+          return { ...prev, [field]: value };
+        } else if (index !== null) {
+          const newArray = [...prev[section]];
+          newArray[index] = { ...newArray[index], [field]: value };
+          return { ...prev, [section]: newArray };
+        } else {
+          return {
+            ...prev,
+            [section]: { ...prev[section], [field]: value }
+          };
+        }
+      })();
       
-      if (hasStartedCertification) {
-        // If user has started adding a certification, validate required fields
-        if (!validators.required(cert.name)) {
-          errors[`certifications_${index}_name`] = 'Certification name is required';
-        }
-        if (!validators.required(cert.issuer)) {
-          errors[`certifications_${index}_issuer`] = 'Issuer is required';
-        }
-      }
+      // Save to localStorage
+      setTimeout(() => saveToLocalStorage(newFormData, currentStep, isEditMode), 0);
+      
+      return newFormData;
     });
     
-    return {
-      isValid: Object.keys(errors).length === 0,
-      errors
-    };
+    // Clear validation errors
+    setValidationErrors(prev => {
+      const newErrors = { ...prev };
+      
+      if (section === 'root') {
+        delete newErrors[field];
+      } else if (index !== null) {
+        const errorKey = `${section}_${index}_${field}`;
+        delete newErrors[errorKey];
+        if (field === 'startDate' || field === 'endDate') {
+          delete newErrors[`${section}_${index}_dateRange`];
+        }
+      } else {
+        delete newErrors[field];
+      }
+      
+      return newErrors;
+    });
   };
 
+  const handleInputBlur = (section, field, index = null) => {
+    const errors = {};
+    
+    if (section === 'root') {
+      if (field === 'title' && !validators.required(formData.title)) {
+        errors.title = 'Resume title is required';
+      }
+    } else if (section === 'personalInfo') {
+      // Always validate profile data for name, email, phone since they are read-only
+      if ((field === 'fullName' || field === 'email' || field === 'phone') && currentStep >= 2) {
+        const profileErrors = validateProfileData();
+        if (profileErrors[field]) {
+          errors[field] = profileErrors[field];
+        } else if (field === 'email' && formData.personalInfo.email && !validators.email(formData.personalInfo.email)) {
+          errors.email = 'Please enter a valid email';
+        }
+      }
+      if (field === 'address' && !validators.required(formData.personalInfo.address)) {
+        errors.address = 'Address is required';
+      }
+    } else if (index !== null) {
+      if (section === 'workExperience') {
+        const exp = formData.workExperience[index];
+        if (field === 'jobTitle' && !validators.required(exp.jobTitle)) {
+          errors[`workExperience_${index}_jobTitle`] = 'Job title is required';
+        }
+        if (field === 'company' && !validators.required(exp.company)) {
+          errors[`workExperience_${index}_company`] = 'Company name is required';
+        }
+        if (field === 'startDate' && !validators.required(exp.startDate)) {
+          errors[`workExperience_${index}_startDate`] = 'Start date is required';
+        }
+        if ((field === 'startDate' || field === 'endDate') && exp.startDate && exp.endDate && !exp.isCurrentJob) {
+          if (!validators.dateRange(exp.startDate, exp.endDate)) {
+            errors[`workExperience_${index}_dateRange`] = 'End date must be after start date';
+          }
+        }
+      } else if (section === 'education') {
+        const edu = formData.education[index];
+        if (field === 'degree' && !validators.required(edu.degree)) {
+          errors[`education_${index}_degree`] = 'Degree is required';
+        }
+        if (field === 'institution' && !validators.required(edu.institution)) {
+          errors[`education_${index}_institution`] = 'Institution is required';
+        }
+        if (field === 'startDate' && !validators.required(edu.startDate)) {
+          errors[`education_${index}_startDate`] = 'Start date is required';
+        }
+        if (field === 'gpa' && !validators.required(edu.gpa)) {
+          errors[`education_${index}_gpa`] = 'GPA is required';
+        } else if (field === 'gpa' && edu.gpa) {
+          const gpaValue = parseFloat(edu.gpa);
+          if (isNaN(gpaValue) || gpaValue < 0 || gpaValue > 10) {
+            errors[`education_${index}_gpa`] = 'GPA must be between 0 and 10';
+          } else {
+            const decimalPlaces = edu.gpa.toString().split('.')[1]?.length || 0;
+            if (decimalPlaces > 2) {
+              errors[`education_${index}_gpa`] = 'GPA can have maximum 2 decimal places';
+            }
+          }
+        }
+        if ((field === 'startDate' || field === 'endDate') && edu.startDate && edu.endDate && !edu.isCurrentlyStudying) {
+          if (!validators.dateRange(edu.startDate, edu.endDate)) {
+            errors[`education_${index}_dateRange`] = 'End date must be after start date';
+          }
+        }
+      } else if (section === 'certifications') {
+        const cert = formData.certifications[index];
+        const hasStartedCertification = cert.name || cert.issuer || cert.date || cert.expiryDate || cert.credentialId || cert.url;
+        
+        if (hasStartedCertification) {
+          if (field === 'name' && !validators.required(cert.name)) {
+            errors[`certifications_${index}_name`] = 'Certification name is required';
+          }
+          if (field === 'issuer' && !validators.required(cert.issuer)) {
+            errors[`certifications_${index}_issuer`] = 'Issuer is required';
+          }
+        }
+      }
+    }
+    
+    setValidationErrors(prev => ({ ...prev, ...errors }));
+  };
 
+  const addArrayItem = (section, defaultItem) => {
+    setFormData(prev => {
+      const newFormData = {
+        ...prev,
+        [section]: [...prev[section], defaultItem]
+      };
+      
+      if (section === 'projects') {
+        const newIndex = prev[section].length;
+        setTechnologiesInput(prevTech => ({
+          ...prevTech,
+          [newIndex]: ''
+        }));
+      }
+      
+      setTimeout(() => saveToLocalStorage(newFormData, currentStep, isEditMode), 0);
+      return newFormData;
+    });
+  };
+
+  const removeArrayItem = (section, index) => {
+    setFormData(prev => {
+      const newFormData = {
+        ...prev,
+        [section]: prev[section].filter((_, i) => i !== index)
+      };
+      
+      if (section === 'projects') {
+        setTechnologiesInput(prevTech => {
+          const newTech = { ...prevTech };
+          delete newTech[index];
+          
+          const reindexedTech = {};
+          Object.keys(newTech).forEach(key => {
+            const numKey = parseInt(key);
+            if (numKey > index) {
+              reindexedTech[numKey - 1] = newTech[key];
+            } else {
+              reindexedTech[key] = newTech[key];
+            }
+          });
+          
+          return reindexedTech;
+        });
+      }
+      
+      setTimeout(() => saveToLocalStorage(newFormData, currentStep, isEditMode), 0);
+      return newFormData;
+    });
+  };
 
   // Detect edit mode and load existing resume data
   useEffect(() => {
@@ -239,7 +618,7 @@ function ResumeForm() {
                 linkedin: resumeData.personalInfo?.linkedin || '',
                 github: resumeData.personalInfo?.github || ''
               },
-              summary: resumeData.summary || '',
+              summary: ensureHtmlContent(resumeData.summary || ''),
               workExperience: (resumeData.workExperience || []).map(exp => ({
                 jobTitle: exp.jobTitle || '',
                 company: exp.company || '',
@@ -247,7 +626,7 @@ function ResumeForm() {
                 startDate: formatDateForInput(exp.startDate),
                 endDate: formatDateForInput(exp.endDate),
                 isCurrentJob: exp.isCurrentJob || false,
-                description: exp.description || '',
+                description: ensureHtmlContent(exp.description || ''),
                 achievements: exp.achievements || []
               })),
               education: (resumeData.education || []).map(edu => ({
@@ -258,7 +637,7 @@ function ResumeForm() {
                 endDate: formatDateForInput(edu.endDate),
                 isCurrentlyStudying: edu.isCurrentlyStudying || false,
                 gpa: edu.gpa || '',
-                description: edu.description || ''
+                description: ensureHtmlContent(edu.description || '')
               })),
               skills: (resumeData.skills || []).map(skill => ({
                 category: skill.category || '',
@@ -269,7 +648,7 @@ function ResumeForm() {
               })),
               projects: (resumeData.projects || []).map(proj => ({
                 name: proj.name || '',
-                description: proj.description || '',
+                description: ensureHtmlContent(proj.description || ''),
                 technologies: proj.technologies || [],
                 url: proj.url || '',
                 githubUrl: proj.githubUrl || '',
@@ -278,7 +657,7 @@ function ResumeForm() {
               })),
               achievements: (resumeData.achievements || []).map(ach => ({
                 title: ach.title || '',
-                description: ach.description || '',
+                description: ensureHtmlContent(ach.description || ''),
                 date: formatDateForInput(ach.date),
                 issuer: ach.issuer || ''
               })),
@@ -305,6 +684,9 @@ function ResumeForm() {
             });
             setTechnologiesInput(techInputState);
             
+            // Always load profile data to update name, email, phone fields
+            loadProfileData();
+            
             toast.success('Resume data loaded for editing!');
           } else {
             throw new Error('Resume not found');
@@ -316,62 +698,85 @@ function ResumeForm() {
         } finally {
           setLoading(false);
         }
-      } else {
-        // Not in edit mode, check if we should load from localStorage
-        // Only load if there's no explicit state indicating a fresh start
-        const state = location.state;
-        const shouldLoadFromStorage = !state || !state.freshStart;
-        
-        if (shouldLoadFromStorage) {
-          const savedData = localStorage.getItem(FORM_STORAGE_KEY);
-          if (savedData) {
-            try {
-              const parsedData = JSON.parse(savedData);
-              setFormData(prev => parsedData.formData || prev);
-              setCurrentStep(parsedData.currentStep || 1);
-              toast.info('Your previous form data has been restored.');
-            } catch (error) {
-              console.error('Error loading saved form data:', error);
-              localStorage.removeItem(FORM_STORAGE_KEY);
+              } else {
+          // Not in edit mode, check if we should load from localStorage
+          // Only load if there's no explicit state indicating a fresh start
+          const state = location.state;
+          const shouldLoadFromStorage = !state || !state.freshStart;
+          
+          if (shouldLoadFromStorage) {
+            const savedData = localStorage.getItem('resume_form_data');
+            if (savedData) {
+              try {
+                const parsedData = JSON.parse(savedData);
+                const processedFormData = processLoadedFormData(parsedData.formData || {});
+                setFormData(prev => ({ ...prev, ...processedFormData }));
+                setCurrentStep(parsedData.currentStep || 1);
+                toast.info('Your previous form data has been restored.');
+              } catch (error) {
+                console.error('Error loading saved form data:', error);
+                localStorage.removeItem('resume_form_data');
+              }
             }
+          } else {
+            // Fresh start - ensure form is completely reset
+            setFormData({
+              title: '',
+              personalInfo: {
+                fullName: '',
+                email: '',
+                phone: '',
+                address: '',
+                website: '',
+                linkedin: '',
+                github: ''
+              },
+              summary: '',
+              workExperience: [],
+              education: [],
+              skills: [],
+              projects: [],
+              achievements: [],
+              certifications: [],
+              languages: []
+            });
+            setCurrentStep(1);
+            setValidationErrors({});
+            setTechnologiesInput({});
           }
-        } else {
-          // Fresh start - ensure form is completely reset
-          setFormData({
-            title: '',
-            personalInfo: {
-              fullName: '',
-              email: '',
-              phone: '',
-              address: '',
-              website: '',
-              linkedin: '',
-              github: ''
-            },
-            summary: '',
-            workExperience: [],
-            education: [],
-            skills: [],
-            projects: [],
-            achievements: [],
-            certifications: [],
-            languages: []
-          });
-          setCurrentStep(1);
-          setValidationErrors({});
-          setTechnologiesInput({});
+          
+          // Load profile data for read-only fields
+          loadProfileData();
         }
-      }
     };
 
     checkEditMode();
   }, [location.state, navigate]); // Added navigate to dependencies to fix eslint warning
 
+  // Validate profile data when user data changes (always validate since name, email, phone are read-only)
+  useEffect(() => {
+    if (user && currentStep >= 2) {
+      const profileErrors = validateProfileData();
+      if (Object.keys(profileErrors).length > 0) {
+        setValidationErrors(prev => ({ ...prev, ...profileErrors }));
+      } else {
+        // Clear profile-related errors if profile data is available
+        setValidationErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors.fullName;
+          delete newErrors.email;
+          delete newErrors.phone;
+          return newErrors;
+        });
+      }
+    }
+  }, [user, currentStep]);
+
   // Manual save functionality
   const saveDraft = async () => {
     try {
       // Check if form has minimal required content for draft saving
-      const validation = validateDraftFields();
+      const validation = validateForm();
       if (!validation.isValid) {
         setValidationErrors(validation.errors);
         toast.warning('Please add Title, Full Name and Email before saving a draft');
@@ -428,260 +833,12 @@ function ResumeForm() {
     }
   };
 
-  // Save form data to localStorage (only when not in edit mode)
-  const saveToLocalStorage = (stepOverride = null) => {
-    if (isEditMode) return; // Don't save to localStorage in edit mode
-    
-    try {
-      const dataToSave = {
-        formData,
-        currentStep: stepOverride || currentStep,
-        timestamp: new Date().toISOString()
-      };
-      localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(dataToSave));
-    } catch (error) {
-      console.error('Error saving form data:', error);
-    }
-  };
-
-  const handleInputChange = (section, field, value, index = null) => {
-    setFormData(prev => {
-      const newFormData = (() => {
-        if (section === 'root') {
-          return { ...prev, [field]: value };
-        } else if (index !== null) {
-          const newArray = [...prev[section]];
-          newArray[index] = { ...newArray[index], [field]: value };
-          return { ...prev, [section]: newArray };
-        } else {
-          return {
-            ...prev,
-            [section]: { ...prev[section], [field]: value }
-          };
-        }
-      })();
-      
-      // Save to localStorage after state update (only when not in edit mode)
-      if (!isEditMode) {
-        setTimeout(() => {
-          const dataToSave = {
-            formData: newFormData,
-            currentStep,
-            timestamp: new Date().toISOString()
-          };
-          localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(dataToSave));
-        }, 0);
-      }
-      
-      return newFormData;
-    });
-    
-    // Clear validation errors for this field
-    setValidationErrors(prev => {
-      const newErrors = { ...prev };
-      
-      if (section === 'root') {
-        delete newErrors[field];
-      } else if (index !== null) {
-        // Clear array field errors
-        const errorKey = `${section}_${index}_${field}`;
-        delete newErrors[errorKey];
-        // Also clear date range errors if updating date fields
-        if (field === 'startDate' || field === 'endDate') {
-          delete newErrors[`${section}_${index}_dateRange`];
-        }
-      } else {
-        // Clear object field errors
-        delete newErrors[field];
-      }
-      
-      return newErrors;
-    });
-  };
-
-  const handleInputBlur = (section, field, index = null) => {
-    // Validate the specific field on blur
-    const errors = {};
-    
-    if (section === 'root') {
-      if (field === 'title' && !validators.required(formData.title)) {
-        errors.title = 'Resume title is required';
-      }
-    } else if (section === 'personalInfo') {
-      if (field === 'fullName' && !validators.required(formData.personalInfo.fullName)) {
-        errors.fullName = 'Full name is required';
-      }
-      if (field === 'email') {
-        if (!validators.required(formData.personalInfo.email)) {
-          errors.email = 'Email is required';
-        } else if (!validators.email(formData.personalInfo.email)) {
-          errors.email = 'Please enter a valid email';
-        }
-      }
-      if (field === 'phone' && !validators.required(formData.personalInfo.phone)) {
-        errors.phone = 'Phone number is required';
-      }
-      if (field === 'address' && !validators.required(formData.personalInfo.address)) {
-        errors.address = 'Address is required';
-      }
-    } else if (index !== null) {
-      // Validate array items - always validate required fields when blurred
-      if (section === 'workExperience') {
-        const exp = formData.workExperience[index];
-        // Always validate required fields when they are blurred
-        if (field === 'jobTitle' && !validators.required(exp.jobTitle)) {
-          errors[`workExperience_${index}_jobTitle`] = 'Job title is required';
-        }
-        if (field === 'company' && !validators.required(exp.company)) {
-          errors[`workExperience_${index}_company`] = 'Company name is required';
-        }
-        if (field === 'startDate' && !validators.required(exp.startDate)) {
-          errors[`workExperience_${index}_startDate`] = 'Start date is required';
-        }
-        // Only validate date range if both dates are present and not current job
-        if ((field === 'startDate' || field === 'endDate') && exp.startDate && exp.endDate && !exp.isCurrentJob) {
-          if (!validators.dateRange(exp.startDate, exp.endDate)) {
-            errors[`workExperience_${index}_dateRange`] = 'End date must be after start date';
-          }
-        }
-      } else if (section === 'education') {
-        const edu = formData.education[index];
-        // Always validate required fields when they are blurred
-        if (field === 'degree' && !validators.required(edu.degree)) {
-          errors[`education_${index}_degree`] = 'Degree is required';
-        }
-        if (field === 'institution' && !validators.required(edu.institution)) {
-          errors[`education_${index}_institution`] = 'Institution is required';
-        }
-        if (field === 'startDate' && !validators.required(edu.startDate)) {
-          errors[`education_${index}_startDate`] = 'Start date is required';
-        }
-        if (field === 'gpa' && !validators.required(edu.gpa)) {
-          errors[`education_${index}_gpa`] = 'GPA is required';
-        } else if (field === 'gpa' && edu.gpa) {
-          const gpaValue = parseFloat(edu.gpa);
-          if (isNaN(gpaValue) || gpaValue < 0 || gpaValue > 10) {
-            errors[`education_${index}_gpa`] = 'GPA must be between 0 and 10';
-          } else {
-            // Check if GPA has more than 2 decimal places
-            const decimalPlaces = edu.gpa.toString().split('.')[1]?.length || 0;
-            if (decimalPlaces > 2) {
-              errors[`education_${index}_gpa`] = 'GPA can have maximum 2 decimal places';
-            }
-          }
-        }
-        // Only validate date range if both dates are present and not currently studying
-        if ((field === 'startDate' || field === 'endDate') && edu.startDate && edu.endDate && !edu.isCurrentlyStudying) {
-          if (!validators.dateRange(edu.startDate, edu.endDate)) {
-            errors[`education_${index}_dateRange`] = 'End date must be after start date';
-          }
-        }
-      } else if (section === 'certifications') {
-        const cert = formData.certifications[index];
-        // Check if user has started filling this certification entry
-        const hasStartedCertification = cert.name || cert.issuer || cert.date || cert.expiryDate || cert.credentialId || cert.url;
-        
-        if (hasStartedCertification) {
-          // Only validate if user has started adding a certification
-          if (field === 'name' && !validators.required(cert.name)) {
-            errors[`certifications_${index}_name`] = 'Certification name is required';
-          }
-          if (field === 'issuer' && !validators.required(cert.issuer)) {
-            errors[`certifications_${index}_issuer`] = 'Issuer is required';
-          }
-        }
-      }
-    }
-    
-    // Update validation errors
-    setValidationErrors(prev => ({
-      ...prev,
-      ...errors
-    }));
-  };
-
-  const addArrayItem = (section, defaultItem) => {
-    setFormData(prev => {
-      const newFormData = {
-        ...prev,
-        [section]: [...prev[section], defaultItem]
-      };
-      
-      // Initialize technologies input for new projects
-      if (section === 'projects') {
-        const newIndex = prev[section].length;
-        setTechnologiesInput(prevTech => ({
-          ...prevTech,
-          [newIndex]: ''
-        }));
-      }
-      
-      // Save to localStorage after state update (only when not in edit mode)
-      if (!isEditMode) {
-        setTimeout(() => {
-          const dataToSave = {
-            formData: newFormData,
-            currentStep,
-            timestamp: new Date().toISOString()
-          };
-          localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(dataToSave));
-        }, 0);
-      }
-      
-      return newFormData;
-    });
-  };
-
-  const removeArrayItem = (section, index) => {
-    setFormData(prev => {
-      const newFormData = {
-        ...prev,
-        [section]: prev[section].filter((_, i) => i !== index)
-      };
-      
-      // Clean up technologies input for removed projects
-      if (section === 'projects') {
-        setTechnologiesInput(prevTech => {
-          const newTech = { ...prevTech };
-          delete newTech[index];
-          
-          // Re-index remaining items
-          const reindexedTech = {};
-          Object.keys(newTech).forEach(key => {
-            const numKey = parseInt(key);
-            if (numKey > index) {
-              reindexedTech[numKey - 1] = newTech[key];
-            } else {
-              reindexedTech[key] = newTech[key];
-            }
-          });
-          
-          return reindexedTech;
-        });
-      }
-      
-      // Save to localStorage after state update (only when not in edit mode)
-      if (!isEditMode) {
-        setTimeout(() => {
-          const dataToSave = {
-            formData: newFormData,
-            currentStep,
-            timestamp: new Date().toISOString()
-          };
-          localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(dataToSave));
-        }, 0);
-      }
-      
-      return newFormData;
-    });
-  };
-
   const handleSubmit = async () => {
     try {
       setLoading(true);
       
       // Validate form before submission with comprehensive requirements
-      const validation = validateRequiredFields();
+      const validation = validateForm();
       if (!validation.isValid) {
         setValidationErrors(validation.errors);
         toast.error('Please complete all required fields before submitting');
@@ -734,7 +891,7 @@ function ResumeForm() {
 
         // Clear localStorage after successful submission (only when not in edit mode)
         if (!isEditMode) {
-          localStorage.removeItem(FORM_STORAGE_KEY);
+          localStorage.removeItem('resume_form_data');
         }
         
         if (isEditMode) {
@@ -786,7 +943,7 @@ function ResumeForm() {
       
       const newStep = currentStep + 1;
       setCurrentStep(newStep);
-      saveToLocalStorage(newStep);
+      saveToLocalStorage(formData, newStep, isEditMode);
       
       // Scroll to top when moving to next step
       scrollToTop();
@@ -799,7 +956,7 @@ function ResumeForm() {
     if (currentStep > 1) {
       const newStep = currentStep - 1;
       setCurrentStep(newStep);
-      saveToLocalStorage(newStep);
+      saveToLocalStorage(formData, newStep, isEditMode);
     }
   };
 
@@ -808,7 +965,7 @@ function ResumeForm() {
   };
 
   const confirmClearFormData = () => {
-    localStorage.removeItem(FORM_STORAGE_KEY);
+    localStorage.removeItem('resume_form_data');
     setFormData({
       title: '',
       personalInfo: {
@@ -858,169 +1015,212 @@ function ResumeForm() {
   };
 
   const renderBasicInfo = () => (
-    <div className="space-y-6">
-      <h3 className="text-xl font-semibold text-gray-900">Basic Information</h3>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Resume Title <span className="text-red-500">*</span>
-        </label>
+    <>
+      {/* Resume Upload Section - Standalone */}
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-6 space-y-4 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="flex-shrink-0">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+            </div>
+          </div>
+          <div className="flex-1">
+            <h4 className="font-medium text-gray-900 mb-1">Parse Existing Resume</h4>
+            <p className="text-sm text-gray-600">
+              Upload your existing resume (PDF or Word) to automatically extract and populate the form fields
+            </p>
+          </div>
+        </div>
+        
+        {/* Hidden file input */}
         <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pdf,.docx,.doc"
+          onChange={handleResumeUpload}
+          className="hidden"
+        />
+        
+        {/* Upload button or file info */}
+        {!uploadedFileName ? (
+          <button
+            onClick={triggerFileUpload}
+            disabled={uploadingResume}
+            className="w-full px-4 py-3 border-2 border-dashed border-blue-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 flex items-center justify-center gap-2 text-blue-600 font-medium"
+          >
+            {uploadingResume ? (
+              <>
+                <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <span>Processing Resume...</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <span>Choose File (PDF/Word)</span>
+              </>
+            )}
+          </button>
+        ) : (
+          <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center gap-3">
+              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-sm font-medium text-green-800">{uploadedFileName}</span>
+            </div>
+            <button
+              onClick={removeUploadedFile}
+              className="text-green-600 hover:text-green-800 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
+        
+        <p className="text-xs text-gray-500 text-center">
+          Supported formats: PDF, DOCX, DOC (Max 10MB)
+        </p>
+      </div>
+      
+      {/* Basic Information Section */}
+      <div className="space-y-6">
+        <h3 className="text-xl font-semibold text-gray-900">Basic Information</h3>
+        <FormField
+          label="Resume Title"
           type="text"
-          id="title"
-          required
           value={formData.title}
           onChange={(e) => handleInputChange('root', 'title', e.target.value)}
           onBlur={() => handleInputBlur('root', 'title')}
-          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-            validationErrors.title 
-              ? 'border-red-300 focus:border-red-500' 
-              : 'border-gray-300'
-          }`}
+          required
           placeholder="e.g., Senior Software Engineer Resume"
+          error={validationErrors.title}
         />
-        {validationErrors.title && (
-          <p className="text-red-600 text-sm mt-1">{validationErrors.title}</p>
-        )}
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Professional Summary
-        </label>
-        <textarea
-          rows={4}
+        <TextAreaField
+          label="Professional Summary"
           value={formData.summary}
-          onChange={(e) => handleInputChange('root', 'summary', e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
+          onChange={(value) => handleInputChange('root', 'summary', value)}
+          rows={4}
           placeholder="Write a brief summary of your professional background and key achievements..."
         />
+        
+        {/* Extracted Text Reference */}
+        {formData.extractedText && (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm font-medium text-gray-900">Extracted Resume Content</h4>
+              <button
+                onClick={() => setFormData(prev => ({ ...prev, extractedText: '' }))}
+                className="text-gray-400 hover:text-gray-600"
+                title="Clear extracted text"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="max-h-40 overflow-y-auto">
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                {formData.extractedText.length > 500 
+                  ? `${formData.extractedText}` 
+                  : formData.extractedText
+                }
+              </p>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Use this extracted content as reference while filling the form fields above.
+            </p>
+          </div>
+        )}
+       
       </div>
-    </div>
+    </>
   );
 
   const renderPersonalInfo = () => (
     <div className="space-y-6">
       <h3 className="text-xl font-semibold text-gray-900">Personal Information</h3>
+      
+      {/* Profile Data Notice */}
+      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="flex items-start gap-3">
+          <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <h3 className="text-sm font-medium text-blue-900 mb-1">Profile Data</h3>
+            <p className="text-sm text-blue-700">
+              Your <strong>Full Name</strong>, <strong>Email</strong>, and <strong>Phone</strong> are automatically populated from your profile. 
+              To update these details, please visit your <a href="/profile" className="underline hover:text-blue-800">profile page</a>.
+            </p>
+          </div>
+        </div>
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Full Name <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="fullName"
-            required
-            value={formData.personalInfo.fullName}
-            onChange={(e) => handleInputChange('personalInfo', 'fullName', e.target.value)}
-            onBlur={() => handleInputBlur('personalInfo', 'fullName')}
-            className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-              validationErrors.fullName 
-                ? 'border-red-300 focus:border-red-500' 
-                : 'border-gray-300'
-            }`}
-            placeholder="John Doe"
-          />
-          {validationErrors.fullName && (
-            <p className="text-red-600 text-sm mt-1">{validationErrors.fullName}</p>
-          )}
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Email <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="email"
-            id="email"
-            required
-            value={formData.personalInfo.email}
-            onChange={(e) => handleInputChange('personalInfo', 'email', e.target.value)}
-            onBlur={() => handleInputBlur('personalInfo', 'email')}
-            className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-              validationErrors.email 
-                ? 'border-red-300 focus:border-red-500' 
-                : 'border-gray-300'
-            }`}
-            placeholder="john.doe@email.com"
-          />
-          {validationErrors.email && (
-            <p className="text-red-600 text-sm mt-1">{validationErrors.email}</p>
-          )}
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Phone <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="tel"
-            value={formData.personalInfo.phone}
-            onChange={(e) => handleInputChange('personalInfo', 'phone', e.target.value)}
-            onBlur={() => handleInputBlur('personalInfo', 'phone')}
-            className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-              validationErrors.phone 
-                ? 'border-red-300 focus:border-red-500' 
-                : 'border-gray-300'
-            }`}
-            placeholder="+1 (555) 123-4567"
-          />
-          {validationErrors.phone && (
-            <p className="text-red-600 text-sm mt-1">{validationErrors.phone}</p>
-          )}
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Address <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            value={formData.personalInfo.address}
-            onChange={(e) => handleInputChange('personalInfo', 'address', e.target.value)}
-            onBlur={() => handleInputBlur('personalInfo', 'address')}
-            className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-              validationErrors.address 
-                ? 'border-red-300 focus:border-red-500' 
-                : 'border-gray-300'
-            }`}
-            placeholder="City, State, Country"
-          />
-          {validationErrors.address && (
-            <p className="text-red-600 text-sm mt-1">{validationErrors.address}</p>
-          )}
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Website
-          </label>
-          <input
-            type="url"
-            value={formData.personalInfo.website}
-            onChange={(e) => handleInputChange('personalInfo', 'website', e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-            placeholder="https://yourwebsite.com"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            LinkedIn
-          </label>
-          <input
-            type="url"
-            value={formData.personalInfo.linkedin}
-            onChange={(e) => handleInputChange('personalInfo', 'linkedin', e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-            placeholder="https://linkedin.com/in/johndoe"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            GitHub
-          </label>
-          <input
-            type="url"
-            value={formData.personalInfo.github}
-            onChange={(e) => handleInputChange('personalInfo', 'github', e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-            placeholder="https://github.com/johndoe"
-          />
-        </div>
+        <FormField
+          label="Full Name"
+          type="text"
+          value={formData.personalInfo.fullName}
+          required
+          readOnly={true}
+          placeholder="John Doe"
+          error={validationErrors.fullName}
+        />
+        <FormField
+          label="Email"
+          type="email"
+          value={formData.personalInfo.email}
+          required
+          readOnly={true}
+          placeholder="john.doe@email.com"
+          error={validationErrors.email}
+        />
+        <FormField
+          label="Phone"
+          type="tel"
+          value={formData.personalInfo.phone}
+          required
+          readOnly={true}
+          placeholder="+1 (555) 123-4567"
+          error={validationErrors.phone}
+        />
+        <FormField
+          label="Address"
+          type="text"
+          value={formData.personalInfo.address}
+          onChange={(e) => handleInputChange('personalInfo', 'address', e.target.value)}
+          onBlur={() => handleInputBlur('personalInfo', 'address')}
+          required
+          placeholder="City, State, Country"
+          error={validationErrors.address}
+        />
+        <FormField
+          label="Website"
+          type="url"
+          value={formData.personalInfo.website}
+          onChange={(e) => handleInputChange('personalInfo', 'website', e.target.value)}
+          placeholder="https://yourwebsite.com"
+        />
+        <FormField
+          label="LinkedIn"
+          type="url"
+          value={formData.personalInfo.linkedin}
+          onChange={(e) => handleInputChange('personalInfo', 'linkedin', e.target.value)}
+          placeholder="https://linkedin.com/in/johndoe"
+        />
+        <FormField
+          label="GitHub"
+          type="url"
+          value={formData.personalInfo.github}
+          onChange={(e) => handleInputChange('personalInfo', 'github', e.target.value)}
+          placeholder="https://github.com/johndoe"
+        />
       </div>
     </div>
   );
@@ -1174,11 +1374,9 @@ function ResumeForm() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Job Description
             </label>
-            <textarea
-              rows={3}
+            <CKEditor
               value={job.description}
-              onChange={(e) => handleInputChange('workExperience', 'description', e.target.value, index)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              onChange={(value) => handleInputChange('workExperience', 'description', value, index)}
               placeholder="Describe your role and responsibilities..."
             />
           </div>
@@ -1186,21 +1384,16 @@ function ResumeForm() {
       ))}
       
       {formData.workExperience.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <EmptyState
+          icon={<svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
-          <p>No work experience added yet. Click "Add Experience" to get started.</p>
-        </div>
+          </svg>}
+          message="No work experience added yet. Click 'Add Experience' to get started."
+        />
       )}
       
       {validationErrors.workExperience && (
-        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <div className="flex items-center gap-2">
-            <ExclamationTriangleIcon className="w-5 h-5 text-red-600" />
-            <p className="text-red-700 text-sm font-medium">{validationErrors.workExperience}</p>
-          </div>
-        </div>
+        <ErrorBanner message={validationErrors.workExperience} />
       )}
     </div>
   );
@@ -1389,11 +1582,9 @@ function ResumeForm() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Description
             </label>
-            <textarea
-              rows={2}
+            <CKEditor
               value={edu.description}
-              onChange={(e) => handleInputChange('education', 'description', e.target.value, index)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              onChange={(value) => handleInputChange('education', 'description', value, index)}
               placeholder="Relevant coursework, honors, activities..."
             />
           </div>
@@ -1401,22 +1592,17 @@ function ResumeForm() {
       ))}
       
       {formData.education.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <EmptyState
+          icon={<svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-          </svg>
-          <p>No education added yet. Click "Add Education" to get started.</p>
-        </div>
+          </svg>}
+          message="No education added yet. Click 'Add Education' to get started."
+        />
       )}
       
       {validationErrors.education && (
-        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <div className="flex items-center gap-2">
-            <ExclamationTriangleIcon className="w-5 h-5 text-red-600" />
-            <p className="text-red-700 text-sm font-medium">{validationErrors.education}</p>
-          </div>
-        </div>
+        <ErrorBanner message={validationErrors.education} />
       )}
     </div>
   );
@@ -1617,12 +1803,12 @@ function ResumeForm() {
       ))}
       
       {formData.skills.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <EmptyState
+          icon={<svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-          </svg>
-          <p>No skills added yet. Use the "Quick Add" section above or click "Add Skill Category" to get started.</p>
-        </div>
+          </svg>}
+          message="No skills added yet. Use the 'Quick Add' section above or click 'Add Skill Category' to get started."
+        />
       )}
     </div>
   );
@@ -1730,11 +1916,9 @@ function ResumeForm() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Description
             </label>
-            <textarea
-              rows={3}
+            <CKEditor
               value={project.description}
-              onChange={(e) => handleInputChange('projects', 'description', e.target.value, index)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              onChange={(value) => handleInputChange('projects', 'description', value, index)}
               placeholder="Describe the project, your role, and key features..."
             />
           </div>
@@ -1742,12 +1926,12 @@ function ResumeForm() {
       ))}
       
       {formData.projects.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <EmptyState
+          icon={<svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-          </svg>
-          <p>No projects added yet. Click "Add Project" to get started.</p>
-        </div>
+          </svg>}
+          message="No projects added yet. Click 'Add Project' to get started."
+        />
       )}
     </div>
   );
@@ -1829,11 +2013,9 @@ function ResumeForm() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Description
             </label>
-            <textarea
-              rows={2}
+            <CKEditor
               value={achievement.description}
-              onChange={(e) => handleInputChange('achievements', 'description', e.target.value, index)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              onChange={(value) => handleInputChange('achievements', 'description', value, index)}
               placeholder="Describe the achievement..."
             />
           </div>
@@ -1841,12 +2023,12 @@ function ResumeForm() {
       ))}
       
       {formData.achievements.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <EmptyState
+          icon={<svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-          </svg>
-          <p>No achievements added yet. Click "Add Achievement" to get started.</p>
-        </div>
+          </svg>}
+          message="No achievements added yet. Click 'Add Achievement' to get started."
+        />
       )}
     </div>
   );
@@ -2079,17 +2261,34 @@ function ResumeForm() {
         }
         break;
       case 2:
-        if (!validators.required(formData.personalInfo.fullName)) {
-          errors.fullName = 'Full name is required';
+        // For read-only fields (fullName, email, phone), validate profile data availability in non-edit mode
+        if (!isEditMode) {
+          const profileErrors = validateProfileData();
+          if (profileErrors.fullName) {
+            errors.fullName = profileErrors.fullName;
+          }
+          if (profileErrors.email) {
+            errors.email = profileErrors.email;
+          }
+          if (profileErrors.phone) {
+            errors.phone = profileErrors.phone;
+          }
+        } else {
+          // In edit mode, use normal validation for these fields
+          if (!validators.required(formData.personalInfo.fullName)) {
+            errors.fullName = 'Full name is required';
+          }
+          if (!validators.required(formData.personalInfo.email)) {
+            errors.email = 'Email is required';
+          } else if (!validators.email(formData.personalInfo.email)) {
+            errors.email = 'Please enter a valid email';
+          }
+          if (!validators.required(formData.personalInfo.phone)) {
+            errors.phone = 'Phone number is required';
+          }
         }
-        if (!validators.required(formData.personalInfo.email)) {
-          errors.email = 'Email is required';
-        } else if (!validators.email(formData.personalInfo.email)) {
-          errors.email = 'Please enter a valid email';
-        }
-        if (!validators.required(formData.personalInfo.phone)) {
-          errors.phone = 'Phone number is required';
-        }
+        
+        // Address is always editable and requires validation
         if (!validators.required(formData.personalInfo.address)) {
           errors.address = 'Address is required';
         }
@@ -2172,13 +2371,22 @@ function ResumeForm() {
   const isStepValid = () => {
     const validation = validateCurrentStep();
     
-    // Check if there are any validation errors
+    // For step 1, only check step-specific validation (title)
+    if (currentStep === 1) {
+      return validation.isValid;
+    }
+    
+    // For step 2 and later, check both step validation and profile data validation
     if (Object.keys(validationErrors).length > 0) {
       return false;
     }
     
     return validation.isValid;
   };
+
+
+
+
 
   if (loading && isEditMode) {
     return (
