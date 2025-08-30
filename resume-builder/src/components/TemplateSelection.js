@@ -2,6 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { templateAPI, resumeAPI, apiHelpers } from '../services/api';
 import { toast } from 'react-toastify';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+
+// Import Swiper styles
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
 function TemplateSelection() {
   const { resumeId } = useParams();
@@ -14,6 +21,7 @@ function TemplateSelection() {
   
   // Add ref to prevent duplicate API calls during StrictMode
   const hasFetchedRef = useRef(false);
+  const swiperRef = useRef(null);
 
   useEffect(() => {
     // Prevent duplicate calls during React StrictMode in development
@@ -136,14 +144,14 @@ function TemplateSelection() {
   }
 
   return (
-    <div className="min-h-screen pt-16">
+    <div className="min-h-screen pt-16 bg-gray-50">
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
             Choose Your Template
           </h1>
-          <p className="text-gray-600 text-lg">Select a professional template that matches your style</p>
+          <p className="text-gray-600 text-base sm:text-lg">Select a professional template that matches your style</p>
         </div>
 
         {/* Category Filter */}
@@ -153,10 +161,10 @@ function TemplateSelection() {
               <button
                 key={category.value}
                 onClick={() => setFilterCategory(category.value)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                   filterCategory === category.value
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                    : 'bg-white/70 text-gray-600 hover:bg-white/90 border border-white/20'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
                 }`}
               >
                 {category.label}
@@ -165,82 +173,145 @@ function TemplateSelection() {
           </div>
         </div>
 
-
-
-        {/* Templates Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTemplates.map((template) => (
-            <div 
-              key={template._id}
-              className={`backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105 cursor-pointer group ${
-                selectedTemplate === template._id ? 'ring-4 ring-blue-500 ring-opacity-50' : ''
-              }`}
-              onClick={() => handleTemplateSelect(template)}
-            >
-              {/* Template Preview */}
-              <div className="relative">
-                <div className={`w-full h-80 bg-gradient-to-br ${getTemplateColor(template.category)} flex items-center justify-center`}>
-                  {template.preview?.thumbnail?.url ? (
-                    <img 
-                      src={template.preview.thumbnail.url} 
-                      alt={template.name}
-                      className="w-full h-full object-cover object-top"
-                    />
-                  ) : (
-                    <div className="text-white text-center">
-                      <svg className="w-16 h-16 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      <p className="text-sm font-medium">{template.name}</p>
-                      <p className="text-xs mt-1 opacity-75">No thumbnail URL</p>
+        {/* Templates Carousel */}
+        <div className="relative mb-8">
+          <Swiper
+            ref={swiperRef}
+            modules={[Navigation, Pagination, Autoplay]}
+            spaceBetween={20}
+            slidesPerView={1}
+            centeredSlides={true}
+            loop={true}
+            loopFillGroupWithBlank={true}
+            navigation={{
+              nextEl: '.swiper-button-next',
+              prevEl: '.swiper-button-prev',
+            }}
+            pagination={{
+              clickable: true,
+              dynamicBullets: true,
+            }}
+            autoplay={{
+              delay: 4000,
+              disableOnInteraction: false,
+              pauseOnMouseEnter: true,
+            }}
+            breakpoints={{
+              640: {
+                slidesPerView: 2,
+                spaceBetween: 24,
+                centeredSlides: true,
+              },
+              768: {
+                slidesPerView: 2,
+                spaceBetween: 32,
+                centeredSlides: true,
+              },
+              1024: {
+                slidesPerView: 3,
+                spaceBetween: 32,
+                centeredSlides: true,
+              },
+              1280: {
+                slidesPerView: 3,
+                spaceBetween: 40,
+                centeredSlides: true,
+              }
+            }}
+            className="template-swiper"
+            onSwiper={(swiper) => {
+              swiperRef.current = swiper;
+            }}
+          >
+            {filteredTemplates.map((template) => (
+              <SwiperSlide key={template._id}>
+                <div 
+                  className={`bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-xl cursor-pointer group ${
+                    selectedTemplate === template._id ? 'ring-2 ring-blue-500' : ''
+                  }`}
+                  onClick={() => handleTemplateSelect(template)}
+                >
+                  {/* Template Preview - A4 Aspect Ratio (1:1.414) */}
+                  <div className="relative">
+                    <div className="template-image-container">
+                      {template.preview?.thumbnail?.url ? (
+                        <img 
+                          src={template.preview.thumbnail.url} 
+                          alt={template.name}
+                          className="template-image"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="text-gray-500 text-center p-4">
+                          <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          <p className="text-sm font-medium">{template.name}</p>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
 
-                {/* Tier Badge */}
-                <div className="absolute top-3 right-3">
-                  <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getTierBadgeColor(template.availability?.tier)}`}>
-                    {template.availability?.tier?.toUpperCase() || 'FREE'}
-                  </span>
-                </div>
+                    {/* Tier Badge */}
+                    <div className="absolute top-3 right-3">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getTierBadgeColor(template.availability?.tier)}`}>
+                        {template.availability?.tier?.toUpperCase() || 'FREE'}
+                      </span>
+                    </div>
 
-                {/* Loading Overlay */}
-                {selectedTemplate === template._id && selecting && (
-                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                    <div className="text-center text-white">
-                      <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                      <p className="text-sm">Selecting...</p>
+                    {/* Loading Overlay */}
+                    {selectedTemplate === template._id && selecting && (
+                      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                        <div className="text-center text-white">
+                          <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                          <p className="text-sm">Selecting...</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Template Info */}
+                  <div className="p-4">
+                    <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors duration-200">
+                      {template.name}
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                      {template.description || 'Professional resume template'}
+                    </p>
+                    
+                    {/* Category Tag */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                        {template.category?.charAt(0).toUpperCase() + template.category?.slice(1) || 'Template'}
+                      </span>
+                      
+                      {/* Select Button */}
+                      <div className="flex items-center text-blue-600 text-sm font-medium group-hover:text-blue-700 transition-colors duration-200">
+                        <span>Select</span>
+                        <svg className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
                     </div>
                   </div>
-                )}
-              </div>
-
-              {/* Template Info */}
-              <div className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors duration-200">
-                  {template.name}
-                </h3>
-                <p className="text-sm text-gray-600 mb-2 line-clamp-2">
-                  {template.description || 'Professional resume template'}
-                </p>
-                
-                {/* Category Tag */}
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                    {template.category?.charAt(0).toUpperCase() + template.category?.slice(1) || 'Template'}
-                  </span>
-                  
-                  {/* Select Button */}
-                  <div className="flex items-center text-blue-600 text-sm font-medium group-hover:text-blue-700 transition-colors duration-200">
-                    <span>Select</span>
-                    <svg className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
+              </SwiperSlide>
+            ))}
+          </Swiper>
+
+          {/* Navigation Buttons */}
+          <div className="swiper-button-prev !w-10 !h-10 !bg-white !rounded-full !shadow-lg !border !border-gray-200 !text-gray-600 hover:!text-blue-600 hover:!shadow-xl !transition-all !duration-200 !top-1/2 !-translate-y-1/2 !left-2 sm:!left-4">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </div>
+          <div className="swiper-button-next !w-10 !h-10 !bg-white !rounded-full !shadow-lg !border !border-gray-200 !text-gray-600 hover:!text-blue-600 hover:!shadow-xl !transition-all !duration-200 !top-1/2 !-translate-y-1/2 !right-2 sm:!right-4">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+
+          {/* Pagination */}
+          <div className="swiper-pagination !bottom-2 !static !mt-6"></div>
         </div>
 
         {/* Empty State */}
@@ -283,6 +354,52 @@ function TemplateSelection() {
           </button>
         </div>
       </div>
+
+      {/* Custom CSS for Swiper */}
+      <style jsx>{`
+        .template-swiper {
+          padding: 20px 0;
+        }
+        
+        .swiper-button-prev::after,
+        .swiper-button-next::after {
+          display: none;
+        }
+        
+        .swiper-pagination-bullet {
+          background: rgba(59, 130, 246, 0.5);
+          opacity: 0.5;
+          transition: all 0.3s ease;
+          width: 8px;
+          height: 8px;
+        }
+        
+        .swiper-pagination-bullet-active {
+          background: #3b82f6;
+          opacity: 1;
+          transform: scale(1.2);
+        }
+        
+        .swiper-slide {
+          transition: transform 0.3s ease;
+        }
+        
+        .swiper-slide-active {
+          transform: scale(1.02);
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 640px) {
+          .template-swiper {
+            padding: 10px 0;
+          }
+          
+          .swiper-button-prev,
+          .swiper-button-next {
+            display: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
