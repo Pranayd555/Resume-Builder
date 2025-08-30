@@ -71,10 +71,11 @@ jobs:
         cd backend
         npm ci
         
-    - name: 🏗️ Build deployment package
+    - name: 🏗️ Build optimized deployment package
       run: |
         cd backend
         npm run build:render
+        echo "📊 Zip file size: $(ls -lh render-deployment.zip | awk '{print $5}')"
         
     - name: 🧪 Test build package
       run: |
