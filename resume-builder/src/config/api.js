@@ -17,8 +17,8 @@
 // Get the current environment
 const getEnvironment = () => {
   // Force production URL for now to fix the 404 issue
-  // return 'https://resume-builder-m5ef.onrender.com/api';
-  return 'http://localhost:5000/api';
+  return 'https://resume-builder-m5ef.onrender.com/api';
+  // return 'http://localhost:5000/api';
   
   // Original logic (commented out for debugging)
   // if (process.env.REACT_APP_API_URL) {
@@ -31,7 +31,4 @@ const getEnvironment = () => {
   // return API_CONFIG[env]?.baseURL || API_CONFIG.development.baseURL;
 };
 
-export const API_BASE_URL = getEnvironment();
-
-// Log the API URL being used (for debugging)
-console.log('🔗 API Base URL:', API_BASE_URL); 
+export const API_BASE_URL = getEnvironment(); 
