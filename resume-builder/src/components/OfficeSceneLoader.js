@@ -18,8 +18,7 @@ const OfficeSceneLoader = ({ title = "Generating Your Resume Preview", subtitle 
         let width, height;
         
         // Calculate maximum available space - more conservative
-        const maxWidth = Math.min(containerWidth - 48, viewportWidth * 0.6); // More conservative
-        const maxHeight = viewportHeight * 0.4; // More conservative
+        const maxWidth = Math.min(containerWidth - 48, viewportWidth * 0.6);
         
         if (containerWidth < 400) {
           // Mobile - increased height for better viewing

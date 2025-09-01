@@ -99,24 +99,24 @@ function TemplateSelection() {
     { value: 'academic', label: 'Academic' }
   ];
 
-  const getTemplateColor = (category) => {
-    switch (category) {
-      case 'modern':
-        return 'from-blue-400 to-blue-600';
-      case 'classic':
-        return 'from-gray-400 to-gray-600';
-      case 'creative':
-        return 'from-pink-400 to-pink-600';
-      case 'minimalist':
-        return 'from-green-400 to-green-600';
-      case 'professional':
-        return 'from-purple-400 to-purple-600';
-      case 'academic':
-        return 'from-indigo-400 to-indigo-600';
-      default:
-        return 'from-blue-400 to-blue-600';
-    }
-  };
+  // const getTemplateColor = (category) => {
+  //   switch (category) {
+  //     case 'modern':
+  //       return 'from-blue-400 to-blue-600';
+  //     case 'classic':
+  //       return 'from-gray-400 to-gray-600';
+  //     case 'creative':
+  //       return 'from-pink-400 to-pink-600';
+  //     case 'minimalist':
+  //       return 'from-green-400 to-green-600';
+  //     case 'professional':
+  //       return 'from-purple-400 to-purple-600';
+  //     case 'academic':
+  //       return 'from-indigo-400 to-indigo-600';
+  //     default:
+  //       return 'from-blue-400 to-blue-600';
+  //   }
+  // };
 
   const getTierBadgeColor = (tier) => {
     switch (tier) {
