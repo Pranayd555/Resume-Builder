@@ -8,8 +8,6 @@ on:
       - '**/*.zip'
   workflow_dispatch:
 
-
-
 jobs:
   detect-changes:
     runs-on: ubuntu-latest
@@ -96,13 +94,13 @@ jobs:
         if git diff --staged --quiet; then
           echo "No changes to commit"
         else
-          # Commit with timestamp
+          # Commit with timestamp and skip CI to prevent pipeline loops
           TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
-          git commit -m "🤖 Auto-deploy: Update render-deployment.zip [$TIMESTAMP]"
+          git commit -m "🤖 Auto-deploy: Update render-deployment.zip [$TIMESTAMP] [skip ci]"
           
           # Push to the same branch
           git push origin ${{ github.ref }}
-          echo "✅ Pushed render-deployment.zip to repository"
+          echo "✅ Pushed render-deployment.zip to repository with [skip ci] flag"
         fi
         
     - name: 🚀 Deploy to Render

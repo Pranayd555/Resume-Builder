@@ -219,6 +219,13 @@ userSchema.pre('save', async function(next) {
 
 // Method to check password
 userSchema.methods.matchPassword = async function(enteredPassword) {
+  // Guard against users without a password (e.g., OAuth accounts)
+  if (!this.password || typeof this.password !== 'string') {
+    return false;
+  }
+  if (!enteredPassword || typeof enteredPassword !== 'string') {
+    return false;
+  }
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
@@ -276,7 +283,7 @@ userSchema.methods.incLoginAttempts = function() {
   
   // If we have exceeded max attempts and it's not locked already, lock the account
   if (this.loginAttempts + 1 >= 5 && !this.isLocked) {
-    updates.$set = { lockUntil: Date.now() + 2 * 60 * 60 * 1000 }; // 2 hours
+    updates.$set = { lockUntil: Date.now() + 10 * 60 * 1000 }; // 10 min
   }
   
   return this.updateOne(updates);

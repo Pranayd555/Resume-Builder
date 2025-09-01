@@ -800,7 +800,7 @@ function ResumeForm() {
       console.error('Save failed:', error);
       
       // Handle subscription limit exceeded error
-      if (error.response?.data?.limitReached) {
+      if (error?.response?.data?.limitReached) {
         const errorData = error.response.data;
         toast.error(errorData.error);
         
@@ -812,7 +812,7 @@ function ResumeForm() {
       }
       
       // Handle validation errors
-      if (error.response?.data?.errors) {
+      if (error?.response?.data?.errors) {
         const validationErrors = error.response.data.errors;
         const formattedErrors = formatValidationErrors(validationErrors);
         setValidationErrors(formattedErrors);
@@ -875,7 +875,7 @@ function ResumeForm() {
           console.error('Failed to mark resume as completed:', error);
           
           // Handle subscription limit exceeded error
-          if (error.response?.data?.limitReached) {
+          if (error?.response?.data?.limitReached) {
             const errorData = error.response.data;
             toast.error(errorData.error);
             
