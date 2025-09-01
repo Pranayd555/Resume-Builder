@@ -5,8 +5,27 @@ on:
     branches: [ main, dev ]
     paths-ignore:
       - 'backend/render-deployment.zip'
-      - '**/*.zip'
+      - 'backend/deploy/'
+      - '**/node_modules/**'
+      - '**/.git/**'
+      - '**/*.log'
   workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force deploy both frontend and backend'
+        required: false
+        default: false
+        type: boolean
+      deploy_frontend:
+        description: 'Deploy only frontend'
+        required: false
+        default: false
+        type: boolean
+      deploy_backend:
+        description: 'Deploy only backend'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   detect-changes:
@@ -20,9 +39,42 @@ jobs:
         with:
           fetch-depth: 2
       
+      - name: 🔍 Verify workflow trigger
+        run: |
+          echo "🚀 GitHub Actions Workflow Triggered!"
+          echo "====================================="
+          echo "Event: ${{ github.event_name }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Author: ${{ github.actor }}"
+          echo "Repository: ${{ github.repository }}"
+          echo "Workflow: ${{ github.workflow }}"
+          echo "Run ID: ${{ github.run_id }}"
+          echo "Run Number: ${{ github.run_number }}"
+          echo ""
+          echo "📁 Repository contents:"
+          ls -la
+          echo ""
+          echo "📁 Frontend directory contents:"
+          ls -la resume-builder/ || echo "resume-builder directory not found"
+          echo ""
+          echo "📁 Backend directory contents:"
+          ls -la backend/ || echo "backend directory not found"
+          echo ""
+      
       - name: 🔍 Detect changes
         id: changes
         run: |
+          echo "🔍 Checking for changes between HEAD~1 and HEAD..."
+          echo "Current branch: ${{ github.ref_name }}"
+          echo "Commit range: HEAD~1..HEAD"
+          
+          # Get all changed files
+          ALL_CHANGES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "")
+          echo "📝 All changed files:"
+          echo "$ALL_CHANGES"
+          echo ""
+          
           # Check for backend changes (excluding deployment files)
           BACKEND_CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -E '^backend/' | grep -v 'render-deployment.zip' | grep -v 'deploy/' || echo "")
           if [ -n "$BACKEND_CHANGED" ]; then
@@ -33,6 +85,7 @@ jobs:
             echo "backend=false" >> $GITHUB_OUTPUT
             echo "🔍 No backend changes detected"
           fi
+          echo ""
           
           # Check for frontend changes
           FRONTEND_CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -E '^resume-builder/' || echo "")
@@ -44,6 +97,11 @@ jobs:
             echo "frontend=false" >> $GITHUB_OUTPUT
             echo "🔍 No frontend changes detected"
           fi
+          echo ""
+          
+          echo "📊 Summary:"
+          echo "Backend changed: ${{ steps.changes.outputs.backend }}"
+          echo "Frontend changed: ${{ steps.changes.outputs.frontend }}"
 
   deploy-backend:
     runs-on: ubuntu-latest

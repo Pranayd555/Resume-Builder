@@ -9,7 +9,7 @@ import {
   CheckIcon,
   XMarkIcon,
   ArrowPathIcon
-} from '@heroicons/react/24/outline';
+} from '@heroicons/react/24/outline'; //heroicons
 
 const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, defaultStyling, onClose }) => {
   const [styling, setStyling] = useState({
