@@ -32,26 +32,34 @@ api.interceptors.response.use(
     if (error?.response?.data instanceof Blob) {
       try {
         const text = await error.response.data.text();
-        error.response.data = JSON.parse(text);
+        if (error.response) {
+          error.response.data = JSON.parse(text);
+        }
       } catch (_) {
         // Leave as-is if parsing fails
       }
     }
 
     // Extract a single user-friendly message from backend
-    const backendMessage =
-      error?.response?.data?.error ||
-      (Array.isArray(error?.response?.data?.errors)
-        ? error.response.data.errors.map((e) => e.msg || e.message).join(', ')
-        : undefined) ||
-      error?.message ||
-      'An unexpected error occurred';
+    let backendMessage = 'An unexpected error occurred';
+    
+    if (error?.response?.data) {
+      if (error.response.data.error) {
+        backendMessage = error.response.data.error;
+      } else if (Array.isArray(error.response.data.errors)) {
+        backendMessage = error.response.data.errors.map((e) => e.msg || e.message).join(', ');
+      }
+    } else if (error?.message) {
+      backendMessage = error.message;
+    }
 
     // Attach normalized message for callers to use
     error.userMessage = backendMessage;
 
-    // Special handling for unauthorized: clear and redirect
-    if (error.response?.status === 401) {
+    // Special handling for unauthorized: clear and redirect only for token-related issues
+    // Don't redirect for login failures (invalid credentials)
+    if (error?.response?.status === 401 && error?.response?.data?.error !== 'Invalid credentials') {
+      // Only redirect if it's not a login failure
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
       window.location.href = '/login';
@@ -466,11 +474,11 @@ export const apiHelpers = {
 
   // Format error message
   formatError: (error) => {
-    if (error.response?.data?.error) {
+    if (error?.response?.data?.error) {
       return error.response.data.error;
-    } else if (error.response?.data?.errors) {
+    } else if (error?.response?.data?.errors) {
       return error.response.data.errors.map(err => err.msg).join(', ');
-    } else if (error.message) {
+    } else if (error?.message) {
       return error.message;
     }
     return 'An unexpected error occurred';

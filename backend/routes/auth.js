@@ -142,11 +142,19 @@ router.post('/login', [
       });
     }
 
+    // If user has no local password (e.g., registered via OAuth), always fail local auth
+    if (!user.password) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid credentials'
+      });
+    }
+
     // Check if account is locked
     if (user.isLocked) {
       return res.status(423).json({
         success: false,
-        error: 'Account temporarily locked due to too many failed login attempts'
+        error: 'Account temporarily locked due to too many failed login attempts. Please try again in 10 minutes.'
       });
     }
 
