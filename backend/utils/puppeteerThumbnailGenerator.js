@@ -2,6 +2,7 @@ const puppeteer = require('puppeteer');
 const path = require('path');
 const fs = require('fs').promises;
 const handlebars = require('handlebars');
+const OptimizedTemplateRenderer = require('../utils/templateRenderer');
 
 class PuppeteerThumbnailGenerator {
   constructor() {
@@ -330,62 +331,171 @@ class PuppeteerThumbnailGenerator {
       this.registerHelpers();
 
       // Compile template HTML
-      const htmlTemplate = handlebars.compile(template.templateCode.html);
-      const compiledHTML = htmlTemplate(this.sampleData);
+      // const htmlTemplate = handlebars.compile(template.templateCode.html);
+      // const compiledHTML = htmlTemplate(this.sampleData);
+      const renderer = new OptimizedTemplateRenderer();
+    
+      // Prepare resume data for rendering
+      const resumeData = {
+        title: this.sampleData.title,
+        personalInfo: this.sampleData.personalInfo,
+        summary: this.sampleData.summary,
+        workExperience: this.sampleData.workExperience,
+        education: this.sampleData.education,
+        skills: this.sampleData.skills,
+        projects: this.sampleData.projects,
+        achievements: this.sampleData.achievements,
+        certifications: this.sampleData.certifications,
+        languages: this.sampleData.languages,
+        customFields: this.sampleData.customFields,
+        styling: this.sampleData.styling || {} // Include styling data
+      };
+      const renderResult = renderer.render(template, resumeData);
 
       // Create full HTML document with minimal styling to match actual rendering
-      const fullHTML = `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
+      // const fullHTML = `
+      //   <!DOCTYPE html>
+      //   <html lang="en">
+      //   <head>
+      //     <meta charset="UTF-8">
+      //     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      //     <title>${template.name}</title>
+      //     <style>
+      //       /* Basic reset and page setup */
+      //       * {
+      //         margin: 0;
+      //         padding: 0;
+      //         box-sizing: border-box;
+      //       }
+            
+      //       :root { 
+      //         --template-bg: ${template.styling.colors.background || '#ffffff'}; 
+      //       }
+            
+      //       body {
+      //         margin: 0;
+      //         padding: 10px;
+      //         background: var(--template-bg);
+      //         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      //       }
+            
+      //       /* Template CSS from template - use as-is without modifications */
+      //       ${template.templateCode.css}
+            
+      //       /* Minimal thumbnail-specific adjustments for better preview */
+      //       .resume {
+      //         margin: 0 auto;
+      //         background: var(--template-bg);
+      //         overflow: hidden;
+      //       }
+            
+      //       /* Ensure consistent rendering across templates */
+      //       .resume * {
+      //         text-rendering: optimizeLegibility;
+      //         -webkit-font-smoothing: antialiased;
+      //         -moz-osx-font-smoothing: grayscale;
+      //       }
+      //     </style>
+      //   </head>
+      //   <body>
+      //     ${compiledHTML}
+      //   </body>
+      //   </html>
+      // `;
+      const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>${template.name}</title>
           <style>
-            /* Basic reset and page setup */
-            * {
-              margin: 0;
-              padding: 0;
-              box-sizing: border-box;
-            }
-            
-            :root { 
-              --template-bg: ${template.styling.colors.background || '#ffffff'}; 
-            }
-            
-            body {
-              margin: 0;
-              padding: 10px;
-              background: var(--template-bg);
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            }
-            
-            /* Template CSS from template - use as-is without modifications */
-            ${template.templateCode.css}
-            
-            /* Minimal thumbnail-specific adjustments for better preview */
-            .resume {
-              max-width: 8.5in;
-              margin: 0 auto;
-              background: var(--template-bg);
-              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-              border-radius: 4px;
-              overflow: hidden;
-            }
-            
-            /* Ensure consistent rendering across templates */
-            .resume * {
-              text-rendering: optimizeLegibility;
-              -webkit-font-smoothing: antialiased;
-              -moz-osx-font-smoothing: grayscale;
-            }
+              /* Basic reset and page setup */
+              * {
+                  margin: 0;
+                  padding: 0;
+                  box-sizing: border-box;
+              }
+              
+              :root { 
+                  --template-bg: ${template.styling.colors.background || '#ffffff'}; 
+              }
+              
+              body {
+                  margin: 0;
+                  padding: 0;
+                  background: ${template.styling.colors.background || '#ffffff'};
+              }
+              
+              /* Template CSS from renderer - HIGHEST PRIORITY */
+              ${renderResult.css}
+              
+              /* Minimal PDF-specific overrides - LOWEST PRIORITY */
+              /* Only apply essential PDF optimizations that don't conflict with template design */
+              
+              /* Print optimizations - minimal and non-conflicting */
+              @media print {
+                  body {
+                      background: ${template?.styling?.colors?.background || '#ffffff'} !important;
+                  }
+                  .resume { 
+                      box-shadow: none;
+                      background: ${template?.styling?.colors?.background || '#ffffff'} !important;
+                  }
+                  * { 
+                      -webkit-print-color-adjust: exact; 
+                      color-adjust: exact;
+                  }
+              }
+              
+              /* Page margins for PDF generation */
+              @page :first {
+                  margin: 0in 0in 0.5in 0in;
+              }
+              
+              @page {
+                  margin: 0.5in 0in 0.5in 0in;
+              }
+              
+              /* Remove bottom spacing from the last element for PDF */
+              .resume > *:last-child,
+              .resume section:last-child,
+              .resume .section:last-child,
+              .resume .work-experience:last-child,
+              .resume .education:last-child,
+              .resume .skills:last-child,
+              .resume .projects:last-child,
+              .resume .achievements:last-child,
+              .resume .certifications:last-child,
+              .resume .languages:last-child,
+              .resume .summary:last-child,
+              .resume .custom-fields:last-child,
+              .resume .main-content > *:last-child,
+              .resume .sidebar > *:last-child,
+              .resume .content-grid > *:last-child {
+                margin-bottom: 0 !important;
+                padding-bottom: 0 !important;
+              }
+              
+              /* Also remove bottom spacing from last items within sections */
+              .resume .job-item:last-child,
+              .resume .edu-item:last-child,
+              .resume .project-item:last-child,
+              .resume .cert-item:last-child,
+              .resume .achievement-item:last-child,
+              .resume .skill-category:last-child,
+              .resume .language-item:last-child,
+              .resume .custom-field:last-child {
+                margin-bottom: 0 !important;
+                padding-bottom: 0 !important;
+              }
           </style>
-        </head>
-        <body>
-          ${compiledHTML}
-        </body>
-        </html>
-      `;
+      </head>
+      <body>
+          ${renderResult.html}
+      </body>
+      </html>
+    `;
 
       // Create new page
       const page = await this.browser.newPage();
@@ -398,13 +508,14 @@ class PuppeteerThumbnailGenerator {
       });
 
       // Load HTML content
-      await page.setContent(fullHTML, {
+      await page.setContent(htmlContent, {
         waitUntil: 'networkidle0',
         timeout: 30000
       });
 
       // Wait for fonts to load
       await page.evaluateHandle('document.fonts.ready');
+      await page.emulateMediaType('print');
 
       // Generate filename if not provided
       const thumbnailFilename = filename || `${template.name.toLowerCase().replace(/\s+/g, '-')}-thumbnail.${format}`;

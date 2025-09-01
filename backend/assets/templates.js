@@ -1293,7 +1293,13 @@ module.exports = [
       .cert-line { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
       .cert-line h3 { font-size: 16px; color: #1f2937; font-weight: bold; margin: 0; }
       .cert-date { font-size: 12px; color: #6b7280; font-style: italic; }
-      .cert-issuer { font-size: 12px; color: #4b5563; font-style: italic; }`
+      .cert-issuer { font-size: 12px; color: #4b5563; font-style: italic;
+      /* General list styling for HTML content in descriptions */
+      ul, ol { margin: 0.25rem 0; padding-left: 1rem; }
+      ul li, ol li { margin-bottom: 0.125rem; color: #4b5563; line-height: 1.3; font-size: 10px; }
+      ul { list-style-type: disc; }
+      ol { list-style-type: decimal; } }
+      ul { list-style-type: disc; } ol { list-style-type: decimal; }`
     },
     creator: null,
     tags: ['classic', 'professional', 'conservative', 'formal']
@@ -1998,7 +2004,13 @@ module.exports = [
       .language-name { font-size: 12px; color: #1f2937; }
       .language-level { font-size: 12px; color: #64748b; text-transform: capitalize; }
       .custom-field { margin-bottom: 2px; }
-      .custom-content { font-size: 12px; color: #374151; line-height: 1; }`
+      .custom-content { font-size: 12px; color: #374151; line-height: 1; 
+      /* General list styling for HTML content in descriptions */
+      ul, ol { margin: 0.25rem 0; padding-left: 1rem; }
+      ul li, ol li { margin-bottom: 0.125rem; color: #4b5563; line-height: 1.3; font-size: 10px; }
+      ul { list-style-type: disc; }
+      ol { list-style-type: decimal; }}
+      ul { list-style-type: disc; } ol { list-style-type: decimal; }`
     },
     creator: null,
     tags: ['professional', 'executive', 'leadership', 'corporate']
@@ -2187,7 +2199,14 @@ module.exports = [
       .skill-category { margin-bottom: 10px; }
       .skill-category h3 { font-size: 11px; font-weight: 600; color: #1f2937; margin-bottom: 3px; }
       .skill-items { color: #4b5563; line-height: 1.4; }
-      .cert-issuer { color: #6b7280; font-style: italic; }`
+      .cert-issuer { color: #6b7280; font-style: italic; 
+      /* General list styling for HTML content in descriptions */
+      ul, ol { margin: 0.25rem 0; padding-left: 1rem; }
+      ul li, ol li { margin-bottom: 0.125rem; color: #4b5563; line-height: 1.3; font-size: 10px; }
+      ul { list-style-type: disc; }
+      ol { list-style-type: decimal; }
+      }
+      ul { list-style-type: disc; } ol { list-style-type: decimal; }`
     },
     creator: null,
     tags: ['academic', 'research', 'education', 'scholarly', 'single-column', 'green']
@@ -3708,7 +3727,7 @@ module.exports = [
         </section>
         {{/if}}
       </article>`,
-      "css": ".resume.classic-serif { font-family: 'Times New Roman', serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #111827; font-size: 12px; line-height: 1.4; } .resume.classic-serif .header { text-align: left !important; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #d1d5db; } .resume.classic-serif .name { font-size: 18px; line-height: 1.2; letter-spacing: 0.5px; margin: 0 0 3px; font-variant: small-caps; text-align: left !important; font-weight: bold; } .resume.classic-serif .contact { font-size: 11px; color: #4b5563; line-height: 1.3; } .resume.classic-serif section { margin-top: 8px; } .resume.classic-serif h2 { text-transform: uppercase; font-size: 14px; margin: 6px 0 3px; letter-spacing: 0.5px; color: #1f2937; border-left: 3px solid #4b5563; padding-left: 4px; font-weight: bold; } .resume.classic-serif h3 { font-size: 12px; font-weight: bold; margin: 3px 0 2px; color: #374151; } .resume.classic-serif .job-header, .resume.classic-serif .edu-header, .resume.classic-serif .project-header, .resume.classic-serif .achievement-header, .resume.classic-serif .cert-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; } .resume.classic-serif .dates { font-size: 10px; color: #6b7280; } .resume.classic-serif .gpa { font-size: 10px; color: #374151; margin: 2px 0; } .resume.classic-serif .company, .resume.classic-serif .institution, .resume.classic-serif .issuer { font-size: 10px; color: #4b5563; margin: 2px 0; } .resume.classic-serif .job-description, .resume.classic-serif .project-description, .resume.classic-serif .edu-description { margin: 3px 0; color: #374151; line-height: 1.4; } .resume.classic-serif .achievements { margin: 3px 0;} .resume.classic-serif .achievements li { margin-bottom: 2px; color: #374151; } .resume.classic-serif .skill-category { margin-bottom: 4px; } .resume.classic-serif .skill-items { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; } .resume.classic-serif .skill-item { background: #f3f4f6; padding: 2px 4px; border-radius: 2px; font-size: 9px; color: #374151; } .resume.classic-serif .technologies { margin: 3px 0; } .resume.classic-serif .tech-tag { background: #e5e7eb; padding: 1px 3px; border-radius: 2px; font-size: 8px; margin-right: 3px; } .resume.classic-serif .project-links { margin: 2px 0; } .resume.classic-serif .project-links a { color: #2563eb; text-decoration: none; font-size: 9px; } .resume.classic-serif .cert-expiry, .resume.classic-serif .cert-id { font-size: 9px; color: #6b7280; margin: 1px 0; } .resume.classic-serif .cert-link a { color: #2563eb; text-decoration: none; font-size: 9px; } .resume.classic-serif .issuer-info { font-size: 9px; color: #6b7280; margin: 2px 0; } .resume.classic-serif .language-item { margin: 2px 0; font-size: 10px; } .resume.classic-serif .custom-field { margin-bottom: 4px; } .resume.classic-serif .custom-content { margin: 2px 0; } .resume.classic-serif p { margin: 2px 0; } .resume.classic-serif .job, .resume.classic-serif .edu, .resume.classic-serif .project, .resume.classic-serif .cert, .resume.classic-serif .achievement { margin-bottom: 6px; }"
+      "css": ".resume.classic-serif { font-family: 'Times New Roman', serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #111827; font-size: 12px; line-height: 1.4; } .resume.classic-serif .header { text-align: left !important; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #d1d5db; } .resume.classic-serif .name { font-size: 18px; line-height: 1.2; letter-spacing: 0.5px; margin: 0 0 3px; font-variant: small-caps; text-align: left !important; font-weight: bold; } .resume.classic-serif .contact { font-size: 11px; color: #4b5563; line-height: 1.3; } .resume.classic-serif section { margin-top: 8px; } .resume.classic-serif h2 { text-transform: uppercase; font-size: 14px; margin: 6px 0 3px; letter-spacing: 0.5px; color: #1f2937; border-left: 3px solid #4b5563; padding-left: 4px; font-weight: bold; } .resume.classic-serif h3 { font-size: 12px; font-weight: bold; margin: 3px 0 2px; color: #374151; } .resume.classic-serif .job-header, .resume.classic-serif .edu-header, .resume.classic-serif .project-header, .resume.classic-serif .achievement-header, .resume.classic-serif .cert-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; } .resume.classic-serif .dates { font-size: 10px; color: #6b7280; } .resume.classic-serif .gpa { font-size: 10px; color: #374151; margin: 2px 0; } .resume.classic-serif .company, .resume.classic-serif .institution, .resume.classic-serif .issuer { font-size: 10px; color: #4b5563; margin: 2px 0; } .resume.classic-serif .job-description, .resume.classic-serif .project-description, .resume.classic-serif .edu-description { margin: 3px 0; color: #374151; line-height: 1.4; } .resume.classic-serif .achievements { margin: 3px 0;} .resume.classic-serif .achievements li { margin-bottom: 2px; color: #374151; } .resume.classic-serif .skill-category { margin-bottom: 4px; } .resume.classic-serif .skill-items { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; } .resume.classic-serif .skill-item { background: #f3f4f6; padding: 2px 4px; border-radius: 2px; font-size: 9px; color: #374151; } .resume.classic-serif .technologies { margin: 3px 0; } .resume.classic-serif .tech-tag { background: #e5e7eb; padding: 1px 3px; border-radius: 2px; font-size: 8px; margin-right: 3px; } .resume.classic-serif .project-links { margin: 2px 0; } .resume.classic-serif .project-links a { color: #2563eb; text-decoration: none; font-size: 9px; } .resume.classic-serif .cert-expiry, .resume.classic-serif .cert-id { font-size: 9px; color: #6b7280; margin: 1px 0; } .resume.classic-serif .cert-link a { color: #2563eb; text-decoration: none; font-size: 9px; } .resume.classic-serif .issuer-info { font-size: 9px; color: #6b7280; margin: 2px 0; } .resume.classic-serif .language-item { margin: 2px 0; font-size: 10px; } .resume.classic-serif .custom-field { margin-bottom: 4px; } .resume.classic-serif .custom-content { margin: 2px 0; } .resume.classic-serif p { margin: 2px 0; } .resume.classic-serif .job, .resume.classic-serif .edu, .resume.classic-serif .project, .resume.classic-serif .cert, .resume.classic-serif .achievement { margin-bottom: 6px; ul, ol { margin: 0.25rem 0; padding-left: 1rem; }   ul li, ol li { margin-bottom: 0.125rem; color: #4b5563; line-height: 1.3; font-size: 10px; } ul { list-style-type: disc; } ol { list-style-type: decimal; } } ul { list-style-type: disc; } ol { list-style-type: decimal; }"
     },
     creator: null,
     "tags": ["classic", "serif", "traditional", "academic", "single-column", "gray"]
