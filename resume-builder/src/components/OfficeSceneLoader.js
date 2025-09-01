@@ -11,7 +11,6 @@ const OfficeSceneLoader = ({ title = "Generating Your Resume Preview", subtitle 
       if (containerRef.current) {
         const container = containerRef.current;
         const containerWidth = container.offsetWidth;
-        const viewportHeight = window.innerHeight;
         const viewportWidth = window.innerWidth;
         
         // Responsive sizing based on container width and viewport
