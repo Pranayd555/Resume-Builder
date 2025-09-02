@@ -20,6 +20,7 @@
     "unlock-account": "node scripts/unlock-account.js"
   },
   "dependencies": {
+    "@google/genai": "^1.16.0",
     "@sparticuz/chromium": "^119.0.0",
     "archiver": "^6.0.1",
     "bcryptjs": "^2.4.3",
