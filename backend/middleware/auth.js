@@ -165,16 +165,18 @@ const checkAIActionLimit = async (req, res, next) => {
     }
 
     if (!subscription.canUseAIAction()) {
-      const currentUsage = subscription.usage.aiActionsThisMonth || 0;
+      const currentUsage = subscription.usage.aiActionsThisCycle || 0;
       const limit = subscription.features?.aiActionsLimit || 10;
       const planName = subscription.plan === 'free' ? 'Free' : 'Pro';
+      const cycleType = subscription.plan === 'free' ? 'month' : (subscription.billing?.cycle || 'month');
       return res.status(403).json({
         success: false,
-        error: `Monthly AI action limit reached. You have used ${currentUsage}/${limit} AI actions this month on your ${planName} plan. Please upgrade to use more AI actions.`,
+        error: `${cycleType.charAt(0).toUpperCase() + cycleType.slice(1)}ly AI action limit reached. You have used ${currentUsage}/${limit} AI actions this ${cycleType} on your ${planName} plan. Please upgrade to use more AI actions.`,
         limitReached: true,
         currentUsage,
         limit,
-        plan: subscription.plan
+        plan: subscription.plan,
+        cycleType
       });
     }
 

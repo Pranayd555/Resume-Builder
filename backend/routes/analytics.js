@@ -195,7 +195,10 @@ router.get('/summary', protect, async (req, res) => {
         resumeLimit: subscription?.features?.resumeLimit || 2,
         resumesCreated: subscription?.usage?.resumesCreated || 0,
         aiActionsLimit: subscription?.features?.aiActionsLimit || 10,
-        aiActionsUsed: subscription?.usage?.aiActionsThisMonth || 0
+        aiActionsUsed: subscription?.usage?.aiActionsThisCycle || 0,
+        cycleStartDate: subscription?.usage?.cycleStartDate || new Date(),
+        nextBillingDate: subscription?.billing?.nextBillingDate || null,
+        billingCycle: subscription?.billing?.cycle || 'monthly'
       },
       templates: {
         totalUsed: templatesUsed.length,
@@ -214,6 +217,125 @@ router.get('/summary', protect, async (req, res) => {
     });
   } catch (error) {
     logger.error('Get analytics summary error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+});
+
+// @desc    Get detailed AI usage analytics
+// @route   GET /api/analytics/ai-usage
+// @access  Private
+router.get('/ai-usage', protect, async (req, res) => {
+  try {
+    const subscription = await Subscription.findOne({ user: req.user.id });
+    
+    if (!subscription) {
+      return res.status(404).json({
+        success: false,
+        error: 'No subscription found'
+      });
+    }
+
+    const usage = subscription.usage || {};
+    const now = new Date();
+    
+    // Calculate cycle information
+    let cycleInfo = {
+      currentCycle: 'free',
+      cycleStartDate: usage.cycleStartDate || subscription.startDate,
+      nextResetDate: null,
+      daysUntilReset: null,
+      cycleProgress: 0
+    };
+
+    if (subscription.plan === 'free') {
+      // For free users, reset monthly
+      const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      cycleInfo.currentCycle = 'monthly';
+      cycleInfo.nextResetDate = nextMonthStart;
+      cycleInfo.daysUntilReset = Math.ceil((nextMonthStart - now) / (1000 * 60 * 60 * 24));
+      cycleInfo.cycleProgress = ((now - currentMonthStart) / (nextMonthStart - currentMonthStart)) * 100;
+    } else if (subscription.billing?.nextBillingDate) {
+      // For paid users, reset on billing cycle
+      const nextBilling = new Date(subscription.billing.nextBillingDate);
+      const lastReset = new Date(usage.lastBillingCycleReset || subscription.startDate);
+      cycleInfo.currentCycle = subscription.billing.cycle || 'monthly';
+      cycleInfo.nextResetDate = nextBilling;
+      cycleInfo.daysUntilReset = Math.ceil((nextBilling - now) / (1000 * 60 * 60 * 24));
+      cycleInfo.cycleProgress = ((now - lastReset) / (nextBilling - lastReset)) * 100;
+    }
+
+    const aiUsageAnalytics = {
+      currentUsage: {
+        aiActionsUsed: usage.aiActionsThisCycle || 0,
+        aiActionsLimit: subscription.features?.aiActionsLimit || 10,
+        remainingActions: Math.max(0, (subscription.features?.aiActionsLimit || 10) - (usage.aiActionsThisCycle || 0)),
+        usagePercentage: Math.round(((usage.aiActionsThisCycle || 0) / (subscription.features?.aiActionsLimit || 10)) * 100)
+      },
+      cycleInfo,
+      plan: subscription.plan,
+      status: subscription.status,
+      features: {
+        aiActionsLimit: subscription.features?.aiActionsLimit || 10,
+        aiReview: subscription.features?.aiReview || false
+      }
+    };
+
+    res.json({
+      success: true,
+      data: aiUsageAnalytics
+    });
+  } catch (error) {
+    logger.error('Get AI usage analytics error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+});
+
+// @desc    Admin: Reset AI action cycle for a user (for testing purposes)
+// @route   POST /api/analytics/admin/reset-ai-cycle/:userId
+// @access  Private (Admin only)
+router.post('/admin/reset-ai-cycle/:userId', protect, async (req, res) => {
+  try {
+    // Check if user is admin (you can modify this based on your admin system)
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Admin access required'
+      });
+    }
+
+    const subscription = await Subscription.findOne({ user: req.params.userId });
+    
+    if (!subscription) {
+      return res.status(404).json({
+        success: false,
+        error: 'Subscription not found'
+      });
+    }
+
+    // Reset the AI action cycle
+    await subscription.resetAIActionCycle();
+
+    logger.info(`Admin reset AI action cycle for user ${req.params.userId} by admin ${req.user.email}`);
+
+    res.json({
+      success: true,
+      message: 'AI action cycle reset successfully',
+      data: {
+        userId: req.params.userId,
+        resetAt: new Date(),
+        newCycleStart: subscription.usage.cycleStartDate,
+        nextBillingDate: subscription.billing?.nextBillingDate
+      }
+    });
+  } catch (error) {
+    logger.error('Admin reset AI cycle error:', error);
     res.status(500).json({
       success: false,
       error: 'Server error'

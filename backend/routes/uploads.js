@@ -3,7 +3,7 @@ const multer = require('multer');
 const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs').promises;
-const { protect } = require('../middleware/auth');
+const { protect, checkAIActionLimit, trackUsage } = require('../middleware/auth');
 const User = require('../models/User');
 const logger = require('../utils/logger');
 const pdfParse = require('pdf-parse');
@@ -78,14 +78,18 @@ const handleMulterError = (error, req, res, next) => {
 // @desc    Upload and parse resume (PDF/Word)
 // @route   POST /api/uploads/parse-resume
 // @access  Private
-router.post('/parse-resume', protect, (req, res, next) => {
-  upload.single('file')(req, res, (err) => {
-    if (err) {
-      return handleMulterError(err, req, res, next);
-    }
-    next();
-  });
-}, async (req, res) => {
+router.post('/parse-resume', [
+  protect,
+  checkAIActionLimit,
+  (req, res, next) => {
+    upload.single('file')(req, res, (err) => {
+      if (err) {
+        return handleMulterError(err, req, res, next);
+      }
+      next();
+    });
+  }
+], trackUsage, async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({
@@ -141,9 +145,13 @@ router.post('/parse-resume', protect, (req, res, next) => {
         logger.info('Calling Gemini AI service to parse resume text');
         parsedData = await parseResumeText(extractedText);
         logger.info('Resume text parsed successfully with AI');
+        
+        // Set usage type for tracking AI action usage
+        req.usageType = 'aiAction';
       } catch (aiError) {
         logger.error('AI parsing failed, returning original text only:', aiError);
         // Continue with original text if AI parsing fails
+        // Don't set usageType since AI parsing failed
       }
 
       res.json({

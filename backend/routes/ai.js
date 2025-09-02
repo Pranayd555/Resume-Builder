@@ -215,10 +215,15 @@ router.get('/usage', protect, async (req, res) => {
     res.json({
       success: true,
       data: {
-        aiActionsUsed: usage.aiActionsThisMonth || 0,
+        aiActionsUsed: usage.aiActionsThisCycle || 0,
         aiActionsLimit: subscription.features?.aiActionsLimit || 10,
         plan: subscription.plan,
-        remainingActions: Math.max(0, (subscription.features?.aiActionsLimit || 10) - (usage.aiActionsThisMonth || 0))
+        remainingActions: Math.max(0, (subscription.features?.aiActionsLimit || 10) - (usage.aiActionsThisCycle || 0)),
+        cycleStartDate: usage.cycleStartDate || subscription.startDate,
+        nextBillingDate: subscription.billing?.nextBillingDate || null,
+        billingCycle: subscription.billing?.cycle || 'monthly',
+        daysUntilReset: subscription.billing?.nextBillingDate ? 
+          Math.ceil((new Date(subscription.billing.nextBillingDate) - new Date()) / (1000 * 60 * 60 * 24)) : null
       }
     });
   } catch (error) {

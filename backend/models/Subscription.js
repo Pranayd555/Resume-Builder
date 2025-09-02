@@ -177,17 +177,21 @@ const subscriptionSchema = new mongoose.Schema({
     }
   },
   
-  // Usage Tracking (Simplified - Monthly for AI, Total for resumes)
+  // Usage Tracking (Subscription cycle-based for AI, Total for resumes)
   usage: {
     resumesCreated: {
       type: Number,
       default: 0
     },
-    aiActionsThisMonth: {
+    aiActionsThisCycle: {
       type: Number,
       default: 0
     },
-    monthStartAtUtc: {
+    cycleStartDate: {
+      type: Date,
+      default: Date.now
+    },
+    lastBillingCycleReset: {
       type: Date,
       default: Date.now
     }
@@ -433,25 +437,52 @@ subscriptionSchema.pre('save', function(next) {
   next();
 });
 
-// Ensure monthly window is aligned to 1st of month 00:00 UTC; reset counters if month changed
-function ensureMonthlyWindow(subscriptionDoc) {
+// Ensure subscription cycle window is aligned to billing cycle; reset counters if cycle changed
+function ensureSubscriptionCycleWindow(subscriptionDoc) {
   const now = new Date();
-  const currentMonthStartUtc = new Date(now.getFullYear(), now.getMonth(), 1);
   
   // Ensure usage object exists
   if (!subscriptionDoc.usage) {
     subscriptionDoc.usage = {
       resumesCreated: 0,
-      aiActionsThisMonth: 0,
-      monthStartAtUtc: currentMonthStartUtc
+      aiActionsThisCycle: 0,
+      cycleStartDate: subscriptionDoc.startDate || now,
+      lastBillingCycleReset: now
     };
     return;
   }
   
-  const stored = subscriptionDoc.usage.monthStartAtUtc;
-  if (!stored || new Date(stored).getTime() !== currentMonthStartUtc.getTime()) {
-    subscriptionDoc.usage.monthStartAtUtc = currentMonthStartUtc;
-    subscriptionDoc.usage.aiActionsThisMonth = 0;
+  // For free users, reset monthly (calendar month)
+  if (subscriptionDoc.plan === 'free') {
+    const currentMonthStartUtc = new Date(now.getFullYear(), now.getMonth(), 1);
+    const stored = subscriptionDoc.usage.lastBillingCycleReset;
+    
+    if (!stored || new Date(stored).getTime() !== currentMonthStartUtc.getTime()) {
+      subscriptionDoc.usage.lastBillingCycleReset = currentMonthStartUtc;
+      subscriptionDoc.usage.aiActionsThisCycle = 0;
+      subscriptionDoc.usage.cycleStartDate = currentMonthStartUtc;
+    }
+    return;
+  }
+  
+  // For paid users, check if billing cycle has passed
+  if (subscriptionDoc.billing?.nextBillingDate) {
+    const nextBilling = new Date(subscriptionDoc.billing.nextBillingDate);
+    const lastReset = new Date(subscriptionDoc.usage.lastBillingCycleReset);
+    
+    // If we've passed the next billing date, reset the cycle
+    if (now >= nextBilling && lastReset < nextBilling) {
+      subscriptionDoc.usage.lastBillingCycleReset = now;
+      subscriptionDoc.usage.aiActionsThisCycle = 0;
+      subscriptionDoc.usage.cycleStartDate = now;
+      
+      // Update next billing date for the next cycle
+      if (subscriptionDoc.billing.cycle === 'monthly') {
+        subscriptionDoc.billing.nextBillingDate = new Date(nextBilling.getTime() + 30 * 24 * 60 * 60 * 1000);
+      } else if (subscriptionDoc.billing.cycle === 'yearly') {
+        subscriptionDoc.billing.nextBillingDate = new Date(nextBilling.getTime() + 365 * 24 * 60 * 60 * 1000);
+      }
+    }
   }
 }
 
@@ -486,25 +517,22 @@ subscriptionSchema.methods.canExportFormat = function(format) {
   return ['pdf'].includes(format);
 };
 
-// Method to check if user can use AI action (monthly limits for both plans)
+// Method to check if user can use AI action (subscription cycle limits for both plans)
 subscriptionSchema.methods.canUseAIAction = function() {
-  ensureMonthlyWindow(this);
+  ensureSubscriptionCycleWindow(this);
   
-  // Check if user has exceeded monthly AI action limit
-  return this.usage.aiActionsThisMonth < this.features.aiActionsLimit;
+  // Check if user has exceeded subscription cycle AI action limit
+  return this.usage.aiActionsThisCycle < this.features.aiActionsLimit;
 };
 
-// Method to ensure monthly window and save if changed
-subscriptionSchema.methods.ensureMonthlyWindowAndSave = function() {
-  const beforeCount = this.usage.aiActionsThisMonth;
-  ensureMonthlyWindow(this);
-  const afterCount = this.usage.aiActionsThisMonth;
+// Method to ensure subscription cycle window and save if changed
+subscriptionSchema.methods.ensureSubscriptionCycleWindowAndSave = function() {
+  const beforeCount = this.usage.aiActionsThisCycle;
+  ensureSubscriptionCycleWindow(this);
+  const afterCount = this.usage.aiActionsThisCycle;
   
   // If the count changed (reset happened), save the document
-  if (beforeCount !== afterCount) {
-    return this.save();
-  }
-  return Promise.resolve(this);
+  return this.save();
 };
 
 // Method to check if export should have watermark
@@ -521,15 +549,15 @@ subscriptionSchema.methods.canStartTrial = function() {
   return !this.hasHadTrial && this.plan === 'free' && this.status !== 'trialing';
 };
 
-// Method to increment usage (simplified)
+// Method to increment usage (subscription cycle-based)
 subscriptionSchema.methods.incrementUsage = function(type) {
   switch (type) {
     case 'resume':
       this.usage.resumesCreated += 1;
       break;
     case 'aiAction':
-      ensureMonthlyWindow(this);
-      this.usage.aiActionsThisMonth += 1;
+      ensureSubscriptionCycleWindow(this);
+      this.usage.aiActionsThisCycle += 1;
       break;
   }
   return this.save();
@@ -595,6 +623,25 @@ subscriptionSchema.methods.startTrial = function(trialType = 'free', days = 3) {
   this.billing.trialType = trialType;
   this.billing.trialEnd = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
   this.hasHadTrial = true;
+  
+  return this.save();
+};
+
+// Method to manually reset AI action cycle (for admin/testing purposes)
+subscriptionSchema.methods.resetAIActionCycle = function() {
+  this.usage.aiActionsThisCycle = 0;
+  this.usage.lastBillingCycleReset = new Date();
+  this.usage.cycleStartDate = new Date();
+  
+  // For paid users, also update next billing date
+  if (this.billing?.nextBillingDate) {
+    const now = new Date();
+    if (this.billing.cycle === 'monthly') {
+      this.billing.nextBillingDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    } else if (this.billing.cycle === 'yearly') {
+      this.billing.nextBillingDate = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+    }
+  }
   
   return this.save();
 };
