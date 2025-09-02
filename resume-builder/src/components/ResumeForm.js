@@ -74,7 +74,7 @@ const TextAreaField = ({
   onChange, 
   rows = 3, 
   placeholder = "", 
-  className = "" 
+  className = ""
 }) => (
   <div>
     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1291,7 +1291,7 @@ function ResumeForm() {
             description: '',
             achievements: []
           })}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+          className="px-4 py-2 rounded-lg transition-colors flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700"
         >
           <PlusIcon className="w-4 h-4" />
           Add Experience
@@ -2452,14 +2452,32 @@ function ResumeForm() {
   }
 
   return (
-    <div className="min-h-screen pt-16">
+    <div className="min-h-screen pt-16 relative">
+      {/* Global Loader Overlay */}
+      {uploadingResume && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <div className="text-center">
+              <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Processing Resume</h3>
+              <p className="text-gray-600 mb-4">Please wait while we extract and parse your resume content...</p>
+              <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+                <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="max-w-4xl mx-auto py-6 px-3 sm:py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
           <div className="flex justify-between items-start mb-4">
             <button
               onClick={() => navigate('/resume-list')}
-              className="text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center gap-1 text-xs sm:text-sm"
+              className="text-gray-500 transition-colors duration-200 flex items-center gap-1 text-xs sm:text-sm hover:text-blue-600"
               title="Back to resume list"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2496,7 +2514,7 @@ function ResumeForm() {
             <div className="flex items-center gap-2">
               <button
                 onClick={saveDraft}
-                className="text-gray-500 hover:text-blue-600 transition-colors duration-200 flex items-center gap-1 text-xs sm:text-sm"
+                className="text-gray-500 transition-colors duration-200 flex items-center gap-1 text-xs sm:text-sm hover:text-blue-600"
                 title="Save draft now"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2506,7 +2524,7 @@ function ResumeForm() {
               </button>
               <button
                 onClick={clearFormData}
-                className="text-gray-500 hover:text-red-600 transition-colors duration-200 flex items-center gap-1 text-xs sm:text-sm"
+                className="text-gray-500 transition-colors duration-200 flex items-center gap-1 text-xs sm:text-sm hover:text-red-600"
                 title="Clear all form data"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2595,7 +2613,7 @@ function ResumeForm() {
 
             <button
               onClick={nextStep}
-              disabled={!isStepValid() || loading}
+              disabled={!isStepValid() || loading || uploadingResume}
               className={`px-2 py-2 sm:px-6 sm:py-3 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-1 sm:gap-2 font-semibold text-sm sm:text-base min-w-0 flex-shrink-0 ${
                 !isStepValid() && Object.keys(validationErrors).length > 0
                   ? 'bg-red-500 hover:bg-red-600'
