@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs').promises;
 const handlebars = require('handlebars');
 const OptimizedTemplateRenderer = require('../utils/templateRenderer');
+const sharp = require('sharp');
 
 class PuppeteerThumbnailGenerator {
   constructor() {
@@ -351,57 +352,7 @@ class PuppeteerThumbnailGenerator {
         styling: this.sampleData.styling || {} // Include styling data
       };
       const renderResult = renderer.render(template, resumeData);
-
-      // Create full HTML document with minimal styling to match actual rendering
-      // const fullHTML = `
-      //   <!DOCTYPE html>
-      //   <html lang="en">
-      //   <head>
-      //     <meta charset="UTF-8">
-      //     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      //     <title>${template.name}</title>
-      //     <style>
-      //       /* Basic reset and page setup */
-      //       * {
-      //         margin: 0;
-      //         padding: 0;
-      //         box-sizing: border-box;
-      //       }
-            
-      //       :root { 
-      //         --template-bg: ${template.styling.colors.background || '#ffffff'}; 
-      //       }
-            
-      //       body {
-      //         margin: 0;
-      //         padding: 10px;
-      //         background: var(--template-bg);
-      //         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      //       }
-            
-      //       /* Template CSS from template - use as-is without modifications */
-      //       ${template.templateCode.css}
-            
-      //       /* Minimal thumbnail-specific adjustments for better preview */
-      //       .resume {
-      //         margin: 0 auto;
-      //         background: var(--template-bg);
-      //         overflow: hidden;
-      //       }
-            
-      //       /* Ensure consistent rendering across templates */
-      //       .resume * {
-      //         text-rendering: optimizeLegibility;
-      //         -webkit-font-smoothing: antialiased;
-      //         -moz-osx-font-smoothing: grayscale;
-      //       }
-      //     </style>
-      //   </head>
-      //   <body>
-      //     ${compiledHTML}
-      //   </body>
-      //   </html>
-      // `;
+      
       const htmlContent = `
       <!DOCTYPE html>
       <html lang="en">
@@ -537,7 +488,19 @@ class PuppeteerThumbnailGenerator {
         }
       };
 
-      await page.screenshot(screenshotOptions);
+      const screenshotBuffer = await page.screenshot(screenshotOptions);
+      const whiteBorderHeight = 50; // in pixels
+
+      // Add white border using sharp
+      const finalImage = await sharp(screenshotBuffer).extend({
+          top: 0,
+          bottom: whiteBorderHeight,
+          left: 0,
+          right: 0,
+          background: 'white'
+        })
+        .toBuffer();
+      await sharp(finalImage).toFile(thumbnailPath);
 
       // Close page
       await page.close();

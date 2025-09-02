@@ -26,7 +26,7 @@ class ThumbnailGenerationManager {
       width: 300,
       height: 400,
       format: 'webp',
-      quality: 85,
+      quality: 90,
       updateDatabase: true
     };
 
@@ -145,7 +145,7 @@ const seedAllTemplates = async () => {
       width: 300,
       height: 400,
       format: 'webp',
-      quality: 85,
+      quality: 90,
       updateDatabase: true
     });
 
