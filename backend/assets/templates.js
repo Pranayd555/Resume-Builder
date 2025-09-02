@@ -218,7 +218,7 @@ module.exports = [
       .name { font-size: 16px; font-weight: 700; color: #2563eb; margin-bottom: 0.5rem; }
       .contact-info { display: flex; flex-wrap: wrap; gap: 12px; font-size: 11px; color: #64748b; }
       .contact-item { display: flex; align-items: center; }
-      .contact-item a { color: #2563eb; text-decoration: none; }
+      .contact-item a { color: #64748b; text-decoration: none; }
       .contact-item a:hover { text-decoration: underline; }
       
       section { margin-top: 1rem; }
@@ -257,7 +257,7 @@ module.exports = [
       .tech-tag { background: #0ea5e9; color: white; padding: 2px 5px; border-radius: 2px; font-size: 9px; }
       
       .project-links { margin-top: 0.25rem; }
-      .project-links a { color: #2563eb; text-decoration: none; font-size: 9px; margin-right: 8px; }
+      .project-links a { color: #374151; text-decoration: none; font-size: 9px; margin-right: 8px; }
       .project-links a:hover { text-decoration: underline; }
       
       .achievement-item { margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid #e5e7eb; }
@@ -267,7 +267,7 @@ module.exports = [
       .achievement-issuer { font-size: 9px; color: #6b7280; }
       
       .cert-expiry, .cert-id { font-size: 9px; color: #6b7280; margin-top: 0.125rem; }
-      .cert-link a { color: #2563eb; text-decoration: none; font-size: 8px; }
+      .cert-link a { color: #6b7280; text-decoration: none; font-size: 8px; }
       .cert-link a:hover { text-decoration: underline; }
       
       .language-item { display: flex; justify-content: space-between; margin-bottom: 0.25rem; }
@@ -495,6 +495,7 @@ module.exports = [
       .name { font-size: 16px; font-weight: 700; color: #1f2937; margin-bottom: 0.5rem; letter-spacing: 0.5px; }
       .title-line { width: 40px; height: 2px; background: #f59e0b; margin: 0 auto 0.5rem; }
       .contact-info { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; font-size: 11px; color: #6b7280; }
+      .contact-info a { color: #6b7280; text-decoration: none; }
       section { margin-top: 1rem; }
       h3 { font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem; position: relative; padding-bottom: 0.25rem; }
       h3::after { content: ''; position: absolute; bottom: 0; left: 0; width: 30px; height: 2px; background: #f59e0b; }
@@ -752,6 +753,7 @@ module.exports = [
       .name { font-size: 16px; font-weight: 700; color: #06b6d4; margin-bottom: 0.5rem; }
       .contact-info { display: flex; flex-wrap: wrap; gap: 0.6rem; }
       .contact-item { font-size: 11px; color: #64748b; padding: 0.2rem 0.4rem; background: #f1f5f9; border-radius: 3px; }
+      .contact-item a { color: #64748b; text-decoration: none; }
       section { margin-top: 1rem; }
       h3 { font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 2px solid #06b6d4; }
       .summary-section p { font-size: 12px; line-height: 1; color: #4b5563; }
@@ -1528,6 +1530,7 @@ module.exports = [
       .name { font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 6px; letter-spacing: -0.5px; }
       .contact-info { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: #6b7280; }
       .contact-item { display: flex; align-items: center; }
+      .contact-item a { color: #6b7280; text-decoration: none; }
       .summary { margin-bottom: 6px; }
       .summary-text { font-size: 12px; color: #4b5563; line-height: 1; text-align: justify; }
       section { margin-bottom: 6px; }
@@ -1926,11 +1929,11 @@ module.exports = [
       fonts: {
         primary: 'Calibri',
         secondary: 'Calibri',
-        sizes: { heading: 28, subheading: 20, body: 12, small: 10 }
+        sizes: { heading: 24, subheading: 20, body: 12, small: 10 }
       },
       template: {
         headerLevel: 'h3',
-        headerFontSize: 28,
+        headerFontSize: 24,
         fontSize: 12,
         lineSpacing: 1.3,
         sectionSpacing: 1
@@ -1967,6 +1970,7 @@ module.exports = [
       .name { font-size: 16px; font-weight: 700; margin-bottom: 6px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); letter-spacing: 0.5px; }
       .contact-bar { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; }
       .contact-item { font-size: 12px; padding: 0.4rem 0.8rem; background: rgba(255,255,255,0.2); border-radius: 16px; backdrop-filter: blur(10px); }
+      .contact-item a { color: white; text-decoration: none; }
       section { margin-bottom: 6px; }
       section h2 { font-size: 16px; font-weight: 700; color: #1e3a8a; text-transform: uppercase; margin-bottom: 6px; padding-bottom: 8px; border-bottom: 2px solid #1e3a8a; letter-spacing: 0.5px; }
       .executive-summary { background: #f8fafc; padding: 1.25rem; border-radius: 6px; border-left: 3px solid #1e3a8a; }
@@ -1993,8 +1997,8 @@ module.exports = [
       .cert-issuer { font-size: 12px; color: #1e3a8a; font-weight: 500; }
       .cert-date { font-size: 12px; color: #64748b; margin-top: 2px; }
       .tech-label { font-size: 12px; font-weight: bold; display: inline; }
-      .project-links a { color: #1e3a8a; text-decoration: none; font-size: 12px; margin-right: 8px; }
-      .cert-link a { color: #1e3a8a; text-decoration: none; font-size: 12px; }
+      .project-links a { color: #64748b; text-decoration: none; font-size: 12px; margin-right: 8px; }
+      .cert-link a { color: #64748b; text-decoration: none; font-size: 12px; }
       .achievement-title { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
       .achievement-date { font-size: 12px; color: #64748b; margin: 2px 0; font-style: italic; }
       .achievement-issuer { font-size: 12px; color: #64748b; }
@@ -2183,6 +2187,7 @@ module.exports = [
       .contact-item { display: flex; justify-content: space-between; font-size: 10px; }
       .contact-item .label { font-weight: 600; color: #6b7280; }
       .contact-item .value { color: #1f2937; }
+      .contact-item a { color: #1f2937; text-decoration: none; }
       section { margin-bottom: 15px; }
       h2 { font-family: 'Georgia', serif; font-size: 14px; font-weight: 600; color: #059669; margin-bottom: 10px; padding-bottom: 3px; border-bottom: 1px solid #e5e7eb; text-transform: uppercase; letter-spacing: 0.5px; }
       .interests-text { font-size: 11px; line-height: 1.4; color: #4b5563; text-align: justify; font-style: italic; }
@@ -2428,7 +2433,7 @@ module.exports = [
       .name { font-size: 18px; font-weight: 600; color: #0f172a; margin-bottom: 8px; }
       .contact-info { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; font-size: 10px; color: #475569; }
       .contact-item { color: #1e293b; }
-      .contact-item a { color: #2563eb; text-decoration: none; }
+      .contact-item a { color: #475569; text-decoration: none; }
       .contact-item a:hover { text-decoration: underline; }
       section { margin-bottom: 15px; }
       h3 { font-size: 14px; font-weight: 600; color: #0f172a; margin-bottom: 8px; padding-bottom: 3px; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -2454,13 +2459,13 @@ module.exports = [
       .technologies { margin: 4px 0; font-size: 9px; color: #6b7280; }
       .tech-tag { background: #f1f5f9; padding: 1px 4px; border-radius: 2px; margin-right: 4px; }
       .project-links { margin: 3px 0; font-size: 9px; }
-      .project-links a { color: #2563eb; text-decoration: none; }
+      .project-links a { color: #4b5563; text-decoration: none; }
       .project-links a:hover { text-decoration: underline; }
       .project-dates { font-size: 9px; color: #64748b; margin-top: 2px; }
       .cert-name { font-size: 11px; font-weight: 600; color: #1e293b; margin-bottom: 2px; }
       .cert-meta { font-size: 9px; color: #475569; margin-bottom: 2px; }
       .cert-expiry, .cert-id { font-size: 8px; color: #64748b; margin: 1px 0; }
-      .cert-link a { color: #2563eb; text-decoration: none; font-size: 9px; }
+      .cert-link a { color: #64748b; text-decoration: none; font-size: 9px; }
       .cert-link a:hover { text-decoration: underline; }
       .achievement-title { font-size: 11px; font-weight: 600; color: #1e293b; margin-bottom: 2px; }
       .achievement-date, .achievement-issuer { font-size: 9px; color: #64748b; margin: 1px 0; }
@@ -3503,12 +3508,12 @@ module.exports = [
       .technologies { margin: 4px 0; font-size: 9px; color: #6b7280; }
       .tech-tag { background: #f3f4f6; padding: 1px 4px; border-radius: 2px; margin-right: 4px; }
       .project-links { margin: 3px 0; font-size: 9px; }
-      .project-links a { color: #2563eb; text-decoration: none; }
+      .project-links a { color: #4b5563; text-decoration: none; }
       .project-links a:hover { text-decoration: underline; }
       .cert-name { font-size: 11px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
       .cert-meta { font-size: 9px; color: #6b7280; margin-bottom: 2px; }
       .cert-expiry, .cert-id { font-size: 8px; color: #6b7280; margin: 2px 0; }
-      .cert-link a { color: #2563eb; text-decoration: none; font-size: 9px; }
+      .cert-link a { color: #6b7280; text-decoration: none; font-size: 9px; }
       .cert-link a:hover { text-decoration: underline; }
       .achievement-title { font-size: 11px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
       .achievement-date, .achievement-issuer { font-size: 9px; color: #9ca3af; margin: 1px 0; }
@@ -3727,7 +3732,7 @@ module.exports = [
         </section>
         {{/if}}
       </article>`,
-      "css": ".resume.classic-serif { font-family: 'Times New Roman', serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #111827; font-size: 12px; line-height: 1.4; } .resume.classic-serif .header { text-align: left !important; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #d1d5db; } .resume.classic-serif .name { font-size: 18px; line-height: 1.2; letter-spacing: 0.5px; margin: 0 0 3px; font-variant: small-caps; text-align: left !important; font-weight: bold; } .resume.classic-serif .contact { font-size: 11px; color: #4b5563; line-height: 1.3; } .resume.classic-serif section { margin-top: 8px; } .resume.classic-serif h2 { text-transform: uppercase; font-size: 14px; margin: 6px 0 3px; letter-spacing: 0.5px; color: #1f2937; border-left: 3px solid #4b5563; padding-left: 4px; font-weight: bold; } .resume.classic-serif h3 { font-size: 12px; font-weight: bold; margin: 3px 0 2px; color: #374151; } .resume.classic-serif .job-header, .resume.classic-serif .edu-header, .resume.classic-serif .project-header, .resume.classic-serif .achievement-header, .resume.classic-serif .cert-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; } .resume.classic-serif .dates { font-size: 10px; color: #6b7280; } .resume.classic-serif .gpa { font-size: 10px; color: #374151; margin: 2px 0; } .resume.classic-serif .company, .resume.classic-serif .institution, .resume.classic-serif .issuer { font-size: 10px; color: #4b5563; margin: 2px 0; } .resume.classic-serif .job-description, .resume.classic-serif .project-description, .resume.classic-serif .edu-description { margin: 3px 0; color: #374151; line-height: 1.4; } .resume.classic-serif .achievements { margin: 3px 0;} .resume.classic-serif .achievements li { margin-bottom: 2px; color: #374151; } .resume.classic-serif .skill-category { margin-bottom: 4px; } .resume.classic-serif .skill-items { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; } .resume.classic-serif .skill-item { background: #f3f4f6; padding: 2px 4px; border-radius: 2px; font-size: 9px; color: #374151; } .resume.classic-serif .technologies { margin: 3px 0; } .resume.classic-serif .tech-tag { background: #e5e7eb; padding: 1px 3px; border-radius: 2px; font-size: 8px; margin-right: 3px; } .resume.classic-serif .project-links { margin: 2px 0; } .resume.classic-serif .project-links a { color: #2563eb; text-decoration: none; font-size: 9px; } .resume.classic-serif .cert-expiry, .resume.classic-serif .cert-id { font-size: 9px; color: #6b7280; margin: 1px 0; } .resume.classic-serif .cert-link a { color: #2563eb; text-decoration: none; font-size: 9px; } .resume.classic-serif .issuer-info { font-size: 9px; color: #6b7280; margin: 2px 0; } .resume.classic-serif .language-item { margin: 2px 0; font-size: 10px; } .resume.classic-serif .custom-field { margin-bottom: 4px; } .resume.classic-serif .custom-content { margin: 2px 0; } .resume.classic-serif p { margin: 2px 0; } .resume.classic-serif .job, .resume.classic-serif .edu, .resume.classic-serif .project, .resume.classic-serif .cert, .resume.classic-serif .achievement { margin-bottom: 6px; ul, ol { margin: 0.25rem 0; padding-left: 1rem; }   ul li, ol li { margin-bottom: 0.125rem; color: #4b5563; line-height: 1.3; font-size: 10px; } ul { list-style-type: disc; } ol { list-style-type: decimal; } } ul { list-style-type: disc; } ol { list-style-type: decimal; }"
+      "css": ".resume.classic-serif { font-family: 'Times New Roman', serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #111827; font-size: 12px; line-height: 1.4; } .resume.classic-serif .header { text-align: left !important; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #d1d5db; } .resume.classic-serif .name { font-size: 18px; line-height: 1.2; letter-spacing: 0.5px; margin: 0 0 3px; font-variant: small-caps; text-align: left !important; font-weight: bold; } .resume.classic-serif .contact { font-size: 11px; color: #4b5563; line-height: 1.3; } .resume.classic-serif .contact a { color: #4b5563; text-decoration: none; } .resume.classic-serif section { margin-top: 8px; } .resume.classic-serif h2 { text-transform: uppercase; font-size: 14px; margin: 6px 0 3px; letter-spacing: 0.5px; color: #1f2937; border-left: 3px solid #4b5563; padding-left: 4px; font-weight: bold; } .resume.classic-serif h3 { font-size: 12px; font-weight: bold; margin: 3px 0 2px; color: #374151; } .resume.classic-serif .job-header, .resume.classic-serif .edu-header, .resume.classic-serif .project-header, .resume.classic-serif .achievement-header, .resume.classic-serif .cert-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; } .resume.classic-serif .dates { font-size: 10px; color: #6b7280; } .resume.classic-serif .gpa { font-size: 10px; color: #374151; margin: 2px 0; } .resume.classic-serif .company, .resume.classic-serif .institution, .resume.classic-serif .issuer { font-size: 10px; color: #4b5563; margin: 2px 0; } .resume.classic-serif .job-description, .resume.classic-serif .project-description, .resume.classic-serif .edu-description { margin: 3px 0; color: #374151; line-height: 1.4; } .resume.classic-serif .achievements { margin: 3px 0;} .resume.classic-serif .achievements li { margin-bottom: 2px; color: #374151; } .resume.classic-serif .skill-category { margin-bottom: 4px; } .resume.classic-serif .skill-items { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; } .resume.classic-serif .skill-item { background: #f3f4f6; padding: 2px 4px; border-radius: 2px; font-size: 9px; color: #374151; } .resume.classic-serif .technologies { margin: 3px 0; } .resume.classic-serif .tech-tag { background: #e5e7eb; padding: 1px 3px; border-radius: 2px; font-size: 8px; margin-right: 3px; } .resume.classic-serif .project-links { margin: 2px 0; } .resume.classic-serif .project-links a { color: #374151; text-decoration: none; font-size: 9px; } .resume.classic-serif .cert-expiry, .resume.classic-serif .cert-id { font-size: 9px; color: #6b7280; margin: 1px 0; } .resume.classic-serif .cert-link a { color: #374151; text-decoration: none; font-size: 9px; } .resume.classic-serif .issuer-info { font-size: 9px; color: #6b7280; margin: 2px 0; } .resume.classic-serif .language-item { margin: 2px 0; font-size: 10px; } .resume.classic-serif .custom-field { margin-bottom: 4px; } .resume.classic-serif .custom-content { margin: 2px 0; } .resume.classic-serif p { margin: 2px 0; } .resume.classic-serif .job, .resume.classic-serif .edu, .resume.classic-serif .project, .resume.classic-serif .cert, .resume.classic-serif .achievement { margin-bottom: 6px; ul, ol { margin: 0.25rem 0; padding-left: 1rem; }   ul li, ol li { margin-bottom: 0.125rem; color: #4b5563; line-height: 1.3; font-size: 10px; } ul { list-style-type: disc; } ol { list-style-type: decimal; } } ul { list-style-type: disc; } ol { list-style-type: decimal; }"
     },
     creator: null,
     "tags": ["classic", "serif", "traditional", "academic", "single-column", "gray"]
@@ -3875,7 +3880,7 @@ module.exports = [
           {{/if}}
         </div>
       `,
-      "css": ".resume.fresh-gradient { font-family: 'Arial', sans-serif; background: #ffffff; color: #111827; padding: 0.5in 0.35in; line-height: 1.4; font-size: 12px; } .header { margin-bottom: 8px; } .name { font-size: 18px; margin: 0 0 6px; color: #3b82f6; } .contact { display: flex; gap: 10px; color: #3b82f6; font-size: 11px; } section { margin-top: 10px; background: transparent; } .job, .edu, .project { background: transparent; } h2 { color: #3b82f6; font-size: 14px; margin: 10px 0 6px; } .section-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; } .project-header { display: flex; justify-content: space-between; font-size: 11px; } .tag { background: linear-gradient(90deg, #3b82f6, #9333ea); color: white; padding: 2px 5px; border-radius: 6px; margin-right: 3px; font-size: 9px; } ul, ol { margin: 4px 0; padding-left: 1rem; } ul li, ol li { margin-bottom: 2px; color: #4b5563; line-height: 1.3; } ul { list-style-type: disc; } ol { list-style-type: decimal; }"
+      "css": ".resume.fresh-gradient { font-family: 'Arial', sans-serif; background: #ffffff; color: #111827; padding: 0.5in 0.35in; line-height: 1.4; font-size: 12px; } .header { margin-bottom: 8px; } .name { font-size: 18px; margin: 0 0 6px; color: #3b82f6; } .contact { display: flex; gap: 10px; color: #3b82f6; font-size: 11px; } .contact-item a { color: #111827; text-decoration: none; } section { margin-top: 10px; background: transparent; } .job, .edu, .project { background: transparent; } h2 { color: #3b82f6; font-size: 14px; margin: 10px 0 6px; } .section-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; } .project-header { display: flex; justify-content: space-between; font-size: 11px; } .tag { background: linear-gradient(90deg, #3b82f6, #9333ea); color: white; padding: 2px 5px; border-radius: 6px; margin-right: 3px; font-size: 9px; } ul, ol { margin: 4px 0; padding-left: 1rem; } ul li, ol li { margin-bottom: 2px; color: #4b5563; line-height: 1.3; } ul { list-style-type: disc; } ol { list-style-type: decimal; }"
     },
     creator: null,
     "tags": ["modern", "gradient", "colorful", "rounded"]
