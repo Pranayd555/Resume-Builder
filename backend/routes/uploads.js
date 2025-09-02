@@ -8,6 +8,7 @@ const User = require('../models/User');
 const logger = require('../utils/logger');
 const pdfParse = require('pdf-parse');
 const mammoth = require('mammoth');
+const { parseResumeText } = require('../services/geminiservice');
 
 const router = express.Router();
 
@@ -134,15 +135,24 @@ router.post('/parse-resume', protect, (req, res, next) => {
         });
       }
 
-      logger.info(`Resume text extracted successfully: ${originalname} by user ${req.user.email}`);
-      logger.info(`Extracted text length: ${extractedText.length} characters`);
+      // Parse the extracted text using Gemini AI service
+      let parsedData = null;
+      try {
+        logger.info('Calling Gemini AI service to parse resume text');
+        parsedData = await parseResumeText(extractedText);
+        logger.info('Resume text parsed successfully with AI');
+      } catch (aiError) {
+        logger.error('AI parsing failed, returning original text only:', aiError);
+        // Continue with original text if AI parsing fails
+      }
 
       res.json({
         success: true,
         data: {
           originalText: extractedText,
+          parsedData: parsedData,
           fileName: originalname,
-          message: 'Resume text extracted successfully'
+          message: parsedData ? 'Resume text extracted and parsed successfully' : 'Resume text extracted successfully (AI parsing failed)'
         }
       });
 

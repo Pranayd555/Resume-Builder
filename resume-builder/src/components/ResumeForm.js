@@ -216,6 +216,7 @@ function ResumeForm() {
       if (response.success) {
         // Store the extracted text data
         const extractedText = response.data.originalText;
+        const parsedData = response.data.parsedData;
         
         if (extractedText) {
           // Store the extracted text in form data for reference
@@ -224,9 +225,33 @@ function ResumeForm() {
             extractedText: extractedText
           }));
           
-          toast.success('Resume text extracted successfully! The extracted content is now available for reference while filling the form.');
+          // If AI parsed data is available, auto-fill the form
+          if (parsedData) {
+            setFormData(prev => ({
+              ...prev,
+              extractedText: extractedText,
+              parsedData: parsedData, // Store the parsed data
+              personalInfo: {
+                ...prev.personalInfo,
+                ...parsedData.personalInfo
+              },
+              summary: parsedData.summary || prev.summary,
+              workExperience: parsedData.workExperience || prev.workExperience,
+              education: parsedData.education || prev.education,
+              skills: parsedData.skills || prev.skills,
+              projects: parsedData.projects || prev.projects,
+              achievements: parsedData.achievements || prev.achievements,
+              certifications: parsedData.certifications || prev.certifications,
+              languages: parsedData.languages || prev.languages,
+              customFields: parsedData.customFields || prev.customFields
+            }));
+            
+            toast.success('Resume parsed and auto-filled successfully!');
+          } else {
+            toast.success('Resume text extracted successfully!');
+          }
         } else {
-          toast.info('Resume processed successfully! Please manually fill in the form fields.');
+          toast.info('Resume processed successfully! Please fill in your resume details.');
         }
       } else {
         throw new Error(response.error || 'Failed to upload resume');
@@ -1109,15 +1134,15 @@ function ResumeForm() {
           placeholder="Write a brief summary of your professional background and key achievements..."
         />
         
-        {/* Extracted Text Reference */}
-        {formData.extractedText && (
+        {/* Extracted Text Reference - Only show when parsedData is NOT available */}
+        {formData.extractedText && !formData.parsedData && (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-sm font-medium text-gray-900">Extracted Resume Content</h4>
               <button
-                onClick={() => setFormData(prev => ({ ...prev, extractedText: '' }))}
+                onClick={() => setFormData(prev => ({ ...prev, extractedText: '', parsedData: null }))}
                 className="text-gray-400 hover:text-gray-600"
-                title="Clear extracted text"
+                title="Clear extracted text and parsed data"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1134,6 +1159,32 @@ function ResumeForm() {
             </div>
             <p className="text-xs text-gray-500 mt-2">
               Use this extracted content as reference while filling the form fields above.
+            </p>
+          </div>
+        )}
+
+        {/* Parsed Data Success Message - Show when parsedData is available */}
+        {formData.parsedData && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h4 className="text-sm font-medium text-green-900">AI Parsed Successfully</h4>
+              </div>
+              <button
+                onClick={() => setFormData(prev => ({ ...prev, parsedData: null }))}
+                className="text-green-400 hover:text-green-600"
+                title="Clear parsed data"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <p className="text-sm text-green-700">
+              Your resume has been automatically parsed and filled in above. Please review and edit the information as needed.
             </p>
           </div>
         )}
