@@ -489,7 +489,7 @@ class PuppeteerThumbnailGenerator {
       };
 
       const screenshotBuffer = await page.screenshot(screenshotOptions);
-      const whiteBorderHeight = 50; // in pixels
+      const whiteBorderHeight = 60; // in pixels
 
       // Add white border using sharp
       const finalImage = await sharp(screenshotBuffer).extend({

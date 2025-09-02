@@ -97,10 +97,10 @@ function TemplateSelection() {
     { value: 'minimalist', label: 'Minimalist' },
     { value: 'professional', label: 'Professional' },
     { value: 'academic', label: 'Academic' },
-    { value: 'executive', label: 'Executive' },
-    { value: 'corporate', label: 'Corporate' },
-    { value: 'tech', label: 'Tech' },
-    { value: 'design', label: 'Design' }
+    // { value: 'executive', label: 'Executive' },
+    // { value: 'corporate', label: 'Corporate' },
+    // { value: 'tech', label: 'Tech' },
+    // { value: 'design', label: 'Design' }
   ];
 
   const getTemplateColor = (category) => {
