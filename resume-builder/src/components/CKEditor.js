@@ -60,12 +60,16 @@ const CKEditor = ({
         editorInstanceRef.current = null;
       }
     };
-  },); // Removed handleChange from dependencies
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array to run only once - we intentionally don't include placeholder, readOnly, value to avoid recreating editor
 
   // Handle value updates separately
   useEffect(() => {
     if (editorInstanceRef.current && value !== editorInstanceRef.current.getData()) {
-      editorInstanceRef.current.setData(value || '');
+      // Only update if the editor is not currently focused to avoid interrupting user input
+      if (!editorInstanceRef.current.editing.view.document.isFocused) {
+        editorInstanceRef.current.setData(value || '');
+      }
     }
   }, [value]);
 

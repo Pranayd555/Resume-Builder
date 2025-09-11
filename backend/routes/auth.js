@@ -239,6 +239,7 @@ router.put('/profile', [
   protect,
   body('firstName').optional().trim().isLength({ min: 2, max: 50 }).withMessage('First name must be between 2 and 50 characters'),
   body('lastName').optional().trim().isLength({ min: 2, max: 50 }).withMessage('Last name must be between 2 and 50 characters'),
+  body('email').optional().isEmail().normalizeEmail().withMessage('Please provide a valid email'),
   body('phone').optional().trim().isLength({ max: 20 }).withMessage('Phone number cannot exceed 20 characters'),
   body('location').optional().trim().isLength({ max: 100 }).withMessage('Location cannot exceed 100 characters'),
   body('bio').optional().trim().isLength({ max: 500 }).withMessage('Bio cannot exceed 500 characters'),
@@ -272,7 +273,7 @@ router.put('/profile', [
       });
     }
 
-    const { firstName, lastName, phone, location, bio, profilePicture, profilePictureType } = req.body;
+    const { firstName, lastName, email, phone, location, bio, profilePicture, profilePictureType } = req.body;
 
     const user = await User.findById(req.user.id);
 
@@ -282,6 +283,31 @@ router.put('/profile', [
     if (phone !== undefined) user.phone = phone;
     if (location !== undefined) user.location = location;
     if (bio !== undefined) user.bio = bio;
+    
+    // Handle email update with validation
+    if (email !== undefined) {
+      // Check if email is different from current email
+      if (email !== user.email) {
+        // Check if new email already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+          return res.status(400).json({
+            success: false,
+            error: 'Email already exists. Please use a different email address.'
+          });
+        }
+        
+        // Update email and require re-verification
+        user.email = email;
+        user.isEmailVerified = false;
+        
+        // Clear any existing email verification tokens
+        user.emailVerificationToken = undefined;
+        user.emailVerificationExpire = undefined;
+        
+        logger.info(`Email changed for user ${user._id}: ${user.email} -> ${email}`);
+      }
+    }
 
     // Handle profile picture updates
     if (profilePicture !== undefined) {

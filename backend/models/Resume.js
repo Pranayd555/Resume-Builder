@@ -68,17 +68,27 @@ const resumeSchema = new mongoose.Schema({
     maxlength: [1000, 'Summary cannot exceed 1000 characters']
   },
   
+  // Fresher status
+  isFresher: {
+    type: Boolean,
+    default: false
+  },
+
   // Work Experience
   workExperience: [{
     jobTitle: {
       type: String,
-      required: [true, 'Job title is required'],
+      required: function() {
+        return !this.parent().isFresher;
+      },
       trim: true,
       maxlength: [100, 'Job title cannot exceed 100 characters']
     },
     company: {
       type: String,
-      required: [true, 'Company name is required'],
+      required: function() {
+        return !this.parent().isFresher;
+      },
       trim: true,
       maxlength: [100, 'Company name cannot exceed 100 characters']
     },
@@ -89,7 +99,9 @@ const resumeSchema = new mongoose.Schema({
     },
     startDate: {
       type: Date,
-      required: [true, 'Start date is required']
+      required: function() {
+        return !this.parent().isFresher;
+      }
     },
     endDate: {
       type: Date,
@@ -155,7 +167,7 @@ const resumeSchema = new mongoose.Schema({
     gpa: {
       type: Number,
       min: [0, 'GPA cannot be negative'],
-      max: [10.0, 'GPA cannot exceed 10.0']
+      max: [100.0, 'GPA cannot exceed 100.0']
     },
     description: {
       type: String,
@@ -182,7 +194,13 @@ const resumeSchema = new mongoose.Schema({
       level: {
         type: String,
         enum: ['beginner', 'intermediate', 'advanced', 'expert'],
-        default: 'intermediate'
+        default: 'intermediate',
+        validate: {
+          validator: function(value) {
+            return value === null || value === undefined || ['beginner', 'intermediate', 'advanced', 'expert'].includes(value);
+          },
+          message: 'Level must be one of: beginner, intermediate, advanced, expert'
+        }
       }
     }]
   }],
@@ -225,7 +243,7 @@ const resumeSchema = new mongoose.Schema({
       type: String,
       required: [true, 'Achievement title is required'],
       trim: true,
-      maxlength: [100, 'Title cannot exceed 100 characters']
+      maxlength: [200, 'Title cannot exceed 200 characters']
     },
     description: {
       type: String,
@@ -279,7 +297,7 @@ const resumeSchema = new mongoose.Schema({
     proficiency: {
       type: String,
       enum: ['basic', 'conversational', 'fluent', 'native'],
-      required: [true, 'Proficiency level is required']
+      default: 'basic'
     }
   }],
   
@@ -501,11 +519,40 @@ resumeSchema.index({ user: 1, updatedAt: -1 });
 resumeSchema.index({ template: 1 });
 resumeSchema.index({ status: 1, isPublic: 1 });
 
-// Pre-save middleware to update analytics
+// Pre-save middleware to clean and validate data
 resumeSchema.pre('save', function(next) {
+  // Clean skills data - remove null levels and set default
+  if (this.skills && this.skills.length > 0) {
+    this.skills.forEach(skill => {
+      if (skill.items && skill.items.length > 0) {
+        skill.items.forEach(item => {
+          if (item.level === null || item.level === undefined) {
+            item.level = 'intermediate';
+          }
+        });
+      }
+    });
+  }
+
+  // Clean languages data - set default proficiency if missing
+  if (this.languages && this.languages.length > 0) {
+    this.languages.forEach(lang => {
+      if (!lang.proficiency) {
+        lang.proficiency = 'basic';
+      }
+    });
+  }
+
+  // Clean work experience for freshers
+  if (this.isFresher) {
+    this.workExperience = [];
+  }
+
+  // Update analytics
   if (this.isModified('analytics.views')) {
     this.analytics.lastViewed = new Date();
   }
+  
   next();
 });
 

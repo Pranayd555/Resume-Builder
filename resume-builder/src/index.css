@@ -43,7 +43,7 @@
   
   /* Template Image Container */
   .template-image-container {
-    @apply w-full aspect-a4 bg-white flex items-center justify-center overflow-hidden p-2;
+    @apply w-full bg-white flex items-center justify-center overflow-hidden p-2;
   }
   
   .template-image {

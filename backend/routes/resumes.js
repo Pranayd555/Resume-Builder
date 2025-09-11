@@ -47,6 +47,7 @@ router.post('/form-data', [
       // template will be set when user selects one in the next step
       personalInfo: req.body.personalInfo,
       summary: req.body.summary || '',
+      isFresher: req.body.isFresher || false,
       workExperience: req.body.workExperience || [],
       education: req.body.education || [],
       skills: req.body.skills || [],
@@ -2155,7 +2156,7 @@ router.put('/:id', [
 
     // Update allowed fields
     const allowedFields = [
-      'title', 'personalInfo', 'summary', 'workExperience', 
+      'title', 'personalInfo', 'summary', 'isFresher', 'workExperience', 
       'education', 'skills', 'projects', 'achievements', 
       'certifications', 'languages', 'customFields', 'styling'
     ];
