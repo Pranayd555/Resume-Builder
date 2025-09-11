@@ -109,6 +109,26 @@ module.exports = [
           </section>
           {{/if}}
           
+          {{#if projects}}
+          <section class="projects">
+            <h3>Key Projects</h3>
+            {{#each projects}}
+            <div class="project-item">
+              <div class="project-name">{{name}}</div>
+              {{#if description}}<div class="project-description">{{{description}}}</div>{{/if}}
+              {{#if technologies}}
+              <div class="technologies">
+                <strong>Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
+              </div>
+              {{/if}}
+              {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
+              {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
+              {{#if startDate}}<div class="project-dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
+            </div>
+            {{/each}}
+          </section>
+          {{/if}}
+          
           {{#if education}}
           <section class="education">
             <h3>Education</h3>
@@ -134,25 +154,6 @@ module.exports = [
         </div>
         
         <div class="sidebar">
-          {{#if projects}}
-          <section class="projects">
-            <h3>Key Projects</h3>
-            {{#each projects}}
-            <div class="project-item">
-              <div class="project-name">{{name}}</div>
-              {{#if description}}<div class="project-description">{{{description}}}</div>{{/if}}
-              {{#if technologies}}
-              <div class="technologies">
-                <strong>Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
-              </div>
-              {{/if}}
-              {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
-              {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
-              {{#if startDate}}<div class="project-dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
-            </div>
-            {{/each}}
-          </section>
-          {{/if}}
           
           {{#if certifications}}
           <section class="certifications">
@@ -699,7 +700,7 @@ module.exports = [
           {{#each achievements}}
           <div class="achievement-item">
             {{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}
-            {{#if description}}<p class="achievement-description">{{description}}</p>{{/if}}
+            {{#if description}}<p class="achievement-description">{{{description}}}</p>{{/if}}
             {{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}
             {{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}
           </div>
@@ -1961,10 +1962,10 @@ module.exports = [
         {{#if summary}}<section class="executive-summary"><h2>EXECUTIVE SUMMARY</h2><div>{{{summary}}}</div></section>{{/if}}
         {{#if workExperience}}<section class="leadership-experience"><h2>LEADERSHIP EXPERIENCE</h2>{{#each workExperience}}<div class="executive-role"><div class="role-header"><h3 class="role-title">{{jobTitle}}</h3><div class="role-company">{{company}}</div><div class="role-duration">{{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</div></div>{{#if location}}<div class="role-location">{{location}}</div>{{/if}}{{#if description}}<div class="description">{{{description}}}</div>{{/if}}{{#if achievements}}<ul class="role-achievements">{{#each achievements}}<li>{{this}}</li>{{/each}}</ul>{{/if}}</div>{{/each}}</section>{{/if}}
         {{#if projects}}<section class="executive-projects"><h2>KEY INITIATIVES & PROJECTS</h2>{{#each projects}}<div class="project-item"><h3>{{name}}</h3>{{#if description}}<div class="description">{{{description}}}</div>{{/if}}{{#if technologies}}<div class="project-technologies"><div class="tech-label">Technologies/Methods:</div> {{#each technologies}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/if}}{{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}{{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">Repository</a></div>{{/if}}</div>{{/each}}</section>{{/if}}
-        {{#if achievements}}<section class="achievements-section"><h2>ACHIEVEMENTS & AWARDS</h2>{{#each achievements}}<div class="achievement-item">{{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}{{#if description}}<div>{{{description}}}</div>{{/if}}{{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}{{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
+        {{#if education}}<section class="education-section"><h2>EDUCATION</h2>{{#each education}}<div class="education-item"><h3 class="degree">{{degree}}</h3><div class="institution">{{institution}}</div><div class="education-year">{{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</div>{{#if gpa}}<div class="gpa">GPA: {{gpa}}</div>{{/if}}{{#if description}}<div class="education-description">{{{description}}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
+        {{#if skills}}<section class="executive-skills"><h2>CORE COMPETENCIES</h2><div class="competencies-grid">{{#each skills}}<div class="competency-area"><div class="competency-title">{{category}}</div><div class="competency-items">{{#each items}}{{name}}{{#unless @last}} • {{/unless}}{{/each}}</div></div>{{/each}}</div></section>{{/if}}
         <div class="executive-bottom">
-          {{#if education}}<section class="education-section"><h2>EDUCATION</h2>{{#each education}}<div class="education-item"><h3 class="degree">{{degree}}</h3><div class="institution">{{institution}}</div><div class="education-year">{{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</div>{{#if gpa}}<div class="gpa">GPA: {{gpa}}</div>{{/if}}{{#if description}}<div class="education-description">{{{description}}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
-          {{#if skills}}<section class="executive-skills"><h2>CORE COMPETENCIES</h2><div class="competencies-grid">{{#each skills}}<div class="competency-area"><div class="competency-title">{{category}}</div><div class="competency-items">{{#each items}}{{name}}{{#unless @last}} • {{/unless}}{{/each}}</div></div>{{/each}}</div></section>{{/if}}
+          {{#if achievements}}<section class="achievements-section"><h2>ACHIEVEMENTS & AWARDS</h2>{{#each achievements}}<div class="achievement-item">{{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}{{#if description}}<div>{{{description}}}</div>{{/if}}{{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}{{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
           {{#if certifications}}<section class="certifications-section"><h2>PROFESSIONAL CERTIFICATIONS</h2><div class="certifications-grid">{{#each certifications}}<div class="certification-item"><h3 class="cert-name">{{name}}</h3><div class="cert-issuer">{{issuer}}</div>{{#if date}}<div class="cert-date">{{formatDate date}}</div>{{/if}}{{#if expiryDate}}<div class="cert-expiry">Expires: {{formatDate expiryDate}}</div>{{/if}}{{#if credentialId}}<div class="cert-id">ID: {{credentialId}}</div>{{/if}}{{#if url}}<div class="cert-link"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}</div>{{/each}}</div>{{/if}}
         </div>
         {{#if languages}}<section class="languages-section"><h2>LANGUAGES</h2><div class="languages-grid">{{#each languages}}<div class="language-item"><span class="language-name">{{name}}</span><span class="language-level">{{proficiency}}</span></div>{{/each}}</div>{{/if}}
@@ -1979,7 +1980,7 @@ module.exports = [
       section { margin-bottom: 6px; }
       section h2 { font-size: 16px; font-weight: 700; color: #1e3a8a; text-transform: uppercase; margin-bottom: 6px; padding-bottom: 8px; border-bottom: 2px solid #1e3a8a; letter-spacing: 0.5px; }
       .executive-summary { background: #f8fafc; padding: 1.25rem; border-radius: 6px; border-left: 3px solid #1e3a8a; }
-      .executive-summary p { font-size: 12px; line-height: 1; color: #374151; margin: 0; }
+      .executive-summary p, .executive-summary div { font-size: 12px; line-height: 1.3; color: #374151; margin: 0; }
       .executive-role { margin-bottom: 2px; padding: 1.25rem; background: #f9fafb; border-radius: 6px; border-top: 2px solid #dc2626; }
       .role-header { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem; margin-bottom: 2px; }
       .role-title { font-size: 16px; font-weight: 600; color: #1f2937; }
@@ -1987,26 +1988,29 @@ module.exports = [
       .role-duration { font-size: 12px; color: #64748b; text-align: right; font-style: italic; }
       .role-location { font-size: 12px; color: #64748b; margin-bottom: 2px; }
       .role-description { font-size: 12px; line-height: 1; color: #374151; margin-bottom: 2px; }
-      .executive-bottom { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 6px; }
-      .education-item { margin-bottom: 2px; }
-      .degree { font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
-      .institution { font-size: 12px; color: #1e3a8a; font-weight: 500; margin-bottom: 2px; }
-      .education-year { font-size: 12px; color: #64748b; font-style: italic; }
-      .gpa { font-size: 12px; color: #64748b; margin-top: 2px; }
+      .executive-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 6px; }
+      .education-item { margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #f3f4f6; }
+      .degree { font-size: 12px; font-weight: 500; color: #1f2937; margin-bottom: 2px; }
+      .institution { font-size: 11px; color: #1e3a8a; font-weight: 400; margin-bottom: 2px; }
+      .education-year { font-size: 10px; color: #64748b; font-style: italic; }
+      .gpa { font-size: 10px; color: #64748b; margin-top: 2px; }
+      .education-description { font-size: 12px; line-height: 1.3; color: #374151; margin: 2px 0; }
       .competencies-grid { display: flex; flex-direction: column; gap: 2px; }
       .competency-title { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
       .competency-items { font-size: 12px; color: #374151; line-height: 1; }
       .certifications-grid { display: flex; flex-direction: column; gap: 2px; }
-      .certification-item { padding: 0.6rem; background: #f1f5f9; border-radius: 4px; border-left: 2px solid #1e3a8a; }
-      .cert-name { font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+      .certification-item { padding: 0.6rem; background: #f1f5f9; border-radius: 4px; border-left: 2px solid #1e3a8a; margin-bottom: 6px; }
+      .cert-name { font-size: 12px; font-weight: 500; color: #1f2937; margin-bottom: 2px; }
       .cert-issuer { font-size: 12px; color: #1e3a8a; font-weight: 500; }
       .cert-date { font-size: 12px; color: #64748b; margin-top: 2px; }
       .tech-label { font-size: 12px; font-weight: bold; display: inline; }
       .project-links a { color: #64748b; text-decoration: none; font-size: 12px; margin-right: 8px; }
       .cert-link a { color: #64748b; text-decoration: none; font-size: 12px; }
       .achievement-title { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+      .achievement-item div:not(.achievement-title):not(.achievement-date):not(.achievement-issuer) { font-size: 12px; line-height: 1.3; color: #374151; margin: 2px 0; }
       .achievement-date { font-size: 12px; color: #64748b; margin: 2px 0; font-style: italic; }
       .achievement-issuer { font-size: 12px; color: #64748b; }
+      .project-item .description { font-size: 12px; line-height: 1.3; color: #374151; margin: 2px 0; }
       .cert-expiry, .cert-id { font-size: 12px; color: #64748b; margin: 1px 0; }
       .languages-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 6px; }
       .language-item { display: flex; justify-content: space-between; margin-bottom: 2px; }
@@ -2045,7 +2049,8 @@ module.exports = [
         { name: 'projects', position: 5, isRequired: false, isVisible: true },
         { name: 'achievements', position: 6, isRequired: false, isVisible: true },
         { name: 'skills', position: 7, isRequired: false, isVisible: true },
-        { name: 'certifications', position: 8, isRequired: false, isVisible: true }
+        { name: 'certifications', position: 8, isRequired: false, isVisible: true },
+        { name: 'languages', position: 9, isRequired: false, isVisible: true }
       ]
     },
     styling: {
@@ -2184,6 +2189,34 @@ module.exports = [
           {{/each}}
         </section>
         {{/if}}
+        
+        {{#if achievements}}
+        <section class="achievements-section">
+          <h2>Achievements & Awards</h2>
+          {{#each achievements}}
+          <div class="achievement-entry">
+            {{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}
+            {{#if description}}<div class="achievement-description">{{{description}}}</div>{{/if}}
+            {{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}
+            {{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}
+          </div>
+          {{/each}}
+        </section>
+        {{/if}}
+        
+        {{#if languages}}
+        <section class="languages">
+          <h2>Languages</h2>
+          <div class="languages-grid">
+            {{#each languages}}
+            <div class="language-entry">
+              <span class="language-name">{{name}}</span>
+              <span class="language-proficiency">{{proficiency}}</span>
+            </div>
+            {{/each}}
+          </div>
+        </section>
+        {{/if}}
       </article>`,
       css: `.resume.academic-research { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; font-size: 12px; line-height: 1.4; }
       .header { text-align: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #059669; }
@@ -2196,27 +2229,30 @@ module.exports = [
       section { margin-bottom: 15px; }
       h2 { font-family: 'Georgia', serif; font-size: 14px; font-weight: 600; color: #059669; margin-bottom: 10px; padding-bottom: 3px; border-bottom: 1px solid #e5e7eb; text-transform: uppercase; letter-spacing: 0.5px; }
       .interests-text { font-size: 11px; line-height: 1.4; color: #4b5563; text-align: justify; font-style: italic; }
-      .edu-entry, .position-entry, .publication-entry, .cert-entry { margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #f3f4f6; }
+      .edu-entry, .position-entry, .publication-entry, .cert-entry, .achievement-entry { margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #f3f4f6; }
       .edu-header, .position-header, .cert-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
-      .edu-entry h3, .position-entry h3, .publication-entry h3, .cert-entry h3 { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+      .edu-entry h3, .position-entry h3, .publication-entry h3, .cert-entry h3, .achievement-title { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
       .institution-info { font-size: 10px; color: #6b7280; font-style: italic; }
-      .edu-dates, .position-dates, .cert-date { font-size: 9px; color: #9ca3af; font-weight: 500; }
+      .edu-dates, .position-dates, .cert-date, .achievement-date { font-size: 9px; color: #9ca3af; font-weight: 500; }
       .gpa { font-size: 9px; color: #6b7280; margin-bottom: 3px; }
-      .edu-description, .position-description, .publication-description { margin: 4px 0; color: #4b5563; line-height: 1.4; text-align: justify; }
+      .edu-description, .position-description, .publication-description, .achievement-description { margin: 4px 0; color: #4b5563; line-height: 1.4; text-align: justify; }
       .methodologies { margin: 3px 0; font-size: 9px; }
       .methodologies .label { font-weight: 600; color: #6b7280; }
       .publication-entry { border-left: 3px solid #10b981; padding-left: 8px; }
       .skill-category { margin-bottom: 10px; }
       .skill-category h3 { font-size: 11px; font-weight: 600; color: #1f2937; margin-bottom: 3px; }
       .skill-items { color: #4b5563; line-height: 1.4; }
-      .cert-issuer { color: #6b7280; font-style: italic; 
+      .cert-issuer, .achievement-issuer { color: #6b7280; font-style: italic; }
+      .achievement-date { font-style: italic; }
+      .languages-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 6px; }
+      .language-entry { display: flex; justify-content: space-between; margin-bottom: 3px; }
+      .language-name { font-size: 11px; color: #1f2937; font-weight: 500; }
+      .language-proficiency { font-size: 10px; color: #6b7280; text-transform: capitalize; }
       /* General list styling for HTML content in descriptions */
       ul, ol { margin: 0.25rem 0; padding-left: 1rem; }
       ul li, ol li { margin-bottom: 0.125rem; color: #4b5563; line-height: 1.3; font-size: 10px; }
       ul { list-style-type: disc; }
-      ol { list-style-type: decimal; }
-      }
-      ul { list-style-type: disc; } ol { list-style-type: decimal; }`
+      ol { list-style-type: decimal; }`
     },
     creator: null,
     tags: ['academic', 'research', 'education', 'scholarly', 'single-column', 'green']
@@ -2332,6 +2368,26 @@ module.exports = [
           </section>
           {{/if}}
           
+          {{#if projects}}
+          <section class="projects">
+            <h3>Key Projects</h3>
+            {{#each projects}}
+            <div class="project-item">
+              <div class="project-name">{{name}}</div>
+              {{#if description}}<div class="description">{{{description}}}</div>{{/if}}
+              {{#if technologies}}
+              <div class="technologies">
+                <strong>Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
+              </div>
+              {{/if}}
+              {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
+              {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
+              {{#if startDate}}<div class="project-dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
+            </div>
+            {{/each}}
+          </section>
+          {{/if}}
+          
           {{#if education}}
           <section class="education">
             <h3>Education</h3>
@@ -2357,25 +2413,6 @@ module.exports = [
         </div>
         
         <div class="sidebar">
-          {{#if projects}}
-          <section class="projects">
-            <h3>Key Projects</h3>
-            {{#each projects}}
-            <div class="project-item">
-              <div class="project-name">{{name}}</div>
-              {{#if description}}<div class="description">{{{description}}}</div>{{/if}}
-              {{#if technologies}}
-              <div class="technologies">
-                <strong>Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
-              </div>
-              {{/if}}
-              {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
-              {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
-              {{#if startDate}}<div class="project-dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
-            </div>
-            {{/each}}
-          </section>
-          {{/if}}
           
           {{#if certifications}}
           <section class="certifications">
@@ -2856,6 +2893,26 @@ module.exports = [
           </section>
           {{/if}}
           
+          {{#if projects}}
+          <section class="projects">
+            <h3>Key Projects</h3>
+            {{#each projects}}
+            <div class="project-item">
+              <div class="project-name">{{name}}</div>
+              {{#if description}}<div class="description">{{{description}}}</div>{{/if}}
+              {{#if technologies}}
+              <div class="technologies">
+                <strong>Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
+              </div>
+              {{/if}}
+              {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
+              {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
+              {{#if startDate}}<div class="project-dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
+            </div>
+            {{/each}}
+          </section>
+          {{/if}}
+          
           {{#if education}}
           <section class="education">
             <h3>Education</h3>
@@ -2881,25 +2938,6 @@ module.exports = [
         </div>
         
         <div class="sidebar">
-          {{#if projects}}
-          <section class="projects">
-            <h3>Key Projects</h3>
-            {{#each projects}}
-            <div class="project-item">
-              <div class="project-name">{{name}}</div>
-              {{#if description}}<div class="description">{{{description}}}</div>{{/if}}
-              {{#if technologies}}
-              <div class="technologies">
-                <strong>Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
-              </div>
-              {{/if}}
-              {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
-              {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
-              {{#if startDate}}<div class="project-dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
-            </div>
-            {{/each}}
-          </section>
-          {{/if}}
           
           {{#if certifications}}
           <section class="certifications">
