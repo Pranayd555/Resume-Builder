@@ -10,6 +10,7 @@ import {
   ChartBarIcon
 } from '@heroicons/react/24/outline';
 
+
 function AnalyticsDashboard() {
   const navigate = useNavigate();
   const [analytics, setAnalytics] = useState(null);
