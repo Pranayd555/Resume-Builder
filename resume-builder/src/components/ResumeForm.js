@@ -151,6 +151,7 @@ function ResumeForm() {
     },
     summary: '',
     workExperience: [],
+    isFresher: false, // Toggle for fresher status
     education: [],
     skills: [],
     projects: [],
@@ -334,6 +335,7 @@ function ResumeForm() {
         ...exp,
         description: ensureHtmlContent(exp.description || '')
       })),
+      isFresher: data.isFresher || false,
       education: (data.education || []).map(edu => ({
         ...edu,
         description: ensureHtmlContent(edu.description || '')
@@ -391,15 +393,17 @@ function ResumeForm() {
         errors.address = 'Address is required';
       }
 
-      // Work experience validation
-      let hasValidWorkExperience = false;
-      formData.workExperience.forEach((exp) => {
-        if (exp.jobTitle && exp.company && exp.startDate) {
-          hasValidWorkExperience = true;
+      // Work experience validation (skip if user is a fresher)
+      if (!formData.isFresher) {
+        let hasValidWorkExperience = false;
+        formData.workExperience.forEach((exp) => {
+          if (exp.jobTitle && exp.company && exp.startDate) {
+            hasValidWorkExperience = true;
+          }
+        });
+        if (!hasValidWorkExperience) {
+          errors.workExperience = 'At least one work experience entry is required (Job Title, Company, and Start Date)';
         }
-      });
-      if (!hasValidWorkExperience) {
-        errors.workExperience = 'At least one work experience entry is required (Job Title, Company, and Start Date)';
       }
 
       // Education validation
@@ -482,8 +486,18 @@ function ResumeForm() {
     const errors = {};
     
     if (section === 'root') {
-      if (field === 'title' && !validators.required(formData.title)) {
-        errors.title = 'Resume title is required';
+      if (field === 'title') {
+        if (!validators.required(formData.title)) {
+          errors.title = 'Resume title is required';
+        } else {
+          // Clear title error if it's now valid
+          setValidationErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors.title;
+            return newErrors;
+          });
+          return; // Early return to avoid setting errors
+        }
       }
     } else if (section === 'personalInfo') {
       // Always validate profile data for name, email, phone since they are read-only
@@ -493,26 +507,47 @@ function ResumeForm() {
           errors[field] = profileErrors[field];
         } else if (field === 'email' && formData.personalInfo.email && !validators.email(formData.personalInfo.email)) {
           errors.email = 'Please enter a valid email';
+        } else {
+          // Clear the error if field is now valid
+          setValidationErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors[field];
+            return newErrors;
+          });
+          return; // Early return to avoid setting errors
         }
       }
-      if (field === 'address' && !validators.required(formData.personalInfo.address)) {
-        errors.address = 'Address is required';
+      if (field === 'address') {
+        if (!validators.required(formData.personalInfo.address)) {
+          errors.address = 'Address is required';
+        } else {
+          // Clear address error if it's now valid
+          setValidationErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors.address;
+            return newErrors;
+          });
+          return; // Early return to avoid setting errors
+        }
       }
     } else if (index !== null) {
       if (section === 'workExperience') {
-        const exp = formData.workExperience[index];
-        if (field === 'jobTitle' && !validators.required(exp.jobTitle)) {
-          errors[`workExperience_${index}_jobTitle`] = 'Job title is required';
-        }
-        if (field === 'company' && !validators.required(exp.company)) {
-          errors[`workExperience_${index}_company`] = 'Company name is required';
-        }
-        if (field === 'startDate' && !validators.required(exp.startDate)) {
-          errors[`workExperience_${index}_startDate`] = 'Start date is required';
-        }
-        if ((field === 'startDate' || field === 'endDate') && exp.startDate && exp.endDate && !exp.isCurrentJob) {
-          if (!validators.dateRange(exp.startDate, exp.endDate)) {
-            errors[`workExperience_${index}_dateRange`] = 'End date must be after start date';
+        // Skip validation if user is a fresher
+        if (!formData.isFresher) {
+          const exp = formData.workExperience[index];
+          if (field === 'jobTitle' && !validators.required(exp.jobTitle)) {
+            errors[`workExperience_${index}_jobTitle`] = 'Job title is required';
+          }
+          if (field === 'company' && !validators.required(exp.company)) {
+            errors[`workExperience_${index}_company`] = 'Company name is required';
+          }
+          if (field === 'startDate' && !validators.required(exp.startDate)) {
+            errors[`workExperience_${index}_startDate`] = 'Start date is required';
+          }
+          if ((field === 'startDate' || field === 'endDate') && exp.startDate && exp.endDate && !exp.isCurrentJob) {
+            if (!validators.dateRange(exp.startDate, exp.endDate)) {
+              errors[`workExperience_${index}_dateRange`] = 'End date must be after start date';
+            }
           }
         }
       } else if (section === 'education') {
@@ -654,6 +689,7 @@ function ResumeForm() {
                 description: ensureHtmlContent(exp.description || ''),
                 achievements: exp.achievements || []
               })),
+              isFresher: resumeData.isFresher || false,
               education: (resumeData.education || []).map(edu => ({
                 degree: edu.degree || '',
                 institution: edu.institution || '',
@@ -758,6 +794,7 @@ function ResumeForm() {
               },
               summary: '',
               workExperience: [],
+              isFresher: false,
               education: [],
               skills: [],
               projects: [],
@@ -778,6 +815,20 @@ function ResumeForm() {
     checkEditMode();
   }, [location.state, navigate]); // Added navigate to dependencies to fix eslint warning
 
+  // Clear validation errors when moving to step 1 (only title validation is relevant)
+  useEffect(() => {
+    if (currentStep === 1) {
+      setValidationErrors(prev => {
+        const newErrors = {};
+        // Only keep title validation error if it exists
+        if (prev.title) {
+          newErrors.title = prev.title;
+        }
+        return newErrors;
+      });
+    }
+  }, [currentStep]);
+
   // Validate profile data when user data changes (always validate since name, email, phone are read-only)
   useEffect(() => {
     if (user && currentStep >= 2) {
@@ -797,21 +848,64 @@ function ResumeForm() {
     }
   }, [user, currentStep]);
 
+  // Function to clean data before sending to backend
+  const cleanFormDataForBackend = (data) => {
+    const cleanedData = JSON.parse(JSON.stringify(data)); // Deep clone
+    
+    // Clean skills - remove items with null level
+    if (cleanedData.skills) {
+      cleanedData.skills = cleanedData.skills.map(skillCategory => ({
+        ...skillCategory,
+        items: skillCategory.items ? skillCategory.items.filter(item => item.level !== null) : []
+      })).filter(skillCategory => skillCategory.items.length > 0);
+    }
+    
+    // Clean languages - remove items with null proficiency
+    if (cleanedData.languages) {
+      cleanedData.languages = cleanedData.languages.filter(lang => lang.proficiency !== null);
+    }
+    
+    // Clean other null values that might cause issues
+    if (cleanedData.personalInfo) {
+      Object.keys(cleanedData.personalInfo).forEach(key => {
+        if (cleanedData.personalInfo[key] === null) {
+          cleanedData.personalInfo[key] = '';
+        }
+      });
+    }
+    
+    return cleanedData;
+  };
+
   // Manual save functionality
   const saveDraft = async () => {
     try {
       // Check if form has minimal required content for draft saving
       const validation = validateForm();
       if (!validation.isValid) {
-        setValidationErrors(validation.errors);
-        toast.warning('Please add Title, Full Name and Email before saving a draft');
+        // setValidationErrors(validation.errors);
+        
+        // Check if there are any basic field errors (title, fullName, email)
+        const basicFieldErrors = ['title', 'fullName', 'email'];
+        const hasBasicFieldErrors = Object.keys(validation.errors).some(errorKey => 
+          basicFieldErrors.includes(errorKey)
+        );
+        
+        if (hasBasicFieldErrors) {
+          toast.warning('Please add Title, Full Name and Email before saving a draft');
+        } else {
+          toast.warning('Please fill missing fields before saving draft');
+        }
+        
         setTimeout(() => {
           scrollToFirstError();
         }, 100);
         return;
       }
 
-      const response = await resumeAPI.autoSaveDraft(formData, editingResumeId);
+      // Clean the data before sending to backend
+      const cleanedFormData = cleanFormDataForBackend(formData);
+      const response = await resumeAPI.autoSaveDraft(cleanedFormData, editingResumeId);
       
       if (response.success) {
         // Update the editing resume ID if this is a new draft
@@ -820,6 +914,11 @@ function ResumeForm() {
         }
         setLastSaved(new Date());
         toast.success('Draft saved successfully!');
+        
+        // Route to resume list page after successful draft save
+        setTimeout(() => {
+          navigate('/resumes-list');
+        }, 1500);
       }
     } catch (error) {
       console.error('Save failed:', error);
@@ -883,12 +982,15 @@ function ResumeForm() {
       let response;
       let resumeId = editingResumeId;
 
+      // Clean the data before sending to backend
+      const cleanedFormData = cleanFormDataForBackend(formData);
+
       if (isEditMode && editingResumeId) {
         // Update existing resume
-        response = await resumeAPI.updateResume(editingResumeId, formData);
+        response = await resumeAPI.updateResume(editingResumeId, cleanedFormData);
       } else {
         // Create new resume
-        response = await resumeAPI.saveFormData(formData);
+        response = await resumeAPI.saveFormData(cleanedFormData);
         resumeId = response.data.resumeId;
       }
       
@@ -952,17 +1054,6 @@ function ResumeForm() {
         return;
       }
       
-      // Also check if there are any existing validation errors
-      if (Object.keys(validationErrors).length > 0) {
-        toast.error('Please fix the validation errors before continuing');
-        
-        // Scroll to first error after a short delay
-        setTimeout(() => {
-          scrollToFirstError();
-        }, 100);
-        return;
-      }
-      
       // Clear validation errors if step is valid
       setValidationErrors({});
       
@@ -1004,6 +1095,7 @@ function ResumeForm() {
       },
       summary: '',
       workExperience: [],
+      isFresher: false,
       education: [],
       skills: [],
       projects: [],
@@ -1120,7 +1212,17 @@ function ResumeForm() {
           label="Resume Title"
           type="text"
           value={formData.title}
-          onChange={(e) => handleInputChange('root', 'title', e.target.value)}
+          onChange={(e) => {
+            handleInputChange('root', 'title', e.target.value);
+            // Clear title validation error when user starts typing
+            if (validationErrors.title && e.target.value.trim() !== '') {
+              setValidationErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors.title;
+                return newErrors;
+              });
+            }
+          }}
           onBlur={() => handleInputBlur('root', 'title')}
           required
           placeholder="e.g., Senior Software Engineer Resume"
@@ -1280,25 +1382,47 @@ function ResumeForm() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="text-xl font-semibold text-gray-900">Work Experience</h3>
-        <button
-          onClick={() => addArrayItem('workExperience', {
-            jobTitle: '',
-            company: '',
-            location: '',
-            startDate: '',
-            endDate: '',
-            isCurrentJob: false,
-            description: '',
-            achievements: []
-          })}
-          className="px-4 py-2 rounded-lg transition-colors flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700"
-        >
-          <PlusIcon className="w-4 h-4" />
-          Add Experience
-        </button>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="isFresher"
+              checked={formData.isFresher}
+              onChange={(e) => {
+                handleInputChange('root', 'isFresher', e.target.checked);
+                // Clear work experience when toggling to fresher
+                if (e.target.checked) {
+                  handleInputChange('root', 'workExperience', []);
+                }
+              }}
+              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+            />
+            <label htmlFor="isFresher" className="text-sm font-medium text-gray-700">
+              I'm a fresher (no work experience)
+            </label>
+          </div>
+          {!formData.isFresher && (
+            <button
+              onClick={() => addArrayItem('workExperience', {
+                jobTitle: '',
+                company: '',
+                location: '',
+                startDate: '',
+                endDate: '',
+                isCurrentJob: false,
+                description: '',
+                achievements: []
+              })}
+              className="px-4 py-2 rounded-lg transition-colors flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700"
+            >
+              <PlusIcon className="w-4 h-4" />
+              Add Experience
+            </button>
+          )}
+        </div>
       </div>
       
-      {formData.workExperience.map((job, index) => (
+      {!formData.isFresher && formData.workExperience.map((job, index) => (
         <div key={index} className="border border-gray-200 rounded-xl p-6 space-y-4">
           <div className="flex justify-between items-start">
             <h4 className="font-medium text-gray-900">Experience #{index + 1}</h4>
@@ -1313,11 +1437,11 @@ function ResumeForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Job Title *
+                Job Title {!formData.isFresher && '*'}
               </label>
               <input
                 type="text"
-                required
+                required={!formData.isFresher}
                 value={job.jobTitle}
                 onChange={(e) => handleInputChange('workExperience', 'jobTitle', e.target.value, index)}
                 onBlur={() => handleInputBlur('workExperience', 'jobTitle', index)}
@@ -1334,11 +1458,11 @@ function ResumeForm() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Company *
+                Company {!formData.isFresher && '*'}
               </label>
               <input
                 type="text"
-                required
+                required={!formData.isFresher}
                 value={job.company}
                 onChange={(e) => handleInputChange('workExperience', 'company', e.target.value, index)}
                 onBlur={() => handleInputBlur('workExperience', 'company', index)}
@@ -1367,11 +1491,11 @@ function ResumeForm() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Start Date *
+                Start Date {!formData.isFresher && '*'}
               </label>
               <input
                 type="date"
-                required
+                required={!formData.isFresher}
                 value={job.startDate}
                 onChange={(e) => handleInputChange('workExperience', 'startDate', e.target.value, index)}
                 onBlur={() => handleInputBlur('workExperience', 'startDate', index)}
@@ -1434,7 +1558,17 @@ function ResumeForm() {
         </div>
       ))}
       
-      {formData.workExperience.length === 0 && (
+      {formData.isFresher ? (
+        <div className="text-center py-8 bg-blue-50 rounded-xl border border-blue-200">
+          <div className="flex items-center justify-center mb-4">
+            <svg className="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          <h4 className="text-lg font-medium text-blue-900 mb-2">Fresher Status</h4>
+          <p className="text-blue-700">You've indicated that you're a fresher with no work experience. You can proceed to the next step.</p>
+        </div>
+      ) : formData.workExperience.length === 0 && (
         <EmptyState
           icon={<svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -2345,13 +2479,14 @@ function ResumeForm() {
         }
         break;
       case 3:
-        // Validate work experience - check if any experience has been started
-        formData.workExperience.forEach((exp, index) => {
-          if (exp.jobTitle || exp.company || exp.startDate || exp.endDate || exp.description) {
-            if (!validators.required(exp.jobTitle)) {
-              errors[`workExperience_${index}_jobTitle`] = 'Job title is required';
-            }
-            if (!validators.required(exp.company)) {
+        // Validate work experience - check if any experience has been started (skip if user is a fresher)
+        if (!formData.isFresher) {
+          formData.workExperience.forEach((exp, index) => {
+            if (exp.jobTitle || exp.company || exp.startDate || exp.endDate || exp.description) {
+              if (!validators.required(exp.jobTitle)) {
+                errors[`workExperience_${index}_jobTitle`] = 'Job title is required';
+              }
+              if (!validators.required(exp.company)) {
               errors[`workExperience_${index}_company`] = 'Company name is required';
             }
             if (!validators.required(exp.startDate)) {
@@ -2374,6 +2509,7 @@ function ResumeForm() {
         });
         if (!hasValidWorkExperience) {
           errors.workExperience = 'At least one work experience entry is required (Job Title, Company, and Start Date)';
+        }
         }
         break;
       case 4:

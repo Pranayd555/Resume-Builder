@@ -69,6 +69,7 @@ export const createResumeModel = (data = {}) => ({
   template: data.template || null,
   personalInfo: data.personalInfo || createPersonalInfoModel(),
   summary: data.summary || '',
+  isFresher: data.isFresher || false,
   workExperience: data.workExperience || [createWorkExperienceModel()],
   education: data.education || [createEducationModel()],
   skills: data.skills || [createSkillCategoryModel()],
@@ -306,29 +307,31 @@ export const validators = {
       errors.email = 'Please enter a valid email';
     }
     
-    // Validate work experience
-    resume.workExperience.forEach((exp, index) => {
-      // Check if this is a filled work experience entry
-      if (exp.jobTitle || exp.company || exp.startDate || exp.endDate || exp.description) {
-        // If any field is filled, required fields must be present
-        if (!validators.required(exp.jobTitle)) {
-          errors[`workExperience_${index}_jobTitle`] = 'Job title is required';
-        }
-        if (!validators.required(exp.company)) {
-          errors[`workExperience_${index}_company`] = 'Company name is required';
-        }
-        if (!validators.required(exp.startDate)) {
-          errors[`workExperience_${index}_startDate`] = 'Start date is required';
-        }
-        
-        // Validate date range if both dates are provided
-        if (exp.startDate && exp.endDate && !exp.isCurrentJob) {
-          if (!validators.dateRange(exp.startDate, exp.endDate)) {
-            errors[`workExperience_${index}_dateRange`] = 'End date must be after start date';
+    // Validate work experience (skip if user is a fresher)
+    if (!resume.isFresher) {
+      resume.workExperience.forEach((exp, index) => {
+        // Check if this is a filled work experience entry
+        if (exp.jobTitle || exp.company || exp.startDate || exp.endDate || exp.description) {
+          // If any field is filled, required fields must be present
+          if (!validators.required(exp.jobTitle)) {
+            errors[`workExperience_${index}_jobTitle`] = 'Job title is required';
+          }
+          if (!validators.required(exp.company)) {
+            errors[`workExperience_${index}_company`] = 'Company name is required';
+          }
+          if (!validators.required(exp.startDate)) {
+            errors[`workExperience_${index}_startDate`] = 'Start date is required';
+          }
+          
+          // Validate date range if both dates are provided
+          if (exp.startDate && exp.endDate && !exp.isCurrentJob) {
+            if (!validators.dateRange(exp.startDate, exp.endDate)) {
+              errors[`workExperience_${index}_dateRange`] = 'End date must be after start date';
+            }
           }
         }
-      }
-    });
+      });
+    }
     
     // Validate education
     resume.education.forEach((edu, index) => {

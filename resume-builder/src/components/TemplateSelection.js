@@ -350,7 +350,7 @@ function TemplateSelection() {
 
                   {/* Template Info */}
                   <div 
-                    className="p-6"
+                    className="p-2"
                     style={{
                       background: getTemplateGradientLight(template.category)
                     }}
