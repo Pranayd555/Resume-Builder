@@ -37,7 +37,7 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
       
       - name: 🔍 Verify workflow trigger
         run: |
@@ -52,6 +52,12 @@ jobs:
           echo "Run ID: ${{ github.run_id }}"
           echo "Run Number: ${{ github.run_number }}"
           echo ""
+          echo "📊 Push Event Details:"
+          echo "Before commit: ${{ github.event.before }}"
+          echo "After commit: ${{ github.event.after }}"
+          echo "Ref: ${{ github.event.ref }}"
+          echo "Head commit: ${{ github.event.head_commit.message }}"
+          echo ""
           echo "📁 Repository contents:"
           ls -la
           echo ""
@@ -65,18 +71,38 @@ jobs:
       - name: 🔍 Detect changes
         id: changes
         run: |
-          echo "🔍 Checking for changes between HEAD~1 and HEAD..."
+          echo "🔍 Checking for changes in this push..."
           echo "Current branch: ${{ github.ref_name }}"
-          echo "Commit range: HEAD~1..HEAD"
+          echo "Event: ${{ github.event_name }}"
           
-          # Get all changed files
-          ALL_CHANGES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "")
-          echo "📝 All changed files:"
+          # Determine the base commit for comparison
+          if [ "${{ github.event_name }}" = "push" ]; then
+            # For push events, compare against the previous state of the branch
+            # Use the before commit SHA if available, otherwise use HEAD~1
+            if [ -n "${{ github.event.before }}" ] && [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
+              BASE_COMMIT="${{ github.event.before }}"
+              echo "📊 Comparing against previous push: $BASE_COMMIT"
+            else
+              # Fallback: compare against the previous commit
+              BASE_COMMIT="HEAD~1"
+              echo "📊 Comparing against previous commit: $BASE_COMMIT"
+            fi
+          else
+            # For workflow_dispatch or other events, compare against HEAD~1
+            BASE_COMMIT="HEAD~1"
+            echo "📊 Comparing against previous commit: $BASE_COMMIT"
+          fi
+          
+          echo "Commit range: $BASE_COMMIT..HEAD"
+          
+          # Get all changed files in this push
+          ALL_CHANGES=$(git diff --name-only $BASE_COMMIT HEAD 2>/dev/null || echo "")
+          echo "📝 All changed files in this push:"
           echo "$ALL_CHANGES"
           echo ""
           
           # Check for backend changes (excluding deployment files)
-          BACKEND_CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -E '^backend/' | grep -v 'render-deployment.zip' | grep -v 'deploy/' || echo "")
+          BACKEND_CHANGED=$(git diff --name-only $BASE_COMMIT HEAD 2>/dev/null | grep -E '^backend/' | grep -v 'render-deployment.zip' | grep -v 'deploy/' || echo "")
           if [ -n "$BACKEND_CHANGED" ]; then
             echo "backend=true" >> $GITHUB_OUTPUT
             echo "🔍 Backend files changed:"
@@ -88,7 +114,7 @@ jobs:
           echo ""
           
           # Check for frontend changes
-          FRONTEND_CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -E '^resume-builder/' || echo "")
+          FRONTEND_CHANGED=$(git diff --name-only $BASE_COMMIT HEAD 2>/dev/null | grep -E '^resume-builder/' || echo "")
           if [ -n "$FRONTEND_CHANGED" ]; then
             echo "frontend=true" >> $GITHUB_OUTPUT
             echo "🔍 Frontend files changed:"
@@ -97,6 +123,14 @@ jobs:
             echo "frontend=false" >> $GITHUB_OUTPUT
             echo "🔍 No frontend changes detected"
           fi
+          
+          # Check for workflow changes (optional - uncomment if you want workflow changes to trigger deployments)
+          # WORKFLOW_CHANGED=$(git diff --name-only $BASE_COMMIT HEAD 2>/dev/null | grep -E '^\.github/workflows/' || echo "")
+          # if [ -n "$WORKFLOW_CHANGED" ]; then
+          #   echo "🔧 Workflow files changed - forcing deployment of both frontend and backend"
+          #   echo "backend=true" >> $GITHUB_OUTPUT
+          #   echo "frontend=true" >> $GITHUB_OUTPUT
+          # fi
           echo ""
           
           echo "📊 Summary:"
