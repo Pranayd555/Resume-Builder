@@ -25,6 +25,7 @@ router.get('/connection', protect, authorize('admin'), async (req, res) => {
   }
 });
 
+
 // @desc    Send test email
 // @route   POST /api/email-test/send
 // @access  Private (Admin only)
