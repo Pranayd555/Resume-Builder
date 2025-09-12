@@ -6,8 +6,7 @@ const fs = require('fs').promises;
 const { protect, checkAIActionLimit, trackUsage } = require('../middleware/auth');
 const User = require('../models/User');
 const logger = require('../utils/logger');
-const pdfParse = require('pdf-parse');
-const mammoth = require('mammoth');
+const DocumentParser = require('../utils/documentParser');
 const { parseResumeText } = require('../services/geminiservice');
 
 const router = express.Router();
@@ -101,76 +100,49 @@ router.post('/parse-resume', [
     const { originalname, mimetype, buffer } = req.file;
     logger.info(`Resume upload request: ${originalname} (${mimetype}) by user ${req.user.email}`);
 
-    // Validate file type
-    const allowedTypes = [
-      'application/pdf',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/msword'
-    ];
-
-    if (!allowedTypes.includes(mimetype)) {
+    // Validate file type using DocumentParser
+    if (!DocumentParser.isValidDocumentType(mimetype)) {
       return res.status(400).json({
         success: false,
         error: 'Unsupported file type. Please upload a PDF or Word document.'
       });
     }
 
+    // Extract text using DocumentParser service
     let extractedText = '';
-
-    // Extract text based on file type
     try {
-      if (mimetype === 'application/pdf') {
-        logger.info('Extracting text from PDF using pdf-parse');
-        const pdfData = await pdfParse(buffer);
-        extractedText = pdfData.text;
-        logger.info(`PDF text extracted successfully: ${originalname}`);
-      } else if (mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
-                 mimetype === 'application/msword') {
-        logger.info('Extracting text from Word document using mammoth');
-        const result = await mammoth.extractRawText({ buffer });
-        extractedText = result.value;
-        logger.info(`Word document text extracted successfully: ${originalname}`);
-      }
-
-      if (!extractedText || extractedText.trim().length === 0) {
-        return res.status(400).json({
-          success: false,
-          error: 'No text could be extracted from the file. Please ensure the document contains readable text.'
-        });
-      }
-
-      // Parse the extracted text using Gemini AI service
-      let parsedData = null;
-      try {
-        logger.info('Calling Gemini AI service to parse resume text');
-        parsedData = await parseResumeText(extractedText);
-        logger.info('Resume text parsed successfully with AI');
-        
-        // Set usage type for tracking AI action usage
-        req.usageType = 'aiAction';
-      } catch (aiError) {
-        logger.error('AI parsing failed, returning original text only:', aiError);
-        // Continue with original text if AI parsing fails
-        // Don't set usageType since AI parsing failed
-      }
-
-      res.json({
-        success: true,
-        data: {
-          originalText: extractedText,
-          parsedData: parsedData,
-          fileName: originalname,
-          message: parsedData ? 'Resume text extracted and parsed successfully' : 'Resume text extracted successfully (AI parsing failed)'
-        }
-      });
-
-    } catch (extractionError) {
-      logger.error('Text extraction error:', extractionError);
+      extractedText = await DocumentParser.parseDocument(buffer, mimetype, originalname);
+    } catch (parseError) {
       return res.status(400).json({
         success: false,
-        error: 'Failed to extract text from the file. Please ensure it contains readable text.'
+        error: parseError.message
       });
     }
+
+    // Parse the extracted text using Gemini AI service
+    let parsedData = null;
+    try {
+      logger.info('Calling Gemini AI service to parse resume text');
+      parsedData = await parseResumeText(extractedText);
+      logger.info('Resume text parsed successfully with AI');
+      
+      // Set usage type for tracking AI action usage
+      req.usageType = 'aiAction';
+    } catch (aiError) {
+      logger.error('AI parsing failed, returning original text only:', aiError);
+      // Continue with original text if AI parsing fails
+      // Don't set usageType since AI parsing failed
+    }
+
+    res.json({
+      success: true,
+      data: {
+        originalText: extractedText,
+        parsedData: parsedData,
+        fileName: originalname,
+        message: parsedData ? 'Resume text extracted and parsed successfully' : 'Resume text extracted successfully (AI parsing failed)'
+      }
+    });
 
   } catch (error) {
     logger.error('Resume parsing error:', error);

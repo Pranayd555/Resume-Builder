@@ -128,7 +128,9 @@ module.exports = [
             {{/each}}
           </section>
           {{/if}}
-          
+        </div>
+        
+        <div class="sidebar">
           {{#if education}}
           <section class="education">
             <h3>Education</h3>
@@ -151,9 +153,6 @@ module.exports = [
             {{/each}}
           </section>
           {{/if}}
-        </div>
-        
-        <div class="sidebar">
           
           {{#if certifications}}
           <section class="certifications">
@@ -1974,8 +1973,8 @@ module.exports = [
       css: `.resume.professional-executive { font-family: 'Calibri', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; line-height: 1; }
       .executive-header { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); color: white; padding: 1.5rem; margin: 0 0 6px 0; text-align: center; }
       .name { font-size: 16px; font-weight: 700; margin-bottom: 6px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); letter-spacing: 0.5px; }
-      .contact-bar { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; }
-      .contact-item { font-size: 12px; padding: 0.4rem 0.8rem; background: rgba(255,255,255,0.2); border-radius: 16px; backdrop-filter: blur(10px); }
+      .contact-bar { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; align-items: center; }
+      .contact-item { font-size: 11px; padding: 0.3rem 0.6rem; background: rgba(255,255,255,0.2); border-radius: 12px; backdrop-filter: blur(10px); white-space: nowrap; min-width: fit-content; max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
       .contact-item a { color: white; text-decoration: none; }
       section { margin-bottom: 6px; }
       section h2 { font-size: 16px; font-weight: 700; color: #1e3a8a; text-transform: uppercase; margin-bottom: 6px; padding-bottom: 8px; border-bottom: 2px solid #1e3a8a; letter-spacing: 0.5px; }
@@ -1993,7 +1992,7 @@ module.exports = [
       .degree { font-size: 12px; font-weight: 500; color: #1f2937; margin-bottom: 2px; }
       .institution { font-size: 11px; color: #1e3a8a; font-weight: 400; margin-bottom: 2px; }
       .education-year { font-size: 10px; color: #64748b; font-style: italic; }
-      .gpa { font-size: 10px; color: #64748b; margin-top: 2px; }
+      .gpa { font-size: 12px; color: #64748b; margin-top: 2px; font-weight: 400;}
       .education-description { font-size: 12px; line-height: 1.3; color: #374151; margin: 2px 0; }
       .competencies-grid { display: flex; flex-direction: column; gap: 2px; }
       .competency-title { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
@@ -2050,7 +2049,8 @@ module.exports = [
         { name: 'achievements', position: 6, isRequired: false, isVisible: true },
         { name: 'skills', position: 7, isRequired: false, isVisible: true },
         { name: 'certifications', position: 8, isRequired: false, isVisible: true },
-        { name: 'languages', position: 9, isRequired: false, isVisible: true }
+        { name: 'languages', position: 9, isRequired: false, isVisible: true },
+        { name: 'customFields', position: 10, isRequired: false, isVisible: true },
       ]
     },
     styling: {
@@ -2387,7 +2387,9 @@ module.exports = [
             {{/each}}
           </section>
           {{/if}}
-          
+        </div>
+        
+        <div class="sidebar">
           {{#if education}}
           <section class="education">
             <h3>Education</h3>
@@ -2410,9 +2412,6 @@ module.exports = [
             {{/each}}
           </section>
           {{/if}}
-        </div>
-        
-        <div class="sidebar">
           
           {{#if certifications}}
           <section class="certifications">
@@ -2912,7 +2911,9 @@ module.exports = [
             {{/each}}
           </section>
           {{/if}}
-          
+        </div>
+        
+        <div class="sidebar">
           {{#if education}}
           <section class="education">
             <h3>Education</h3>
@@ -2935,9 +2936,6 @@ module.exports = [
             {{/each}}
           </section>
           {{/if}}
-        </div>
-        
-        <div class="sidebar">
           
           {{#if certifications}}
           <section class="certifications">
@@ -3584,10 +3582,11 @@ module.exports = [
         { "name": "education", "position": 3, "isRequired": false, "isVisible": true },
         { "name": "workExperience", "position": 4, "isRequired": false, "isVisible": true },
         { "name": "skills", "position": 5, "isRequired": false, "isVisible": true },
-        { "name": "certifications", "position": 6, "isRequired": false, "isVisible": true },
-        { "name": "achievements", "position": 7, "isRequired": false, "isVisible": true },
-        { "name": "languages", "position": 8, "isRequired": false, "isVisible": true },
-        { "name": "customFields", "position": 9, "isRequired": false, "isVisible": true }
+        { "name": "projects", "position": 6, "isRequired": false, "isVisible": true },
+        { "name": "certifications", "position": 7, "isRequired": false, "isVisible": true },
+        { "name": "achievements", "position": 8, "isRequired": false, "isVisible": true },
+        { "name": "languages", "position": 9, "isRequired": false, "isVisible": true },
+        { "name": "customFields", "position": 10, "isRequired": false, "isVisible": true }
       ]
     },
     "styling": {
