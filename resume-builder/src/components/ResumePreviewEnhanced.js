@@ -5,7 +5,10 @@ import { resumeAPI, analyticsAPI } from '../services/api';
 import TemplateStylingControls from './TemplateStylingControls';
 import PDFViewer from './PDFViewer';
 import OfficeSceneLoader from './OfficeSceneLoader';
-import { ArrowsRightLeftIcon, DocumentArrowDownIcon, DocumentTextIcon, PencilSquareIcon, PrinterIcon } from '@heroicons/react/24/outline';
+import { ArrowsRightLeftIcon, DocumentArrowDownIcon, DocumentTextIcon, PencilSquareIcon, PrinterIcon, ChartBarIcon } from '@heroicons/react/24/outline';
+import ATSScoreModal from './ATSScoreModal';
+import ATSSummary from './ATSSummary';
+
 
 function ResumePreviewEnhanced() {
   const { resumeId } = useParams();
@@ -17,6 +20,10 @@ function ResumePreviewEnhanced() {
   const [showStylingControls, setShowStylingControls] = useState(false);
   const [showMobileStylingPopup, setShowMobileStylingPopup] = useState(false);
   const [hasTemplate, setHasTemplate] = useState(false);
+  
+  // ATS Score modal state
+  const [showATSModal, setShowATSModal] = useState(false);
+  const [isNewATSAnalysis, setIsNewATSAnalysis] = useState(false);
   
   // Template styling state
   const [defaultTemplateStyling, setDefaultTemplateStyling] = useState(null);
@@ -215,9 +222,11 @@ function ResumePreviewEnhanced() {
     };
   }, [pdfData]);
 
+
   if (loading) {
     return(<div className="min-h-screen pt-16"> <OfficeSceneLoader /></div>);
   }
+
 
   return (
     <div className="min-h-screen pt-16">
@@ -288,8 +297,27 @@ function ResumePreviewEnhanced() {
               <span className="hidden sm:inline">Download PDF</span>
               <span className="sm:hidden">PDF</span>
             </button>
+            
+            <button
+              onClick={() => setShowATSModal(true)}
+              className="px-2 py-1.5 sm:px-3 sm:py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-colors flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm whitespace-nowrap"
+            >
+              <ChartBarIcon className="h-4 w-4" />
+              <span className="hidden sm:inline">ATS Score</span>
+              <span className="sm:hidden">ATS</span>
+            </button>
           </div>
         </div>
+
+        {/* ATS Summary */}
+        {resume && resume.atsAnalysis && (
+          <div className="mb-6 sm:mb-8">
+            <ATSSummary 
+              atsAnalysis={resume.atsAnalysis} 
+              isNewAnalysis={isNewATSAnalysis}
+            />
+          </div>
+        )}
 
         {/* PDF Preview Status */}
         <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-6 sm:mb-8">
@@ -409,6 +437,30 @@ function ResumePreviewEnhanced() {
            </div>
          </div>
        )}
+
+       {/* ATS Score Modal */}
+       <ATSScoreModal
+         isOpen={showATSModal}
+         onClose={() => setShowATSModal(false)}
+         resumeId={resumeId}
+        onSuccess={async () => {
+          console.log('ATS Score generation completed successfully');
+          // Set flag to indicate new analysis
+          setIsNewATSAnalysis(true);
+          // Refresh resume data to show updated ATS analysis
+          try {
+            const resumeResp = await resumeAPI.getResumeById(resumeId);
+            if (resumeResp?.success !== false && resumeResp?.data) {
+              const updatedResume = resumeResp.data.resume || resumeResp.data;
+              setResume(updatedResume);
+            }
+          } catch (error) {
+            console.error('Failed to refresh resume data:', error);
+          }
+          // Reset the flag after a short delay
+          setTimeout(() => setIsNewATSAnalysis(false), 1000);
+        }}
+       />
     </div>
   );
 }

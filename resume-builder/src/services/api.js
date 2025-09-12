@@ -368,6 +368,72 @@ export const uploadAPI = {
   },
 };
 
+// AI API calls
+export const aiAPI = {
+  generateATSScore: async (resumeId, inputType, jobDescription = null, jobDescriptionFile = null) => {
+    const formData = new FormData();
+    formData.append('resumeId', resumeId);
+    formData.append('inputType', inputType);
+    
+    if (inputType === 'text' && jobDescription) {
+      formData.append('jobDescription', jobDescription);
+    } else if (inputType === 'file' && jobDescriptionFile) {
+      formData.append('jobDescriptionFile', jobDescriptionFile);
+    }
+
+    const response = await api.post('/ai/ats-score', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      timeout: 120000, // 2 minutes for ATS analysis
+    });
+    return response.data;
+  },
+
+  rewriteContent: async (content, tone = 'professional', style = 'action-oriented') => {
+    const response = await api.post('/ai/rewrite', {
+      content,
+      tone,
+      style
+    });
+    return response.data;
+  },
+
+  summarizeContent: async (content, maxLength = 150) => {
+    const response = await api.post('/ai/summarize', {
+      content,
+      maxLength
+    });
+    return response.data;
+  },
+
+  enhanceKeywords: async (content, industry = 'general') => {
+    const response = await api.post('/ai/enhance-keywords', {
+      content,
+      industry
+    });
+    return response.data;
+  },
+
+  adjustTone: async (content, targetTone) => {
+    const response = await api.post('/ai/adjust-tone', {
+      content,
+      targetTone
+    });
+    return response.data;
+  },
+
+  getAIUsage: async () => {
+    const response = await api.get('/ai/usage');
+    return response.data;
+  },
+
+  getATSAnalysis: async (resumeId) => {
+    const response = await api.get(`/ai/ats-score/${resumeId}`);
+    return response.data;
+  },
+};
+
 // User API calls
 export const userAPI = {
   getUserProfile: async (userId) => {

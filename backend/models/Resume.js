@@ -436,6 +436,75 @@ const resumeSchema = new mongoose.Schema({
       type: Number,
       default: 0
     }
+  },
+
+  // ATS Analysis
+  atsAnalysis: {
+    overall_score: {
+      type: Number,
+      min: 0,
+      max: 100
+    },
+    category_scores: {
+      keyword_skill_match: {
+        type: Number,
+        min: 0,
+        max: 40
+      },
+      experience_alignment: {
+        type: Number,
+        min: 0,
+        max: 20
+      },
+      section_completeness: {
+        type: Number,
+        min: 0,
+        max: 15
+      },
+      project_impact: {
+        type: Number,
+        min: 0,
+        max: 10
+      },
+      formatting: {
+        type: Number,
+        min: 0,
+        max: 10
+      },
+      bonus_skills: {
+        type: Number,
+        min: 0,
+        max: 5
+      }
+    },
+    missing_keywords: [{
+      type: String,
+      trim: true
+    }],
+    strengths: [{
+      type: String,
+      trim: true
+    }],
+    weaknesses: [{
+      type: String,
+      trim: true
+    }],
+    ats_warnings: [{
+      type: String,
+      trim: true
+    }],
+    recommendations: [{
+      type: String,
+      trim: true
+    }],
+    job_description_hash: {
+      type: String,
+      trim: true
+    },
+    analyzed_at: {
+      type: Date,
+      default: Date.now
+    }
   }
 }, {
   timestamps: true,
@@ -546,6 +615,36 @@ resumeSchema.pre('save', function(next) {
   // Clean work experience for freshers
   if (this.isFresher) {
     this.workExperience = [];
+  }
+
+  // Reset ATS analysis if resume content is modified
+  const contentFields = [
+    'personalInfo', 'summary', 'workExperience', 'education', 
+    'skills', 'projects', 'achievements', 'certifications', 
+    'languages', 'customFields', 'isFresher'
+  ];
+  
+  const isContentModified = contentFields.some(field => this.isModified(field));
+  if (isContentModified && this.atsAnalysis) {
+    // Reset ATS analysis data
+    this.atsAnalysis = {
+      overall_score: null,
+      category_scores: {
+        keyword_skill_match: null,
+        experience_alignment: null,
+        section_completeness: null,
+        project_impact: null,
+        formatting: null,
+        bonus_skills: null
+      },
+      missing_keywords: [],
+      strengths: [],
+      weaknesses: [],
+      ats_warnings: [],
+      recommendations: [],
+      job_description_hash: null,
+      analyzed_at: null
+    };
   }
 
   // Update analytics
