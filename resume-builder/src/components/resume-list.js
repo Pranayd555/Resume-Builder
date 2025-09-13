@@ -20,17 +20,186 @@ import {
   EllipsisVerticalIcon,
   ChatBubbleLeftRightIcon,
   CurrencyDollarIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  ChartBarIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 import { resumeAPI, analyticsAPI, apiHelpers } from '../services/api';
 import { createResumeModel } from '../models/dataModels';
 import { toast } from 'react-toastify';
+import ATSScoreModal from './ATSScoreModal';
+
+// ATS Score Display Component
+const ATSScoreDisplay = ({ resume, isCardHovered }) => {
+  const [animatedScore, setAnimatedScore] = useState(0);
+  const [currentScoreIndex, setCurrentScoreIndex] = useState(0);
+  
+  const hasATSScore = resume.atsAnalysis && resume.atsAnalysis.overall_score !== null && resume.atsAnalysis.overall_score !== undefined;
+  const actualScore = hasATSScore ? resume.atsAnalysis.overall_score : null;
+  
+  // Animation sequence for missing scores - counter from 20 to 80, then ?
+  const scoreSequence = Array.from({ length: 61 }, (_, i) => i + 20).concat(['?']);
+  
+  // Get score color based on score value
+  const getScoreColor = (score) => {
+    if (score === '?') return 'text-gray-500';
+    if (score >= 80) return 'text-emerald-600';
+    if (score >= 60) return 'text-lime-600';
+    if (score >= 40) return 'text-amber-600';
+    return 'text-red-500';
+  };
+  
+  // Get score label
+  const getScoreLabel = (score) => {
+    if (score === '?') return 'Analyze';
+    if (score >= 80) return 'Excellent Match!';
+    if (score >= 60) return 'Good Match';
+    if (score >= 40) return 'Fair Match';
+    return 'Needs Improvement';
+  };
+  
+  // Initialize animated score with actual score if available
+  useEffect(() => {
+    if (hasATSScore) {
+      setAnimatedScore(actualScore);
+    }
+  }, [hasATSScore, actualScore]);
+  
+  // Handle hover animation
+  useEffect(() => {
+    if (isCardHovered) {
+      if (hasATSScore) {
+        // Animate from 0 to actual score
+        setAnimatedScore(0);
+        const duration = 1500; // 1.5 seconds
+        const steps = 60; // 60 steps for smooth animation
+        const stepDuration = duration / steps;
+        const increment = actualScore / steps;
+        
+        let currentStep = 0;
+        const interval = setInterval(() => {
+          currentStep++;
+          setAnimatedScore(Math.min(Math.round(currentStep * increment), actualScore));
+          
+          if (currentStep >= steps) {
+            clearInterval(interval);
+            setAnimatedScore(actualScore);
+          }
+        }, stepDuration);
+        
+        return () => clearInterval(interval);
+      } else {
+        // Animate through sequence: 20 -> 21 -> 22 -> ... -> 80 -> ?
+        setCurrentScoreIndex(0);
+        const interval = setInterval(() => {
+          setCurrentScoreIndex(prev => {
+            if (prev >= scoreSequence.length - 1) {
+              clearInterval(interval);
+              return prev;
+            }
+            return prev + 1;
+          });
+        }, 50); // Change every 50ms for faster counting
+        
+        return () => clearInterval(interval);
+      }
+    } else {
+      // Reset on hover out
+      if (hasATSScore) {
+        setAnimatedScore(actualScore);
+      } else {
+        setCurrentScoreIndex(0);
+      }
+    }
+  }, [isCardHovered, hasATSScore, actualScore, scoreSequence.length]);
+  
+  // Calculate circle progress
+  const getCircleProgress = () => {
+    if (hasATSScore) {
+      return isCardHovered ? animatedScore : actualScore;
+    } else {
+      if (!isCardHovered) return 0; // Show 0 by default when not hovered
+      const currentScore = scoreSequence[currentScoreIndex];
+      return currentScore === '?' ? 0 : currentScore;
+    }
+  };
+  
+  const progress = getCircleProgress();
+  const circumference = 2 * Math.PI * 20; // radius = 20
+  const strokeDashoffset = circumference - (progress / 100) * circumference;
+  
+  // Get the display score for color determination
+  const getDisplayScore = () => {
+    if (hasATSScore) {
+      return isCardHovered ? animatedScore : actualScore;
+    } else {
+      return isCardHovered ? scoreSequence[currentScoreIndex] : '?';
+    }
+  };
+  
+  const displayScore = getDisplayScore();
+  
+  return (
+    <div className="mb-4 flex items-center gap-3">
+      {/* Circular Progress */}
+      <div className="relative w-12 h-12 flex-shrink-0">
+        <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 44 44">
+          {/* Background circle */}
+          <circle
+            cx="22"
+            cy="22"
+            r="20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            className="text-gray-200"
+          />
+          {/* Progress circle */}
+          <circle
+            cx="22"
+            cy="22"
+            r="20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+              className={`transition-all duration-300 ${getScoreColor(displayScore)}`}
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
+            style={{
+              transition: 'stroke-dashoffset 0.3s ease-in-out'
+            }}
+          />
+        </svg>
+        {/* Score text */}
+        <div className="absolute inset-0 flex items-center justify-center">
+            <span className={`text-sm font-bold ${getScoreColor(displayScore)}`}>
+            {hasATSScore ? (isCardHovered ? animatedScore : actualScore) : 
+             (isCardHovered ? scoreSequence[currentScoreIndex] : '?')}
+          </span>
+        </div>
+      </div>
+      
+      {/* Score info */}
+      <div className="flex-1">
+        <h4 className="text-sm font-semibold text-gray-900">ATS Score</h4>
+          <p className={`text-xs font-medium ${getScoreColor(displayScore)}`}>
+          {hasATSScore ? getScoreLabel(actualScore) : 
+           (isCardHovered ? (scoreSequence[currentScoreIndex] === '?' ? 'Analyze' : 'Analyze to see score') : 'Analyze to see score')}
+        </p>
+      </div>
+    </div>
+  );
+};
 
 function ResumeList() {
   const navigate = useNavigate();
   const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [hoveredCardId, setHoveredCardId] = useState(null);
   const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [atsModalOpen, setAtsModalOpen] = useState(false);
+  const [selectedResumeForAts, setSelectedResumeForAts] = useState(null);
   const [error, setError] = useState(null);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
 
@@ -110,27 +279,21 @@ function ResumeList() {
   // Handle click outside to close status dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Only handle clicks if dropdown is open
-      if (!showStatusDropdown) return;
+      // Check if click is inside any dropdown or button
+      const isInsideDropdown = event.target.closest('[data-dropdown]') || 
+                               event.target.closest('button[data-dropdown-button]') ||
+                               (statusDropdownRef.current && statusDropdownRef.current.contains(event.target));
       
-      // Check if click is on the dropdown button itself
-      if (statusDropdownRef.current && statusDropdownRef.current.contains(event.target)) {
-        return;
+      if (!isInsideDropdown) {
+        if (showStatusDropdown) setShowStatusDropdown(false);
+        if (openDropdownId) setOpenDropdownId(null);
       }
-      
-      // Check if click is inside the dropdown content
-      const dropdownElement = document.querySelector('[data-dropdown="status"]');
-      if (dropdownElement && dropdownElement.contains(event.target)) {
-        return;
-      }
-      
-      // If we get here, the click is outside both the button and dropdown
-      setShowStatusDropdown(false);
     };
 
     const handleEscapeKey = (event) => {
-      if (event.key === 'Escape' && showStatusDropdown) {
-        setShowStatusDropdown(false);
+      if (event.key === 'Escape') {
+        if (showStatusDropdown) setShowStatusDropdown(false);
+        if (openDropdownId) setOpenDropdownId(null);
       }
     };
 
@@ -324,6 +487,27 @@ function ResumeList() {
     setResumeToDelete(resume);
     setShowDeleteModal(true);
     setOpenDropdownId(null);
+  };
+
+  const handleOpenAtsModal = (resumeId) => {
+    const resume = resumes.find(r => r.id === resumeId);
+    setSelectedResumeForAts(resume);
+    setAtsModalOpen(true);
+    setOpenDropdownId(null);
+  };
+
+  const handleCloseAtsModal = () => {
+    setAtsModalOpen(false);
+    setSelectedResumeForAts(null);
+  };
+
+  const handleAtsSuccess = () => {
+    // Refresh the resumes list to get updated ATS data
+    fetchResumes();
+    // Navigate to resume preview page
+    if (selectedResumeForAts) {
+      navigate(`/resume-preview/${selectedResumeForAts.id}`);
+    }
   };
 
   const confirmDeleteResume = async () => {
@@ -791,6 +975,8 @@ function ResumeList() {
                 key={resume.id}
                 className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 overflow-hidden cursor-pointer hover:bg-white/80 transition-all duration-200 hover:shadow-2xl hover:scale-105 group"
                 onClick={() => handleResumeClick(resume.id, resume.status)}
+                onMouseEnter={() => setHoveredCardId(resume.id)}
+                onMouseLeave={() => setHoveredCardId(null)}
               >
                 {/* Card Header */}
                 <div className="p-6 pb-4">
@@ -807,6 +993,7 @@ function ResumeList() {
                           onClick={(e) => handleMenuClick(e, resume.id)}
                           className="p-1.5 bg-gray-100/80 text-gray-600 rounded-lg hover:bg-gray-200/80 transition-colors opacity-0 group-hover:opacity-100"
                           title="More Actions"
+                          data-dropdown-button
                         >
                           <EllipsisVerticalIcon className="w-4 h-4" />
                         </button>
@@ -815,6 +1002,7 @@ function ResumeList() {
                         {openDropdownId === resume.id && createPortal(
                           <div 
                             className="fixed z-[9999] bg-white rounded-lg shadow-lg border border-gray-200"
+                            data-dropdown="resume"
                             style={{
                               top: dropdownButtonRefs.current[resume.id] ? dropdownButtonRefs.current[resume.id].getBoundingClientRect().bottom + 8 : 0,
                               right: dropdownButtonRefs.current[resume.id] ? window.innerWidth - dropdownButtonRefs.current[resume.id].getBoundingClientRect().right : 0,
@@ -889,6 +1077,17 @@ function ResumeList() {
                                  )}
                                  {downloadingResumes.has(resume.id) ? 'Downloading...' : 'Download PDF'}
                                </button>
+                               <button
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   handleOpenAtsModal(resume.id);
+                                 }}
+                                 className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2"
+                               >
+                                 <ChartBarIcon className="w-4 h-4" />
+                                 ATS Analysis
+                                 <SparklesIcon className="w-3 h-3 text-purple-500" />
+                               </button>
                                {/* <button
                                  onClick={(e) => {
                                    e.stopPropagation();
@@ -939,6 +1138,9 @@ function ResumeList() {
                     <DocumentTextIcon className="w-4 h-4 text-gray-400" />
                     <span className="text-sm text-gray-600 font-medium">{resume.template?.name || 'Default'}</span>
                   </div>
+                  
+                  {/* ATS Score Display */}
+                  <ATSScoreDisplay resume={resume} isCardHovered={hoveredCardId === resume.id} />
                 </div>
                 
                 {/* Card Footer */}
@@ -1208,6 +1410,14 @@ function ResumeList() {
           </div>
         )}
       </div>
+
+      {/* ATS Score Modal */}
+      <ATSScoreModal
+        isOpen={atsModalOpen}
+        onClose={handleCloseAtsModal}
+        resumeId={selectedResumeForAts?.id}
+        onSuccess={handleAtsSuccess}
+      />
     </div>
   );
 }

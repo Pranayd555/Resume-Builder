@@ -5,7 +5,7 @@ import { resumeAPI, analyticsAPI } from '../services/api';
 import TemplateStylingControls from './TemplateStylingControls';
 import PDFViewer from './PDFViewer';
 import OfficeSceneLoader from './OfficeSceneLoader';
-import { ArrowsRightLeftIcon, DocumentArrowDownIcon, DocumentTextIcon, PencilSquareIcon, PrinterIcon, ChartBarIcon } from '@heroicons/react/24/outline';
+import { ArrowsRightLeftIcon, DocumentArrowDownIcon, DocumentTextIcon, PencilSquareIcon, PrinterIcon, ChartBarIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import ATSScoreModal from './ATSScoreModal';
 import ATSSummary from './ATSSummary';
 
@@ -305,6 +305,7 @@ function ResumePreviewEnhanced() {
               <ChartBarIcon className="h-4 w-4" />
               <span className="hidden sm:inline">ATS Score</span>
               <span className="sm:hidden">ATS</span>
+              <SparklesIcon className="h-3 w-3 text-yellow-300" />
             </button>
           </div>
         </div>
@@ -315,6 +316,8 @@ function ResumePreviewEnhanced() {
             <ATSSummary 
               atsAnalysis={resume.atsAnalysis} 
               isNewAnalysis={isNewATSAnalysis}
+              resume={resume}
+              resumeId={resumeId}
             />
           </div>
         )}

@@ -83,6 +83,7 @@ export const createResumeModel = (data = {}) => ({
   isPublic: data.isPublic || false,
   isActive: data.isActive || false,
   analytics: data.analytics || createAnalyticsModel(),
+  atsAnalysis: data.atsAnalysis ? createATSAnalysisModel(data.atsAnalysis) : null, // ATS analysis data
   extractedText: data.extractedText || '', // Store extracted text from uploaded resume
   createdAt: data.createdAt || new Date().toISOString(),
   updatedAt: data.updatedAt || new Date().toISOString(),
@@ -190,6 +191,26 @@ export const createAnalyticsModel = (data = {}) => ({
   downloads: data.downloads || 0,
   lastViewed: data.lastViewed || null,
   lastDownloaded: data.lastDownloaded || null
+});
+
+// ATS Analysis model
+export const createATSAnalysisModel = (data = {}) => ({
+  overall_score: data.overall_score || null,
+  category_scores: data.category_scores || {
+    keyword_skill_match: 0,
+    experience_alignment: 0,
+    section_completeness: 0,
+    project_impact: 0,
+    formatting: 0,
+    bonus_skills: 0
+  },
+  strengths: data.strengths || [],
+  weaknesses: data.weaknesses || [],
+  recommendations: data.recommendations || [],
+  missing_keywords: data.missing_keywords || [],
+  ats_warnings: data.ats_warnings || [],
+  job_description_hash: data.job_description_hash || null,
+  analyzed_at: data.analyzed_at || null
 });
 
 // Template model

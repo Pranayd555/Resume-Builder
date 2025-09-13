@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
-import { ChartBarIcon, XMarkIcon, DocumentTextIcon, DocumentArrowDownIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import { ChartBarIcon, XMarkIcon, DocumentTextIcon, DocumentArrowDownIcon, XCircleIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import CKEditor from './CKEditor';
 import ATSLoader from './ATSLoader';
 import { aiAPI } from '../services/api';
@@ -111,7 +111,10 @@ const ATSScoreModal = ({
               <ChartBarIcon className="h-5 w-5 text-green-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">ATS Score Analysis</h2>
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                ATS Score Analysis
+                <SparklesIcon className="w-4 h-4 text-purple-500" />
+              </h2>
               <p className="text-xs text-gray-600">Get your resume's ATS compatibility score</p>
             </div>
           </div>
