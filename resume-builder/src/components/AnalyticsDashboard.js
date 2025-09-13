@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { analyticsAPI } from '../services/api';
 import { toast } from 'react-toastify';
+import DotLottieLoader from './DotLottieLoader';
 import { 
   EyeIcon, 
   DocumentArrowDownIcon, 
@@ -41,21 +42,11 @@ function AnalyticsDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-16">
-        <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="bg-white p-6 rounded-lg shadow">
-                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-                  <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+      <DotLottieLoader 
+        title="Loading Analytics..."
+        subtitle="Please wait while we fetch your analytics data."
+        size={200}
+      />
     );
   }
 

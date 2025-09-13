@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import DotLottieLoader from './DotLottieLoader';
 
 function AuthCallback() {
   const navigate = useNavigate();
@@ -55,12 +56,11 @@ function AuthCallback() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Completing authentication...</p>
-        </div>
-      </div>
+      <DotLottieLoader 
+        title="Completing authentication..."
+        subtitle="Please wait while we complete your login process."
+        size={200}
+      />
     );
   }
 

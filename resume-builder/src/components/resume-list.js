@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
+import DotLottieLoader from './DotLottieLoader';
 import { 
   Bars3Icon,
   CheckCircleIcon,
@@ -716,16 +717,14 @@ function ResumeList() {
     }
   };
 
-  // Loading state
+  // Loading state - || true Always show for testing
   if (loading) {
     return (
-      <div className="min-h-screen pt-16 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Loading Resumes...</h3>
-          <p className="text-gray-600">Please wait while we fetch your resumes.</p>
-        </div>
-      </div>
+      <DotLottieLoader 
+        title="Loading Resumes..."
+        subtitle="Please wait while we fetch your resumes."
+        size={200}
+      />
     );
   }
 
