@@ -263,25 +263,25 @@ jobs:
         echo "===================="
         echo "Branch: ${{ github.ref_name }}"
         echo "Environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}"
-        echo "Backend changes: ${{ needs.detect-changes.outputs.backend-changed }}"
-        echo "Frontend changes: ${{ needs.detect-changes.outputs.frontend-changed }}"
+        echo "Backend changes: ${{ needs.detect-changes.outputs.backend }}"
+        echo "Frontend changes: ${{ needs.detect-changes.outputs.frontend }}"
         echo ""
         echo "Backend deployment: ${{ needs.deploy-backend.result || 'skipped' }}"
         echo "Frontend deployment: ${{ needs.deploy-frontend.result || 'skipped' }}"
         echo ""
         
-        if [[ "${{ needs.detect-changes.outputs.backend-changed }}" == "true" && "${{ needs.deploy-backend.result }}" == "success" ]]; then
+        if [[ "${{ needs.detect-changes.outputs.backend }}" == "true" && "${{ needs.deploy-backend.result }}" == "success" ]]; then
           echo "✅ Backend deployed to Render successfully"
-        elif [[ "${{ needs.detect-changes.outputs.backend-changed }}" == "true" && "${{ needs.deploy-backend.result }}" != "success" ]]; then
+        elif [[ "${{ needs.detect-changes.outputs.backend }}" == "true" && "${{ needs.deploy-backend.result }}" != "success" ]]; then
           echo "❌ Backend deployment failed"
         fi
         
-        if [[ "${{ needs.detect-changes.outputs.frontend-changed }}" == "true" && "${{ needs.deploy-frontend.result }}" == "success" ]]; then
+        if [[ "${{ needs.detect-changes.outputs.frontend }}" == "true" && "${{ needs.deploy-frontend.result }}" == "success" ]]; then
           echo "✅ Frontend deployed to Vercel successfully"
-        elif [[ "${{ needs.detect-changes.outputs.frontend-changed }}" == "true" && "${{ needs.deploy-frontend.result }}" != "success" ]]; then
+        elif [[ "${{ needs.detect-changes.outputs.frontend }}" == "true" && "${{ needs.deploy-frontend.result }}" != "success" ]]; then
           echo "❌ Frontend deployment failed"
         fi
         
-        if [[ "${{ needs.detect-changes.outputs.backend-changed }}" == "false" && "${{ needs.detect-changes.outputs.frontend-changed }}" == "false" ]]; then
+        if [[ "${{ needs.detect-changes.outputs.backend }}" == "false" && "${{ needs.detect-changes.outputs.frontend }}" == "false" ]]; then
           echo "ℹ️ No changes detected - no deployment needed"
         fi 

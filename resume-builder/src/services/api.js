@@ -407,18 +407,23 @@ export const aiAPI = {
     return response.data;
   },
 
-  enhanceKeywords: async (content, industry = 'general') => {
-    const response = await api.post('/ai/enhance-keywords', {
-      content,
-      industry
+  // ATS-based AI endpoints
+  adjustTone: async (resumeId, requestData) => {
+    const response = await api.post('/ai/adjust-tone', {
+      resumeId,
+      ...requestData
+    }, {
+      timeout: 120000, // 2 minutes for AI processing
     });
     return response.data;
   },
 
-  adjustTone: async (content, targetTone) => {
-    const response = await api.post('/ai/adjust-tone', {
-      content,
-      targetTone
+  enhanceKeywords: async (resumeId, requestData) => {
+    const response = await api.post('/ai/enhance-keywords', {
+      resumeId,
+      ...requestData
+    }, {
+      timeout: 120000, // 2 minutes for AI processing
     });
     return response.data;
   },

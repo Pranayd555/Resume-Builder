@@ -12,7 +12,8 @@ import {
   PlusIcon, 
   TrashIcon,
   ExclamationTriangleIcon,
-  BoltIcon
+  BoltIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 
 // Utility functions
@@ -164,6 +165,9 @@ function ResumeForm() {
   const [technologiesInput, setTechnologiesInput] = useState({});
   const [uploadingResume, setUploadingResume] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState('');
+  const [isDragOver, setIsDragOver] = useState(false);
+  // eslint-disable-next-line no-unused-vars
+  const [dragCounter, setDragCounter] = useState(0);
   const fileInputRef = useRef(null);
 
   const totalSteps = 8;
@@ -274,8 +278,58 @@ function ResumeForm() {
 
   const removeUploadedFile = () => {
     setUploadedFileName('');
+    setIsDragOver(false);
+    setDragCounter(0);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  // Drag and drop handlers
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragCounter(prev => prev + 1);
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragOver(true);
+    }
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragCounter(prev => {
+      const newCount = Math.max(0, prev - 1);
+      if (newCount === 0) {
+        setIsDragOver(false);
+      }
+      return newCount;
+    });
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    setDragCounter(0);
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      if (validateResumeFile(file)) {
+        // Create a synthetic event to reuse existing handleResumeUpload logic
+        const syntheticEvent = {
+          target: {
+            files: [file],
+            value: ''
+          }
+        };
+        handleResumeUpload(syntheticEvent);
+      }
     }
   };
 
@@ -738,6 +792,96 @@ function ResumeForm() {
             
             setFormData(mappedFormData);
             
+            // Check for AI-enhanced data from localStorage
+            if (state.fromAIEnhancement) {
+              try {
+                const aiEnhancedData = localStorage.getItem('ai_enhanced_resume_data');
+                if (aiEnhancedData) {
+                  const parsedAIData = JSON.parse(aiEnhancedData);
+                  
+                  // Apply AI-enhanced data to the form
+                  setFormData(prev => {
+                    const updatedData = { ...prev };
+                    
+                    // Update summary if provided
+                    if (parsedAIData.summary) {
+                      updatedData.summary = ensureHtmlContent(parsedAIData.summary);
+                    }
+                    
+                    // Update work experience if provided
+                    if (parsedAIData.workExperience && Array.isArray(parsedAIData.workExperience)) {
+                      updatedData.workExperience = updatedData.workExperience.map((exp, index) => {
+                        const aiExp = parsedAIData.workExperience[index];
+                        if (aiExp) {
+                          return {
+                            ...exp,
+                            description: ensureHtmlContent(aiExp.description || exp.description)
+                          };
+                        }
+                        return exp;
+                      });
+                    }
+                    
+                    // Handle legacy experience format (for adjust-tone)
+                    if (parsedAIData.experience && Array.isArray(parsedAIData.experience)) {
+                      updatedData.workExperience = updatedData.workExperience.map((exp, index) => {
+                        const aiExp = parsedAIData.experience[index];
+                        if (aiExp) {
+                          return {
+                            ...exp,
+                            description: ensureHtmlContent(aiExp.description || exp.description)
+                          };
+                        }
+                        return exp;
+                      });
+                    }
+                    
+                    // Update projects if provided
+                    if (parsedAIData.projects && Array.isArray(parsedAIData.projects)) {
+                      updatedData.projects = updatedData.projects.map((proj, index) => {
+                        const aiProj = parsedAIData.projects[index];
+                        if (aiProj) {
+                          return {
+                            ...proj,
+                            description: ensureHtmlContent(aiProj.description || proj.description)
+                          };
+                        }
+                        return proj;
+                      });
+                    }
+                    
+                    // Update skills if provided
+                    if (parsedAIData.skills && Array.isArray(parsedAIData.skills)) {
+                      // For enhance keywords, replace the entire skills structure
+                      updatedData.skills = parsedAIData.skills.map(skillCategory => ({
+                        category: skillCategory.category || '',
+                        items: (skillCategory.items || []).map(item => ({
+                          name: item.name || '',
+                          level: item.level || 'intermediate'
+                        }))
+                      }));
+                    }
+                    
+                    return updatedData;
+                  });
+                  
+                  // Show success message based on enhancement type
+                  const enhancementType = parsedAIData._enhancementType;
+                  if (enhancementType === 'adjust-tone') {
+                    toast.success('Resume tone has been adjusted! Review and save your changes.');
+                  } else if (enhancementType === 'enhance-keywords') {
+                    toast.success('Keywords have been enhanced! Review and save your changes.');
+                  }
+                  
+                  // Clear the AI enhanced data from localStorage
+                  localStorage.removeItem('ai_enhanced_resume_data');
+                }
+              } catch (error) {
+                console.error('Error applying AI-enhanced data:', error);
+                toast.error('Failed to apply AI enhancements. Please try again.');
+              }
+            }
+            
             // Initialize technologies input state for edit mode
             const techInputState = {};
             (mappedFormData.projects || []).forEach((proj, index) => {
@@ -1133,20 +1277,21 @@ function ResumeForm() {
 
   const renderBasicInfo = () => (
     <>
-      {/* Resume Upload Section - Standalone */}
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-6 space-y-4 mb-6">
-        <div className="flex items-center gap-3">
-          <div className="flex-shrink-0">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-            </div>
+      {/* Resume Upload Section - Compact */}
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
           </div>
           <div className="flex-1">
-            <h4 className="font-medium text-gray-900 mb-1">Parse Existing Resume</h4>
-            <p className="text-sm text-gray-600">
-              Upload your existing resume (PDF or Word) to automatically extract and populate the form fields
+            <h4 className="font-medium text-gray-900 text-sm flex items-center gap-2">
+              Parse Existing Resume
+              <SparklesIcon className="w-4 h-4 text-purple-500" />
+            </h4>
+            <p className="text-xs text-gray-600">
+              Upload PDF/Word to auto-populate fields
             </p>
           </div>
         </div>
@@ -1162,46 +1307,55 @@ function ResumeForm() {
         
         {/* Upload button or file info */}
         {!uploadedFileName ? (
-          <button
+          <div
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+            className={`w-full px-3 py-4 border-2 border-dashed rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-center cursor-pointer ${
+              isDragOver 
+                ? 'border-blue-500 bg-blue-100 text-blue-700' 
+                : 'border-blue-300 hover:border-blue-400 hover:bg-blue-50 text-blue-600'
+            }`}
             onClick={triggerFileUpload}
-            disabled={uploadingResume}
-            className="w-full px-4 py-3 border-2 border-dashed border-blue-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 flex items-center justify-center gap-2 text-blue-600 font-medium"
           >
             {uploadingResume ? (
               <>
                 <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                <span>Processing Resume...</span>
+                <span className="font-medium text-sm">Processing...</span>
               </>
             ) : (
               <>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
-                <span>Choose File (PDF/Word)</span>
+                <span className="font-medium text-sm">
+                  {isDragOver ? 'Drop resume here' : 'Choose File or Drag & Drop'}
+                </span>
               </>
             )}
-          </button>
+          </div>
         ) : (
-          <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex items-center gap-3">
-              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex items-center justify-between p-2 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="text-sm font-medium text-green-800">{uploadedFileName}</span>
+              <span className="text-xs font-medium text-green-800 truncate">{uploadedFileName}</span>
             </div>
             <button
               onClick={removeUploadedFile}
-              className="text-green-600 hover:text-green-800 transition-colors"
+              className="text-green-600 hover:text-green-800 transition-colors p-1"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
         )}
         
-        <p className="text-xs text-gray-500 text-center">
-          Supported formats: PDF, DOCX, DOC (Max 10MB)
+        <p className="text-xs text-gray-500 text-center mt-2">
+          PDF, DOCX, DOC (Max 10MB)
         </p>
       </div>
       
