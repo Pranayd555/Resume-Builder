@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import { toast } from 'react-toastify';
+import DotLottieLoader from './DotLottieLoader';
 import { 
   ChevronLeftIcon, 
   ChevronRightIcon, 
@@ -199,10 +200,11 @@ const PDFViewer = React.memo(({ pdfUrl, onError, showLoader = true, settingsButt
   if (loading && showLoader) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-          <p className="text-gray-600">Loading PDF...</p>
-        </div>
+        <DotLottieLoader 
+          title="Loading PDF..."
+          subtitle="Please wait while we load your document."
+          size={150}
+        />
       </div>
     );
   }

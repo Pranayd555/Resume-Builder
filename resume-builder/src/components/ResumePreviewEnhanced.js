@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { resumeAPI, analyticsAPI } from '../services/api';
 import TemplateStylingControls from './TemplateStylingControls';
 import PDFViewer from './PDFViewer';
-import OfficeSceneLoader from './OfficeSceneLoader';
+import ResumePreviewLoader from './ResumePreviewLoader';
 import { ArrowsRightLeftIcon, DocumentArrowDownIcon, DocumentTextIcon, PencilSquareIcon, PrinterIcon, ChartBarIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import ATSScoreModal from './ATSScoreModal';
 import ATSSummary from './ATSSummary';
@@ -224,7 +224,7 @@ function ResumePreviewEnhanced() {
 
 
   if (loading) {
-    return(<div className="min-h-screen pt-16"> <OfficeSceneLoader /></div>);
+    return(<div className="min-h-screen pt-16"> <ResumePreviewLoader /></div>);
   }
 
 
@@ -361,7 +361,7 @@ function ResumePreviewEnhanced() {
                 {/* PDF Preview */}
                 {pdfLoading ? (
                   <div className="text-center py-8 sm:py-12">
-                    <OfficeSceneLoader 
+                    <ResumePreviewLoader 
                       title="Generating PDF Preview..."
                       subtitle="Crafting your professional resume with precision"
                     />

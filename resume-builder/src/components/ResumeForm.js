@@ -7,6 +7,7 @@ import { useFormScroll, useScrollToTop } from '../hooks/useAutoScroll';
 import { useAuth } from '../contexts/AuthContext';
 import CKEditor from './CKEditor';
 import { ensureHtmlContent } from '../utils/htmlUtils';
+import DotLottieLoader from './DotLottieLoader';
 
 import { 
   PlusIcon, 
@@ -2731,13 +2732,11 @@ function ResumeForm() {
 
   if (loading && isEditMode) {
     return (
-      <div className="min-h-screen pt-16 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Loading Resume Data...</h3>
-          <p className="text-gray-600">Please wait while we load your resume for editing.</p>
-        </div>
-      </div>
+      <DotLottieLoader 
+        title="Loading Resume Data..."
+        subtitle="Please wait while we load your resume for editing."
+        size={200}
+      />
     );
   }
 
