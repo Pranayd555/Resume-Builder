@@ -29,6 +29,8 @@ import { resumeAPI, analyticsAPI, apiHelpers } from '../services/api';
 import { createResumeModel } from '../models/dataModels';
 import { toast } from 'react-toastify';
 import ATSScoreModal from './ATSScoreModal';
+import EmailVerification from './EmailVerification';
+import { useAuth } from '../contexts/AuthContext';
 
 // ATS Score Display Component
 const ATSScoreDisplay = ({ resume, isCardHovered }) => {
@@ -195,6 +197,7 @@ const ATSScoreDisplay = ({ resume, isCardHovered }) => {
 
 function ResumeList() {
   const navigate = useNavigate();
+  const { user, updateUser } = useAuth();
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [hoveredCardId, setHoveredCardId] = useState(null);
   const [focusedCardId, setFocusedCardId] = useState(null);
@@ -204,6 +207,65 @@ function ResumeList() {
   const [selectedResumeForAts, setSelectedResumeForAts] = useState(null);
   const [error, setError] = useState(null);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  
+  // Email verification state
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState('');
+
+  // Email verification handlers
+  const handleEmailVerificationSuccess = () => {
+    setShowEmailVerification(false);
+    setVerificationEmail('');
+    toast.success('Email verified successfully!');
+    // Update user data to reflect verified status
+    if (user) {
+      const updatedUser = { ...user, isEmailVerified: true };
+      updateUser(updatedUser);
+      apiHelpers.setCurrentUserData(updatedUser);
+    }
+  };
+
+  const handleSkipEmailVerification = () => {
+    setShowEmailVerification(false);
+    setVerificationEmail('');
+    toast.info('Email verification skipped. You can verify it later from your profile.');
+  };
+
+  // Check if email verification is required
+  const isEmailVerificationRequired = () => {
+    const userData = apiHelpers.getCurrentUserData();
+    return userData && !userData.isEmailVerified;
+  };
+
+  // Sync user data from AuthContext to localStorage on component mount
+  useEffect(() => {
+    if (user) {
+      apiHelpers.setCurrentUserData(user);
+    }
+  }, [user]);
+
+  // Refresh user data when page becomes visible (e.g., returning from profile)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && user) {
+        apiHelpers.setCurrentUserData(user);
+      }
+    };
+
+    const handleFocus = () => {
+      if (user) {
+        apiHelpers.setCurrentUserData(user);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [user]);
 
   const [pagination, setPagination] = useState({
     page: 1,
@@ -408,6 +470,17 @@ function ResumeList() {
     fetchResumes();
   }, [fetchResumes]);
 
+  // Check for email verification requirement from registration
+  useEffect(() => {
+    const locationState = window.history.state?.usr;
+    if (locationState?.requiresEmailVerification && locationState?.email) {
+      setVerificationEmail(locationState.email);
+      setShowEmailVerification(true);
+      // Clear the state to prevent showing modal on refresh
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
+
   // Update subscription info when resumes change (for reactive UI updates)
   useEffect(() => {
     // This effect ensures the UI updates when resume count changes
@@ -488,6 +561,13 @@ function ResumeList() {
       return;
     } else if (!userData.firstName || !userData.lastName || !userData.email || !userData.phone) {
       toast.error('Please complete your profile before creating a new resume');
+      return;
+    } else if (!userData.isEmailVerified) {
+      toast.error('Please verify your email address before creating a new resume', {
+        onClick: () => navigate('/profile'),
+        closeButton: true,
+        autoClose: 5000
+      });
       return;
     }
     
@@ -813,24 +893,57 @@ function ResumeList() {
             <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
               My Resumes
             </h1>
-            <p className="text-gray-600 text-base sm:text-lg">Create and manage your professional resumes</p>
+            <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg">Create and manage your professional resumes</p>
             
           </div>
                      {canCreateNewResume() && (
              <div className="flex flex-col items-end gap-2">
                <button
                  onClick={handleCreateNew}
-                 className="px-6 sm:px-8 py-3 sm:py-4 rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2 sm:gap-3 font-semibold text-sm sm:text-base min-w-[140px] sm:min-w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 hover:shadow-xl transform hover:scale-105"
+                 className={`px-6 sm:px-8 py-3 sm:py-4 rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2 sm:gap-3 font-semibold text-sm sm:text-base min-w-[140px] sm:min-w-auto ${
+                   isEmailVerificationRequired() 
+                     ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 cursor-not-allowed opacity-75' 
+                     : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 hover:shadow-xl transform hover:scale-105'
+                 }`}
                >
                  <PlusIcon className="w-5 h-5 sm:w-6 sm:h-6" />
-                 <span className="whitespace-nowrap">Create New</span>
+                 <span className="whitespace-nowrap">
+                   {isEmailVerificationRequired() ? 'Verify Email First' : 'Create New'}
+                 </span>
                </button>
              </div>
            )}
         </div>
         
+        {/* Email Verification Banner */}
+        {isEmailVerificationRequired() && (
+          <div className="backdrop-blur-md bg-orange-50/80 border border-orange-200 rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                  <ExclamationTriangleIcon className="w-6 h-6 text-orange-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-orange-800 mb-1">
+                    Email Verification Required
+                  </h3>
+                  <p className="text-orange-700 text-sm sm:text-base">
+                    Please verify your email address to create and manage resumes.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate('/profile')}
+                className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-xl hover:from-orange-600 hover:to-red-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold text-sm sm:text-base whitespace-nowrap"
+              >
+                Verify Email
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Subscription Limit Banner */}
-        {!canCreateNewResume() && getSubscriptionInfo().plan === 'free' && (
+        {!canCreateNewResume() && !isEmailVerificationRequired() && getSubscriptionInfo().plan === 'free' && (
           <div className="backdrop-blur-md bg-orange-50/80 border border-orange-200 rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-start gap-3">
@@ -856,7 +969,7 @@ function ResumeList() {
           </div>
         )}
         
-        {!canCreateNewResume() && getSubscriptionInfo().plan === 'pro' && (
+        {!canCreateNewResume() && !isEmailVerificationRequired() && getSubscriptionInfo().plan === 'pro' && (
           <div className="backdrop-blur-md bg-blue-50/80 border border-blue-200 rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-start gap-3">
@@ -877,7 +990,7 @@ function ResumeList() {
         )}
         
         {/* Search and Filter */}
-        <div className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-4 sm:p-6 mb-8">
+        <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-4 sm:p-6 mb-8">
           <div className="flex flex-col gap-4">
             <div className="w-full">
               <form onSubmit={handleSearch} className="flex gap-3">
@@ -890,7 +1003,7 @@ function ResumeList() {
                     placeholder="Search resumes..."
                     value={filters.search}
                     onChange={(e) => handleFilterChange('search', e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 backdrop-blur-md bg-white/80 border border-white/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-sm sm:text-base placeholder-gray-400 shadow-lg hover:shadow-xl transition-all duration-200"
+                    className="w-full pl-10 pr-4 py-2.5 backdrop-blur-md bg-white/80 dark:bg-orange-50/95 border border-white/30 dark:border-orange-200/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-sm sm:text-base placeholder-gray-400 dark:placeholder-gray-600 shadow-lg hover:shadow-xl transition-all duration-200"
                   />
                 </div>
                 <button
@@ -908,7 +1021,7 @@ function ResumeList() {
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
                 <FunnelIcon className="w-4 h-4 text-gray-500" />
-                <span className="text-sm font-medium text-gray-600 hidden sm:inline">Filter by:</span>
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400 hidden sm:inline">Filter by:</span>
               </div>
               <div 
                 ref={statusDropdownRef}
@@ -916,23 +1029,23 @@ function ResumeList() {
               >
                 <button
                   onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                  className="flex items-center justify-between gap-3 px-4 py-2.5 backdrop-blur-md bg-white/70 border border-white/20 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm sm:text-base min-w-[160px] group"
+                  className="flex items-center justify-between gap-3 px-4 py-2.5 backdrop-blur-md bg-white/70 dark:bg-orange-50/95 border border-white/20 dark:border-orange-200/30 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-sm sm:text-base min-w-[160px] group"
                 >
                   <div className="flex items-center gap-2">
                     <span className={`${getSelectedOption().color} flex items-center transition-colors duration-200`}>
                       {getSelectedOption().icon}
                     </span>
-                    <span className="font-medium text-gray-700">{getSelectedOption().label}</span>
+                    <span className="font-medium text-gray-700 dark:text-gray-300">{getSelectedOption().label}</span>
                   </div>
                   <ChevronDownIcon 
-                    className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${showStatusDropdown ? 'rotate-180' : ''}`} 
+                    className={`w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${showStatusDropdown ? 'rotate-180' : ''}`} 
                   />
                 </button>
 
                 {showStatusDropdown && createPortal(
                   <div 
                     data-dropdown="status"
-                    className="fixed z-[9999] backdrop-blur-md bg-white/90 rounded-xl shadow-xl border border-white/20 ring-1 ring-black/5 overflow-hidden animate-in slide-in-from-top-2 duration-200"
+                    className="fixed z-[9999] backdrop-blur-md bg-white/90 dark:bg-orange-50/95 rounded-xl shadow-xl border border-white/20 dark:border-orange-200/40 ring-1 ring-black/5 overflow-hidden animate-in slide-in-from-top-2 duration-200"
                     style={{
                       top: statusDropdownRef.current ? statusDropdownRef.current.getBoundingClientRect().bottom + 8 : 0,
                       left: statusDropdownRef.current ? statusDropdownRef.current.getBoundingClientRect().left : 0,
@@ -982,7 +1095,7 @@ function ResumeList() {
         
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-6">
+          <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Total Resumes</p>
@@ -994,7 +1107,7 @@ function ResumeList() {
             </div>
           </div>
           
-          <div className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-6">
+          <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Active Resumes</p>
@@ -1006,7 +1119,7 @@ function ResumeList() {
             </div>
           </div>
           
-          <div className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-6">
+          <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Draft Resumes</p>
@@ -1031,11 +1144,11 @@ function ResumeList() {
                   }
                 }}
                 data-resume-id={resume.id}
-                className={`backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 overflow-hidden cursor-pointer transition-all duration-200 group ${
+                className={`backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 overflow-hidden cursor-pointer transition-all duration-200 group ${
                   hoveredCardId === resume.id || focusedCardId === resume.id
-                    ? 'bg-white/80 shadow-2xl scale-105'
+                    ? 'bg-white/80 dark:bg-orange-50/100 shadow-2xl scale-105'
                     : ''
-                } hover:bg-white/80 hover:shadow-2xl hover:scale-105`}
+                } hover:bg-white/80 dark:hover:bg-orange-50/100 hover:shadow-2xl hover:scale-105`}
                 onClick={() => handleResumeClick(resume.id, resume.status)}
                 onMouseEnter={() => setHoveredCardId(resume.id)}
                 onMouseLeave={() => setHoveredCardId(null)}
@@ -1067,7 +1180,7 @@ function ResumeList() {
                         {/* Dropdown Menu */}
                         {openDropdownId === resume.id && createPortal(
                           <div 
-                            className="fixed z-[9999] bg-white rounded-lg shadow-lg border border-gray-200"
+                            className="fixed z-[9999] bg-white dark:bg-orange-50/95 rounded-lg shadow-lg border border-gray-200 dark:border-orange-200/40"
                             data-dropdown="resume"
                             style={{
                               top: dropdownButtonRefs.current[resume.id] ? dropdownButtonRefs.current[resume.id].getBoundingClientRect().bottom + 8 : 0,
@@ -1303,9 +1416,13 @@ function ResumeList() {
                 <p className="text-gray-600 mb-6">Get started by creating your first professional resume.</p>
                 <button
                   onClick={handleCreateNew}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
+                  className={`px-6 py-3 rounded-lg transition-all duration-200 ${
+                    isEmailVerificationRequired()
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 cursor-not-allowed opacity-75'
+                      : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
+                  }`}
                 >
-                  Create Your First Resume
+                  {isEmailVerificationRequired() ? 'Verify Email First' : 'Create Your First Resume'}
                 </button>
               </div>
             </div>
@@ -1484,6 +1601,21 @@ function ResumeList() {
         resumeId={selectedResumeForAts?.id}
         onSuccess={handleAtsSuccess}
       />
+
+      {/* Email Verification Modal */}
+      {showEmailVerification && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-white rounded-2xl p-4 sm:p-6 w-full max-w-sm sm:max-w-md mx-2 sm:mx-0 max-h-[90vh] overflow-y-auto">
+            <EmailVerification
+              email={verificationEmail}
+              onVerificationSuccess={handleEmailVerificationSuccess}
+              onSkip={handleSkipEmailVerification}
+              type="registration"
+              showSkip={true}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

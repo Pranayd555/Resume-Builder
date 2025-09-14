@@ -25,7 +25,7 @@ function PrivacyPolicy() {
         </div>
 
         {/* Content */}
-        <div className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-8">
+        <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-8">
           <div className="prose max-w-none">
             <p className="text-sm text-gray-600 mb-8">
               Last updated: {new Date().toLocaleDateString()}
@@ -126,7 +126,7 @@ function PrivacyPolicy() {
               <p className="text-gray-700 mb-4 leading-relaxed">
                 If you have any questions about this privacy policy, please contact us at:
               </p>
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl border border-blue-100">
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-50/50 dark:to-purple-50/50 p-6 rounded-xl border border-blue-100 dark:border-blue-100/50">
                 <p className="text-gray-700">
                   <strong>Email:</strong> privacy@resumebuilder.com<br />
                   <strong>Address:</strong> 123 Resume Street, Tech City, TC 12345<br />

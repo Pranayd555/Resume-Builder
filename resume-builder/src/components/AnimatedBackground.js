@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from 'react';
+import { useDarkMode } from '../contexts/DarkModeContext';
 
 function AnimatedBackground() {
   const canvasRef = useRef(null);
+  const { isDarkMode } = useDarkMode();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -16,9 +18,15 @@ function AnimatedBackground() {
       
       // Recreate gradient when canvas is resized
       gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-      gradient.addColorStop(0, 'rgba(59, 130, 246, 0.05)'); // Blue
-      gradient.addColorStop(0.5, 'rgba(147, 51, 234, 0.05)'); // Purple
-      gradient.addColorStop(1, 'rgba(236, 72, 153, 0.05)'); // Pink
+      if (isDarkMode) {
+        gradient.addColorStop(0, 'rgba(59, 130, 246, 0.1)'); // Blue - darker
+        gradient.addColorStop(0.5, 'rgba(147, 51, 234, 0.1)'); // Purple - darker
+        gradient.addColorStop(1, 'rgba(236, 72, 153, 0.1)'); // Pink - darker
+      } else {
+        gradient.addColorStop(0, 'rgba(59, 130, 246, 0.05)'); // Blue
+        gradient.addColorStop(0.5, 'rgba(147, 51, 234, 0.05)'); // Purple
+        gradient.addColorStop(1, 'rgba(236, 72, 153, 0.05)'); // Pink
+      }
     };
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
@@ -32,7 +40,11 @@ function AnimatedBackground() {
         this.speedX = (Math.random() - 0.5) * 1.5; // Smoother movement
         this.speedY = (Math.random() - 0.5) * 1.5;
         this.opacity = Math.random() * 0.4 + 0.2;
-        this.color = `hsl(${Math.random() * 60 + 200}, 70%, 60%)`; // Blue to purple range
+        if (isDarkMode) {
+          this.color = `hsl(${Math.random() * 60 + 200}, 70%, 70%)`; // Blue to purple range - lighter for dark mode
+        } else {
+          this.color = `hsl(${Math.random() * 60 + 200}, 70%, 60%)`; // Blue to purple range
+        }
       }
 
       update() {
@@ -91,7 +103,7 @@ function AnimatedBackground() {
         const maxDistanceSquared = maxDistance * maxDistance;
         
         ctx.save();
-        ctx.strokeStyle = 'rgba(147, 51, 234, 0.2)';
+        ctx.strokeStyle = isDarkMode ? 'rgba(147, 51, 234, 0.3)' : 'rgba(147, 51, 234, 0.2)';
         ctx.lineWidth = 1;
         
         for (let i = 0; i < particles.length; i++) {
@@ -117,8 +129,8 @@ function AnimatedBackground() {
       if (Date.now() % 3 === 0) {
         const time = Date.now() * 0.0005; // Slower wave movement
         ctx.save();
-        ctx.globalAlpha = 0.08;
-        ctx.strokeStyle = 'rgba(147, 51, 234, 0.15)';
+        ctx.globalAlpha = isDarkMode ? 0.12 : 0.08;
+        ctx.strokeStyle = isDarkMode ? 'rgba(147, 51, 234, 0.2)' : 'rgba(147, 51, 234, 0.15)';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         
@@ -144,13 +156,17 @@ function AnimatedBackground() {
       window.removeEventListener('resize', resizeCanvas);
       cancelAnimationFrame(animationFrameId);
     };
-  }, []);
+  }, [isDarkMode]);
 
   return (
     <canvas
       ref={canvasRef}
       className="fixed inset-0 w-full h-full pointer-events-none z-0"
-      style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)' }}
+      style={{ 
+        background: isDarkMode 
+          ? 'linear-gradient(135deg, #1f2937 0%, #111827 100%)' 
+          : 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)' 
+      }}
     />
   );
 }

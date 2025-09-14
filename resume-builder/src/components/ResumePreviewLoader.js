@@ -1,13 +1,19 @@
 import React from 'react';
 import Lottie from "lottie-react";
 import manRobotWorkAnimation from '../assets/man_robot_work.json';
+import { useDarkMode } from '../contexts/DarkModeContext';
+import AnimatedBackground from './AnimatedBackground';
 
 const ResumePreviewLoader = ({ 
   title = "Crafting Your Professional Story...", 
   subtitle = "Our digital elves are working their magic on your resume." 
 }) => {
+  const { isDarkMode } = useDarkMode();
+  
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center">
+      <AnimatedBackground />
+      <div className="relative z-10 flex flex-col items-center justify-center bg-white dark:bg-transparent rounded-2xl shadow-xl dark:shadow-none border border-gray-200 dark:border-transparent p-8 mx-4">
       <style jsx>{`
         .gradient-text {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -63,13 +69,13 @@ const ResumePreviewLoader = ({
       
       {/* Floating Background Particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-blue-300 rounded-full floating-particles" style={{ animationDelay: '0s' }}></div>
-        <div className="absolute top-1/3 right-1/4 w-2 h-2 bg-purple-300 rounded-full floating-particles" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute bottom-1/3 left-1/3 w-2.5 h-2.5 bg-pink-300 rounded-full floating-particles" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-2/3 right-1/3 w-1.5 h-1.5 bg-indigo-300 rounded-full floating-particles" style={{ animationDelay: '3s' }}></div>
-        <div className="absolute bottom-1/4 right-1/4 w-3 h-3 bg-cyan-300 rounded-full floating-particles" style={{ animationDelay: '4s' }}></div>
-        <div className="absolute top-1/2 left-1/6 w-2 h-2 bg-yellow-300 rounded-full floating-particles" style={{ animationDelay: '1.5s' }}></div>
-        <div className="absolute bottom-1/2 right-1/6 w-1.5 h-1.5 bg-green-300 rounded-full floating-particles" style={{ animationDelay: '2.5s' }}></div>
+        <div className={`absolute top-1/4 left-1/4 w-3 h-3 rounded-full floating-particles ${isDarkMode ? 'bg-blue-400' : 'bg-blue-300'}`} style={{ animationDelay: '0s' }}></div>
+        <div className={`absolute top-1/3 right-1/4 w-2 h-2 rounded-full floating-particles ${isDarkMode ? 'bg-purple-400' : 'bg-purple-300'}`} style={{ animationDelay: '1s' }}></div>
+        <div className={`absolute bottom-1/3 left-1/3 w-2.5 h-2.5 rounded-full floating-particles ${isDarkMode ? 'bg-pink-400' : 'bg-pink-300'}`} style={{ animationDelay: '2s' }}></div>
+        <div className={`absolute top-2/3 right-1/3 w-1.5 h-1.5 rounded-full floating-particles ${isDarkMode ? 'bg-indigo-400' : 'bg-indigo-300'}`} style={{ animationDelay: '3s' }}></div>
+        <div className={`absolute bottom-1/4 right-1/4 w-3 h-3 rounded-full floating-particles ${isDarkMode ? 'bg-cyan-400' : 'bg-cyan-300'}`} style={{ animationDelay: '4s' }}></div>
+        <div className={`absolute top-1/2 left-1/6 w-2 h-2 rounded-full floating-particles ${isDarkMode ? 'bg-yellow-400' : 'bg-yellow-300'}`} style={{ animationDelay: '1.5s' }}></div>
+        <div className={`absolute bottom-1/2 right-1/6 w-1.5 h-1.5 rounded-full floating-particles ${isDarkMode ? 'bg-green-400' : 'bg-green-300'}`} style={{ animationDelay: '2.5s' }}></div>
       </div>
       
       {/* Main Animation Container */}
@@ -98,13 +104,13 @@ const ResumePreviewLoader = ({
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold gradient-text mb-3 sm:mb-4 pulse-text">
           {title}
         </h2>
-        <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-sm sm:max-w-md mx-auto leading-relaxed">
+        <p className="text-base sm:text-lg md:text-xl text-gray-700 dark:text-gray-300 max-w-sm sm:max-w-md mx-auto leading-relaxed">
           {subtitle}
         </p>
       </div>
       
       {/* Progress Bar */}
-      <div className="mt-6 sm:mt-8 w-48 sm:w-64 md:w-80 h-1.5 sm:h-2 bg-gray-200 rounded-full overflow-hidden mx-4">
+      <div className="mt-6 sm:mt-8 w-48 sm:w-64 md:w-80 h-1.5 sm:h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mx-4">
         <div className="progress-bar h-full rounded-full"></div>
       </div>
       
@@ -113,6 +119,7 @@ const ResumePreviewLoader = ({
         <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
         <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
         <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-pink-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+      </div>
       </div>
     </div>
   );

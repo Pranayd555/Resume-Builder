@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { authAPI, userAPI, uploadAPI, apiHelpers } from '../services/api';
+import { authAPI, uploadAPI, apiHelpers } from '../services/api';
 import { toast } from 'react-toastify';
 import { useAutoScroll, useScrollToTop } from '../hooks/useAutoScroll';
+import EmailVerification from './EmailVerification';
 import { 
   UserCircleIcon,
   PencilIcon,
@@ -20,7 +21,7 @@ import {
 
 function Profile() {
   const navigate = useNavigate();
-  const { user, updateUser: updateAuthUser, logout } = useAuth();
+  const { user, updateUser: updateAuthUser, logout, getEmailStatus } = useAuth();
   const fileInputRef = useRef(null);
   
   const [profile, setProfile] = useState({
@@ -41,6 +42,9 @@ function Profile() {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [emailVerificationStatus, setEmailVerificationStatus] = useState(null);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -207,6 +211,18 @@ function Profile() {
     }
   ];
 
+  // Check email verification status
+  const checkEmailVerificationStatus = useCallback(async () => {
+    try {
+      const response = await getEmailStatus();
+      if (response.success) {
+        setEmailVerificationStatus(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to check email verification status:', error);
+    }
+  }, [getEmailStatus]);
+
   // Load user data on component mount and when user data changes
   useEffect(() => {
     if (user) {
@@ -264,8 +280,11 @@ function Profile() {
         const hasChanged = JSON.stringify(prevOriginal) !== JSON.stringify(userProfile);
         return hasChanged ? userProfile : prevOriginal;
       });
+
+      // Check email verification status
+      checkEmailVerificationStatus();
     }
-  }, [user, user?.profilePicture]);
+  }, [user, user?.profilePicture, checkEmailVerificationStatus]);
 
   const handleInputChange = (field, value) => {
     setProfile(prev => ({
@@ -336,7 +355,13 @@ function Profile() {
         setJustSaved(true);
         setTimeout(() => setJustSaved(false), 500); // Reset after animation
         
-        toast.success('Profile updated successfully!');
+        if (response.data.requiresEmailVerification) {
+          setNewEmail(profile.email);
+          setShowEmailVerification(true);
+          toast.info('Profile updated! Please check your new email for verification code.');
+        } else {
+          toast.success('Profile updated successfully!');
+        }
       } else {
         throw new Error(response.error || 'Failed to update profile');
       }
@@ -576,7 +601,7 @@ function Profile() {
   const handleDeleteAccount = async () => {
     try {
       setLoading(true);
-      const response = await userAPI.deleteAccount();
+      const response = await authAPI.deleteAccount();
       
       if (response.success) {
         await logout();
@@ -593,6 +618,44 @@ function Profile() {
     }
   };
 
+  const handleEmailVerificationSuccess = () => {
+    setShowEmailVerification(false);
+    setNewEmail('');
+    toast.success('Email verified successfully!');
+    
+    // Update user data in localStorage and AuthContext
+    const updatedUser = { ...user, isEmailVerified: true };
+    updateAuthUser(updatedUser);
+    apiHelpers.setCurrentUserData(updatedUser);
+    
+    // Refresh email verification status
+    checkEmailVerificationStatus();
+  };
+
+  const handleSkipEmailVerification = () => {
+    setShowEmailVerification(false);
+    setNewEmail('');
+    toast.info('Email verification skipped. You can verify it later from your profile.');
+  };
+
+
+  // Handle verify email button click
+  const handleVerifyEmail = async () => {
+    try {
+      // Show the modal immediately since user already has the email
+      setNewEmail(user.email);
+      setShowEmailVerification(true);
+      
+      // Optionally send a new OTP if needed
+      // const response = await resendOtp();
+      // if (response.success) {
+      //   toast.success('New verification code sent to your email!');
+      // }
+    } catch (error) {
+      console.error('Failed to show email verification modal:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen pt-16">
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -601,18 +664,18 @@ function Profile() {
           <div className="flex items-center">
             <button
               onClick={handleBack}
-              className="mr-4 text-gray-600 hover:text-gray-900 transition-colors group"
+              className="mr-4 text-gray-600 dark:text-gray-200 hover:text-gray-900 dark:hover:text-gray-100 transition-colors group"
             >
               <svg className="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Profile</h1>
           </div>
         </div>
 
         {/* Profile Content */}
-        <div className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-8">
+        <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/80 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Profile Picture */}
             <div ref={profilePhotoRef} className="flex flex-col items-center">
@@ -629,7 +692,7 @@ function Profile() {
                   dragOver ? 'border-blue-400 shadow-blue-400/50' : 'border-white/20'
                 } backdrop-blur-sm`}>
                   {profile.profilePicture ? (
-                    <div className="w-full h-full flex items-center justify-center bg-white rounded-full">
+                    <div className="w-full h-full flex items-center justify-center bg-white dark:bg-orange-50/90 rounded-full">
                       <img 
                         src={profile.profilePicture} 
                         alt="Profile" 
@@ -761,7 +824,7 @@ function Profile() {
             <div ref={profileFormRef} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-900 mb-2">
                     First Name <span className="text-red-500">*</span>
                   </label>
                   {isEditing ? (
@@ -771,7 +834,7 @@ function Profile() {
                         value={profile.firstName}
                         onChange={(e) => handleInputChange('firstName', e.target.value)}
                         onBlur={() => handleFieldBlur('firstName')}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm ${
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900 ${
                           errors.firstName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
                         }`}
                         placeholder="Enter your first name"
@@ -785,7 +848,7 @@ function Profile() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-900 mb-2">
                     Last Name <span className="text-red-500">*</span>
                   </label>
                   {isEditing ? (
@@ -795,7 +858,7 @@ function Profile() {
                         value={profile.lastName}
                         onChange={(e) => handleInputChange('lastName', e.target.value)}
                         onBlur={() => handleFieldBlur('lastName')}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm ${
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900 ${
                           errors.lastName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
                         }`}
                         placeholder="Enter your last name"
@@ -821,7 +884,7 @@ function Profile() {
                       value={profile.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
                       onBlur={() => handleFieldBlur('email')}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm ${
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500 ${
                         errors.email ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
                       }`}
                       placeholder="Enter your email address"
@@ -831,7 +894,32 @@ function Profile() {
                     )}
                   </div>
                 ) : (
-                  <p className="text-gray-900 font-medium">{profile.email}</p>
+                  <div className="space-y-1">
+                    <p className="text-gray-900 font-medium">{profile.email}</p>
+                    {emailVerificationStatus && (
+                      <div className="flex items-center justify-between">
+                        {emailVerificationStatus.isEmailVerified ? (
+                          <div className="flex items-center space-x-1 text-green-600">
+                            <CheckIcon className="w-3 h-3" />
+                            <span className="text-xs font-medium">Verified</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center space-x-2">
+                            <div className="flex items-center space-x-1 text-orange-600">
+                              <ExclamationTriangleIcon className="w-3 h-3" />
+                              <span className="text-xs font-medium">Unverified</span>
+                            </div>
+                            <button
+                              onClick={handleVerifyEmail}
+                              className="text-orange-600 hover:text-orange-700 text-xs underline transition-colors duration-200"
+                            >
+                              Verify
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -846,7 +934,7 @@ function Profile() {
                       value={profile.phone}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
                       onBlur={() => handleFieldBlur('phone')}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm ${
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500 ${
                         errors.phone ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
                       }`}
                                              placeholder="Enter your phone number"
@@ -869,7 +957,7 @@ function Profile() {
                     type="text"
                     value={profile.location}
                     onChange={(e) => handleInputChange('location', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900"
                     placeholder="Enter your location (optional)"
                   />
                 ) : (
@@ -888,7 +976,7 @@ function Profile() {
                     value={profile.bio}
                     onChange={(e) => handleInputChange('bio', e.target.value)}
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm resize-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm resize-none text-gray-900 dark:text-gray-900"
                     placeholder="Tell us about yourself (optional)"
                   />
                 ) : (
@@ -958,38 +1046,38 @@ function Profile() {
               <h3 className="text-lg font-semibold mb-4">Change Password</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-900 mb-1">
                     Current Password
                   </label>
                   <input
                     type="password"
                     value={passwordData.currentPassword}
                     onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
                     placeholder="Enter current password"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-900 mb-1">
                     New Password
                   </label>
                   <input
                     type="password"
                     value={passwordData.newPassword}
                     onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
                     placeholder="Enter new password"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-900 mb-1">
                     Confirm New Password
                   </label>
                   <input
                     type="password"
                     value={passwordData.confirmPassword}
                     onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
                     placeholder="Confirm new password"
                   />
                 </div>
@@ -1155,6 +1243,21 @@ function Profile() {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Email Verification Modal */}
+        {showEmailVerification && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 w-full max-w-sm sm:max-w-md mx-2 sm:mx-0 max-h-[90vh] overflow-y-auto">
+              <EmailVerification
+                email={newEmail}
+                onVerificationSuccess={handleEmailVerificationSuccess}
+                onSkip={handleSkipEmailVerification}
+                type={newEmail === user?.email ? "profile-verification" : "email-change"}
+                showSkip={true}
+              />
             </div>
           </div>
         )}

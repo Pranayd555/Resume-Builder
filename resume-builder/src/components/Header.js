@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useDarkMode } from '../contexts/DarkModeContext';
 import { 
   Bars3Icon,
-  ArrowRightOnRectangleIcon
+  ArrowRightOnRectangleIcon,
+  SunIcon,
+  MoonIcon
 } from '@heroicons/react/24/outline';
 import { apiHelpers } from '../services/api';
 
@@ -11,6 +14,7 @@ function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, user, isAuthenticated } = useAuth();
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [showMenu, setShowMenu] = useState(false);
   const [profilePictureVersion, setProfilePictureVersion] = useState(0);
   const mobileMenuRef = useRef(null);
@@ -123,7 +127,7 @@ function Header() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-white/80 border-b border-white/20 shadow-lg">
+    <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-white/80 dark:bg-gray-900/80 border-b border-white/20 dark:border-gray-700/20 shadow-lg">
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo/Brand */}
@@ -165,41 +169,54 @@ function Header() {
                     </span>
                   )}
                 </div>
-                <span className="text-gray-700 text-xs lg:text-sm font-medium max-w-32 truncate">
+                <span className="text-gray-700 dark:text-gray-300 text-xs lg:text-sm font-medium max-w-32 truncate">
                   {user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user.email}
                 </span>
               </div>
             )}
             
-            <div className="h-5 w-px bg-gray-300"></div>
+            <div className="h-5 w-px bg-gray-300 dark:bg-gray-600"></div>
+            
+            {/* Dark Mode Toggle */}
+            <button
+              onClick={toggleDarkMode}
+              className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 px-2 py-1 lg:px-3 lg:py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-200 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:shadow-sm"
+              title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {isDarkMode ? (
+                <SunIcon className="w-4 h-4 lg:w-5 lg:h-5" />
+              ) : (
+                <MoonIcon className="w-4 h-4 lg:w-5 lg:h-5" />
+              )}
+            </button>
             
             <button
               onClick={handleProfile}
-              className="text-gray-600 hover:text-gray-900 px-2 py-1 lg:px-3 lg:py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-200 hover:bg-white/50 hover:shadow-sm"
+              className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 px-2 py-1 lg:px-3 lg:py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-200 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:shadow-sm"
             >
               Profile
             </button>
             <button
               onClick={handleSubscription}
-              className="text-gray-600 hover:text-gray-900 px-2 py-1 lg:px-3 lg:py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-200 hover:bg-white/50 hover:shadow-sm"
+              className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 px-2 py-1 lg:px-3 lg:py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-200 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:shadow-sm"
             >
               Subscription
             </button>
             <button
               onClick={handleAnalytics}
-              className="text-gray-600 hover:text-gray-900 px-2 py-1 lg:px-3 lg:py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-200 hover:bg-white/50 hover:shadow-sm"
+              className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 px-2 py-1 lg:px-3 lg:py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-200 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:shadow-sm"
             >
               Analytics
             </button>
             <button
               onClick={handlePrivacyPolicy}
-              className="text-gray-600 hover:text-gray-900 px-2 py-1 lg:px-3 lg:py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-200 hover:bg-white/50 hover:shadow-sm"
+              className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 px-2 py-1 lg:px-3 lg:py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-200 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:shadow-sm"
             >
               Privacy Policy
             </button>
             <button
               onClick={handleLogout}
-              className="text-red-600 hover:text-red-700 px-2 py-1 lg:px-3 lg:py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-200 hover:bg-red-50 hover:shadow-sm flex items-center space-x-1 lg:space-x-2"
+              className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 px-2 py-1 lg:px-3 lg:py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-200 hover:bg-red-50 dark:hover:bg-red-900/20 hover:shadow-sm flex items-center space-x-1 lg:space-x-2"
             >
               <ArrowRightOnRectangleIcon className="w-4 h-4" />
               <span>Logout</span>
@@ -211,7 +228,7 @@ function Header() {
             <button
               ref={mobileMenuButtonRef}
               onClick={toggleMenu}
-              className="text-gray-600 hover:text-gray-900 focus:outline-none focus:text-gray-900 p-1 sm:p-2 rounded-lg hover:bg-white/50 transition-all duration-200"
+              className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 focus:outline-none focus:text-gray-900 dark:focus:text-gray-100 p-1 sm:p-2 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-all duration-200"
             >
               <Bars3Icon className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
@@ -221,10 +238,10 @@ function Header() {
         {/* Mobile Navigation */}
         {showMenu && (
           <div className="md:hidden" ref={mobileMenuRef}>
-            <div className="px-2 pt-2 pb-3 space-y-1 border-t border-white/20 backdrop-blur-md bg-white/50 rounded-b-lg shadow-lg">
+            <div className="px-2 pt-2 pb-3 space-y-1 border-t border-white/20 dark:border-gray-700/20 backdrop-blur-md bg-white/50 dark:bg-gray-800/90 rounded-b-lg shadow-lg">
               {/* User Info - Mobile */}
               {user && (
-                <div className="flex items-center space-x-3 px-2 py-2 border-b border-white/20 mb-2">
+                <div className="flex items-center space-x-3 px-2 py-2 border-b border-white/20 dark:border-gray-700/20 mb-2">
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
                     {getProfilePictureUrl(user) ? (
                       <>
@@ -250,43 +267,57 @@ function Header() {
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-gray-900 text-sm font-medium truncate">
+                    <div className="text-gray-900 dark:text-gray-100 text-sm font-medium truncate">
                       {user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user.email}
                     </div>
-                    <div className="text-gray-500 text-xs truncate">
+                    <div className="text-gray-500 dark:text-gray-400 text-xs truncate">
                       {user.firstName ? user.email : 'User'}
                     </div>
                   </div>
                 </div>
               )}
               
+              {/* Dark Mode Toggle - Mobile */}
+              <button
+                onClick={toggleDarkMode}
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-white/50 dark:hover:bg-gray-800/50 w-full text-left flex items-center space-x-2"
+                title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+              >
+                {isDarkMode ? (
+                  <SunIcon className="w-4 h-4" />
+                ) : (
+                  <MoonIcon className="w-4 h-4" />
+                )}
+                <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+              </button>
+              
               <button
                 onClick={handleProfile}
-                className="text-gray-600 hover:text-gray-900 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-white/50 w-full text-left"
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-white/50 dark:hover:bg-gray-800/50 w-full text-left"
               >
                 Profile
               </button>
               <button
                 onClick={handleSubscription}
-                className="text-gray-600 hover:text-gray-900 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-white/50 w-full text-left"
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-white/50 dark:hover:bg-gray-800/50 w-full text-left"
               >
                 Subscription
               </button>
               <button
                 onClick={handleAnalytics}
-                className="text-gray-600 hover:text-gray-900 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-white/50 w-full text-left"
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-white/50 dark:hover:bg-gray-800/50 w-full text-left"
               >
                 Analytics
               </button>
               <button
                 onClick={handlePrivacyPolicy}
-                className="text-gray-600 hover:text-gray-900 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-white/50 w-full text-left"
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-white/50 dark:hover:bg-gray-800/50 w-full text-left"
               >
                 Privacy Policy
               </button>
               <button
                 onClick={handleLogout}
-                className="text-red-600 hover:text-red-700 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-red-50 w-full text-left flex items-center space-x-2"
+                className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-red-50 dark:hover:bg-red-900/20 w-full text-left flex items-center space-x-2"
               >
                 <ArrowRightOnRectangleIcon className="w-4 h-4" />
                 <span>Logout</span>

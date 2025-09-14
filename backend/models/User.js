@@ -58,7 +58,7 @@ const userSchema = new mongoose.Schema({
     type: {
       type: String,
       enum: ['uploaded', 'avatar'],
-      default: null
+      required: false
     },
     // For uploaded photos
     uploadedPhoto: {
@@ -155,6 +155,8 @@ const userSchema = new mongoose.Schema({
   // Security
   emailVerificationToken: String,
   emailVerificationExpire: Date,
+  emailOtp: String,
+  emailOtpExpire: Date,
   resetPasswordToken: String,
   resetPasswordExpire: Date,
   loginAttempts: {
@@ -294,6 +296,48 @@ userSchema.methods.resetLoginAttempts = function() {
   return this.updateOne({
     $unset: { loginAttempts: 1, lockUntil: 1 }
   });
+};
+
+// Method to generate email OTP
+userSchema.methods.generateEmailOtp = function() {
+  // Generate 6-digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  
+  // Set OTP and expiration (10 minutes)
+  this.emailOtp = otp;
+  this.emailOtpExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+  
+  return otp;
+};
+
+// Method to verify email OTP
+userSchema.methods.verifyEmailOtp = function(otp) {
+  // Check if OTP exists and hasn't expired
+  if (!this.emailOtp || !this.emailOtpExpire) {
+    return false;
+  }
+  
+  if (Date.now() > this.emailOtpExpire) {
+    return false;
+  }
+  
+  // Verify OTP
+  if (this.emailOtp !== otp) {
+    return false;
+  }
+  
+  // Clear OTP and mark email as verified
+  this.emailOtp = undefined;
+  this.emailOtpExpire = undefined;
+  this.isEmailVerified = true;
+  
+  return true;
+};
+
+// Method to clear email OTP
+userSchema.methods.clearEmailOtp = function() {
+  this.emailOtp = undefined;
+  this.emailOtpExpire = undefined;
 };
 
 // Index for performance

@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useDarkMode } from '../contexts/DarkModeContext';
 
 const OfficeSceneLoader = ({ title = "Generating Your Resume Preview", subtitle = "Our team is carefully crafting your professional resume with attention to every detail" }) => {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const [canvasSize, setCanvasSize] = useState({ width: 300, height: 400 });
+  const { isDarkMode } = useDarkMode();
 
   // Responsive canvas sizing
   useEffect(() => {
@@ -250,7 +252,7 @@ const OfficeSceneLoader = ({ title = "Generating Your Resume Preview", subtitle 
   }, [canvasSize]);
 
   return (
-    <div className="w-full flex items-center justify-center py-4 sm:py-6 lg:py-8 px-4">
+    <div className="w-full flex items-center justify-center py-4 sm:py-6 lg:py-8 px-4 bg-white dark:bg-orange-50/90 min-h-screen">
       <style jsx>{`
         @keyframes pulse {
           0%, 100% { opacity: 1; }
@@ -351,7 +353,7 @@ const OfficeSceneLoader = ({ title = "Generating Your Resume Preview", subtitle 
       {/* Main Container */}
       <div className="relative w-full max-w-sm sm:max-w-md lg:max-w-xl xl:max-w-2xl mx-auto">
         {/* Card Content */}
-        <div className="relative rounded-2xl p-4 sm:p-6 lg:p-8">
+        <div className="relative rounded-2xl p-4 sm:p-6 lg:p-8 bg-white dark:bg-orange-50/90 border border-gray-200 dark:border-orange-200/40 shadow-lg">
           {/* 3D Rain Animation Container */}
           <div className="canvas-container mb-4 sm:mb-6" ref={containerRef}>
             <canvas 
@@ -366,7 +368,7 @@ const OfficeSceneLoader = ({ title = "Generating Your Resume Preview", subtitle 
           {/* Loading Text */}
           <div className="text-center space-y-3 sm:space-y-4">
             <div className="loading-text">
-              <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-800 mb-2" style={{ animation: 'titlePulse 3s ease-in-out infinite' }}>
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-2" style={{ animation: 'titlePulse 3s ease-in-out infinite' }}>
                 {title}
               </h2>
               
@@ -378,14 +380,14 @@ const OfficeSceneLoader = ({ title = "Generating Your Resume Preview", subtitle 
               </div>
             </div>
             
-            <p className="text-gray-600 text-xs sm:text-sm leading-relaxed px-2">
+            <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm leading-relaxed px-2">
               {subtitle}
             </p>
           </div>
 
           {/* Simple Progress Bar */}
           <div className="mt-4 sm:mt-6">
-            <div className="w-full bg-gray-200 rounded-full h-1.5 sm:h-2 overflow-hidden">
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 sm:h-2 overflow-hidden">
               <div 
                 className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full transition-all duration-300 animate-pulse"
                 style={{ 
@@ -397,7 +399,7 @@ const OfficeSceneLoader = ({ title = "Generating Your Resume Preview", subtitle 
               ></div>
             </div>
             <div className="flex justify-center items-center mt-2">
-              <span className="text-xs text-gray-500 mr-2">Processing</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">Processing</span>
               <div className="processing-dots">
                 <div className="processing-dot"></div>
                 <div className="processing-dot"></div>

@@ -66,28 +66,28 @@ function ResumeTemplates() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
+      <div className="bg-white dark:bg-orange-50/90 shadow-sm border-b border-gray-200 dark:border-orange-200/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-4">
             <button 
               onClick={handleBack}
-              className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+              className="flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
             >
               <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
               Back
             </button>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Resume Templates</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Resume Templates</h1>
             <div className="w-20"></div> {/* Spacer for centering */}
           </div>
         </div>
       </div>
 
       {/* Category Tabs */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white dark:bg-orange-50/90 border-b border-gray-200 dark:border-orange-200/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8 overflow-x-auto scrollbar-hide">
             {Object.keys(templates).map((category) => (
@@ -95,8 +95,8 @@ function ResumeTemplates() {
                 key={category}
                 className={`flex-shrink-0 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                   activeCategory === category 
-                    ? 'border-blue-600 text-blue-600' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400' 
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
                 }`}
                 onClick={() => setActiveCategory(category)}
               >
@@ -143,10 +143,10 @@ function ResumeTemplates() {
 
               {/* Template Info */}
               <div className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                   {template.name}
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Professional resume template
                 </p>
               </div>
@@ -156,7 +156,7 @@ function ResumeTemplates() {
       </div>
 
       {/* Apply Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-orange-50/90 border-t border-gray-200 dark:border-orange-200/40 p-4">
         <div className="max-w-7xl mx-auto">
           <button
             onClick={handleApplyTemplate}
@@ -164,7 +164,7 @@ function ResumeTemplates() {
             className={`w-full py-3 px-6 rounded-lg font-medium transition-colors ${
               selectedTemplate 
                 ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
             }`}
           >
             {selectedTemplate ? 'Apply Template' : 'Select a Template'}

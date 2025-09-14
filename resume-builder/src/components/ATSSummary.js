@@ -68,8 +68,6 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       const response = await aiAPI.adjustTone(resumeId, requestData);
       
       if (response.success) {
-        toast.success('Resume tone adjusted successfully!');
-        
         // Store the AI-enhanced data in localStorage with a flag
         const aiEnhancedData = {
           ...response.data,
@@ -122,7 +120,6 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       const response = await aiAPI.enhanceKeywords(resumeId, requestData);
       
       if (response.success) {
-        toast.success('Keywords enhanced successfully!');
         
         // Store the AI-enhanced data in localStorage with a flag
         const aiEnhancedData = {
@@ -155,7 +152,7 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-sm group">
+    <div className="bg-white dark:bg-orange-50/90 rounded-lg border border-gray-200 dark:border-orange-200/40 shadow-sm group">
       <details 
         open={isOpen}
         onToggle={(e) => setIsOpen(e.target.open)}
@@ -458,7 +455,7 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       {/* ATS Loader Overlay */}
       {isProcessing && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
+          <div className="bg-white dark:bg-orange-50/90 rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
             <ATSLoader 
               title={processingType === 'adjust-tone' ? 'Adjusting Resume Tone...' : 'Enhancing Keywords...'}
               subtitle={processingType === 'adjust-tone' 

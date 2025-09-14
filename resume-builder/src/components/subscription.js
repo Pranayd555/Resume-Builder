@@ -12,8 +12,6 @@ function Subscription() {
   const [loading, setLoading] = useState(true);
   const [trialLoading, setTrialLoading] = useState(false);
   const [successLoading, setSuccessLoading] = useState(false);
-  const [showManagement, setShowManagement] = useState(false);
-  const [cancelLoading, setCancelLoading] = useState(false);
   
   // Use a single ref to track initialization
   const hasInitialized = useRef(false);
@@ -112,29 +110,6 @@ function Subscription() {
     }
   };
 
-  const handleCancelSubscription = async () => {
-    if (!currentSubscription || currentSubscription.plan === 'free') return;
-    
-    const reason = prompt('Please provide a reason for cancellation (optional):');
-    setCancelLoading(true);
-    
-    try {
-      const response = await subscriptionAPI.cancelSubscription(reason);
-      if (response.success) {
-        setCurrentSubscription(prev => ({
-          ...prev,
-          status: 'canceled',
-          endDate: response.data.endDate
-        }));
-        alert('Subscription will be canceled at the end of your billing period.');
-      }
-    } catch (error) {
-      console.error('Error canceling subscription:', error);
-      alert('Error canceling subscription. Please try again.');
-    } finally {
-      setCancelLoading(false);
-    }
-  };
 
   const handleBack = () => {
     navigate('/resume-list');
@@ -153,9 +128,6 @@ function Subscription() {
            !currentSubscription?.hasHadTrial;
   };
 
-  const toggleManagement = () => {
-    setShowManagement(!showManagement);
-  };
 
   // Define features for comparison table
   const features = [
@@ -187,15 +159,15 @@ function Subscription() {
           <div className="flex items-center flex-1 min-w-0">
             <button
               onClick={handleBack}
-              className="mr-4 sm:mr-6 text-gray-600 hover:text-gray-900 transition-colors p-2 rounded-lg hover:bg-white/50 backdrop-blur-sm flex-shrink-0 group"
+              className="mr-4 sm:mr-6 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors p-2 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 backdrop-blur-sm flex-shrink-0 group"
             >
               <svg className="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
             <div className="min-w-0 flex-1">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Choose Your Plan</h1>
-              <p className="text-sm sm:text-base lg:text-lg text-gray-600 leading-relaxed">Unlock premium features and create amazing resumes</p>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2 leading-tight">Choose Your Plan</h1>
+              <p className="text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-400 leading-relaxed">Unlock premium features and create amazing resumes</p>
             </div>
           </div>
         </div>
@@ -203,7 +175,7 @@ function Subscription() {
         {/* Current Subscription Status */}
         {currentSubscription && (
           <div className="mb-8">
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 p-6">
+            <div className="bg-white/80 dark:bg-orange-50/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 dark:border-orange-200/30 p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -212,7 +184,7 @@ function Subscription() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                       {currentSubscription.plan.charAt(0).toUpperCase() + currentSubscription.plan.slice(1)} Plan
                     </h3>
                     <div className="flex items-center gap-2 mt-1">
@@ -245,75 +217,21 @@ function Subscription() {
                      )}
                      <button
                        onClick={() => navigate('/analytics')}
-                       className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-all duration-200 text-sm sm:text-base"
+                       className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg font-medium hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 text-sm sm:text-base shadow-md hover:shadow-lg"
                      >
                        Analytics
-                     </button>
-                     <button
-                       onClick={toggleManagement}
-                       className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors text-sm sm:text-base"
-                     >
-                       {showManagement ? 'Hide Details' : 'Manage Plan'}
                      </button>
                    </div>
                  </div>
               </div>
             </div>
 
-            {/* Subscription Management Details */}
-            {showManagement && (
-              <div className="mt-6 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 p-6">
-                <h4 className="text-lg font-bold text-gray-900 mb-4">Subscription Details</h4>
-                <div className="space-y-4">
-                  <div className="bg-blue-50 rounded-xl p-4">
-                    <h5 className="font-semibold text-gray-900 mb-3">Billing Information</h5>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Plan:</span>
-                        <span className="font-medium text-gray-900">{currentSubscription.plan.charAt(0).toUpperCase() + currentSubscription.plan.slice(1)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Billing Cycle:</span>
-                        <span className="font-medium text-gray-900">{currentSubscription.billing?.cycle || 'N/A'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Amount:</span>
-                        <span className="font-medium text-gray-900">${currentSubscription.billing?.amount || 0} {currentSubscription.billing?.currency || 'USD'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Next Billing:</span>
-                        <span className="font-medium text-gray-900">{currentSubscription.billing?.nextBillingDate ? new Date(currentSubscription.billing.nextBillingDate).toLocaleDateString() : 'N/A'}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Cancel Subscription */}
-                {(currentSubscription.status === 'active' && currentSubscription.plan === 'pro') && (
-                  <div className="mt-8 pt-6 border-t border-gray-200">
-                    <div className="bg-red-50 rounded-xl p-4">
-                      <h5 className="font-semibold text-gray-900 mb-3">Cancel Subscription</h5>
-                      <p className="text-sm text-gray-600 mb-4">
-                        Your subscription will remain active until the end of your current billing period.
-                      </p>
-                      <button
-                        onClick={handleCancelSubscription}
-                        disabled={cancelLoading}
-                        className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
-                      >
-                        {cancelLoading ? 'Canceling...' : 'Cancel Subscription'}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         )}
 
         {/* Billing Toggle */}
         <div className="flex justify-center mb-12">
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-2 shadow-lg border border-gray-200">
+          <div className="bg-white/80 dark:bg-orange-50/95 backdrop-blur-sm rounded-xl p-2 shadow-lg border border-gray-200 dark:border-orange-200/30">
             <div className="flex">
               <button
                 onClick={() => setBillingCycle('monthly')}
@@ -347,9 +265,9 @@ function Subscription() {
                           {/* Pricing Table */}
          <div className="max-w-4xl mx-auto mb-12">
            {/* Desktop Table */}
-           <div className="hidden lg:block bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-gray-200 overflow-visible">
+           <div className="hidden lg:block bg-white/80 dark:bg-orange-50/95 backdrop-blur-sm rounded-xl shadow-xl border border-gray-200 dark:border-orange-200/30 overflow-visible">
              {/* Table Header */}
-             <div className="grid grid-cols-3 bg-gradient-to-r from-gray-50 to-blue-50 relative">
+             <div className="grid grid-cols-3 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-50/50 dark:to-blue-50/50 relative rounded-t-xl pt-8">
                <div className="p-6 border-r border-gray-200">
                  <h3 className="text-lg font-semibold text-gray-900">Features</h3>
                </div>
@@ -399,7 +317,7 @@ function Subscription() {
              </div>
 
              {/* Table Footer - Action Buttons */}
-             <div className="grid grid-cols-3 bg-gray-50 border-t border-gray-200">
+             <div className="grid grid-cols-3 bg-gray-50 dark:bg-gray-50/50 border-t border-gray-200 dark:border-gray-200/50 rounded-b-xl">
                <div className="p-6 border-r border-gray-200"></div>
                <div className="p-6 border-r border-gray-200 text-center">
                  {isCurrentPlan({ id: 'free' }) ? (
@@ -448,9 +366,9 @@ function Subscription() {
            </div>
 
                         {/* Mobile Cards */}
-             <div className="lg:hidden space-y-6">
+             <div className="lg:hidden space-y-6 mt-4">
                {/* Free Plan Card */}
-               <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-gray-200 p-6">
+               <div className="bg-white/80 dark:bg-orange-50/95 backdrop-blur-sm rounded-xl shadow-xl border border-gray-200 dark:border-orange-200/30 p-6">
                <div className="text-center mb-6">
                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Free</h3>
                  <div className="text-4xl font-bold text-gray-900 mb-1">$0</div>
@@ -480,7 +398,7 @@ function Subscription() {
              </div>
 
              {/* Pro Plan Card */}
-             <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-gray-200 p-6 relative">
+             <div className="bg-white/80 dark:bg-orange-50/95 backdrop-blur-sm rounded-xl shadow-xl border border-gray-200 dark:border-orange-200/30 p-6 relative">
                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
                  <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg border-2 border-white">
                    Most Popular
@@ -548,25 +466,25 @@ function Subscription() {
          </div>
 
         {/* FAQ Section */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 p-8">
+        <div className="bg-white/80 dark:bg-orange-50/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 dark:border-orange-200/30 p-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
             <p className="text-gray-600 text-lg">Everything you need to know about our subscription plans</p>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="bg-blue-50 rounded-xl p-6">
+            <div className="bg-blue-50 dark:bg-blue-50/50 rounded-xl p-6">
               <h3 className="font-semibold text-gray-900 mb-3">Can I try Pro features for free?</h3>
               <p className="text-gray-600 leading-relaxed">Yes! You can start a 3-day free trial of Pro features without any payment information required. Each user can only use the free trial once.</p>
             </div>
-            <div className="bg-green-50 rounded-xl p-6">
+            <div className="bg-green-50 dark:bg-green-50/50 rounded-xl p-6">
               <h3 className="font-semibold text-gray-900 mb-3">What are AI actions?</h3>
               <p className="text-gray-600 leading-relaxed">AI actions include rewriting content, summarizing sections, enhancing keywords, and adjusting tone to improve your resume.</p>
             </div>
-            <div className="bg-purple-50 rounded-xl p-6">
+            <div className="bg-purple-50 dark:bg-purple-50/50 rounded-xl p-6">
               <h3 className="font-semibold text-gray-900 mb-3">Can I cancel my subscription anytime?</h3>
               <p className="text-gray-600 leading-relaxed">Yes, you can cancel your subscription at any time. You'll continue to have access to premium features until the end of your billing period.</p>
             </div>
-            <div className="bg-orange-50 rounded-xl p-6">
+            <div className="bg-orange-50 dark:bg-orange-50/50 rounded-xl p-6">
               <h3 className="font-semibold text-gray-900 mb-3">Do you offer refunds?</h3>
               <p className="text-gray-600 leading-relaxed">We offer a 30-day money-back guarantee. If you're not satisfied, contact our support team for a full refund.</p>
             </div>

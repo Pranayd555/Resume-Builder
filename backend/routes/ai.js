@@ -743,11 +743,11 @@ router.post('/adjust-tone', [
 
     // Create prompt for keyword enhancement
     const prompt = `
-You are an expert resume writer and ATS optimization specialist. Based on the missing keywords from the ATS analysis, enhance the resume by naturally integrating these keywords into the specified sections.
+        You are an expert resume writer and ATS optimization specialist. Based on the missing keywords from the ATS analysis, enhance the resume by naturally integrating these keywords into the specified sections.
 
-Resume Data: ${JSON.stringify(cleanedResumeData, null, 2)}
-ATS Analysis: ${JSON.stringify(ats_analysis, null, 2)}
-Target Sections: ${JSON.stringify(target_sections, null, 2)}
+        Resume Data: ${JSON.stringify(cleanedResumeData, null, 2)}
+        ATS Analysis: ${JSON.stringify(ats_analysis, null, 2)}
+        Target Sections: ${JSON.stringify(target_sections, null, 2)}
 
           Instructions:
           1. Analyze the missing keywords from the ATS analysis

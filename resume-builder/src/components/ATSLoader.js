@@ -32,7 +32,7 @@ const ATSLoader = ({
     };
   }, []);
   return (
-    <div className="flex flex-col items-center justify-center p-8 text-center">
+    <div className="flex flex-col items-center justify-center p-8 text-center bg-white dark:bg-orange-50/90 h-full w-full">
       {/* 3D Rotating Loader */}
       <div className="loader mb-8">
         <div className="inner one"></div>
@@ -41,12 +41,12 @@ const ATSLoader = ({
       </div>
       
       {/* Title */}
-      <h2 className="text-gray-900 text-2xl font-bold tracking-tight mb-2">
+      <h2 className="text-gray-900 dark:text-gray-100 text-2xl font-bold tracking-tight mb-2">
         {title}
       </h2>
       
       {/* Subtitle */}
-      <p className="text-gray-600 text-base max-w-md">
+      <p className="text-gray-600 dark:text-gray-400 text-base max-w-md">
         {subtitle}
       </p>
       
@@ -54,7 +54,7 @@ const ATSLoader = ({
       {showProgress && (
         <div className="w-full max-w-sm mt-8">
           <div className="relative pt-1">
-            <div className="overflow-hidden h-3 mb-4 text-xs flex rounded-full bg-gray-200 relative">
+            <div className="overflow-hidden h-3 mb-4 text-xs flex rounded-full bg-gray-200 dark:bg-gray-700 relative">
               <div 
                 className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-green-500 to-green-600 transition-all duration-1000 ease-out relative overflow-hidden" 
                 style={{width: `${progress}%`}}
@@ -64,8 +64,8 @@ const ATSLoader = ({
               </div>
             </div>
             <div className="flex justify-between items-center">
-              <p className="text-sm text-gray-500">This may take a few moments.</p>
-              <span className="text-sm font-medium text-gray-700">{progress}%</span>
+              <p className="text-sm text-gray-500 dark:text-gray-400">This may take a few moments.</p>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{progress}%</span>
             </div>
           </div>
         </div>

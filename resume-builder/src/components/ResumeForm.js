@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import CKEditor from './CKEditor';
 import { ensureHtmlContent } from '../utils/htmlUtils';
 import DotLottieLoader from './DotLottieLoader';
+import ATSLoader from './ATSLoader';
 
 import { 
   PlusIcon, 
@@ -46,13 +47,13 @@ const FormField = ({
   className = "",
   ...props 
 }) => {
-  const baseClasses = "w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200";
+  const baseClasses = "w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-900 bg-white dark:bg-white";
   const errorClasses = error ? "border-red-300 focus:border-red-500" : "border-gray-300";
-  const readOnlyClasses = readOnly ? "bg-gray-50 cursor-not-allowed" : "";
+  const readOnlyClasses = readOnly ? "bg-gray-50 dark:bg-gray-50 cursor-not-allowed" : "";
   
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+      <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
       <input
@@ -79,7 +80,7 @@ const TextAreaField = ({
   className = ""
 }) => (
   <div>
-    <label className="block text-sm font-medium text-gray-700 mb-2">
+    <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
       {label}
     </label>
     <CKEditor
@@ -1279,7 +1280,7 @@ function ResumeForm() {
   const renderBasicInfo = () => (
     <>
       {/* Resume Upload Section - Compact */}
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mb-6">
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-50/50 dark:to-purple-50/50 border border-blue-200 dark:border-blue-200/50 rounded-lg p-4 mb-6">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
             <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1291,7 +1292,7 @@ function ResumeForm() {
               Parse Existing Resume
               <SparklesIcon className="w-4 h-4 text-purple-500" />
             </h4>
-            <p className="text-xs text-gray-600">
+            <p className="text-xs text-gray-600 dark:text-gray-300">
               Upload PDF/Word to auto-populate fields
             </p>
           </div>
@@ -1362,7 +1363,7 @@ function ResumeForm() {
       
       {/* Basic Information Section */}
       <div className="space-y-6">
-        <h3 className="text-xl font-semibold text-gray-900">Basic Information</h3>
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900">Basic Information</h3>
         <FormField
           label="Resume Title"
           type="text"
@@ -1393,7 +1394,7 @@ function ResumeForm() {
         
         {/* Extracted Text Reference - Only show when parsedData is NOT available */}
         {formData.extractedText && !formData.parsedData && (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div className="bg-gray-50 dark:bg-gray-50/50 border border-gray-200 dark:border-gray-200/50 rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-sm font-medium text-gray-900">Extracted Resume Content</h4>
               <button
@@ -1422,7 +1423,7 @@ function ResumeForm() {
 
         {/* Parsed Data Success Message - Show when parsedData is available */}
         {formData.parsedData && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="bg-green-50 dark:bg-green-50/50 border border-green-200 dark:border-green-200/50 rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1452,7 +1453,7 @@ function ResumeForm() {
 
   const renderPersonalInfo = () => (
     <div className="space-y-6">
-      <h3 className="text-xl font-semibold text-gray-900">Personal Information</h3>
+      <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900">Personal Information</h3>
       
       {/* Profile Data Notice */}
       <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -1535,27 +1536,12 @@ function ResumeForm() {
 
   const renderWorkExperience = () => (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-xl font-semibold text-gray-900">Work Experience</h3>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="isFresher"
-              checked={formData.isFresher}
-              onChange={(e) => {
-                handleInputChange('root', 'isFresher', e.target.checked);
-                // Clear work experience when toggling to fresher
-                if (e.target.checked) {
-                  handleInputChange('root', 'workExperience', []);
-                }
-              }}
-              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-            />
-            <label htmlFor="isFresher" className="text-sm font-medium text-gray-700">
-              I'm a fresher (no work experience)
-            </label>
-          </div>
+      {/* Header Section - Mobile Responsive */}
+      <div className="space-y-4">
+        <div className="flex justify-between items-center gap-4">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900">Work Experience</h3>
+          
+          {/* Add Experience Button - Right aligned */}
           {!formData.isFresher && (
             <button
               onClick={() => addArrayItem('workExperience', {
@@ -1571,27 +1557,48 @@ function ResumeForm() {
               className="px-4 py-2 rounded-lg transition-colors flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700"
             >
               <PlusIcon className="w-4 h-4" />
-              Add Experience
+              <span className="hidden sm:inline">Add </span>Experience
             </button>
           )}
+        </div>
+        
+        {/* Fresher Checkbox */}
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="isFresher"
+            checked={formData.isFresher}
+            onChange={(e) => {
+              handleInputChange('root', 'isFresher', e.target.checked);
+              // Clear work experience when toggling to fresher
+              if (e.target.checked) {
+                handleInputChange('root', 'workExperience', []);
+              }
+            }}
+            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+          />
+          <label htmlFor="isFresher" className="text-sm font-medium text-gray-900">
+            I'm a fresher (no work experience)
+          </label>
         </div>
       </div>
       
       {!formData.isFresher && formData.workExperience.map((job, index) => (
-        <div key={index} className="border border-gray-200 rounded-xl p-6 space-y-4">
-          <div className="flex justify-between items-start">
-            <h4 className="font-medium text-gray-900">Experience #{index + 1}</h4>
+        <div key={index} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-4 sm:p-6 space-y-4 bg-white dark:bg-orange-50/50">
+          <div className="flex justify-between items-start gap-2">
+            <h4 className="font-medium text-gray-900 text-sm sm:text-base">Experience #{index + 1}</h4>
             <button
               onClick={() => removeArrayItem('workExperience', index)}
-              className="text-red-600 hover:text-red-700"
+              className="text-red-600 hover:text-red-700 p-1"
+              aria-label="Delete experience"
             >
               <TrashIcon className="w-4 h-4" />
             </button>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                 Job Title {!formData.isFresher && '*'}
               </label>
               <input
@@ -1600,7 +1607,7 @@ function ResumeForm() {
                 value={job.jobTitle}
                 onChange={(e) => handleInputChange('workExperience', 'jobTitle', e.target.value, index)}
                 onBlur={() => handleInputBlur('workExperience', 'jobTitle', index)}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${
                   validationErrors[`workExperience_${index}_jobTitle`] 
                     ? 'border-red-300 focus:border-red-500' 
                     : 'border-gray-300'
@@ -1612,7 +1619,7 @@ function ResumeForm() {
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                 Company {!formData.isFresher && '*'}
               </label>
               <input
@@ -1621,7 +1628,7 @@ function ResumeForm() {
                 value={job.company}
                 onChange={(e) => handleInputChange('workExperience', 'company', e.target.value, index)}
                 onBlur={() => handleInputBlur('workExperience', 'company', index)}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${
                   validationErrors[`workExperience_${index}_company`] 
                     ? 'border-red-300 focus:border-red-500' 
                     : 'border-gray-300'
@@ -1633,19 +1640,19 @@ function ResumeForm() {
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                 Location
               </label>
               <input
                 type="text"
                 value={job.location}
                 onChange={(e) => handleInputChange('workExperience', 'location', e.target.value, index)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
                 placeholder="San Francisco, CA"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                 Start Date {!formData.isFresher && '*'}
               </label>
               <input
@@ -1654,7 +1661,7 @@ function ResumeForm() {
                 value={job.startDate}
                 onChange={(e) => handleInputChange('workExperience', 'startDate', e.target.value, index)}
                 onBlur={() => handleInputBlur('workExperience', 'startDate', index)}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${
                   validationErrors[`workExperience_${index}_startDate`] 
                     ? 'border-red-300 focus:border-red-500' 
                     : 'border-gray-300'
@@ -1665,7 +1672,7 @@ function ResumeForm() {
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                 End Date
               </label>
               <input
@@ -1674,7 +1681,7 @@ function ResumeForm() {
                 disabled={job.isCurrentJob}
                 onChange={(e) => handleInputChange('workExperience', 'endDate', e.target.value, index)}
                 onBlur={() => handleInputBlur('workExperience', 'endDate', index)}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 ${
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white disabled:bg-gray-100 ${
                   validationErrors[`workExperience_${index}_dateRange`] 
                     ? 'border-red-300 focus:border-red-500' 
                     : 'border-gray-300'
@@ -1696,12 +1703,12 @@ function ResumeForm() {
                 }}
                 className="mr-2"
               />
-              <label className="text-sm text-gray-700">Currently working here</label>
+              <label className="text-sm text-gray-900">Currently working here</label>
             </div>
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
               Job Description
             </label>
             <CKEditor
@@ -1741,7 +1748,7 @@ function ResumeForm() {
   const renderEducation = () => (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-xl font-semibold text-gray-900">Education</h3>
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900">Education</h3>
         <button
           onClick={() => addArrayItem('education', {
             degree: '',
@@ -1761,7 +1768,7 @@ function ResumeForm() {
       </div>
       
       {formData.education.map((edu, index) => (
-        <div key={index} className="border border-gray-200 rounded-xl p-6 space-y-4">
+        <div key={index} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
           <div className="flex justify-between items-start">
             <h4 className="font-medium text-gray-900">Education #{index + 1}</h4>
             <button
@@ -1774,7 +1781,7 @@ function ResumeForm() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                 Degree *
               </label>
               <input
@@ -1783,7 +1790,7 @@ function ResumeForm() {
                 value={edu.degree}
                 onChange={(e) => handleInputChange('education', 'degree', e.target.value, index)}
                 onBlur={() => handleInputBlur('education', 'degree', index)}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${
                   validationErrors[`education_${index}_degree`] 
                     ? 'border-red-300 focus:border-red-500' 
                     : 'border-gray-300'
@@ -1795,7 +1802,7 @@ function ResumeForm() {
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                 Institution *
               </label>
               <input
@@ -1804,7 +1811,7 @@ function ResumeForm() {
                 value={edu.institution}
                 onChange={(e) => handleInputChange('education', 'institution', e.target.value, index)}
                 onBlur={() => handleInputBlur('education', 'institution', index)}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${
                   validationErrors[`education_${index}_institution`] 
                     ? 'border-red-300 focus:border-red-500' 
                     : 'border-gray-300'
@@ -1816,19 +1823,19 @@ function ResumeForm() {
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                 Location
               </label>
               <input
                 type="text"
                 value={edu.location}
                 onChange={(e) => handleInputChange('education', 'location', e.target.value, index)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
                 placeholder="Berkeley, CA"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                 GPA <span className="text-red-500">*</span>
               </label>
               <input
@@ -1847,7 +1854,7 @@ function ResumeForm() {
                   handleInputChange('education', 'gpa', value, index);
                 }}
                 onBlur={() => handleInputBlur('education', 'gpa', index)}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${
                   validationErrors[`education_${index}_gpa`] 
                     ? 'border-red-300 focus:border-red-500' 
                     : 'border-gray-300'
@@ -1862,7 +1869,7 @@ function ResumeForm() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                 Start Date *
               </label>
               <input
@@ -1871,7 +1878,7 @@ function ResumeForm() {
                 value={edu.startDate}
                 onChange={(e) => handleInputChange('education', 'startDate', e.target.value, index)}
                 onBlur={() => handleInputBlur('education', 'startDate', index)}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${
                   validationErrors[`education_${index}_startDate`] 
                     ? 'border-red-300 focus:border-red-500' 
                     : 'border-gray-300'
@@ -1882,7 +1889,7 @@ function ResumeForm() {
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                 End Date
               </label>
               <input
@@ -1891,7 +1898,7 @@ function ResumeForm() {
                 disabled={edu.isCurrentlyStudying}
                 onChange={(e) => handleInputChange('education', 'endDate', e.target.value, index)}
                 onBlur={() => handleInputBlur('education', 'endDate', index)}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 ${
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white disabled:bg-gray-100 ${
                   validationErrors[`education_${index}_dateRange`] 
                     ? 'border-red-300 focus:border-red-500' 
                     : 'border-gray-300'
@@ -1915,11 +1922,11 @@ function ResumeForm() {
               }}
               className="mr-2"
             />
-            <label className="text-sm text-gray-700">Currently studying here</label>
+            <label className="text-sm text-gray-900">Currently studying here</label>
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
               Description
             </label>
             <CKEditor
@@ -1950,7 +1957,7 @@ function ResumeForm() {
   const renderSkills = () => (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-xl font-semibold text-gray-900">Skills</h3>
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900">Skills</h3>
         <button
           onClick={() => addArrayItem('skills', {
             category: '',
@@ -1966,7 +1973,7 @@ function ResumeForm() {
       </div>
       
       {/* Quick Add Skills - Comma Separated */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 space-y-4">
+      <div className="bg-blue-50 dark:bg-blue-50/50 border border-blue-200 dark:border-blue-200/50 rounded-xl p-6 space-y-4">
         <div className="flex items-center gap-2">
           <BoltIcon className="w-5 h-5 text-blue-600" />
           <h4 className="font-medium text-blue-900">Quick Add Skills</h4>
@@ -1978,7 +1985,7 @@ function ResumeForm() {
           <input
             type="text"
             placeholder="React, Node.js, MongoDB, JavaScript, Python, AWS"
-            className="w-full px-4 py-3 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-4 py-3 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && e.target.value.trim()) {
                 e.preventDefault();
@@ -2020,7 +2027,7 @@ function ResumeForm() {
       </div>
       
       {formData.skills.map((skillCategory, categoryIndex) => (
-        <div key={categoryIndex} className="border border-gray-200 rounded-xl p-6 space-y-4">
+        <div key={categoryIndex} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
           <div className="flex justify-between items-start">
             <h4 className="font-medium text-gray-900">Skill Category #{categoryIndex + 1}</h4>
             <button
@@ -2032,7 +2039,7 @@ function ResumeForm() {
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
               Category Name *
             </label>
             <input
@@ -2044,7 +2051,7 @@ function ResumeForm() {
                 newSkills[categoryIndex].category = e.target.value;
                 setFormData(prev => ({ ...prev, skills: newSkills }));
               }}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
               placeholder="e.g., Programming Languages, Tools, Frameworks"
             />
           </div>
@@ -2058,7 +2065,7 @@ function ResumeForm() {
                 <input
                   type="text"
                   placeholder="Add multiple skills: React, Node.js, MongoDB"
-                  className="px-3 py-1 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-3 py-1 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && e.target.value.trim()) {
                       e.preventDefault();
@@ -2105,7 +2112,7 @@ function ResumeForm() {
                     newSkills[categoryIndex].items[skillIndex].name = e.target.value;
                     setFormData(prev => ({ ...prev, skills: newSkills }));
                   }}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
                   placeholder="Skill name"
                 />
                 <div className="flex gap-2">
@@ -2156,7 +2163,7 @@ function ResumeForm() {
   const renderProjects = () => (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-xl font-semibold text-gray-900">Projects</h3>
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900">Projects</h3>
         <button
           onClick={() => addArrayItem('projects', {
             name: '',
@@ -2177,7 +2184,7 @@ function ResumeForm() {
       </div>
       
       {formData.projects.map((project, index) => (
-        <div key={index} className="border border-gray-200 rounded-xl p-6 space-y-4">
+        <div key={index} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
           <div className="flex justify-between items-start">
             <h4 className="font-medium text-gray-900">Project #{index + 1}</h4>
             <button
@@ -2192,7 +2199,7 @@ function ResumeForm() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                 Project Name *
               </label>
               <input
@@ -2200,12 +2207,12 @@ function ResumeForm() {
                 required
                 value={project.name}
                 onChange={(e) => handleInputChange('projects', 'name', e.target.value, index)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
                 placeholder="E-commerce Website"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                 Technologies (comma-separated)
               </label>
               <input
@@ -2222,38 +2229,38 @@ function ResumeForm() {
                   const techs = e.target.value.split(',').map(tech => tech.trim()).filter(tech => tech);
                   handleInputChange('projects', 'technologies', techs, index);
                 }}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
                 placeholder="React, Node.js, MongoDB"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                 Project URL
               </label>
               <input
                 type="url"
                 value={project.url}
                 onChange={(e) => handleInputChange('projects', 'url', e.target.value, index)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
                 placeholder="https://myproject.com"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                 GitHub URL
               </label>
               <input
                 type="url"
                 value={project.githubUrl}
                 onChange={(e) => handleInputChange('projects', 'githubUrl', e.target.value, index)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
                 placeholder="https://github.com/username/project"
               />
             </div>
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
               Description
             </label>
             <CKEditor
@@ -2279,7 +2286,7 @@ function ResumeForm() {
   const renderAchievements = () => (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-xl font-semibold text-gray-900">Achievements & Awards</h3>
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900">Achievements & Awards</h3>
         <button
           onClick={() => addArrayItem('achievements', {
             title: '',
@@ -2297,7 +2304,7 @@ function ResumeForm() {
       </div>
       
       {formData.achievements.map((achievement, index) => (
-        <div key={index} className="border border-gray-200 rounded-xl p-6 space-y-4">
+        <div key={index} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
           <div className="flex justify-between items-start">
             <h4 className="font-medium text-gray-900">Achievement #{index + 1}</h4>
             <button
@@ -2312,7 +2319,7 @@ function ResumeForm() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                 Title *
               </label>
               <input
@@ -2320,37 +2327,37 @@ function ResumeForm() {
                 required
                 value={achievement.title}
                 onChange={(e) => handleInputChange('achievements', 'title', e.target.value, index)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
                 placeholder="Employee of the Year"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                 Issuer
               </label>
               <input
                 type="text"
                 value={achievement.issuer}
                 onChange={(e) => handleInputChange('achievements', 'issuer', e.target.value, index)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
                 placeholder="Company Name"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                 Date
               </label>
               <input
                 type="date"
                 value={achievement.date}
                 onChange={(e) => handleInputChange('achievements', 'date', e.target.value, index)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
               />
             </div>
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
               Description
             </label>
             <CKEditor
@@ -2378,7 +2385,7 @@ function ResumeForm() {
       {/* Certifications */}
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h3 className="text-xl font-semibold text-gray-900">Certifications</h3>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900">Certifications</h3>
           <button
             onClick={() => addArrayItem('certifications', {
               name: '',
@@ -2414,7 +2421,7 @@ function ResumeForm() {
         </div>
         
         {formData.certifications.map((cert, index) => (
-          <div key={index} className="border border-gray-200 rounded-xl p-6 space-y-4">
+          <div key={index} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
             <div className="flex justify-between items-start">
               <h4 className="font-medium text-gray-900">Certification #{index + 1}</h4>
               <button
@@ -2429,7 +2436,7 @@ function ResumeForm() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                   Certification Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -2438,7 +2445,7 @@ function ResumeForm() {
                   value={cert.name}
                   onChange={(e) => handleInputChange('certifications', 'name', e.target.value, index)}
                   onBlur={() => handleInputBlur('certifications', 'name', index)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${
                     validationErrors[`certifications_${index}_name`] 
                       ? 'border-red-300 focus:border-red-500' 
                       : 'border-gray-300'
@@ -2450,7 +2457,7 @@ function ResumeForm() {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                   Issuer <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -2459,7 +2466,7 @@ function ResumeForm() {
                   value={cert.issuer}
                   onChange={(e) => handleInputChange('certifications', 'issuer', e.target.value, index)}
                   onBlur={() => handleInputBlur('certifications', 'issuer', index)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${
                     validationErrors[`certifications_${index}_issuer`] 
                       ? 'border-red-300 focus:border-red-500' 
                       : 'border-gray-300'
@@ -2471,48 +2478,48 @@ function ResumeForm() {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                   Issue Date
                 </label>
                 <input
                   type="date"
                   value={cert.date}
                   onChange={(e) => handleInputChange('certifications', 'date', e.target.value, index)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                   Expiry Date
                 </label>
                 <input
                   type="date"
                   value={cert.expiryDate}
                   onChange={(e) => handleInputChange('certifications', 'expiryDate', e.target.value, index)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                   Credential ID
                 </label>
                 <input
                   type="text"
                   value={cert.credentialId}
                   onChange={(e) => handleInputChange('certifications', 'credentialId', e.target.value, index)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
                   placeholder="ABC123XYZ"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                   Verification URL
                 </label>
                 <input
                   type="url"
                   value={cert.url}
                   onChange={(e) => handleInputChange('certifications', 'url', e.target.value, index)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
                   placeholder="https://verify.example.com"
                 />
               </div>
@@ -2524,7 +2531,7 @@ function ResumeForm() {
       {/* Languages */}
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h3 className="text-xl font-semibold text-gray-900">Languages</h3>
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900">Languages</h3>
           <button
             onClick={() => addArrayItem('languages', {
               name: '',
@@ -2540,14 +2547,14 @@ function ResumeForm() {
         </div>
         
         {formData.languages.map((lang, index) => (
-          <div key={index} className="border border-gray-200 rounded-xl p-4 flex items-center gap-4">
+          <div key={index} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-4 flex items-center gap-4 bg-white dark:bg-orange-50/50">
             <div className="flex-1">
               <input
                 type="text"
                 required
                 value={lang.name}
                 onChange={(e) => handleInputChange('languages', 'name', e.target.value, index)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
                 placeholder="Language name"
               />
             </div>
@@ -2555,7 +2562,7 @@ function ResumeForm() {
               <select
                 value={lang.proficiency}
                 onChange={(e) => handleInputChange('languages', 'proficiency', e.target.value, index)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
               >
                 <option value="basic">Basic</option>
                 <option value="conversational">Conversational</option>
@@ -2744,29 +2751,22 @@ function ResumeForm() {
     <div className="min-h-screen pt-16 relative">
       {/* Global Loader Overlay */}
       {uploadingResume && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
-            <div className="text-center">
-              <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Processing Resume</h3>
-              <p className="text-gray-600 mb-4">Please wait while we extract and parse your resume content...</p>
-              <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-                <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
-                <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-              </div>
-            </div>
-          </div>
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50">
+          <ATSLoader 
+            title="Processing your resume..."
+            subtitle="Our advanced AI is analyzing your resume structure, extracting key information, and preparing it for ATS optimization."
+            showProgress={true}
+          />
         </div>
       )}
       
-      <div className="max-w-4xl mx-auto py-6 px-3 sm:py-8 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto py-4 px-2 sm:py-6 sm:px-4 lg:py-8 lg:px-6">
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
           <div className="flex justify-between items-start mb-4">
             <button
               onClick={() => navigate('/resume-list')}
-              className="text-gray-500 transition-colors duration-200 flex items-center gap-1 text-xs sm:text-sm hover:text-blue-600"
+              className="text-gray-700 dark:text-gray-200 transition-colors duration-200 flex items-center gap-1 text-xs sm:text-sm hover:text-blue-600 dark:hover:text-blue-400"
               title="Back to resume list"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2778,7 +2778,7 @@ function ResumeForm() {
               <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3 sm:mb-4">
                 {isEditMode ? 'Edit Your Resume' : 'Create Your Resume'}
               </h1>
-              <p className="text-gray-600 text-sm sm:text-lg px-2 sm:px-0">
+              <p className="text-gray-600 dark:text-gray-200 text-sm sm:text-lg px-2 sm:px-0">
                 {isEditMode ? 'Update your resume details' : 'Tell us about yourself and we\'ll help you create a professional resume'}
               </p>
               <div className="mt-2 flex items-center justify-center gap-2">
@@ -2803,7 +2803,7 @@ function ResumeForm() {
             <div className="flex items-center gap-2">
               <button
                 onClick={saveDraft}
-                className="text-gray-500 transition-colors duration-200 flex items-center gap-1 text-xs sm:text-sm hover:text-blue-600"
+                className="text-gray-700 dark:text-gray-200 transition-colors duration-200 flex items-center gap-1 text-xs sm:text-sm hover:text-blue-600"
                 title="Save draft now"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2813,7 +2813,7 @@ function ResumeForm() {
               </button>
               <button
                 onClick={clearFormData}
-                className="text-gray-500 transition-colors duration-200 flex items-center gap-1 text-xs sm:text-sm hover:text-red-600"
+                className="text-gray-700 dark:text-gray-200 transition-colors duration-200 flex items-center gap-1 text-xs sm:text-sm hover:text-red-600"
                 title="Clear all form data"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2828,8 +2828,8 @@ function ResumeForm() {
         {/* Progress Bar */}
         <div className="mb-6 sm:mb-8">
           <div className="flex items-center justify-between mb-2 px-1">
-            <span className="text-xs sm:text-sm font-medium text-gray-700">Step {currentStep} of {totalSteps}</span>
-            <span className="text-xs sm:text-sm font-medium text-gray-700">{Math.round((currentStep / totalSteps) * 100)}% Complete</span>
+            <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200">Step {currentStep} of {totalSteps}</span>
+            <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200">{Math.round((currentStep / totalSteps) * 100)}% Complete</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
@@ -2840,7 +2840,7 @@ function ResumeForm() {
         </div>
 
         {/* Form Content */}
-        <div className="backdrop-blur-md bg-white/80 rounded-2xl shadow-xl border border-white/20 p-4 sm:p-8 mb-6 sm:mb-8">
+        <div className="backdrop-blur-md bg-white/80 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-4 sm:p-8 mb-6 sm:mb-8">
           <div className="mb-4 sm:mb-6">
             <h2 className="text-lg sm:text-2xl font-semibold text-gray-900 mb-2">{getStepTitle()}</h2>
             <div className="w-12 sm:w-16 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
@@ -2892,7 +2892,7 @@ function ResumeForm() {
             <button
               onClick={prevStep}
               disabled={currentStep === 1}
-              className="px-2 py-2 sm:px-6 sm:py-3 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1 sm:gap-2 text-sm sm:text-base min-w-0 flex-shrink-0"
+              className="px-2 py-2 sm:px-6 sm:py-3 text-gray-600 dark:text-gray-200 hover:text-gray-800 dark:hover:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-1 sm:gap-2 text-sm sm:text-base min-w-0 flex-shrink-0"
             >
               <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -2940,7 +2940,7 @@ function ResumeForm() {
       {/* Clear Form Confirmation Modal */}
       {showClearModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+          <div className="bg-white dark:bg-orange-50/90 rounded-xl shadow-2xl max-w-md w-full p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="flex-shrink-0">
                 <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
@@ -2951,7 +2951,7 @@ function ResumeForm() {
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">Clear Form Data</h3>
-                <p className="text-sm text-gray-600">This action cannot be undone</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">This action cannot be undone</p>
               </div>
             </div>
             

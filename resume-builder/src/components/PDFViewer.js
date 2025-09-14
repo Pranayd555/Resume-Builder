@@ -223,23 +223,23 @@ const PDFViewer = React.memo(({ pdfUrl, onError, showLoader = true, settingsButt
              <button
                onClick={prevPage}
                disabled={currentPage <= 1}
-               className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200 shadow-sm"
+               className="px-4 py-2 bg-white dark:bg-white border border-gray-300 dark:border-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200 shadow-sm text-gray-700 dark:text-gray-700"
                title="Previous page (←)"
              >
-               <ChevronLeftIcon className="w-4 h-4" />
+               <ChevronLeftIcon className="w-4 h-4 text-gray-700 dark:text-gray-700" />
              </button>
              
-             <span className="text-sm font-medium text-gray-700 bg-white px-3 py-2 rounded-lg shadow-sm">
+             <span className="text-sm font-medium text-gray-700 dark:text-gray-700 bg-white dark:bg-white px-3 py-2 rounded-lg shadow-sm">
                Page {currentPage} of {totalPages}
              </span>
              
              <button
                onClick={nextPage}
                disabled={currentPage >= totalPages}
-               className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200 shadow-sm"
+               className="px-4 py-2 bg-white dark:bg-white border border-gray-300 dark:border-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200 shadow-sm text-gray-700 dark:text-gray-700"
                title="Next page (→)"
              >
-               <ChevronRightIcon className="w-4 h-4" />
+               <ChevronRightIcon className="w-4 h-4 text-gray-700 dark:text-gray-700" />
              </button>
              
              {/* Settings button on mobile - replaces zoom controls */}
@@ -256,23 +256,23 @@ const PDFViewer = React.memo(({ pdfUrl, onError, showLoader = true, settingsButt
            <button
              onClick={prevPage}
              disabled={currentPage <= 1}
-             className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200 shadow-sm"
+             className="px-4 py-2 bg-white dark:bg-white border border-gray-300 dark:border-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200 shadow-sm text-gray-700 dark:text-gray-700"
              title="Previous page (←)"
            >
-             <ChevronLeftIcon className="w-4 h-4" />
+             <ChevronLeftIcon className="w-4 h-4 text-gray-700 dark:text-gray-700" />
            </button>
            
-           <span className="text-sm font-medium text-gray-700 bg-white px-3 py-2 rounded-lg shadow-sm">
+           <span className="text-sm font-medium text-gray-700 dark:text-gray-700 bg-white dark:bg-white px-3 py-2 rounded-lg shadow-sm">
              Page {currentPage} of {totalPages}
            </span>
            
            <button
              onClick={nextPage}
              disabled={currentPage >= totalPages}
-             className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200 shadow-sm"
+             className="px-4 py-2 bg-white dark:bg-white border border-gray-300 dark:border-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200 shadow-sm text-gray-700 dark:text-gray-700"
              title="Next page (→)"
            >
-             <ChevronRightIcon className="w-4 h-4" />
+             <ChevronRightIcon className="w-4 h-4 text-gray-700 dark:text-gray-700" />
            </button>
          </div>
 
@@ -287,20 +287,20 @@ const PDFViewer = React.memo(({ pdfUrl, onError, showLoader = true, settingsButt
           <button
             onClick={zoomOut}
             disabled={scale <= 0.5}
-            className="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200 shadow-sm"
+            className="px-3 py-2 bg-white dark:bg-white border border-gray-300 dark:border-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200 shadow-sm text-gray-700 dark:text-gray-700"
             title="Zoom out (-)"
           >
             <MagnifyingGlassMinusIcon className="w-4 h-4" />
           </button>
           
-          <span className="text-sm font-medium text-gray-700 bg-white px-3 py-2 rounded-lg shadow-sm min-w-[70px] text-center">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-700 bg-white dark:bg-white px-3 py-2 rounded-lg shadow-sm min-w-[70px] text-center">
             {Math.round(scale * 100)}%
           </span>
           
           <button
             onClick={zoomIn}
             disabled={scale >= 3.0}
-            className="px-3 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200 shadow-sm"
+            className="px-3 py-2 bg-white dark:bg-white border border-gray-300 dark:border-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors duration-200 shadow-sm text-gray-700 dark:text-gray-700"
             title="Zoom in (+)"
           >
             <MagnifyingGlassPlusIcon className="w-4 h-4" />

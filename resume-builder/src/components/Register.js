@@ -65,9 +65,16 @@ function Register() {
     const result = await register(formData);
     
     if (result.success) {
-      navigate('/resume-list');
+      // Always navigate to resume-list page
+      navigate('/resume-list', { 
+        state: { 
+          requiresEmailVerification: result.requiresEmailVerification,
+          email: formData.email 
+        } 
+      });
     }
   };
+
 
   const passwordStrength = (password) => {
     if (!password) return { strength: 0, label: '' };
@@ -96,25 +103,27 @@ function Register() {
 
   const passwordStrengthInfo = passwordStrength(formData.password);
 
+  // Email verification modal is now handled on the resume-list page
+
   return (
-    <div className="relative flex size-full min-h-screen flex-col justify-center overflow-x-hidden" style={{ fontFamily: 'Manrope, "Noto Sans", sans-serif' }}>
+    <div className="relative flex size-full min-h-screen flex-col justify-center overflow-x-hidden bg-gray-50 dark:bg-gray-900" style={{ fontFamily: 'Manrope, "Noto Sans", sans-serif' }}>
       <div className="flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
-          <div className="backdrop-blur-md bg-white/80 rounded-2xl shadow-xl border border-white/20 p-8">
+          <div className="backdrop-blur-md bg-white/80 dark:bg-orange-50/90 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/40 p-8">
             {/* Header */}
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
                 Create Account
               </h2>
-              <p className="text-gray-600">Join us and start building your professional resume</p>
+              <p className="text-gray-600 dark:text-gray-400">Join us and start building your professional resume</p>
             </div>
 
             {/* Global Error */}
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
                 <div className="flex items-center">
-                  <ExclamationTriangleIcon className="w-5 h-5 text-red-600 mr-2" />
-                  <span className="text-red-800 text-sm">{error}</span>
+                  <ExclamationTriangleIcon className="w-5 h-5 text-red-600 dark:text-red-400 mr-2" />
+                  <span className="text-red-800 dark:text-red-200 text-sm">{error}</span>
                 </div>
               </div>
             )}
