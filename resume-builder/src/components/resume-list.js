@@ -1035,7 +1035,7 @@ function ResumeList() {
                     <span className={`${getSelectedOption().color} flex items-center transition-colors duration-200`}>
                       {getSelectedOption().icon}
                     </span>
-                    <span className="font-medium text-gray-700 dark:text-gray-300">{getSelectedOption().label}</span>
+                    <span className="font-medium text-gray-700 dark:text-gray-500">{getSelectedOption().label}</span>
                   </div>
                   <ChevronDownIcon 
                     className={`w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform duration-200 ${showStatusDropdown ? 'rotate-180' : ''}`} 

@@ -1292,7 +1292,7 @@ function ResumeForm() {
               Parse Existing Resume
               <SparklesIcon className="w-4 h-4 text-purple-500" />
             </h4>
-            <p className="text-xs text-gray-600 dark:text-gray-300">
+            <p className="text-xs text-gray-400 dark:text-gray-700">
               Upload PDF/Word to auto-populate fields
             </p>
           </div>
@@ -2751,12 +2751,39 @@ function ResumeForm() {
     <div className="min-h-screen pt-16 relative">
       {/* Global Loader Overlay */}
       {uploadingResume && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-50">
-          <ATSLoader 
-            title="Processing your resume..."
-            subtitle="Our advanced AI is analyzing your resume structure, extracting key information, and preparing it for ATS optimization."
-            showProgress={true}
-          />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col border border-gray-200">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-green-100 rounded-lg">
+                  <svg className="h-5 w-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    Processing Resume
+                    <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </h2>
+                  <p className="text-xs text-gray-600">AI-powered resume analysis in progress</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="flex items-center justify-center min-h-[400px]">
+                <ATSLoader 
+                  title="Processing your resume..."
+                  subtitle="Our advanced AI is analyzing your resume structure, extracting key information, and preparing it for ATS optimization."
+                  showProgress={true}
+                />
+              </div>
+            </div>
+          </div>
         </div>
       )}
       

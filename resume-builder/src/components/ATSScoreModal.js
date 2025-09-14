@@ -143,7 +143,7 @@ const ATSScoreModal = ({
             <div className="space-y-4">
               {/* Input Type Selection */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                   How would you like to provide the job description?
                 </label>
                 <div className="flex gap-3">
@@ -153,13 +153,25 @@ const ATSScoreModal = ({
                     className={`flex-1 p-2.5 rounded-lg border-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                       atsInputType === 'text'
                         ? 'border-green-500 bg-green-50 text-green-700'
-                        : 'border-gray-200 hover:border-gray-300'
+                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
                     }`}
                   >
                     <div className="text-center">
-                      <DocumentTextIcon className="h-6 w-6 mx-auto mb-1.5" />
-                      <span className="font-medium text-sm">Text Input</span>
-                      <p className="text-xs text-gray-600 mt-0.5">Paste job description text</p>
+                      <DocumentTextIcon className={`h-6 w-6 mx-auto mb-1.5 ${
+                        atsInputType === 'text' 
+                          ? 'text-green-600' 
+                          : 'text-gray-600 dark:text-gray-400'
+                      }`} />
+                      <span className={`font-medium text-sm ${
+                        atsInputType === 'text' 
+                          ? 'text-green-700' 
+                          : 'text-gray-900 dark:text-gray-700'
+                      }`}>Text Input</span>
+                      <p className={`text-xs mt-0.5 ${
+                        atsInputType === 'text' 
+                          ? 'text-green-600' 
+                          : 'text-gray-600 dark:text-gray-400'
+                      }`}>Paste job description text</p>
                     </div>
                   </button>
                   <button
@@ -168,13 +180,25 @@ const ATSScoreModal = ({
                     className={`flex-1 p-2.5 rounded-lg border-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                       atsInputType === 'file'
                         ? 'border-green-500 bg-green-50 text-green-700'
-                        : 'border-gray-200 hover:border-gray-300'
+                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
                     }`}
                   >
                     <div className="text-center">
-                      <DocumentArrowDownIcon className="h-6 w-6 mx-auto mb-1.5" />
-                      <span className="font-medium text-sm">File Upload</span>
-                      <p className="text-xs text-gray-600 mt-0.5">Upload PDF or DOC file</p>
+                      <DocumentArrowDownIcon className={`h-6 w-6 mx-auto mb-1.5 ${
+                        atsInputType === 'file' 
+                          ? 'text-green-600' 
+                          : 'text-gray-600 dark:text-gray-400'
+                      }`} />
+                      <span className={`font-medium text-sm ${
+                        atsInputType === 'file' 
+                          ? 'text-green-700' 
+                          : 'text-gray-900 dark:text-gray-700'
+                      }`}>File Upload</span>
+                      <p className={`text-xs mt-0.5 ${
+                        atsInputType === 'file' 
+                          ? 'text-green-600' 
+                          : 'text-gray-600 dark:text-gray-400'
+                      }`}>Upload PDF or DOC file</p>
                     </div>
                   </button>
                 </div>
@@ -183,7 +207,7 @@ const ATSScoreModal = ({
               {/* Text Input */}
               {atsInputType === 'text' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                     Job Description
                   </label>
                   <div className={`border border-gray-300 rounded-lg overflow-hidden ${atsGenerating ? 'opacity-50 pointer-events-none' : ''}`}>
@@ -195,7 +219,7 @@ const ATSScoreModal = ({
                       disabled={atsGenerating}
                     />
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                     You can paste formatted text or type directly. The editor will handle large job descriptions efficiently.
                   </p>
                 </div>
@@ -204,7 +228,7 @@ const ATSScoreModal = ({
               {/* File Input */}
               {atsInputType === 'file' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Upload Job Description File
                   </label>
                   <div 
@@ -261,9 +285,9 @@ const ATSScoreModal = ({
                       htmlFor="ats-file-input"
                       className={`flex flex-col items-center ${atsGenerating ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                     >
-                      <DocumentArrowDownIcon className={`h-10 w-10 mb-2 ${atsFile ? 'text-green-500' : 'text-gray-400'}`} />
+                      <DocumentArrowDownIcon className={`h-10 w-10 mb-2 ${atsFile ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'}`} />
                       <div className="flex items-center justify-center gap-2">
-                        <span className="text-sm font-medium text-gray-700">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                           {atsFile ? atsFile.name : 'Click to upload or drag and drop'}
                         </span>
                         {atsFile && (
@@ -281,7 +305,7 @@ const ATSScoreModal = ({
                           </button>
                         )}
                       </div>
-                      <span className="text-xs text-gray-500 mt-1">
+                      <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         PDF, DOC, or DOCX files only
                       </span>
                     </label>
