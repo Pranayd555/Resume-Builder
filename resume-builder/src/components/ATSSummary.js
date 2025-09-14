@@ -24,16 +24,16 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
   }
 
   const getScoreColor = (score) => {
-    if (score >= 80) return 'text-green-400';
-    if (score >= 60) return 'text-yellow-400';
-    if (score >= 40) return 'text-orange-400';
-    return 'text-red-400';
+    if (score >= 80) return 'text-emerald-600';
+    if (score >= 60) return 'text-lime-600';
+    if (score >= 40) return 'text-amber-600';
+    return 'text-red-500';
   };
 
   const getScoreLabel = (score) => {
-    if (score >= 80) return 'Excellent';
-    if (score >= 60) return 'Good';
-    if (score >= 40) return 'Fair';
+    if (score >= 80) return 'Excellent Match!';
+    if (score >= 60) return 'Good Match';
+    if (score >= 40) return 'Fair Match';
     return 'Needs Improvement';
   };
 
@@ -435,8 +435,8 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
                 className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium text-sm"
               >
                 <AdjustmentsHorizontalIcon className="w-4 h-4" />
-                <SparklesIcon className="w-3 h-3 text-yellow-300" />
                 Adjust Tone
+                <SparklesIcon className="w-3 h-3 text-yellow-300" />
               </button>
               <button
                 onClick={handleEnhanceKeywords}
@@ -444,8 +444,8 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
                 className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium text-sm"
               >
                 <KeyIcon className="w-4 h-4" />
-                <SparklesIcon className="w-3 h-3 text-yellow-300" />
                 Enhance Keywords
+                <SparklesIcon className="w-3 h-3 text-yellow-300" />
               </button>
             </div>
             <p className="text-xs text-gray-500 mt-2 text-center">

@@ -363,7 +363,7 @@ function ResumePreviewEnhanced() {
                   <div className="text-center py-8 sm:py-12">
                     <ResumePreviewLoader 
                       title="Generating PDF Preview..."
-                      subtitle="Crafting your professional resume with precision"
+                      subtitle="Our team is carefully crafting your professional resume with attention to every detail"
                     />
                   </div>
                                  ) : pdfData ? (

@@ -143,21 +143,27 @@ function Header() {
               <div className="flex items-center space-x-2 lg:space-x-3">
                 <div className="w-7 h-7 lg:w-8 lg:h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden">
                   {getProfilePictureUrl(user) ? (
-                    <img 
-                      key={`${getProfilePictureUrl(user)}-${profilePictureVersion}`} // Force re-render when URL changes
-                      src={getProfilePictureUrl(user)} 
-                      alt="Profile" 
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        const fallback = e.target.nextElementSibling;
-                        if (fallback) fallback.style.display = 'flex';
-                      }}
-                    />
-                  ) : null}
-                  <span className="text-white text-xs lg:text-sm font-medium" style={{ display: getProfilePictureUrl(user) ? 'none' : 'flex' }}>
-                    {user.firstName ? user.firstName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
-                  </span>
+                    <>
+                      <img 
+                        key={`${getProfilePictureUrl(user)}-${profilePictureVersion}`} // Force re-render when URL changes
+                        src={getProfilePictureUrl(user)} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          const fallback = e.target.nextElementSibling;
+                          if (fallback) fallback.style.display = 'flex';
+                        }}
+                      />
+                      <span className="text-white text-xs lg:text-sm font-medium" style={{ display: 'none' }}>
+                        {user.firstName ? user.firstName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-white text-xs lg:text-sm font-medium">
+                      {user.firstName ? user.firstName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
+                    </span>
+                  )}
                 </div>
                 <span className="text-gray-700 text-xs lg:text-sm font-medium max-w-32 truncate">
                   {user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user.email}
@@ -221,21 +227,27 @@ function Header() {
                 <div className="flex items-center space-x-3 px-2 py-2 border-b border-white/20 mb-2">
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
                     {getProfilePictureUrl(user) ? (
-                      <img 
-                        key={`${getProfilePictureUrl(user)}-${profilePictureVersion}`} // Force re-render when URL changes
-                        src={getProfilePictureUrl(user)} 
-                        alt="Profile" 
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          const fallback = e.target.nextElementSibling;
-                          if (fallback) fallback.style.display = 'flex';
-                        }}
-                      />
-                    ) : null}
-                    <span className="text-white text-sm font-medium" style={{ display: getProfilePictureUrl(user) ? 'none' : 'flex' }}>
-                      {user.firstName ? user.firstName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
-                    </span>
+                      <>
+                        <img 
+                          key={`${getProfilePictureUrl(user)}-${profilePictureVersion}`} // Force re-render when URL changes
+                          src={getProfilePictureUrl(user)} 
+                          alt="Profile" 
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            const fallback = e.target.nextElementSibling;
+                            if (fallback) fallback.style.display = 'flex';
+                          }}
+                        />
+                        <span className="text-white text-sm font-medium" style={{ display: 'none' }}>
+                          {user.firstName ? user.firstName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-white text-sm font-medium">
+                        {user.firstName ? user.firstName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
+                      </span>
+                    )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="text-gray-900 text-sm font-medium truncate">

@@ -197,6 +197,7 @@ function ResumeList() {
   const navigate = useNavigate();
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [hoveredCardId, setHoveredCardId] = useState(null);
+  const [focusedCardId, setFocusedCardId] = useState(null);
   const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [atsModalOpen, setAtsModalOpen] = useState(false);
@@ -226,6 +227,10 @@ function ResumeList() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [resumeToDelete, setResumeToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Refs for intersection observer
+  const cardRefs = useRef({});
+  const observerRef = useRef(null);
 
   // Get subscription info from localStorage
   const getSubscriptionInfo = () => {
@@ -408,6 +413,54 @@ function ResumeList() {
     // This effect ensures the UI updates when resume count changes
     // The subscription info is read from localStorage on each render
   }, [resumes.length]);
+
+  // Setup Intersection Observer for mobile scroll focus
+  useEffect(() => {
+    // Only setup observer on mobile devices
+    const isMobile = window.innerWidth < 768; // md breakpoint
+    if (!isMobile) return;
+
+    // Create intersection observer
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const resumeId = entry.target.dataset.resumeId;
+          if (entry.isIntersecting) {
+            setFocusedCardId(resumeId);
+          } else {
+            setFocusedCardId(null);
+          }
+        });
+      },
+      {
+        threshold: 0.5, // Trigger when 50% of the card is visible
+        rootMargin: '-10% 0px -10% 0px' // Add some margin to prevent too frequent changes
+      }
+    );
+
+    // Observe all card elements
+    Object.values(cardRefs.current).forEach((ref) => {
+      if (ref && observerRef.current) {
+        observerRef.current.observe(ref);
+      }
+    });
+
+    // Cleanup function
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [resumes]); // Re-run when resumes change
+
+  // Cleanup observer on unmount
+  useEffect(() => {
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, []);
 
   const handleCreateNew = () => {
     if (!canCreateNewResume()) {
@@ -972,7 +1025,17 @@ function ResumeList() {
             resumes.map((resume, index) => (
               <div 
                 key={resume.id}
-                className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 overflow-hidden cursor-pointer hover:bg-white/80 transition-all duration-200 hover:shadow-2xl hover:scale-105 group"
+                ref={(el) => {
+                  if (el) {
+                    cardRefs.current[resume.id] = el;
+                  }
+                }}
+                data-resume-id={resume.id}
+                className={`backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 overflow-hidden cursor-pointer transition-all duration-200 group ${
+                  hoveredCardId === resume.id || focusedCardId === resume.id
+                    ? 'bg-white/80 shadow-2xl scale-105'
+                    : ''
+                } hover:bg-white/80 hover:shadow-2xl hover:scale-105`}
                 onClick={() => handleResumeClick(resume.id, resume.status)}
                 onMouseEnter={() => setHoveredCardId(resume.id)}
                 onMouseLeave={() => setHoveredCardId(null)}
@@ -980,7 +1043,9 @@ function ResumeList() {
                 {/* Card Header */}
                 <div className="p-6 pb-4">
                   <div className="flex items-start justify-between mb-4">
-                    <div className={`w-12 h-12 bg-gradient-to-br ${getTemplateColor(resume.template?.name || 'Default')} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200`}>
+                    <div className={`w-12 h-12 bg-gradient-to-br ${getTemplateColor(resume.template?.name || 'Default')} rounded-xl flex items-center justify-center shadow-lg transition-transform duration-200 ${
+                      hoveredCardId === resume.id || focusedCardId === resume.id ? 'scale-110' : 'group-hover:scale-110'
+                    }`}>
                       <DocumentTextIcon className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex items-center gap-2">
@@ -990,7 +1055,9 @@ function ResumeList() {
                       <div className="relative">
                         <button
                           onClick={(e) => handleMenuClick(e, resume.id)}
-                          className="p-1.5 bg-gray-100/80 text-gray-600 rounded-lg hover:bg-gray-200/80 transition-colors opacity-0 group-hover:opacity-100"
+                          className={`p-1.5 bg-gray-100/80 text-gray-600 rounded-lg hover:bg-gray-200/80 transition-colors ${
+                            hoveredCardId === resume.id || focusedCardId === resume.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                          }`}
                           title="More Actions"
                           data-dropdown-button
                         >
@@ -1139,7 +1206,7 @@ function ResumeList() {
                   </div>
                   
                   {/* ATS Score Display */}
-                  <ATSScoreDisplay resume={resume} isCardHovered={hoveredCardId === resume.id} />
+                  <ATSScoreDisplay resume={resume} isCardHovered={hoveredCardId === resume.id || focusedCardId === resume.id} />
                 </div>
                 
                 {/* Card Footer */}

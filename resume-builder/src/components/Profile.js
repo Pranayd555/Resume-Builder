@@ -207,7 +207,7 @@ function Profile() {
     }
   ];
 
-  // Load user data on component mount
+  // Load user data on component mount and when user data changes
   useEffect(() => {
     if (user) {
       // Handle the new profile picture structure
@@ -253,10 +253,19 @@ function Profile() {
         profilePictureAvatar: profilePictureAvatarUrl,
         
       };
-      setProfile(userProfile);
-      setOriginalProfile(userProfile);
+      
+      // Only update if the profile data has actually changed to avoid unnecessary re-renders
+      setProfile(prevProfile => {
+        const hasChanged = JSON.stringify(prevProfile) !== JSON.stringify(userProfile);
+        return hasChanged ? userProfile : prevProfile;
+      });
+      
+      setOriginalProfile(prevOriginal => {
+        const hasChanged = JSON.stringify(prevOriginal) !== JSON.stringify(userProfile);
+        return hasChanged ? userProfile : prevOriginal;
+      });
     }
-  }, [user]);
+  }, [user, user?.profilePicture]);
 
   const handleInputChange = (field, value) => {
     setProfile(prev => ({
@@ -381,14 +390,6 @@ function Profile() {
       const response = await uploadAPI.uploadProfilePicture(file);
       
       if (response.success) {
-        const updatedProfile = {
-          ...profile,
-          profilePicture: response.data.thumbnailUrl || response.data.url,
-          profilePictureOriginal: response.data.url,
-          profilePictureAvatar: response.data.avatarUrl || ''
-        };
-        setProfile(updatedProfile);
-        
         // The upload API already updates the user profile in the database,
         // so we just need to fetch the updated user data
         const userResponse = await authAPI.getCurrentUser();
@@ -396,6 +397,17 @@ function Profile() {
         if (userResponse.success) {
           // Update the AuthContext with the updated user data
           updateAuthUser(userResponse.data.user);
+          
+          // Update local profile state with the new profile picture data
+          const updatedProfile = {
+            ...profile,
+            profilePicture: response.data.thumbnailUrl || response.data.url,
+            profilePictureOriginal: response.data.url,
+            profilePictureAvatar: response.data.avatarUrl || ''
+          };
+          setProfile(updatedProfile);
+          setOriginalProfile(updatedProfile);
+          
           toast.success('Profile picture updated successfully!');
         } else {
           throw new Error(userResponse.error || 'Failed to fetch updated profile');
@@ -442,15 +454,6 @@ function Profile() {
     try {
       setUploading(true);
       
-      // Clear profile picture from local state first
-      const updatedProfile = { 
-        ...profile, 
-        profilePicture: '', 
-        profilePictureOriginal: '', 
-        profilePictureAvatar: ''
-      };
-      setProfile(updatedProfile);
-      
       // Clear the profile picture from the backend
       const profileData = {
         firstName: profile.firstName,
@@ -468,10 +471,19 @@ function Profile() {
       if (profileResponse.success) {
         // Update the AuthContext to remove the profile picture
         updateAuthUser(profileResponse.data.user);
+        
+        // Clear profile picture from local state
+        const updatedProfile = { 
+          ...profile, 
+          profilePicture: '', 
+          profilePictureOriginal: '', 
+          profilePictureAvatar: ''
+        };
+        setProfile(updatedProfile);
+        setOriginalProfile(updatedProfile);
+        
         toast.success('Profile picture removed successfully!');
       } else {
-        // Revert local state if backend save fails
-        setProfile(profile);
         throw new Error(profileResponse.error || 'Failed to remove profile picture');
       }
     } catch (error) {
@@ -485,14 +497,6 @@ function Profile() {
   const handleAvatarSelection = async (avatarUrl) => {
     try {
       setSavingAvatar(true);
-      
-      const updatedProfile = {
-        ...profile,
-        profilePicture: avatarUrl,
-        profilePictureOriginal: avatarUrl,
-        profilePictureAvatar: avatarUrl
-      };
-      setProfile(updatedProfile);
       
       // Save the avatar to the backend with the new structure
       const profileData = {
@@ -509,8 +513,18 @@ function Profile() {
       const response = await authAPI.updateProfile(profileData);
       
       if (response.success) {
-        // Update the AuthContext with the new avatar (using updateUser to avoid double API call)
+        // Update the AuthContext with the new avatar
         updateAuthUser(response.data.user);
+        
+        // Update local profile state with the new avatar data
+        const updatedProfile = {
+          ...profile,
+          profilePicture: avatarUrl,
+          profilePictureOriginal: avatarUrl,
+          profilePictureAvatar: avatarUrl
+        };
+        setProfile(updatedProfile);
+        setOriginalProfile(updatedProfile);
         
         setShowAvatarSelector(false);
         toast.success('Avatar selected successfully!');
@@ -520,9 +534,6 @@ function Profile() {
     } catch (error) {
       const errorMessage = apiHelpers.formatError(error);
       toast.error(errorMessage);
-      
-      // Revert the local state on error
-      setProfile(profile);
     } finally {
       setSavingAvatar(false);
     }

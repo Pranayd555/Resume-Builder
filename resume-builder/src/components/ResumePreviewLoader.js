@@ -16,20 +16,6 @@ const ResumePreviewLoader = ({
           background-clip: text;
         }
         
-        .fade-in {
-          animation: fadeIn 1s ease-in-out;
-        }
-        
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
         
         .pulse-text {
           animation: pulseText 2s ease-in-out infinite;
@@ -87,7 +73,7 @@ const ResumePreviewLoader = ({
       </div>
       
       {/* Main Animation Container */}
-      <div className="relative mb-6 sm:mb-8 fade-in flex justify-center items-center">
+      <div className="relative mb-6 sm:mb-8 flex justify-center items-center">
         {/* Primary Lottie Animation */}
         <div className="relative w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg mx-auto">
           <Lottie 
@@ -108,7 +94,7 @@ const ResumePreviewLoader = ({
       </div>
       
       {/* Text Content */}
-      <div className="text-center fade-in px-4" style={{ animationDelay: '0.5s' }}>
+      <div className="text-center px-4">
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold gradient-text mb-3 sm:mb-4 pulse-text">
           {title}
         </h2>
@@ -118,12 +104,12 @@ const ResumePreviewLoader = ({
       </div>
       
       {/* Progress Bar */}
-      <div className="mt-6 sm:mt-8 w-48 sm:w-64 md:w-80 h-1.5 sm:h-2 bg-gray-200 rounded-full overflow-hidden fade-in mx-4" style={{ animationDelay: '1s' }}>
+      <div className="mt-6 sm:mt-8 w-48 sm:w-64 md:w-80 h-1.5 sm:h-2 bg-gray-200 rounded-full overflow-hidden mx-4">
         <div className="progress-bar h-full rounded-full"></div>
       </div>
       
       {/* Loading Dots */}
-      <div className="mt-4 sm:mt-6 flex space-x-2 fade-in" style={{ animationDelay: '1.5s' }}>
+      <div className="mt-4 sm:mt-6 flex space-x-2">
         <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
         <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
         <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-pink-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
