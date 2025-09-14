@@ -12,6 +12,15 @@
   padding: 0.75rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
+  background-color: white;
+  color: #111827;
+}
+
+/* Dark mode styles for CKEditor */
+.dark .ckeditor-container .ck-editor__editable {
+  background-color: white;
+  color: #111827;
+  border-color: #d1d5db;
 }
 
 .ckeditor-container .ck-editor__editable:focus {
@@ -66,6 +75,12 @@
   border-radius: 0.5rem 0.5rem 0 0;
   background-color: #f9fafb;
   padding: 0.25rem;
+}
+
+/* Dark mode toolbar styles */
+.dark .ckeditor-container .ck-toolbar {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
 }
 
 .ckeditor-container .ck-toolbar__items {

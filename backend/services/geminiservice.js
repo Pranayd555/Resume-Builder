@@ -17,15 +17,21 @@ async function generateResumeSuggestion(prompt) {
 async function parseResumeText(extractedText) {
 
   const prompt = `
-  You are a resume parsing assistant.
-You will receive plain text extracted from a resume PDF.
+You are a resume parsing assistant. You will receive plain text extracted from a resume PDF.
 Your task is to extract and structure the content into a precise JSON format, without modifying or rewriting any part of the original content.
-Parse the following resume text and extract structured information into JSON format. Return only valid JSON without any additional text or explanations.
+
+CRITICAL: Return ONLY valid JSON with proper formatting:
+- Use double quotes (") for all property names and string values
+- Do not use single quotes (') anywhere
+- Ensure all property names are quoted
+- Do not include any explanations, markdown formatting, code blocks, or additional text
+- Start your response with { and end with }
+- Follow standard JSON syntax exactly
 
 Resume Text:
 ${extractedText}
 
-Please extract and structure the following information into JSON format matching this exact schema:
+Extract and structure the following information into JSON format matching this exact schema:
 
 {
   "personalInfo": {
@@ -123,25 +129,76 @@ Guidelines:
 - Do not infer or guess missing data.
 - Preserve original spelling, capitalization, punctuation, line breaks, and structure.
 - Leave any missing fields as null or empty arrays.
-- Do not include any explanation or text outside the JSON.`;
+- Return ONLY the JSON object, no additional text, explanations, or formatting.
+- Ensure all JSON is properly formatted with double quotes and valid syntax.`;
 
   try {
     const response = await genAI.models.generateContent({
       model: "gemini-2.0-flash",
       contents: prompt,
     });
-    const jsonText = response.text;
-    const cleaned = jsonText
-    .replace(/```json\n?/, '')
-    .replace(/```$/, '')
-    .trim();
     
-    // Parse the JSON response
-    const parsedData = JSON.parse(cleaned);
+    let jsonText = response.text;
+    
+    // Extract JSON using regex pattern (similar to AI routes)
+    const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error('No valid JSON found in AI response');
+    }
+    
+    let cleaned = jsonMatch[0];
+    
+    // Clean up common JSON formatting issues from Gemini
+    try {
+      // First, try to parse as-is
+      JSON.parse(cleaned);
+    } catch (firstError) {
+      console.log('Initial JSON parse failed, attempting to fix common issues...');
+      
+      // Fix common Gemini JSON issues
+      cleaned = cleaned
+        .replace(/'/g, '"') // Replace single quotes with double quotes
+        .replace(/(\w+):/g, '"$1":') // Add quotes around unquoted property names
+        .replace(/,(\s*[}\]])/g, '$1') // Remove trailing commas
+        .replace(/:\s*([^",{\[\s][^",}\]\s]*)\s*([,}])/g, ': "$1"$2') // Quote unquoted string values
+        .replace(/:\s*([^",{\[\s][^",}\]\s]*)\s*([,}])/g, ': "$1"$2'); // Second pass for nested cases
+      
+      console.log('Attempted to fix JSON formatting issues');
+    }
+    
+    
+    // Parse the JSON response with fallback
+    let parsedData;
+    try {
+      parsedData = JSON.parse(cleaned);
+    } catch (parseError) {
+      console.error('JSON parsing failed even after cleaning:', parseError);
+      console.error('Problematic JSON:', cleaned.substring(parseError.message.match(/position (\d+)/)?.[1] - 50 || 0, parseError.message.match(/position (\d+)/)?.[1] + 50 || 100));
+      
+      // Try a more aggressive cleaning approach
+      cleaned = cleaned
+        .replace(/'/g, '"')
+        .replace(/([^"]\w+):/g, '"$1":')
+        .replace(/,(\s*[}\]])/g, '$1')
+        .replace(/:\s*([^",{\[\s][^",}\]\s]*?)\s*([,}])/g, ': "$1"$2');
+      
+      try {
+        parsedData = JSON.parse(cleaned);
+        console.log('Successfully parsed after aggressive cleaning');
+      } catch (finalError) {
+        throw new Error(`Failed to parse JSON after multiple attempts: ${finalError.message}`);
+      }
+    }
+    
+    // Validate that we have the expected structure
+    if (!parsedData || typeof parsedData !== 'object') {
+      throw new Error('Invalid JSON structure returned from AI');
+    }
+    
     return parsedData;
   } catch (error) {
     console.error('Error parsing resume with Gemini:', error);
-    throw new Error('Failed to parse resume text with AI');
+    throw new Error(`Failed to parse resume text with AI: ${error.message}`);
   }
 }
 

@@ -75,13 +75,13 @@ function Feedback() {
         <div className="flex items-center mb-8">
           <button
             onClick={handleBack}
-            className="mr-4 text-gray-600 hover:text-gray-900 transition-colors"
+            className="mr-4 text-gray-600 dark:text-gray-200 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
           >
             <ChevronLeftIcon className="h-6 w-6" />
           </button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Feedback</h1>
-            <p className="text-gray-600 mt-1">We'd love to hear from you</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Feedback</h1>
+            <p className="text-gray-600 dark:text-gray-200 mt-1">We'd love to hear from you</p>
           </div>
         </div>
 
@@ -93,7 +93,7 @@ function Feedback() {
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-green-100/30 to-blue-100/30 rounded-full translate-y-12 -translate-x-12"></div>
             
             <div className="relative z-10">
-              <h2 className="text-2xl font-bold text-gray-900 mb-8 flex items-center">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-8 flex items-center">
                 <div className="w-8 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mr-3"></div>
                 Get in Touch
               </h2>
@@ -159,43 +159,43 @@ function Feedback() {
 
           {/* Feedback Form */}
           <div className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Send Feedback</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Send Feedback</h2>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-900 mb-2">Name</label>
                 <input
                   type="text"
                   value={feedback.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900"
                   required
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-900 mb-2">Email</label>
                 <input
                   type="email"
                   value={feedback.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900"
                   required
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-900 mb-2">Subject</label>
                 <input
                   type="text"
                   value={feedback.subject}
                   onChange={(e) => handleInputChange('subject', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900"
                   required
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Rating</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-900 mb-2">Rating</label>
                 <div className="flex items-center gap-2">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
@@ -214,12 +214,12 @@ function Feedback() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-900 mb-2">Message</label>
                 <textarea
                   value={feedback.message}
                   onChange={(e) => handleInputChange('message', e.target.value)}
                   rows={4}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm resize-none text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500"
                   placeholder="Tell us about your experience..."
                   required
                 />

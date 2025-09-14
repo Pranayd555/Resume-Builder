@@ -112,6 +112,27 @@ export const authAPI = {
     const response = await api.post('/auth/reset-password', resetData);
     return response.data;
   },
+
+  // OTP Verification methods
+  verifyEmail: async (otp) => {
+    const response = await api.post('/auth/verify-email', { otp });
+    return response.data;
+  },
+
+  resendOtp: async () => {
+    const response = await api.post('/auth/resend-otp');
+    return response.data;
+  },
+
+  getEmailStatus: async () => {
+    const response = await api.get('/auth/email-status');
+    return response.data;
+  },
+
+  deleteAccount: async () => {
+    const response = await api.delete('/auth/account');
+    return response.data;
+  },
 };
 
 // Resume API calls
@@ -451,10 +472,6 @@ export const userAPI = {
     return response.data;
   },
 
-  deleteAccount: async () => {
-    const response = await api.delete('/users/account');
-    return response.data;
-  },
 
   getUserStats: async () => {
     const response = await api.get('/users/stats');

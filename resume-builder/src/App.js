@@ -5,6 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 // Context
 import { AuthProvider } from './contexts/AuthContext';
+import { DarkModeProvider, useDarkMode } from './contexts/DarkModeContext';
 
 // Components
 import AnimatedBackground from './components/AnimatedBackground';
@@ -26,14 +27,15 @@ import AuthCallback from './components/AuthCallback';
 import ResumePreviewEnhanced from './components/ResumePreviewEnhanced';
 import ErrorPage from './components/ErrorPage';
 
-function App() {
+function AppContent() {
+  const { isDarkMode } = useDarkMode();
+  
   return (
-    <AuthProvider>
-      <Router>
-        <div className="App relative">
-          <AnimatedBackground />
-          <div className="relative z-10">
-            <Layout>
+    <Router>
+      <div className="App relative">
+        <AnimatedBackground />
+        <div className="relative z-10">
+          <Layout>
               <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Navigate to="/login" replace />} />
@@ -146,9 +148,9 @@ function App() {
               {/* 404 Route */}
               <Route path="*" element={<Navigate to="/login" replace />} />
               </Routes>
-            </Layout>
-          </div>
-          
+              </Layout>
+            </div>
+            
           {/* Toast Notifications */}
           <ToastContainer
             position="top-right"
@@ -160,11 +162,20 @@ function App() {
             pauseOnFocusLoss
             draggable
             pauseOnHover
-            theme="light"
+            theme={isDarkMode ? "dark" : "light"}
           />
         </div>
       </Router>
-    </AuthProvider>
+    );
+  }
+
+function App() {
+  return (
+    <DarkModeProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </DarkModeProvider>
   );
 }
 

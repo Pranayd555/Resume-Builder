@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { DotLottie } from '@lottiefiles/dotlottie-web';
 import dotlottieLoaderAnimation from '../assets/dotlottie-loader.json';
+import AnimatedBackground from './AnimatedBackground';
 
 const DotLottieLoader = ({ 
   title = "Loading...", 
@@ -96,7 +97,9 @@ const DotLottieLoader = ({
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center">
+      <AnimatedBackground />
+      <div className="relative z-10 flex flex-col items-center justify-center bg-white dark:bg-transparent rounded-2xl shadow-xl dark:shadow-none border border-gray-200 dark:border-transparent p-8 mx-4">
       <style jsx>{`
         .fade-in {
           animation: fadeIn 0.5s ease-in-out;
@@ -146,12 +149,13 @@ const DotLottieLoader = ({
       
       {/* Text Content */}
       <div className="text-center fade-in px-4" style={{ animationDelay: '0.2s' }}>
-        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-800 mb-2 sm:mb-3 pulse-text">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-2 sm:mb-3 pulse-text">
           {title}
         </h2>
-        <p className="text-sm sm:text-base text-gray-600 max-w-xs sm:max-w-md mx-auto leading-relaxed">
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 max-w-xs sm:max-w-md mx-auto leading-relaxed">
           {subtitle}
         </p>
+      </div>
       </div>
     </div>
   );

@@ -239,7 +239,7 @@ function ResumePreviewEnhanced() {
             <div className="flex items-center gap-3 mb-3 sm:mb-4">
               <button
                 onClick={handleBackToList}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors font-medium group"
+                className="flex items-center gap-2 text-gray-600 dark:text-gray-200 hover:text-gray-800 dark:hover:text-gray-100 transition-colors font-medium group"
               >
                 <svg className="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -253,7 +253,7 @@ function ResumePreviewEnhanced() {
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
                 {resume?.title}
               </h1>
-              <p className="text-xs sm:text-sm lg:text-base text-gray-600">
+              <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400">
                 {resume?.template?.category ? `Category: ${resume.template.category.charAt(0).toUpperCase() + resume.template.category.slice(1)} • ` : ''}
                 {resume?.template?.name ? `Template: ${resume.template.name}` : 'Full template preview with all your data'}
               </p>
@@ -264,7 +264,7 @@ function ResumePreviewEnhanced() {
           <div className="flex flex-wrap gap-2 sm:gap-3">
             <button
               onClick={handleEdit}
-              className="px-2 py-1.5 sm:px-3 sm:py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm whitespace-nowrap"
+              className="px-2 py-1.5 sm:px-3 sm:py-2 bg-gray-100 dark:bg-gray-100 text-gray-700 dark:text-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-200 transition-colors flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm whitespace-nowrap"
             >
               <PencilSquareIcon className="h-4 w-4" />
               <span className="hidden sm:inline">Edit Details</span>
@@ -274,7 +274,7 @@ function ResumePreviewEnhanced() {
             {hasTemplate && (
               <button
                 onClick={handleSelectNewTemplate}
-                className="px-2 py-1.5 sm:px-3 sm:py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm whitespace-nowrap"
+                className="px-2 py-1.5 sm:px-3 sm:py-2 bg-blue-100 dark:bg-blue-100 text-blue-700 dark:text-blue-700 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-200 transition-colors flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm whitespace-nowrap"
               >
                 <ArrowsRightLeftIcon className="h-4 w-4" />
                 <span className="hidden sm:inline">Change Template</span>
@@ -342,7 +342,7 @@ function ResumePreviewEnhanced() {
 
            {/* Resume Preview */}
                         <div className="md:col-span-6">
-              <div className="backdrop-blur-md bg-white/90 rounded-xl sm:rounded-2xl shadow-xl border border-white/20 p-3 sm:p-6 lg:p-8 relative">
+              <div className="backdrop-blur-md bg-white/90 dark:bg-orange-50/95 rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-6 lg:p-8 relative">
              <div className="grid grid-cols-1 md:grid-cols-6 gap-4 sm:gap-6">
                        {/* Styling Controls Sidebar - Visible on medium+ screens (768px+) */}
                       {showStylingControls && (
@@ -377,7 +377,7 @@ function ResumePreviewEnhanced() {
                          settingsButton={
                            <button
                              onClick={handleDesignSettingsClick}
-                             className="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-all duration-200 flex items-center gap-2 text-sm font-medium shadow-sm hover:shadow-md transform hover:scale-105"
+                             className="px-3 py-2 bg-purple-100 dark:bg-purple-100 text-purple-700 dark:text-purple-700 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-200 transition-all duration-200 flex items-center gap-2 text-sm font-medium shadow-sm hover:shadow-md transform hover:scale-105"
                            >
                              <PrinterIcon className="h-4 w-4" />
                              <span className="hidden sm:inline">

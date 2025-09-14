@@ -197,14 +197,14 @@ function TemplateSelection() {
   }
 
   return (
-    <div className="min-h-screen pt-16 bg-gray-50">
+    <div className="min-h-screen pt-16">
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
             Choose Your Template
           </h1>
-          <p className="text-gray-600 text-base sm:text-lg">Select a professional template that matches your style</p>
+          <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg">Select a professional template that matches your style</p>
         </div>
 
         {/* Category Filter */}
@@ -435,7 +435,7 @@ function TemplateSelection() {
           <button
             onClick={() => navigate('/resume-form', { state: { resumeId, editMode: true } })}
             disabled={selecting}
-            className="px-6 py-3 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 mx-auto"
+            className="px-6 py-3 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 mx-auto"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
