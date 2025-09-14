@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
+import { handleApiError } from '../utils/errorHandler';
 
 // Create axios instance with base configuration
 const api = axios.create({

@@ -24,6 +24,7 @@ import AnalyticsDashboard from './components/AnalyticsDashboard';
 import ProtectedRoute, { UnauthorizedPage } from './components/ProtectedRoute';
 import AuthCallback from './components/AuthCallback';
 import ResumePreviewEnhanced from './components/ResumePreviewEnhanced';
+import ErrorPage from './components/ErrorPage';
 
 function App() {
   return (
@@ -55,6 +56,8 @@ function App() {
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/error" element={<ErrorPage />} />
+              <Route path="/network-timeout" element={<ErrorPage errorCode="Network Timeout" />} />
               
               {/* Protected Routes */}
               <Route 
