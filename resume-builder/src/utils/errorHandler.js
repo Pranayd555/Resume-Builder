@@ -8,8 +8,6 @@ import { toast } from 'react-toastify';
  */
 export const handleNetworkTimeout = (error, navigate, options = {}) => {
   const {
-    showToast = true,
-    customMessage = null,
     redirectPath = '/network-timeout'
   } = options;
 
