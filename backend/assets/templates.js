@@ -774,6 +774,7 @@ module.exports = [
       .job-description, .edu-description { font-size: 12px; color: #4b5563; margin-bottom: 0.25rem; }
       .achievements { margin-bottom: 0.25rem;}
       .achievements li { margin-bottom: 0.125rem; color: #4b5563; font-size: 10px; }
+      .achievement-description { font-size: 12px; color: #4b5563; margin-bottom: 0.25rem; line-height: 1.3; }
       
       /* General list styling for HTML content in descriptions */
       ul, ol { margin: 0.25rem 0; padding-left: 1rem; }
@@ -783,13 +784,13 @@ module.exports = [
       .gpa { font-size: 10px; color: #6b7280; margin-bottom: 0.25rem; }
       .technologies { display: flex; flex-wrap: wrap; gap: 0.2rem; margin-top: 0.25rem; }
       .tech-tag { background: #8b5cf6; color: white; padding: 0.1rem 0.3rem; border-radius: 2px; font-size: 8px; }
-      .project-links { margin-top: 0.25rem; }
+      .project-links { margin-top: 0.25rem; margin-bottom: 0.25rem; }
       .project-links a { color: #06b6d4; text-decoration: none; font-size: 9px; margin-right: 0.6rem; }
-      .project-dates { font-size: 9px; color: #6b7280; margin-top: 0.25rem; font-style: italic; }
-      .achievement-date { font-size: 9px; color: #6b7280; font-style: italic; margin-top: 0.25rem; }
-      .achievement-issuer { font-size: 9px; color: #6b7280; margin-top: 0.125rem; }
+      .project-dates { font-size: 9px; color: #6b7280; margin-top: 0.25rem; margin-bottom: 0.25rem; font-style: italic; }
+      .achievement-date { font-size: 9px; color: #6b7280; font-style: italic; margin-top: 0.25rem; margin-bottom: 0.25rem; }
+      .achievement-issuer { font-size: 9px; color: #6b7280; margin-top: 0.125rem; margin-bottom: 0.25rem; }
       .cert-meta { display: flex; gap: 0.6rem; font-size: 10px; color: #6b7280; margin-bottom: 0.25rem; }
-      .cert-expiry, .cert-id { font-size: 9px; color: #6b7280; margin-bottom: 0.125rem; }
+      .cert-expiry, .cert-id { font-size: 9px; color: #6b7280; margin-bottom: 0.25rem; }
       .cert-link a { color: #06b6d4; text-decoration: none; font-size: 8px; }
       .language-item { display: flex; justify-content: space-between; margin-bottom: 0.25rem; }
       .language-name { font-size: 11px; color: #1f2937; }
@@ -2012,7 +2013,7 @@ module.exports = [
       .project-item .description { font-size: 12px; line-height: 1.3; color: #374151; margin: 2px 0; }
       .cert-expiry, .cert-id { font-size: 12px; color: #64748b; margin: 1px 0; }
       .languages-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 6px; }
-      .language-item { display: flex; justify-content: space-between; margin-bottom: 2px; }
+      .language-item { display: flex; justify-content: flex-start; gap: 8px; margin-bottom: 2px; }
       .language-name { font-size: 12px; color: #1f2937; }
       .language-level { font-size: 12px; color: #64748b; text-transform: capitalize; }
       .custom-field { margin-bottom: 2px; }
