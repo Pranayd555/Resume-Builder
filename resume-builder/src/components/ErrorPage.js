@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Lottie from "lottie-react";
 import journey404Animation from '../assets/journey_404_animation.json';
 import { ArrowLeftIcon, HomeIcon } from '@heroicons/react/24/outline';
@@ -12,6 +12,10 @@ const ErrorPage = ({
   showBackButton = true
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Get error details from navigation state
+  const { errorMessage, from } = location.state || {};
 
   const handleLogin = () => {
     navigate('/login');
@@ -24,6 +28,7 @@ const ErrorPage = ({
   const handleGoHome = () => {
     navigate('/');
   };
+
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-start pt-12 sm:pt-12 px-4 relative">
@@ -75,10 +80,10 @@ const ErrorPage = ({
             {/* Text Content Overlay */}
             <div className="absolute bottom-0 left-0 right-0 transform translate-y-1/2 px-2">
               <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold gradient-text mb-2 sm:mb-3">
-                {title}
+                {from === 'resume-list' ? 'Error Loading Resumes' : title}
               </h1>
               <p className="text-xs sm:text-sm md:text-base lg:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-                {subtitle}
+                {errorMessage || subtitle}
               </p>
             </div>
           </div>

@@ -106,10 +106,10 @@ function Register() {
   // Email verification modal is now handled on the resume-list page
 
   return (
-    <div className="relative flex size-full min-h-screen flex-col justify-center overflow-x-hidden bg-gray-50 dark:bg-gray-900" style={{ fontFamily: 'Manrope, "Noto Sans", sans-serif' }}>
-      <div className="flex items-center justify-center px-4 py-8">
+    <div className="relative flex size-full min-h-screen flex-col justify-center overflow-x-hidden" style={{ fontFamily: 'Manrope, "Noto Sans", sans-serif' }}>
+      <div className="flex items-center justify-center px-4 py-8 relative z-10">
         <div className="w-full max-w-md">
-          <div className="backdrop-blur-md bg-white/80 dark:bg-orange-50/90 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/40 p-8">
+          <div className="backdrop-blur-md bg-white/80 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-8">
             {/* Header */}
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
@@ -132,7 +132,7 @@ function Register() {
               {/* Name Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                     First Name
                   </label>
                   <input
@@ -140,11 +140,11 @@ function Register() {
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 rounded-xl border ${
+                    className={`w-full px-4 py-3 rounded-lg border bg-white dark:bg-white text-gray-900 dark:text-gray-900 ${
                       validationErrors.firstName 
                         ? 'border-red-300 focus:border-red-500' 
-                        : 'border-gray-200 focus:border-blue-500'
-                    } focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors`}
+                        : 'border-gray-300 focus:border-blue-500'
+                    } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
                     placeholder="Enter your first name"
                     required
                   />
@@ -154,7 +154,7 @@ function Register() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                     Last Name
                   </label>
                   <input
@@ -162,11 +162,11 @@ function Register() {
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 rounded-xl border ${
+                    className={`w-full px-4 py-3 rounded-lg border bg-white dark:bg-white text-gray-900 dark:text-gray-900 ${
                       validationErrors.lastName 
                         ? 'border-red-300 focus:border-red-500' 
-                        : 'border-gray-200 focus:border-blue-500'
-                    } focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors`}
+                        : 'border-gray-300 focus:border-blue-500'
+                    } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
                     placeholder="Enter your last name"
                     required
                   />
@@ -178,7 +178,7 @@ function Register() {
 
               {/* Email Field */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                   Email Address
                 </label>
                 <input
@@ -186,11 +186,11 @@ function Register() {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 rounded-xl border ${
+                  className={`w-full px-4 py-3 rounded-lg border bg-white dark:bg-white text-gray-900 dark:text-gray-900 ${
                     validationErrors.email 
                       ? 'border-red-300 focus:border-red-500' 
-                      : 'border-gray-200 focus:border-blue-500'
-                  } focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors`}
+                      : 'border-gray-300 focus:border-blue-500'
+                  } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
                   placeholder="Enter your email address"
                   required
                 />
@@ -201,7 +201,7 @@ function Register() {
 
               {/* Password Field */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                   Password
                 </label>
                 <div className="relative">
@@ -210,11 +210,11 @@ function Register() {
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 pr-12 rounded-xl border ${
+                    className={`w-full px-4 py-3 pr-12 rounded-lg border bg-white dark:bg-white text-gray-900 dark:text-gray-900 ${
                       validationErrors.password 
                         ? 'border-red-300 focus:border-red-500' 
-                        : 'border-gray-200 focus:border-blue-500'
-                    } focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors`}
+                        : 'border-gray-300 focus:border-blue-500'
+                    } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
                     placeholder="Create a password"
                     required
                   />
@@ -235,13 +235,13 @@ function Register() {
                 {formData.password && (
                   <div className="mt-2">
                     <div className="flex items-center space-x-2">
-                      <div className="flex-1 bg-gray-200 rounded-full h-2">
+                      <div className="flex-1 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
                         <div 
                           className={`h-2 rounded-full transition-all duration-300 ${passwordStrengthInfo.color}`}
                           style={{ width: `${passwordStrengthInfo.percentage}%` }}
                         ></div>
                       </div>
-                      <span className="text-xs text-gray-600">{passwordStrengthInfo.label}</span>
+                      <span className="text-xs text-gray-600 dark:text-gray-400">{passwordStrengthInfo.label}</span>
                     </div>
                   </div>
                 )}
@@ -253,7 +253,7 @@ function Register() {
 
               {/* Confirm Password Field */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                   Confirm Password
                 </label>
                 <div className="relative">
@@ -262,11 +262,11 @@ function Register() {
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 pr-12 rounded-xl border ${
+                    className={`w-full px-4 py-3 pr-12 rounded-lg border bg-white dark:bg-white text-gray-900 dark:text-gray-900 ${
                       validationErrors.confirmPassword 
                         ? 'border-red-300 focus:border-red-500' 
-                        : 'border-gray-200 focus:border-blue-500'
-                    } focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors`}
+                        : 'border-gray-300 focus:border-blue-500'
+                    } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
                     placeholder="Confirm your password"
                     required
                   />
@@ -294,10 +294,10 @@ function Register() {
                   name="agreeToTerms"
                   checked={formData.agreeToTerms}
                   onChange={handleInputChange}
-                  className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
                 />
                 <div className="text-sm">
-                  <label className="text-gray-700">
+                  <label className="text-gray-900 dark:text-gray-900">
                     I agree to the{' '}
                     <Link to="/terms" className="text-blue-600 hover:underline">
                       Terms of Service
@@ -319,7 +319,7 @@ function Register() {
                 disabled={isLoading}
                 className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-200 ${
                   isLoading
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                     : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transform hover:scale-105'
                 }`}
               >
@@ -336,7 +336,7 @@ function Register() {
 
             {/* Login Link */}
             <div className="text-center mt-8">
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 Already have an account?{' '}
                 <Link 
                   to="/login" 
@@ -351,10 +351,10 @@ function Register() {
             <div className="mt-8">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300"></div>
+                  <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                  <span className="px-2 bg-white dark:bg-orange-50/95 text-gray-500">Or continue with</span>
                 </div>
               </div>
 
@@ -364,7 +364,7 @@ function Register() {
                   onClick={() => {
                     window.location.href = `${API_BASE_URL}/api/auth/google`;
                   }}
-                  className="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-xl shadow-sm text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all duration-200"
+                  className="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all duration-200"
                   title="Sign up with Google"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -381,7 +381,7 @@ function Register() {
                   onClick={() => {
                     window.location.href = `${API_BASE_URL}/api/auth/linkedin`;
                   }}
-                  className="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-xl shadow-sm text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all duration-200"
+                  className="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all duration-200"
                   title="Sign up with LinkedIn"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24">

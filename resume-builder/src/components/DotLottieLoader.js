@@ -99,7 +99,7 @@ const DotLottieLoader = ({
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center">
       <AnimatedBackground />
-      <div className="relative z-10 flex flex-col items-center justify-center bg-white dark:bg-transparent rounded-2xl shadow-xl dark:shadow-none border border-gray-200 dark:border-transparent p-8 mx-4">
+      <div className="relative z-10 flex flex-col items-center justify-center bg-white dark:bg-transparent rounded-2xl shadow-xl dark:shadow-none dark:border-none p-8 mx-4">
       <style jsx>{`
         .fade-in {
           animation: fadeIn 0.5s ease-in-out;

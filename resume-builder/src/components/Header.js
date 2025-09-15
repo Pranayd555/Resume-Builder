@@ -238,10 +238,10 @@ function Header() {
         {/* Mobile Navigation */}
         {showMenu && (
           <div className="md:hidden" ref={mobileMenuRef}>
-            <div className="px-2 pt-2 pb-3 space-y-1 border-t border-white/20 dark:border-gray-700/20 backdrop-blur-md bg-white/50 dark:bg-gray-800/90 rounded-b-lg shadow-lg">
+            <div className="px-2 pt-2 pb-3 space-y-1 border-t border-white/20 dark:border-gray-700/20 bg-white/95 dark:bg-transparent rounded-b-lg shadow-lg backdrop-blur-sm">
               {/* User Info - Mobile */}
               {user && (
-                <div className="flex items-center space-x-3 px-2 py-2 border-b border-white/20 dark:border-gray-700/20 mb-2">
+                <div className="flex items-center space-x-3 px-2 py-2 border-b border-gray-200/50 dark:border-gray-700/50 mb-2">
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
                     {getProfilePictureUrl(user) ? (
                       <>
@@ -280,7 +280,7 @@ function Header() {
               {/* Dark Mode Toggle - Mobile */}
               <button
                 onClick={toggleDarkMode}
-                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-white/50 dark:hover:bg-gray-800/50 w-full text-left flex items-center space-x-2"
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 w-full text-left flex items-center space-x-2"
                 title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
               >
                 {isDarkMode ? (
@@ -293,31 +293,31 @@ function Header() {
               
               <button
                 onClick={handleProfile}
-                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-white/50 dark:hover:bg-gray-800/50 w-full text-left"
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 w-full text-left"
               >
                 Profile
               </button>
               <button
                 onClick={handleSubscription}
-                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-white/50 dark:hover:bg-gray-800/50 w-full text-left"
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 w-full text-left"
               >
                 Subscription
               </button>
               <button
                 onClick={handleAnalytics}
-                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-white/50 dark:hover:bg-gray-800/50 w-full text-left"
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 w-full text-left"
               >
                 Analytics
               </button>
               <button
                 onClick={handlePrivacyPolicy}
-                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-white/50 dark:hover:bg-gray-800/50 w-full text-left"
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 w-full text-left"
               >
                 Privacy Policy
               </button>
               <button
                 onClick={handleLogout}
-                className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-red-50 dark:hover:bg-red-900/20 w-full text-left flex items-center space-x-2"
+                className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-red-50/80 dark:hover:bg-red-900/30 w-full text-left flex items-center space-x-2"
               >
                 <ArrowRightOnRectangleIcon className="w-4 h-4" />
                 <span>Logout</span>

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
+import { createApiConfig } from '../config/timeouts';
 
 // Create axios instance with base configuration
 const api = axios.create({
@@ -74,63 +75,75 @@ api.interceptors.response.use(
 // Auth API calls
 export const authAPI = {
   login: async (credentials) => {
-    const response = await api.post('/auth/login', credentials);
+    const config = createApiConfig('/auth/login');
+    const response = await api.post('/auth/login', credentials, config);
     return response.data;
   },
 
   register: async (userData) => {
-    const response = await api.post('/auth/register', userData);
+    const config = createApiConfig('/auth/register');
+    const response = await api.post('/auth/register', userData, config);
     return response.data;
   },
 
   logout: async () => {
-    const response = await api.post('/auth/logout');
+    const config = createApiConfig('/auth/logout');
+    const response = await api.post('/auth/logout', {}, config);
     return response.data;
   },
 
   getCurrentUser: async () => {
-    const response = await api.get('/auth/me');
+    const config = createApiConfig('/auth/me');
+    const response = await api.get('/auth/me', config);
     return response.data;
   },
 
   updateProfile: async (userData) => {
-    const response = await api.put('/auth/profile', userData);
+    const config = createApiConfig('/auth/profile');
+    const response = await api.put('/auth/profile', userData, config);
     return response.data;
   },
 
   changePassword: async (passwordData) => {
-    const response = await api.put('/auth/password', passwordData);
+    const config = createApiConfig('/auth/password');
+    const response = await api.put('/auth/password', passwordData, config);
     return response.data;
   },
 
   forgotPassword: async (email) => {
-    const response = await api.post('/auth/forgot-password', { email });
+    const config = createApiConfig('/auth/forgot-password');
+    const response = await api.post('/auth/forgot-password', { email }, config);
     return response.data;
   },
 
   resetPassword: async (resetData) => {
-    const response = await api.post('/auth/reset-password', resetData);
+    const config = createApiConfig('/auth/reset-password');
+    const response = await api.post('/auth/reset-password', resetData, config);
     return response.data;
   },
 
   // OTP Verification methods
   verifyEmail: async (otp) => {
-    const response = await api.post('/auth/verify-email', { otp });
+    const config = createApiConfig('/auth/verify-email');
+    const response = await api.post('/auth/verify-email', { otp }, config);
     return response.data;
   },
 
   resendOtp: async () => {
-    const response = await api.post('/auth/resend-otp');
+    const config = createApiConfig('/auth/resend-otp');
+    const response = await api.post('/auth/resend-otp', {}, config);
     return response.data;
   },
 
   getEmailStatus: async () => {
-    const response = await api.get('/auth/email-status');
+    const config = createApiConfig('/auth/email-status');
+    const response = await api.get('/auth/email-status', config);
     return response.data;
   },
 
   deleteAccount: async () => {
-    const response = await api.delete('/auth/account');
+    const config = createApiConfig('/auth/account');
+    const response = await api.delete('/auth/account', config);
     return response.data;
   },
 };
@@ -138,50 +151,58 @@ export const authAPI = {
 // Resume API calls
 export const resumeAPI = {
   getResumes: async (params = {}) => {
-    const response = await api.get('/resumes', { params });
+    const config = createApiConfig('/resumes', { params });
+    const response = await api.get('/resumes', config);
     return response.data;
   },
 
   getResumeById: async (resumeId) => {
-    const response = await api.get(`/resumes/${resumeId}`);
+    const config = createApiConfig('/resumes');
+    const response = await api.get(`/resumes/${resumeId}`, config);
     return response.data;
   },
 
   createResume: async (resumeData) => {
-    const response = await api.post('/resumes', resumeData);
+    const config = createApiConfig('/resumes');
+    const response = await api.post('/resumes', resumeData, config);
     return response.data;
   },
 
   // NEW: Save resume form data (Step 1)
   saveFormData: async (formData) => {
-    const response = await api.post('/resumes/form-data', formData);
+    const config = createApiConfig('/resumes/form-data');
+    const response = await api.post('/resumes/form-data', formData, config);
     return response.data;
   },
 
   // NEW: Auto-save resume draft
   autoSaveDraft: async (formData, resumeId = null) => {
+    const config = createApiConfig('/resumes/auto-save');
     const response = await api.post('/resumes/auto-save', {
       ...formData,
       resumeId
-    });
+    }, config);
     return response.data;
   },
 
   // NEW: Mark resume as completed
   markAsCompleted: async (resumeId) => {
-    const response = await api.put(`/resumes/${resumeId}/complete`);
+    const config = createApiConfig('/resumes/complete');
+    const response = await api.put(`/resumes/${resumeId}/complete`, {}, config);
     return response.data;
   },
 
   // NEW: Update resume with selected template (Step 2)
   selectTemplate: async (resumeId, templateData) => {
-    const response = await api.put(`/resumes/${resumeId}/template`, templateData);
+    const config = createApiConfig('/resumes/template');
+    const response = await api.put(`/resumes/${resumeId}/template`, templateData, config);
     return response.data;
   },
 
   // NEW: Update template styling options
   updateTemplateStyling: async (resumeId, templateStyling) => {
-    const response = await api.put(`/resumes/${resumeId}/template-styling`, templateStyling);
+    const config = createApiConfig('/resumes/template-styling');
+    const response = await api.put(`/resumes/${resumeId}/template-styling`, templateStyling, config);
     return response.data;
   },
 
@@ -189,50 +210,58 @@ export const resumeAPI = {
 
   // NEW: Download resume as PDF
   downloadPDF: async (resumeId) => {
-    const response = await api.get(`/resumes/${resumeId}/download/pdf`, {
+    const config = createApiConfig('/resumes/download/pdf', {
       responseType: 'blob'
     });
+    const response = await api.get(`/resumes/${resumeId}/download/pdf`, config);
     return response;
   },
 
   // NEW: Download resume as DOCX
   downloadDOCX: async (resumeId) => {
-    const response = await api.get(`/resumes/${resumeId}/download/docx`, {
+    const config = createApiConfig('/resumes/download/docx', {
       responseType: 'blob'
     });
+    const response = await api.get(`/resumes/${resumeId}/download/docx`, config);
     return response;
   },
 
   updateResume: async (resumeId, resumeData) => {
-    const response = await api.put(`/resumes/${resumeId}`, resumeData);
+    const config = createApiConfig('/resumes');
+    const response = await api.put(`/resumes/${resumeId}`, resumeData, config);
     return response.data;
   },
 
   deleteResume: async (resumeId) => {
-    const response = await api.delete(`/resumes/${resumeId}`);
+    const config = createApiConfig('/resumes');
+    const response = await api.delete(`/resumes/${resumeId}`, config);
     return response.data;
   },
 
   duplicateResume: async (resumeId) => {
-    const response = await api.post(`/resumes/${resumeId}/duplicate`);
+    const config = createApiConfig('/resumes/duplicate');
+    const response = await api.post(`/resumes/${resumeId}/duplicate`, {}, config);
     return response.data;
   },
 
   downloadResume: async (resumeId, format = 'pdf') => {
-    const response = await api.get(`/resumes/${resumeId}/download`, {
+    const config = createApiConfig('/resumes/download', {
       params: { format },
       responseType: 'blob',
     });
+    const response = await api.get(`/resumes/${resumeId}/download`, config);
     return response;
   },
 
   getResumeAnalytics: async (resumeId) => {
-    const response = await api.get(`/resumes/${resumeId}/analytics`);
+    const config = createApiConfig('/resumes/analytics');
+    const response = await api.get(`/resumes/${resumeId}/analytics`, config);
     return response.data;
   },
 
   toggleActive: async (resumeId) => {
-    const response = await api.put(`/resumes/${resumeId}/toggle-active`);
+    const config = createApiConfig('/resumes/toggle-active');
+    const response = await api.put(`/resumes/${resumeId}/toggle-active`, {}, config);
     return response.data;
   },
 };
@@ -240,22 +269,26 @@ export const resumeAPI = {
 // Analytics API calls
 export const analyticsAPI = {
   trackResumeView: async (resumeId) => {
-    const response = await api.post(`/analytics/resume/${resumeId}/view`);
+    const config = createApiConfig('/analytics/resume');
+    const response = await api.post(`/analytics/resume/${resumeId}/view`, {}, config);
     return response.data;
   },
 
   trackResumeDownload: async (resumeId, format = 'pdf') => {
-    const response = await api.post(`/analytics/resume/${resumeId}/download`, { format });
+    const config = createApiConfig('/analytics/resume');
+    const response = await api.post(`/analytics/resume/${resumeId}/download`, { format }, config);
     return response.data;
   },
 
   trackTemplateUsage: async (templateId) => {
-    const response = await api.post(`/analytics/template/${templateId}/use`);
+    const config = createApiConfig('/analytics/template');
+    const response = await api.post(`/analytics/template/${templateId}/use`, {}, config);
     return response.data;
   },
 
   getAnalyticsSummary: async () => {
-    const response = await api.get('/analytics/summary');
+    const config = createApiConfig('/analytics/summary');
+    const response = await api.get('/analytics/summary', config);
     return response.data;
   },
 };
@@ -263,17 +296,20 @@ export const analyticsAPI = {
 // Template API calls
 export const templateAPI = {
   getTemplates: async (params = {}) => {
-    const response = await api.get('/templates', { params });
+    const config = createApiConfig('/templates', { params });
+    const response = await api.get('/templates', config);
     return response.data;
   },
 
   getTemplateById: async (templateId) => {
-    const response = await api.get(`/templates/${templateId}`);
+    const config = createApiConfig('/templates');
+    const response = await api.get(`/templates/${templateId}`, config);
     return response.data;
   },
 
   getTemplatesByCategory: async (category) => {
-    const response = await api.get(`/templates/category/${category}`);
+    const config = createApiConfig('/templates/category');
+    const response = await api.get(`/templates/category/${category}`, config);
     return response.data;
   },
 };
@@ -281,60 +317,71 @@ export const templateAPI = {
 // Subscription API calls
 export const subscriptionAPI = {
   getCurrentSubscription: async () => {
-    const response = await api.get('/subscriptions/current');
+    const config = createApiConfig('/subscriptions/current');
+    const response = await api.get('/subscriptions/current', config);
     return response.data;
   },
 
   getPlans: async () => {
-    const response = await api.get('/subscriptions/plans');
+    const config = createApiConfig('/subscriptions/plans');
+    const response = await api.get('/subscriptions/plans', config);
     return response.data;
   },
 
   getTrialInfo: async () => {
-    const response = await api.get('/subscriptions/trial-info');
+    const config = createApiConfig('/subscriptions/trial-info');
+    const response = await api.get('/subscriptions/trial-info', config);
     return response.data;
   },
 
   getTrialEligibility: async () => {
-    const response = await api.get('/subscriptions/current');
+    const config = createApiConfig('/subscriptions/current');
+    const response = await api.get('/subscriptions/current', config);
     return response.data;
   },
 
   startTrial: async (trialType) => {
-    const response = await api.post('/subscriptions/start-trial', { trialType });
+    const config = createApiConfig('/subscriptions/start-trial');
+    const response = await api.post('/subscriptions/start-trial', { trialType }, config);
     return response.data;
   },
 
   createCheckoutSession: async (planId, billingCycle) => {
+    const config = createApiConfig('/subscriptions/create-checkout-session');
     const response = await api.post('/subscriptions/create-checkout-session', { 
       plan: planId, 
       billing: billingCycle 
-    });
+    }, config);
     return response.data;
   },
 
   handleSubscriptionSuccess: async (sessionId) => {
-    const response = await api.post('/subscriptions/success', { sessionId });
+    const config = createApiConfig('/subscriptions/success');
+    const response = await api.post('/subscriptions/success', { sessionId }, config);
     return response.data;
   },
 
   cancelSubscription: async (reason) => {
-    const response = await api.post('/subscriptions/cancel', { reason });
+    const config = createApiConfig('/subscriptions/cancel');
+    const response = await api.post('/subscriptions/cancel', { reason }, config);
     return response.data;
   },
 
   reactivateSubscription: async () => {
-    const response = await api.post('/subscriptions/reactivate');
+    const config = createApiConfig('/subscriptions/reactivate');
+    const response = await api.post('/subscriptions/reactivate', {}, config);
     return response.data;
   },
 
   getBillingHistory: async () => {
-    const response = await api.get('/subscriptions/billing-history');
+    const config = createApiConfig('/subscriptions/billing-history');
+    const response = await api.get('/subscriptions/billing-history', config);
     return response.data;
   },
 
   updatePaymentMethod: async (paymentMethodId) => {
-    const response = await api.post('/subscriptions/update-payment-method', { paymentMethodId });
+    const config = createApiConfig('/subscriptions/update-payment-method');
+    const response = await api.post('/subscriptions/update-payment-method', { paymentMethodId }, config);
     return response.data;
   },
 };
@@ -346,12 +393,12 @@ export const uploadAPI = {
     formData.append('file', file);
     formData.append('folder', folder);
 
-    const response = await api.post('/uploads', formData, {
+    const config = createApiConfig('/uploads', {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-      timeout: 30000, // 30 seconds for file uploads
     });
+    const response = await api.post('/uploads', formData, config);
     return response.data;
   },
 
@@ -359,32 +406,34 @@ export const uploadAPI = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await api.post('/uploads/profile-picture', formData, {
+    const config = createApiConfig('/uploads/profile-picture', {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-      timeout: 30000, // 30 seconds for file uploads
     });
+    const response = await api.post('/uploads/profile-picture', formData, config);
     return response.data;
   },
 
   deleteProfilePicture: async () => {
-    const response = await api.delete('/uploads/profile-picture');
+    const config = createApiConfig('/uploads/profile-picture');
+    const response = await api.delete('/uploads/profile-picture', config);
     return response.data;
   },
 
   deleteFile: async (fileId) => {
-    const response = await api.delete(`/uploads/${fileId}`);
+    const config = createApiConfig('/uploads');
+    const response = await api.delete(`/uploads/${fileId}`, config);
     return response.data;
   },
 
   uploadResume: async (formData) => {
-    const response = await api.post('/uploads/parse-resume', formData, {
+    const config = createApiConfig('/uploads/parse-resume', {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-      timeout: 300000, // Increased to 5 minutes for AI model initialization
     });
+    const response = await api.post('/uploads/parse-resume', formData, config);
     return response.data;
   },
 };
@@ -402,60 +451,62 @@ export const aiAPI = {
       formData.append('jobDescriptionFile', jobDescriptionFile);
     }
 
-    const response = await api.post('/ai/ats-score', formData, {
+    const config = createApiConfig('/ai/ats-score', {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-      timeout: 120000, // 2 minutes for ATS analysis
     });
+    const response = await api.post('/ai/ats-score', formData, config);
     return response.data;
   },
 
   rewriteContent: async (content, tone = 'professional', style = 'action-oriented') => {
+    const config = createApiConfig('/ai/rewrite');
     const response = await api.post('/ai/rewrite', {
       content,
       tone,
       style
-    });
+    }, config);
     return response.data;
   },
 
   summarizeContent: async (content, maxLength = 150) => {
+    const config = createApiConfig('/ai/summarize');
     const response = await api.post('/ai/summarize', {
       content,
       maxLength
-    });
+    }, config);
     return response.data;
   },
 
   // ATS-based AI endpoints
   adjustTone: async (resumeId, requestData) => {
+    const config = createApiConfig('/ai/adjust-tone');
     const response = await api.post('/ai/adjust-tone', {
       resumeId,
       ...requestData
-    }, {
-      timeout: 120000, // 2 minutes for AI processing
-    });
+    }, config);
     return response.data;
   },
 
   enhanceKeywords: async (resumeId, requestData) => {
+    const config = createApiConfig('/ai/enhance-keywords');
     const response = await api.post('/ai/enhance-keywords', {
       resumeId,
       ...requestData
-    }, {
-      timeout: 120000, // 2 minutes for AI processing
-    });
+    }, config);
     return response.data;
   },
 
   getAIUsage: async () => {
-    const response = await api.get('/ai/usage');
+    const config = createApiConfig('/ai/usage');
+    const response = await api.get('/ai/usage', config);
     return response.data;
   },
 
   getATSAnalysis: async (resumeId) => {
-    const response = await api.get(`/ai/ats-score/${resumeId}`);
+    const config = createApiConfig('/ai/ats-score');
+    const response = await api.get(`/ai/ats-score/${resumeId}`, config);
     return response.data;
   },
 };
@@ -463,18 +514,20 @@ export const aiAPI = {
 // User API calls
 export const userAPI = {
   getUserProfile: async (userId) => {
-    const response = await api.get(`/users/${userId}`);
+    const config = createApiConfig('/users');
+    const response = await api.get(`/users/${userId}`, config);
     return response.data;
   },
 
   updateUserProfile: async (userData) => {
-    const response = await api.put('/users/profile', userData);
+    const config = createApiConfig('/users/profile');
+    const response = await api.put('/users/profile', userData, config);
     return response.data;
   },
 
-
   getUserStats: async () => {
-    const response = await api.get('/users/stats');
+    const config = createApiConfig('/users/stats');
+    const response = await api.get('/users/stats', config);
     return response.data;
   },
 };
@@ -482,42 +535,50 @@ export const userAPI = {
 // Feedback API calls
 export const feedbackAPI = {
   submitFeedback: async (feedbackData) => {
-    const response = await api.post('/feedback', feedbackData);
+    const config = createApiConfig('/feedback');
+    const response = await api.post('/feedback', feedbackData, config);
     return response.data;
   },
 
   getFeedback: async (params = {}) => {
-    const response = await api.get('/feedback', { params });
+    const config = createApiConfig('/feedback', { params });
+    const response = await api.get('/feedback', config);
     return response.data;
   },
 
   getFeedbackById: async (feedbackId) => {
-    const response = await api.get(`/feedback/${feedbackId}`);
+    const config = createApiConfig('/feedback');
+    const response = await api.get(`/feedback/${feedbackId}`, config);
     return response.data;
   },
 
   getFeedbackStats: async () => {
-    const response = await api.get('/feedback/stats');
+    const config = createApiConfig('/feedback/stats');
+    const response = await api.get('/feedback/stats', config);
     return response.data;
   },
 
   updateFeedbackStatus: async (feedbackId, statusData) => {
-    const response = await api.put(`/feedback/${feedbackId}/status`, statusData);
+    const config = createApiConfig('/feedback');
+    const response = await api.put(`/feedback/${feedbackId}/status`, statusData, config);
     return response.data;
   },
 
   addFeedbackResponse: async (feedbackId, responseData) => {
-    const response = await api.put(`/feedback/${feedbackId}/response`, responseData);
+    const config = createApiConfig('/feedback');
+    const response = await api.put(`/feedback/${feedbackId}/response`, responseData, config);
     return response.data;
   },
 
   deleteFeedback: async (feedbackId) => {
-    const response = await api.delete(`/feedback/${feedbackId}`);
+    const config = createApiConfig('/feedback');
+    const response = await api.delete(`/feedback/${feedbackId}`, config);
     return response.data;
   },
 
   getTestimonials: async (params = {}) => {
-    const response = await api.get('/feedback/public/testimonials', { params });
+    const config = createApiConfig('/feedback/public/testimonials', { params });
+    const response = await api.get('/feedback/public/testimonials', config);
     return response.data;
   },
 };
