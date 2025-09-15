@@ -487,6 +487,18 @@ function ResumeList() {
     // The subscription info is read from localStorage on each render
   }, [resumes.length]);
 
+  // Handle error navigation - must be at top level to avoid hook rules violation
+  useEffect(() => {
+    if (error && resumes.length === 0) {
+      navigate('/error', { 
+        state: { 
+          errorMessage: error,
+          from: 'resume-list'
+        } 
+      });
+    }
+  }, [error, resumes.length, navigate]);
+
   // Setup Intersection Observer for mobile scroll focus
   useEffect(() => {
     // Only setup observer on mobile devices
@@ -861,24 +873,16 @@ function ResumeList() {
     );
   }
 
-  // Error state
+  // Error state - show loading while redirecting
   if (error && resumes.length === 0) {
     return (
       <div className="min-h-screen pt-16 flex items-center justify-center">
         <div className="text-center max-w-md">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Resumes</h3>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={fetchResumes}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Try Again
-          </button>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Redirecting to Error Page...</h3>
+          <p className="text-gray-600">Please wait while we redirect you.</p>
         </div>
       </div>
     );

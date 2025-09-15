@@ -1,4 +1,5 @@
 import { toast } from 'react-toastify';
+import { getTimeoutForType } from '../config/timeouts';
 
 /**
  * Handle network timeout errors and redirect to error page
@@ -80,10 +81,14 @@ export const handleApiError = (error, navigate, options = {}) => {
 /**
  * Create a timeout wrapper for API calls
  * @param {Promise} apiCall - The API call promise
- * @param {number} timeoutMs - Timeout in milliseconds (default: 10000)
+ * @param {string|number} timeoutTypeOrMs - API type (AUTH, CRUD, etc.) or timeout in milliseconds
  * @returns {Promise} - Promise that rejects on timeout
  */
-export const withTimeout = (apiCall, timeoutMs = 10000) => {
+export const withTimeout = (apiCall, timeoutTypeOrMs = 'CRUD') => {
+  const timeoutMs = typeof timeoutTypeOrMs === 'string' 
+    ? getTimeoutForType(timeoutTypeOrMs) 
+    : timeoutTypeOrMs;
+    
   return Promise.race([
     apiCall,
     new Promise((_, reject) => {

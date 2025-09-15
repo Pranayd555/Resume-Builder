@@ -63,10 +63,10 @@ function Login() {
   };
 
   return (
-    <div className="relative flex size-full min-h-screen flex-col justify-center overflow-x-hidden bg-gray-50 dark:bg-gray-900" style={{ fontFamily: 'Manrope, "Noto Sans", sans-serif' }}>
-      <div className="flex items-center justify-center px-4 py-8">
+    <div className="relative flex size-full min-h-screen flex-col justify-center overflow-x-hidden" style={{ fontFamily: 'Manrope, "Noto Sans", sans-serif' }}>
+      <div className="flex items-center justify-center px-4 py-8 relative z-10">
         <div className="w-full max-w-md">
-          <div className="backdrop-blur-md bg-white/80 dark:bg-orange-50/90 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/40 p-8">
+          <div className="backdrop-blur-md bg-white/80 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-8">
             {/* Header */}
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
@@ -88,7 +88,7 @@ function Login() {
             <form onSubmit={handleLogin} className="space-y-6">
               {/* Email Field */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                   Email Address
                 </label>
                 <input
@@ -96,22 +96,22 @@ function Login() {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 rounded-xl border bg-white dark:bg-orange-50/80 text-gray-900 dark:text-gray-800 ${
+                  className={`w-full px-4 py-3 rounded-lg border bg-white dark:bg-white text-gray-900 dark:text-gray-900 ${
                     validationErrors.email 
-                      ? 'border-red-300 dark:border-red-600 focus:border-red-500 dark:focus:border-red-400' 
-                      : 'border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400'
-                  } focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20 transition-colors`}
+                      ? 'border-red-300 focus:border-red-500' 
+                      : 'border-gray-300 focus:border-blue-500'
+                  } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
                   placeholder="Enter your email address"
                   required
                 />
                 {validationErrors.email && (
-                  <p className="text-red-600 dark:text-red-400 text-sm mt-1">{validationErrors.email}</p>
+                  <p className="text-red-600 text-sm mt-1">{validationErrors.email}</p>
                 )}
               </div>
 
               {/* Password Field */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                   Password
                 </label>
                 <div className="relative">
@@ -120,11 +120,11 @@ function Login() {
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 pr-12 rounded-xl border bg-white dark:bg-orange-50/80 text-gray-900 dark:text-gray-800 ${
+                    className={`w-full px-4 py-3 pr-12 rounded-lg border bg-white dark:bg-white text-gray-900 dark:text-gray-900 ${
                       validationErrors.password 
-                        ? 'border-red-300 dark:border-red-600 focus:border-red-500 dark:focus:border-red-400' 
-                        : 'border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400'
-                    } focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20 transition-colors`}
+                        ? 'border-red-300 focus:border-red-500' 
+                        : 'border-gray-300 focus:border-blue-500'
+                    } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
                     placeholder="Enter your password"
                     required
                   />
@@ -134,14 +134,14 @@ function Login() {
                     className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   >
                     {showPassword ? (
-                      <EyeSlashIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                      <EyeSlashIcon className="w-5 h-5 text-gray-400" />
                     ) : (
-                      <EyeIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                      <EyeIcon className="w-5 h-5 text-gray-400" />
                     )}
                   </button>
                 </div>
                 {validationErrors.password && (
-                  <p className="text-red-600 dark:text-red-400 text-sm mt-1">{validationErrors.password}</p>
+                  <p className="text-red-600 text-sm mt-1">{validationErrors.password}</p>
                 )}
               </div>
 
@@ -155,13 +155,13 @@ function Login() {
                     onChange={handleInputChange}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
-                  <label className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                  <label className="ml-2 block text-sm text-gray-900 dark:text-gray-900">
                     Remember me
                   </label>
                 </div>
                 <Link 
                   to="/forgot-password" 
-                  className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline"
+                  className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
                 >
                   Forgot password?
                 </Link>
@@ -194,7 +194,7 @@ function Login() {
                 Don't have an account?{' '}
                 <Link 
                   to="/register" 
-                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold hover:underline"
+                  className="text-blue-600 hover:text-blue-700 font-semibold hover:underline"
                 >
                   Create Account
                 </Link>
@@ -208,7 +208,7 @@ function Login() {
                   <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white dark:bg-orange-50/90 text-gray-500 dark:text-gray-600">Or continue with</span>
+                  <span className="px-2 bg-white dark:bg-orange-50/95 text-gray-500">Or continue with</span>
                 </div>
               </div>
 
@@ -218,7 +218,7 @@ function Login() {
                   onClick={() => {
                     window.location.href = `${API_BASE_URL}/auth/google`;
                   }}
-                  className="w-full inline-flex justify-center py-3 px-4 border border-gray-300 dark:border-orange-200/50 rounded-xl shadow-sm text-sm font-medium bg-white dark:bg-orange-50/80 text-gray-700 dark:text-gray-800 hover:bg-gray-50 dark:hover:bg-orange-100/80 hover:shadow-md transition-all duration-200"
+                  className="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all duration-200"
                   title="Sign in with Google"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -235,7 +235,7 @@ function Login() {
                   onClick={() => {
                     window.location.href = `${API_BASE_URL}/auth/linkedin`;
                   }}
-                  className="w-full inline-flex justify-center py-3 px-4 border border-gray-300 dark:border-orange-200/50 rounded-xl shadow-sm text-sm font-medium bg-white dark:bg-orange-50/80 text-gray-700 dark:text-gray-800 hover:bg-gray-50 dark:hover:bg-orange-100/80 hover:shadow-md transition-all duration-200"
+                  className="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all duration-200"
                   title="Sign in with LinkedIn"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24">

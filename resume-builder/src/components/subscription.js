@@ -184,7 +184,7 @@ function Subscription() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-600">
                       {currentSubscription.plan.charAt(0).toUpperCase() + currentSubscription.plan.slice(1)} Plan
                     </h3>
                     <div className="flex items-center gap-2 mt-1">
