@@ -5,7 +5,7 @@ function PrivacyPolicy() {
   const navigate = useNavigate();
 
   const handleBack = () => {
-    navigate('/resume-list');
+    navigate('/dashboard');
   };
 
   return (
@@ -15,13 +15,13 @@ function PrivacyPolicy() {
         <div className="flex items-center mb-8">
           <button
             onClick={handleBack}
-            className="mr-4 text-gray-600 hover:text-gray-900 transition-colors group"
+            className="mr-4 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors group"
           >
             <svg className="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
           </button>
-          <h1 className="text-3xl font-bold text-gray-900">Privacy Policy</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-300">Privacy Policy</h1>
         </div>
 
         {/* Content */}

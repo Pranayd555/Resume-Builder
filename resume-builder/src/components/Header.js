@@ -134,7 +134,7 @@ function Header() {
           <div className="flex items-center min-w-0 flex-1">
             <h1 
               className="text-base sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent cursor-pointer hover:from-blue-700 hover:to-purple-700 transition-all duration-200 truncate"
-              onClick={() => navigate('/resume-list')}
+              onClick={() => navigate('/dashboard')}
             >
               Resume Builder
             </h1>

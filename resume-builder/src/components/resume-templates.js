@@ -51,7 +51,7 @@ function ResumeTemplates() {
   };
 
   const handleBack = () => {
-    navigate('/resume-list');
+    navigate('/dashboard');
   };
 
   const handleApplyTemplate = () => {

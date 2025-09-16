@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { analyticsAPI } from '../services/api';
 import { toast } from 'react-toastify';
-import DotLottieLoader from './DotLottieLoader';
+import AuthLoader from './AuthLoader';
 import { 
   EyeIcon, 
   DocumentArrowDownIcon, 
@@ -22,7 +22,7 @@ function AnalyticsDashboard() {
   }, []);
 
   const handleBack = () => {
-    navigate('/resume-list');
+    navigate('/dashboard');
   };
 
   const fetchAnalytics = async () => {
@@ -42,10 +42,9 @@ function AnalyticsDashboard() {
 
   if (loading) {
     return (
-      <DotLottieLoader 
+      <AuthLoader 
         title="Loading Analytics..."
         subtitle="Please wait while we fetch your analytics data."
-        size={200}
       />
     );
   }
@@ -196,17 +195,17 @@ function AnalyticsDashboard() {
 
         {/* Templates Used */}
         {templates.totalUsed > 0 && (
-          <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900">Templates Used</h3>
+          <div className="bg-white/80 dark:bg-orange-50/95 backdrop-blur-sm rounded-lg shadow">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-orange-700/30">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-700">Templates Used</h3>
             </div>
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {templates.templates.map((template) => (
-                  <div key={template.id} className="border border-gray-200 rounded-lg p-4">
-                    <h4 className="font-medium text-gray-900">{template.name}</h4>
-                    <p className="text-sm text-gray-500 capitalize">{template.category}</p>
-                    <p className="text-xs text-gray-400 mt-1">
+                  <div key={template.id} className="border border-gray-200 dark:border-orange-700/30 rounded-lg p-4">
+                    <h4 className="font-medium text-gray-900 dark:text-gray-700">{template.name}</h4>
+                    <p className="text-sm text-gray-500 capitalize dark:text-gray-700">{template.category}</p>
+                    <p className="text-xs text-gray-400 mt-1 dark:text-gray-700">
                       Used {template.usage.totalUses} times
                     </p>
                   </div>

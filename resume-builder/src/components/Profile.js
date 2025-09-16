@@ -388,7 +388,7 @@ function Profile() {
   };
 
   const handleBack = () => {
-    navigate('/resume-list');
+    navigate('/dashboard');
   };
 
   const validateAndProcessFile = (file) => {
@@ -1248,19 +1248,15 @@ function Profile() {
         )}
 
         {/* Email Verification Modal */}
-        {showEmailVerification && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-            <div className="bg-white rounded-2xl p-4 sm:p-6 w-full max-w-sm sm:max-w-md mx-2 sm:mx-0 max-h-[90vh] overflow-y-auto">
-              <EmailVerification
-                email={newEmail}
-                onVerificationSuccess={handleEmailVerificationSuccess}
-                onSkip={handleSkipEmailVerification}
-                type={newEmail === user?.email ? "profile-verification" : "email-change"}
-                showSkip={true}
-              />
-            </div>
-          </div>
-        )}
+        <EmailVerification
+          isOpen={showEmailVerification}
+          onClose={handleSkipEmailVerification}
+          email={newEmail}
+          onVerificationSuccess={handleEmailVerificationSuccess}
+          onSkip={handleSkipEmailVerification}
+          type={newEmail === user?.email ? "profile-verification" : "email-change"}
+          showSkip={true}
+        />
       </div>
     </div>
   );

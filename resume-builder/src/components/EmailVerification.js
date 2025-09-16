@@ -8,6 +8,8 @@ import {
 } from '@heroicons/react/24/outline';
 
 function EmailVerification({ 
+  isOpen = true,
+  onClose,
   email, 
   onVerificationSuccess, 
   onSkip, 
@@ -164,27 +166,38 @@ function EmailVerification({
     }
   };
 
+  // Don't render if modal is not open
+  if (!isOpen) return null;
+
   if (success && !isLoading) {
     return (
-      <div className="text-center py-8">
-        <CheckCircleIcon className="w-16 h-16 text-green-500 mx-auto mb-4" />
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">
-          Email Verified Successfully!
-        </h3>
-        <p className="text-gray-600">
-          {type === 'registration' 
-            ? 'Your account is now active. Redirecting...' 
-            : type === 'profile-verification'
-            ? 'Your email has been verified successfully!'
-            : 'Your email has been updated and verified.'
-          }
-        </p>
+      <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div className="absolute inset-0 backdrop-blur-sm"></div>
+        <div className="relative bg-white rounded-2xl p-4 sm:p-6 w-full max-w-sm sm:max-w-md mx-2 sm:mx-0 max-h-[90vh] overflow-y-auto">
+          <div className="text-center py-8">
+            <CheckCircleIcon className="w-16 h-16 text-green-500 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              Email Verified Successfully!
+            </h3>
+            <p className="text-gray-600">
+              {type === 'registration' 
+                ? 'Your account is now active. Redirecting...' 
+                : type === 'profile-verification'
+                ? 'Your email has been verified successfully!'
+                : 'Your email has been updated and verified.'
+              }
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-md mx-auto">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      <div className="absolute inset-0 backdrop-blur-sm"></div>
+      <div className="relative bg-white rounded-2xl p-4 sm:p-6 w-full max-w-sm sm:max-w-md mx-2 sm:mx-0 max-h-[90vh] overflow-y-auto">
+        <div className="max-w-md mx-auto">
       <div className="text-center mb-6 sm:mb-8">
         <div className="w-12 h-12 sm:w-16 sm:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
           <svg className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,7 +235,7 @@ function EmailVerification({
 
       {/* OTP Input */}
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-3 text-center">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-3 text-center">
           Enter verification code
         </label>
         <div className="flex justify-center space-x-2 sm:space-x-3">
@@ -298,12 +311,14 @@ function EmailVerification({
         <div className="text-center mt-4">
           <button
             onClick={onSkip}
-            className="text-gray-500 hover:text-gray-700 text-sm"
+            className="text-green-500 hover:text-green-700 dark:text-green-500 text-sm"
           >
             Skip for now
           </button>
         </div>
       )}
+        </div>
+      </div>
     </div>
   );
 }

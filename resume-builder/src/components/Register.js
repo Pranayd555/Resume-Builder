@@ -65,8 +65,8 @@ function Register() {
     const result = await register(formData);
     
     if (result.success) {
-      // Always navigate to resume-list page
-      navigate('/resume-list', { 
+      // Always navigate to dashboard page
+      navigate('/dashboard', { 
         state: { 
           requiresEmailVerification: result.requiresEmailVerification,
           email: formData.email 
