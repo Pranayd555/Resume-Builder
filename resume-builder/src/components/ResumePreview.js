@@ -40,7 +40,7 @@ function ResumePreview() {
       } catch (error) {
         const errorMessage = error.response?.data?.error || error.message || 'Download failed';
         toast.error(errorMessage);
-        navigate('/resume-list');
+        navigate('/dashboard');
       } finally {
         setLoading(false);
       }

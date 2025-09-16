@@ -1,28 +1,22 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import AuthLoader from './AuthLoader';
 
 const ProtectedRoute = ({ children, requireAuth = true, redirectTo = '/login' }) => {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
+  // FOR TESTING: Always show AuthLoader
+  const showLoader = false; // Set to false when done testing
+
   // Show loading spinner while auth status is being determined
-  if (isLoading) {
+  if (isLoading || showLoader) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-8 h-8 bg-blue-600 rounded-full animate-pulse"></div>
-            </div>
-          </div>
-          <div className="text-center">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Loading...</h3>
-            <p className="text-gray-600">Please wait while we authenticate you.</p>
-          </div>
-        </div>
-      </div>
+      <AuthLoader 
+        title="Authenticating..."
+        subtitle="Please wait while we verify your credentials."
+      />
     );
   }
 
@@ -39,7 +33,7 @@ const ProtectedRoute = ({ children, requireAuth = true, redirectTo = '/login' })
 
   // If auth is not required but user is authenticated, redirect to main app
   if (!requireAuth && isAuthenticated) {
-    return <Navigate to="/resume-list" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   // Render the protected content
@@ -234,7 +228,7 @@ export const UnauthorizedPage = () => {
           </button>
           
           <button
-            onClick={() => window.location.href = '/resume-list'}
+            onClick={() => window.location.href = '/dashboard'}
             className="w-full bg-gray-200 text-gray-800 py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors duration-200"
           >
             Go to Dashboard

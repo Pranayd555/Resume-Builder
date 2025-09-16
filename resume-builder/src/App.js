@@ -22,6 +22,13 @@ import Profile from './components/Profile';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 
+// Public Pages
+import HomePage from './components/public/HomePage';
+import CancellationRefunds from './components/public/CancellationRefunds';
+import TermsConditions from './components/public/TermsConditions';
+import Shipping from './components/public/Shipping';
+import ContactUs from './components/public/ContactUs';
+
 import ProtectedRoute, { UnauthorizedPage } from './components/ProtectedRoute';
 import AuthCallback from './components/AuthCallback';
 import ResumePreviewEnhanced from './components/ResumePreviewEnhanced';
@@ -38,7 +45,7 @@ function AppContent() {
           <Layout>
               <Routes>
               {/* Public Routes */}
-              <Route path="/" element={<Navigate to="/login" replace />} />
+              <Route path="/" element={<HomePage />} />
               <Route 
                 path="/login" 
                 element={
@@ -56,6 +63,10 @@ function AppContent() {
                 } 
               />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-conditions" element={<TermsConditions />} />
+              <Route path="/cancellation-refunds" element={<CancellationRefunds />} />
+              <Route path="/shipping" element={<Shipping />} />
+              <Route path="/contact-us" element={<ContactUs />} />
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/error" element={<ErrorPage />} />
@@ -63,7 +74,7 @@ function AppContent() {
               
               {/* Protected Routes */}
               <Route 
-                path="/resume-list" 
+                path="/dashboard" 
                 element={
                   <ProtectedRoute>
                     <ResumeList />

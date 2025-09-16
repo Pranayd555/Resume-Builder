@@ -316,10 +316,10 @@ router.post('/resend-otp', protect, async (req, res) => {
     }
 
     // Check if OTP was sent recently (prevent spam)
-    if (user.emailOtpExpire && Date.now() < user.emailOtpExpire.getTime() - 8 * 60 * 1000) {
+    if (user.emailOtpExpire && Date.now() < user.emailOtpExpire.getTime() - 1 * 60 * 1000) {
       return res.status(429).json({
         success: false,
-        error: 'Please wait before requesting a new OTP. You can request a new one in a few minutes.'
+        error: 'Please wait before requesting a new OTP. You can request a new one in 1 minute.'
       });
     }
 

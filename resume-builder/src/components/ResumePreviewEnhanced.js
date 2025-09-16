@@ -100,7 +100,7 @@ function ResumePreviewEnhanced() {
 
   // Back to list function
   const handleBackToList = useCallback(() => {
-    navigate('/resume-list');
+    navigate('/dashboard');
   }, [navigate]);
 
   // Styling update function with debounced PDF reload

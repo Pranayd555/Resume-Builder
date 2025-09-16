@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { ChartBarIcon, XMarkIcon, DocumentTextIcon, DocumentArrowDownIcon, XCircleIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import CKEditor from './CKEditor';
-import ATSLoader from './ATSLoader';
+import AILoader from './AILoader';
 import { aiAPI } from '../services/api';
 
 const ATSScoreModal = ({ 
@@ -65,13 +65,6 @@ const ATSScoreModal = ({
       const jobDescription = atsInputType === 'text' ? stripHtmlTags(atsJobDescription) : null;
       const jobDescriptionFile = atsInputType === 'file' ? atsFile : null;
       
-      console.log('=== ATS SCORE REQUEST ===');
-      console.log('Resume ID:', resumeId);
-      console.log('Input Type:', atsInputType);
-      console.log('Job Description Length:', jobDescription?.length || 0);
-      console.log('File Name:', jobDescriptionFile?.name || 'N/A');
-      console.log('========================');
-      
       // Call the ATS score API
       const response = await aiAPI.generateATSScore(
         resumeId,
@@ -131,10 +124,10 @@ const ATSScoreModal = ({
         <div className="flex-1 overflow-y-auto p-4">
           {atsGenerating ? (
             // Show ATS Loader when generating
-            <div className="flex items-center justify-center min-h-[400px]">
-              <ATSLoader 
+            <div className="flex items-center justify-center h-[400px] max-h-[400px]">
+              <AILoader 
                 title="Analyzing your resume..."
-                subtitle="Our advanced algorithm is meticulously scanning your resume to provide a comprehensive ATS score."
+                subtitle="Our advanced AI is meticulously scanning your resume to provide a comprehensive ATS score."
                 showProgress={true}
               />
             </div>
@@ -228,7 +221,7 @@ const ATSScoreModal = ({
               {/* File Input */}
               {atsInputType === 'file' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                     Upload Job Description File
                   </label>
                   <div 
@@ -287,7 +280,7 @@ const ATSScoreModal = ({
                     >
                       <DocumentArrowDownIcon className={`h-10 w-10 mb-2 ${atsFile ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'}`} />
                       <div className="flex items-center justify-center gap-2">
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-600">
                           {atsFile ? atsFile.name : 'Click to upload or drag and drop'}
                         </span>
                         {atsFile && (
@@ -305,7 +298,7 @@ const ATSScoreModal = ({
                           </button>
                         )}
                       </div>
-                      <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      <span className="text-xs text-orange-500 dark:text-orange-400 mt-1">
                         PDF, DOC, or DOCX files only
                       </span>
                     </label>

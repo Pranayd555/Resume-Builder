@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import DotLottieLoader from './DotLottieLoader';
+import AuthLoader from './AuthLoader';
 
 function AuthCallback() {
   const navigate = useNavigate();
@@ -35,7 +35,7 @@ function AuthCallback() {
           // Store the token and update auth context
           const result = await loginWithToken(token);
           if (result.success) {
-            navigate('/resume-list', { replace: true });
+            navigate('/dashboard', { replace: true });
           } else {
             setError(result.error || 'Authentication failed');
             setLoading(false);
@@ -56,10 +56,9 @@ function AuthCallback() {
 
   if (loading) {
     return (
-      <DotLottieLoader 
+      <AuthLoader 
         title="Completing authentication..."
         subtitle="Please wait while we complete your login process."
-        size={200}
       />
     );
   }

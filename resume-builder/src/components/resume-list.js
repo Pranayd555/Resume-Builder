@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-import DotLottieLoader from './DotLottieLoader';
+import AuthLoader from './AuthLoader';
 import { 
   Bars3Icon,
   CheckCircleIcon,
@@ -865,10 +865,9 @@ function ResumeList() {
   // Loading state - || true Always show for testing
   if (loading) {
     return (
-      <DotLottieLoader 
+      <AuthLoader 
         title="Loading Resumes..."
         subtitle="Please wait while we fetch your resumes."
-        size={200}
       />
     );
   }
@@ -1607,19 +1606,15 @@ function ResumeList() {
       />
 
       {/* Email Verification Modal */}
-      {showEmailVerification && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-          <div className="bg-white rounded-2xl p-4 sm:p-6 w-full max-w-sm sm:max-w-md mx-2 sm:mx-0 max-h-[90vh] overflow-y-auto">
-            <EmailVerification
-              email={verificationEmail}
-              onVerificationSuccess={handleEmailVerificationSuccess}
-              onSkip={handleSkipEmailVerification}
-              type="registration"
-              showSkip={true}
-            />
-          </div>
-        </div>
-      )}
+      <EmailVerification
+        isOpen={showEmailVerification}
+        onClose={handleSkipEmailVerification}
+        email={verificationEmail}
+        onVerificationSuccess={handleEmailVerificationSuccess}
+        onSkip={handleSkipEmailVerification}
+        type="registration"
+        showSkip={true}
+      />
     </div>
   );
 }

@@ -65,7 +65,7 @@ function Feedback() {
   };
 
   const handleBack = () => {
-    navigate('/resume-list');
+    navigate('/dashboard');
   };
 
   return (

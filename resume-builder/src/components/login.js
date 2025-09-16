@@ -72,15 +72,15 @@ function Login() {
               <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
                 Welcome Back
               </h2>
-              <p className="text-gray-600 dark:text-gray-400">Sign in to continue building your professional resume</p>
+              <p className="text-gray-600 dark:text-gray-600">Sign in to continue building your professional resume</p>
             </div>
 
             {/* Global Error */}
             {error && (
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
+              <div className="bg-red-50 dark:bg-white-400/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
                 <div className="flex items-center">
-                  <ExclamationTriangleIcon className="w-5 h-5 text-red-600 dark:text-red-400 mr-2" />
-                  <span className="text-red-800 dark:text-red-200 text-sm">{error}</span>
+                  <ExclamationTriangleIcon className="w-5 h-5 text-red-600 dark:text-red-800 mr-2" />
+                  <span className="text-red-800 dark:text-red-700 text-sm">{error}</span>
                 </div>
               </div>
             )}
@@ -190,7 +190,7 @@ function Login() {
 
             {/* Register Link */}
             <div className="text-center mt-8">
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-gray-600 dark:text-gray-600">
                 Don't have an account?{' '}
                 <Link 
                   to="/register" 

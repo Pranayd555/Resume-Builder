@@ -4,7 +4,7 @@ import { templateAPI, resumeAPI, apiHelpers } from '../services/api';
 import { toast } from 'react-toastify';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
-import DotLottieLoader from './DotLottieLoader';
+import AuthLoader from './AuthLoader';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -188,10 +188,9 @@ function TemplateSelection() {
 
   if (loading) {
     return (
-      <DotLottieLoader 
+      <AuthLoader 
         title="Loading Templates..."
         subtitle="Please wait while we fetch available templates."
-        size={200}
       />
     );
   }

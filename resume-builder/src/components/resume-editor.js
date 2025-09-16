@@ -188,11 +188,11 @@ function ResumeEditor() {
   const handleSave = () => {
     console.log('Saving resume data:', formData);
     // Add save logic here
-    navigate('/resume-list');
+    navigate('/dashboard');
   };
 
   const handleBack = () => {
-    navigate('/resume-list');
+    navigate('/dashboard');
   };
 
   return (

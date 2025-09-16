@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { subscriptionAPI } from '../services/api';
-import DotLottieLoader from './DotLottieLoader';
+import AuthLoader from './AuthLoader';
 
 function Subscription() {
   const navigate = useNavigate();
@@ -58,7 +58,7 @@ function Subscription() {
           if (response.success) {
             setCurrentSubscription(response.data.subscription);
             alert('Subscription activated successfully! Welcome to Pro!');
-            navigate('/resume-list');
+            navigate('/dashboard');
           }
         })
         .catch(error => {
@@ -143,10 +143,9 @@ function Subscription() {
 
   if (loading || successLoading) {
     return (
-      <DotLottieLoader 
+      <AuthLoader 
         title={successLoading ? 'Activating your subscription...' : 'Loading subscription plans...'}
         subtitle={successLoading ? 'Setting up your premium features' : 'Fetching the latest plans for you'}
-        size={200}
       />
     );
   }
