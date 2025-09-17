@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useDarkMode } from '../../contexts/DarkModeContext';
 import { useRouteScrollToTop } from '../../hooks/useAutoScroll';
 import { 
   DocumentTextIcon, 
@@ -8,12 +9,15 @@ import {
   ArrowRightIcon,
   UserIcon,
   ChartBarIcon,
-  ShieldCheckIcon
+  ShieldCheckIcon,
+  SunIcon,
+  MoonIcon
 } from '@heroicons/react/24/outline';
 
 const HomePage = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
   useRouteScrollToTop();
 
   const features = [
@@ -47,9 +51,9 @@ const HomePage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <section className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6">
@@ -95,27 +99,27 @@ const HomePage = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-white dark:bg-gray-900">
+      <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
               Why Choose Our Resume Builder?
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
               Everything you need to create a standout resume that gets you noticed by employers.
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <div key={index} className="text-center p-6 rounded-2xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200">
+              <div key={index} className="text-center p-6 backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 hover:shadow-2xl transition-all duration-200">
                 <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center">
                   <feature.icon className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-300">
+                <p className="text-gray-600 dark:text-gray-500">
                   {feature.description}
                 </p>
               </div>
@@ -125,15 +129,15 @@ const HomePage = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
+      <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
-              <div key={index} className="text-white">
-                <div className="text-4xl sm:text-5xl font-bold mb-2">
+              <div key={index} className="text-center backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-6">
+                <div className="text-4xl sm:text-5xl font-bold mb-2 text-gray-900 dark:text-gray-600">
                   {stat.number}
                 </div>
-                <div className="text-lg opacity-90">
+                <div className="text-lg text-gray-600 dark:text-gray-400">
                   {stat.label}
                 </div>
               </div>
@@ -143,7 +147,7 @@ const HomePage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gray-50 dark:bg-gray-800">
+      <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
             Ready to Land Your Dream Job?
@@ -162,47 +166,65 @@ const HomePage = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+      <footer className="backdrop-blur-md bg-white/70 dark:bg-transparent border-t border-white/20 dark:border-none py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-lg font-semibold mb-4">Resume Builder</h3>
-              <p className="text-gray-400">
+              <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Resume Builder</h3>
+              <p className="text-gray-600 dark:text-gray-400">
                 Professional resume building made simple and effective.
               </p>
             </div>
             <div>
-              <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
-              <ul className="space-y-2 text-gray-400">
+              <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Quick Links</h4>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
                 {isAuthenticated ? (
-                  <li><button onClick={() => navigate('/dashboard')} className="hover:text-white transition-colors">Dashboard</button></li>
+                  <li><button onClick={() => navigate('/dashboard')} className="hover:text-gray-900 dark:hover:text-white transition-colors">Dashboard</button></li>
                 ) : (
                   <>
-                    <li><button onClick={() => navigate('/login')} className="hover:text-white transition-colors">Login</button></li>
-                    <li><button onClick={() => navigate('/register')} className="hover:text-white transition-colors">Register</button></li>
+                    <li><button onClick={() => navigate('/login')} className="hover:text-gray-900 dark:hover:text-white transition-colors">Login</button></li>
+                    <li><button onClick={() => navigate('/register')} className="hover:text-gray-900 dark:hover:text-white transition-colors">Register</button></li>
                   </>
                 )}
-                <li><button onClick={() => navigate('/templates')} className="hover:text-white transition-colors">Templates</button></li>
+                <li><button onClick={() => navigate('/templates')} className="hover:text-gray-900 dark:hover:text-white transition-colors">Templates</button></li>
+                <li>
+                  <button 
+                    onClick={toggleDarkMode} 
+                    className="flex items-center gap-2 hover:text-gray-900 dark:hover:text-white transition-colors"
+                  >
+                    {isDarkMode ? (
+                      <>
+                        <SunIcon className="w-4 h-4" />
+                        Light Mode
+                      </>
+                    ) : (
+                      <>
+                        <MoonIcon className="w-4 h-4" />
+                        Dark Mode
+                      </>
+                    )}
+                  </button>
+                </li>
               </ul>
             </div>
             <div>
-              <h4 className="text-lg font-semibold mb-4">Legal</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><button onClick={() => navigate('/privacy-policy')} className="hover:text-white transition-colors">Privacy Policy</button></li>
-                <li><button onClick={() => navigate('/terms-conditions')} className="hover:text-white transition-colors">Terms & Conditions</button></li>
-                <li><button onClick={() => navigate('/cancellation-refunds')} className="hover:text-white transition-colors">Cancellation & Refunds</button></li>
+              <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Legal</h4>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                <li><button onClick={() => navigate('/privacy-policy')} className="hover:text-gray-900 dark:hover:text-white transition-colors">Privacy Policy</button></li>
+                <li><button onClick={() => navigate('/terms-conditions')} className="hover:text-gray-900 dark:hover:text-white transition-colors">Terms & Conditions</button></li>
+                <li><button onClick={() => navigate('/cancellation-refunds')} className="hover:text-gray-900 dark:hover:text-white transition-colors">Cancellation & Refunds</button></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-lg font-semibold mb-4">Support</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><button onClick={() => navigate('/contact-us')} className="hover:text-white transition-colors">Contact Us</button></li>
-                <li><button onClick={() => navigate('/shipping')} className="hover:text-white transition-colors">Shipping</button></li>
-                <li><button onClick={() => navigate('/feedback')} className="hover:text-white transition-colors">Feedback</button></li>
+              <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Support</h4>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                <li><button onClick={() => navigate('/contact-us')} className="hover:text-gray-900 dark:hover:text-white transition-colors">Contact Us</button></li>
+                <li><button onClick={() => navigate('/shipping')} className="hover:text-gray-900 dark:hover:text-white transition-colors">Shipping</button></li>
+                <li><button onClick={() => navigate('/feedback')} className="hover:text-gray-900 dark:hover:text-white transition-colors">Feedback</button></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+          <div className="border-t border-white/20 dark:border-orange-200/30 mt-8 pt-8 text-center text-gray-600 dark:text-gray-400">
             <p>&copy; 2024 Resume Builder. All rights reserved.</p>
           </div>
         </div>
