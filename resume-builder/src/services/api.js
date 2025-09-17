@@ -301,6 +301,18 @@ export const templateAPI = {
     return response.data;
   },
 
+  // Public template fetching (no auth token required)
+  getTemplatesPublic: async (params = {}) => {
+    const response = await api.get('/templates', {
+      params,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      timeout: 30000,
+    });
+    return response.data;
+  },
+
   getTemplateById: async (templateId) => {
     const config = createApiConfig('/templates');
     const response = await api.get(`/templates/${templateId}`, config);

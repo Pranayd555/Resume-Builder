@@ -461,6 +461,7 @@ function TemplateSelection() {
           transition: all 0.3s ease;
           width: 8px;
           height: 8px;
+          padding-top: 10px
         }
         
         .swiper-pagination-bullet-active {

@@ -152,7 +152,7 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
       sectionSpacing: defaultStyling.sectionSpacing || 1
     };
 
-    if(originalStyling.toString() === defaultValues.toString()) {
+    if(JSON.stringify(originalStyling) === JSON.stringify(defaultValues)) {
       return;
     }
 
@@ -334,39 +334,39 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
            {updating ? 'Applying...' : 'Apply Changes'}
          </button>
 
-         <div className="grid grid-cols-2 gap-3">
+         {/* <div className="grid grid-cols-2 gap-3"> */}
            <button
              onClick={handleCancel}
              disabled={updating || !hasChanges}
-             className={`px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 border-2 shadow-sm hover:shadow-md transform hover:scale-[1.02] ${
+             className={`w-full px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 border-2 shadow-sm hover:shadow-md transform hover:scale-[1.02] ${
                hasChanges && !updating
                  ? 'border-gray-300 bg-white text-gray-700 hover:border-gray-400 hover:bg-gray-50'
                  : 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
              }`}
            >
              <XMarkIcon className="w-4 h-4" />
-             Cancel
+             Clear Changes
            </button>
 
                        <button
               onClick={handleReset}
               disabled={updating || !defaultStyling}
-              className={`px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md transform hover:scale-[1.02] ${
+              className={`w-full px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md transform hover:scale-[1.02] ${
                 defaultStyling && !updating
                   ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600'
                   : 'bg-gray-100 text-gray-400 cursor-not-allowed'
               }`}
             >
              <ArrowPathIcon className="w-4 h-4" />
-             Reset
+             Reset to Defaults
            </button>
-         </div>
+         {/* </div> */}
        </div>
 
       {/* Status Info */}
       
         <div className="mt-3 text-xs text-gray-600 bg-blue-50 rounded p-2 border border-blue-100">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center justify-center gap-1">
             <InformationCircleIcon className="w-3 h-3 text-blue-600" />
             {hasChanges && <span>You have unsaved changes</span>}
             {!hasChanges && <span>No changes to apply</span>}
