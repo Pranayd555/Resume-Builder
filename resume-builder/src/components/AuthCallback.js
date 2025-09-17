@@ -74,10 +74,10 @@ function AuthCallback() {
             <h3 className="text-lg font-semibold text-red-800 mb-2">Authentication Error</h3>
             <p className="text-red-700 mb-4">{error}</p>
             <button
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/')}
               className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
-              Back to Login
+              Back to Home
             </button>
           </div>
         </div>

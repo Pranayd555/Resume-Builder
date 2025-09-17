@@ -58,7 +58,7 @@ export const handleApiError = (error, navigate, options = {}) => {
   if (error?.response?.status === 401) {
     errorMessage = 'Session expired. Please login again.';
     if (navigate) {
-      navigate('/login');
+      navigate('/');
     }
   } else if (error?.response?.status === 403) {
     errorMessage = 'Access denied. You do not have permission to perform this action.';

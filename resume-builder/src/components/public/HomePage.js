@@ -1,5 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { useRouteScrollToTop } from '../../hooks/useAutoScroll';
 import { 
   DocumentTextIcon, 
   SparklesIcon, 
@@ -11,6 +13,8 @@ import {
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  useRouteScrollToTop();
 
   const features = [
     {
@@ -59,20 +63,32 @@ const HomePage = () => {
               Choose from premium templates and get expert guidance every step of the way.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button
-                onClick={() => navigate('/register')}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2"
-              >
-                Get Started Free
-                <ArrowRightIcon className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => navigate('/login')}
-                className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 flex items-center justify-center gap-2"
-              >
-                <UserIcon className="w-5 h-5" />
-                Login
-              </button>
+              {isAuthenticated ? (
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2"
+                >
+                  Go to Dashboard
+                  <ArrowRightIcon className="w-5 h-5" />
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={() => navigate('/register')}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2"
+                  >
+                    Get Started Free
+                    <ArrowRightIcon className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => navigate('/login')}
+                    className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 flex items-center justify-center gap-2"
+                  >
+                    <UserIcon className="w-5 h-5" />
+                    Login
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -136,10 +152,10 @@ const HomePage = () => {
             Join thousands of professionals who have successfully created their resumes with our builder.
           </p>
           <button
-            onClick={() => navigate('/register')}
+            onClick={() => navigate(isAuthenticated ? '/dashboard' : '/register')}
             className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2 mx-auto"
           >
-            Start Building Now
+            {isAuthenticated ? 'Go to Dashboard' : 'Start Building Now'}
             <ArrowRightIcon className="w-5 h-5" />
           </button>
         </div>
@@ -158,8 +174,14 @@ const HomePage = () => {
             <div>
               <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><button onClick={() => navigate('/login')} className="hover:text-white transition-colors">Login</button></li>
-                <li><button onClick={() => navigate('/register')} className="hover:text-white transition-colors">Register</button></li>
+                {isAuthenticated ? (
+                  <li><button onClick={() => navigate('/dashboard')} className="hover:text-white transition-colors">Dashboard</button></li>
+                ) : (
+                  <>
+                    <li><button onClick={() => navigate('/login')} className="hover:text-white transition-colors">Login</button></li>
+                    <li><button onClick={() => navigate('/register')} className="hover:text-white transition-colors">Register</button></li>
+                  </>
+                )}
                 <li><button onClick={() => navigate('/templates')} className="hover:text-white transition-colors">Templates</button></li>
               </ul>
             </div>

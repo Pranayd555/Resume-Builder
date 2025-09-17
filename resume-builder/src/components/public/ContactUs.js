@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useRouteScrollToTop } from '../../hooks/useAutoScroll';
+import { contactAPI } from '../../services/api';
+import { toast } from 'react-toastify';
 import { 
   ArrowLeftIcon, 
   EnvelopeIcon, 
@@ -12,6 +15,7 @@ import {
 
 const ContactUs = () => {
   const navigate = useNavigate();
+  useRouteScrollToTop();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -37,19 +41,44 @@ const ContactUs = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setSubmitStatus(null);
     
-    // Simulate form submission
-    setTimeout(() => {
+    try {
+      // Prepare contact data
+      const contactData = {
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+        category: formData.category
+      };
+
+      // Submit contact using the new contact API
+      const response = await contactAPI.submitContact(contactData);
+      
+      if (response.success) {
+        setSubmitStatus('success');
+        toast.success('Message sent successfully! We\'ll get back to you within 24 hours.');
+        
+        // Reset form
+        setFormData({
+          name: '',
+          email: '',
+          subject: '',
+          message: '',
+          category: 'general'
+        });
+      } else {
+        setSubmitStatus('error');
+        toast.error(response.error || 'Failed to send message. Please try again.');
+      }
+    } catch (error) {
+      console.error('Contact form submission error:', error);
+      setSubmitStatus('error');
+      toast.error('Failed to send message. Please try again.');
+    } finally {
       setIsSubmitting(false);
-      setSubmitStatus('success');
-      setFormData({
-        name: '',
-        email: '',
-        subject: '',
-        message: '',
-        category: 'general'
-      });
-    }, 2000);
+    }
   };
 
   const contactInfo = [
@@ -153,6 +182,18 @@ const ContactUs = () => {
                 </div>
                 <p className="text-green-700 dark:text-green-300 text-sm mt-1">
                   We'll get back to you within 24 hours.
+                </p>
+              </div>
+            )}
+
+            {submitStatus === 'error' && (
+              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+                <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
+                  <ExclamationTriangleIcon className="w-5 h-5" />
+                  <span className="font-semibold">Failed to send message</span>
+                </div>
+                <p className="text-red-700 dark:text-red-300 text-sm mt-1">
+                  Please try again or contact us directly at support@resumebuilder.com
                 </p>
               </div>
             )}

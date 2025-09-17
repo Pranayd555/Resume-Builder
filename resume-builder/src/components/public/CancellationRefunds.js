@@ -1,9 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useRouteScrollToTop } from '../../hooks/useAutoScroll';
 import { ArrowLeftIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 
 const CancellationRefunds = () => {
   const navigate = useNavigate();
+  useRouteScrollToTop();
 
   const handleBack = () => {
     navigate('/');

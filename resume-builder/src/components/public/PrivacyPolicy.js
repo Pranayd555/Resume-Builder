@@ -1,8 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useRouteScrollToTop } from '../../hooks/useAutoScroll';
 
 function PrivacyPolicy() {
   const navigate = useNavigate();
+  useRouteScrollToTop();
 
   const handleBack = () => {
     navigate('/dashboard');

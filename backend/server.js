@@ -18,6 +18,7 @@ const subscriptionRoutes = require('./routes/subscriptions');
 const uploadRoutes = require('./routes/uploads');
 const emailTestRoutes = require('./routes/email-test');
 const feedbackRoutes = require('./routes/feedback');
+const contactRoutes = require('./routes/contact');
 const analyticsRoutes = require('./routes/analytics');
 const aiRoutes = require('./routes/ai');
 
@@ -203,6 +204,7 @@ app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/email-test', emailTestRoutes);
 app.use('/api/feedback', feedbackRoutes);
+app.use('/api/contact', contactRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/ai', aiRoutes);
 

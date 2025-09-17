@@ -540,6 +540,17 @@ export const feedbackAPI = {
     return response.data;
   },
 
+  // Public feedback submission (no auth token required)
+  submitFeedbackPublic: async (feedbackData) => {
+    const response = await api.post('/feedback', feedbackData, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      timeout: 30000,
+    });
+    return response.data;
+  },
+
   getFeedback: async (params = {}) => {
     const config = createApiConfig('/feedback', { params });
     const response = await api.get('/feedback', config);
@@ -581,6 +592,50 @@ export const feedbackAPI = {
     const response = await api.get('/feedback/public/testimonials', config);
     return response.data;
   },
+};
+
+// Contact API
+export const contactAPI = {
+  submitContact: async (contactData) => {
+    const response = await api.post('/contact', contactData);
+    return response.data;
+  },
+
+  getContacts: async (params = {}) => {
+    const config = createApiConfig('/contact', { params });
+    const response = await api.get('/contact', config);
+    return response.data;
+  },
+
+  getContactById: async (contactId) => {
+    const config = createApiConfig('/contact');
+    const response = await api.get(`/contact/${contactId}`, config);
+    return response.data;
+  },
+
+  updateContactStatus: async (contactId, statusData) => {
+    const config = createApiConfig('/contact');
+    const response = await api.put(`/contact/${contactId}/status`, statusData, config);
+    return response.data;
+  },
+
+  addContactResponse: async (contactId, responseData) => {
+    const config = createApiConfig('/contact');
+    const response = await api.put(`/contact/${contactId}/response`, responseData, config);
+    return response.data;
+  },
+
+  getContactStats: async () => {
+    const config = createApiConfig('/contact/stats/overview');
+    const response = await api.get('/contact/stats/overview', config);
+    return response.data;
+  },
+
+  deleteContact: async (contactId) => {
+    const config = createApiConfig('/contact');
+    const response = await api.delete(`/contact/${contactId}`, config);
+    return response.data;
+  }
 };
 
 // Helper functions

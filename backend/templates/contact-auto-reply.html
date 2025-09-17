@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>We Received Your Message</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #495057;
+            margin-bottom: 20px;
+        }
+        .message-box {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .message-box h3 {
+            margin-top: 0;
+            color: #1976d2;
+            font-size: 16px;
+        }
+        .info-section {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .info-section h3 {
+            margin-top: 0;
+            color: #495057;
+            font-size: 18px;
+        }
+        .info-list {
+            list-style: none;
+            padding: 0;
+        }
+        .info-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            align-items: center;
+        }
+        .info-list li:last-child {
+            border-bottom: none;
+        }
+        .info-list li::before {
+            content: "✓";
+            color: #28a745;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .response-time {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .response-time h4 {
+            margin: 0 0 10px 0;
+            color: #856404;
+        }
+        .response-time p {
+            margin: 0;
+            color: #856404;
+            font-weight: 500;
+        }
+        .contact-info {
+            background-color: #e8f5e8;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .contact-info h4 {
+            margin: 0 0 10px 0;
+            color: #155724;
+        }
+        .contact-info a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .contact-info a:hover {
+            text-decoration: underline;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        .category-badge {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✅ Message Received!</h1>
+            <p>Thank you for contacting Resume Builder</p>
+        </div>
+        
+        <div class="content">
+            <div class="greeting">
+                <p>Hi <strong>{{name}}</strong>,</p>
+            </div>
+
+            <div class="message-box">
+                <h3>📧 Your Message Has Been Received</h3>
+                <p>We've successfully received your <span class="category-badge">{{category}}</span> inquiry regarding <strong>"{{subject}}"</strong> and our team is already reviewing it.</p>
+            </div>
+
+            <div class="response-time">
+                <h4>⏰ Response Time</h4>
+                <p>We typically respond within 24 hours during business days</p>
+            </div>
+
+            <div class="info-section">
+                <h3>📋 What Happens Next?</h3>
+                <ul class="info-list">
+                    <li>Our support team will review your message</li>
+                    <li>We'll prioritize your inquiry based on its category</li>
+                    <li>You'll receive a detailed response via email</li>
+                    <li>If needed, we may follow up with additional questions</li>
+                </ul>
+            </div>
+
+            <div class="contact-info">
+                <h4>🚀 Need Immediate Assistance?</h4>
+                <p>For urgent matters, you can reach us directly at:</p>
+                <p><a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
+            </div>
+
+            <div class="info-section">
+                <h3>💡 While You Wait</h3>
+                <p>Here are some helpful resources you might find useful:</p>
+                <ul class="info-list">
+                    <li>Visit our <a href="{{websiteUrl}}">homepage</a> to explore our features</li>
+                    <li>Check out our <a href="{{websiteUrl}}/templates">resume templates</a></li>
+                    <li>Read our <a href="{{websiteUrl}}/privacy-policy">privacy policy</a></li>
+                    <li>Review our <a href="{{websiteUrl}}/terms-conditions">terms and conditions</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Thank you for choosing Resume Builder!</p>
+            <p>Visit us at <a href="{{websiteUrl}}">{{websiteUrl}}</a></p>
+            <p><em>This is an automated response. Please do not reply to this email.</em></p>
+        </div>
+    </div>
+</body>
+</html>
