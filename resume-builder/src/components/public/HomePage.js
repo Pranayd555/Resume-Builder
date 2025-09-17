@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDarkMode } from '../../contexts/DarkModeContext';
 import { useRouteScrollToTop } from '../../hooks/useAutoScroll';
+import TemplateShowcase from './TemplateShowcase';
 import { 
   DocumentTextIcon, 
   SparklesIcon, 
@@ -128,6 +129,9 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* Template Showcase Section */}
+      <TemplateShowcase />
+
       {/* Stats Section */}
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -186,7 +190,6 @@ const HomePage = () => {
                     <li><button onClick={() => navigate('/register')} className="hover:text-gray-900 dark:hover:text-white transition-colors">Register</button></li>
                   </>
                 )}
-                <li><button onClick={() => navigate('/templates')} className="hover:text-gray-900 dark:hover:text-white transition-colors">Templates</button></li>
                 <li>
                   <button 
                     onClick={toggleDarkMode} 

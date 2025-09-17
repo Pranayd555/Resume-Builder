@@ -342,7 +342,7 @@ function ResumePreviewEnhanced() {
 
            {/* Resume Preview */}
                         <div className="md:col-span-6">
-              <div className="backdrop-blur-md bg-white/90 dark:bg-transparent rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-6 lg:p-8 relative">
+              <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-xl sm:rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-3 sm:p-6 lg:p-8 relative">
              <div className="grid grid-cols-1 md:grid-cols-6 gap-4 sm:gap-6">
                        {/* Styling Controls Sidebar - Visible on medium+ screens (768px+) */}
                       {showStylingControls && (
