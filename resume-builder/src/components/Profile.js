@@ -606,7 +606,7 @@ function Profile() {
       if (response.success) {
         await logout();
         toast.success('Account deleted successfully');
-        navigate('/login');
+        navigate('/');
       } else {
         throw new Error(response.error || 'Failed to delete account');
       }

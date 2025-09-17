@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 
 /**
  * Custom hook for automatic scrolling to elements
@@ -213,6 +214,37 @@ export const useFormScroll = (formErrors = {}, fieldOrder = []) => {
     scrollToFirstError,
     scrollToField
   };
+};
+
+/**
+ * Hook for automatically scrolling to top when route changes
+ * @param {Object} options - Scrolling options
+ */
+export const useRouteScrollToTop = (options = {}) => {
+  const location = useLocation();
+  const lastPathnameRef = useRef(null);
+  
+  const defaultOptions = useMemo(() => ({
+    behavior: 'smooth',
+    delay: 100,
+    ...options
+  }), [options]);
+
+  useEffect(() => {
+    // Only scroll if the pathname has actually changed
+    if (lastPathnameRef.current !== location.pathname) {
+      lastPathnameRef.current = location.pathname;
+      
+      const timer = setTimeout(() => {
+        window.scrollTo({
+          top: 0,
+          behavior: defaultOptions.behavior
+        });
+      }, defaultOptions.delay);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [location.pathname, defaultOptions.behavior, defaultOptions.delay]);
 };
 
 export default useAutoScroll; 

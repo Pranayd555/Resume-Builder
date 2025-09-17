@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { API_BASE_URL } from '../config/api';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useRouteScrollToTop } from '../hooks/useAutoScroll';
 import { useAuth } from '../contexts/AuthContext';
 import { validators } from '../models/dataModels';
 import { 
@@ -13,6 +14,7 @@ function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isLoading, error } = useAuth();
+  useRouteScrollToTop();
   
   const [formData, setFormData] = useState({
     email: '',
@@ -67,6 +69,19 @@ function Login() {
       <div className="flex items-center justify-center px-4 py-8 relative z-10">
         <div className="w-full max-w-md">
           <div className="backdrop-blur-md bg-white/80 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-8">
+            {/* Back to Home Button */}
+            <div className="mb-4">
+              <button
+                onClick={() => navigate('/')}
+                className="flex items-center gap-2 text-gray-600 dark:text-gray-600 hover:text-blue-600 dark:hover:text-blue-600 transition-colors duration-200 text-sm"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Home
+              </button>
+            </div>
+
             {/* Header */}
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">

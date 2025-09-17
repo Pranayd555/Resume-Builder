@@ -476,24 +476,11 @@ router.put('/profile', [
         user.email = email;
         user.isEmailVerified = false;
         
-        // Clear any existing email verification tokens
+        // Clear any existing email verification tokens and OTP
         user.emailVerificationToken = undefined;
         user.emailVerificationExpire = undefined;
-        
-        // Generate OTP for new email verification
-        const otp = user.generateEmailOtp();
-        
-        // Send OTP email for email change
-        try {
-          const OtpService = require('../services/otpService');
-          await OtpService.sendOtpEmail(email, otp, 'email-change', user.fullName);
-        } catch (emailError) {
-          logger.error('Failed to send OTP email for email change:', emailError);
-          return res.status(500).json({
-            success: false,
-            error: 'Failed to send verification email. Please try again.'
-          });
-        }
+        user.emailOtp = undefined;
+        user.emailOtpExpire = undefined;
         
         logger.info(`Email changed for user ${user._id}: ${user.email} -> ${email} (unverified)`);
       }
@@ -577,7 +564,7 @@ router.put('/profile', [
     res.json({
       success: true,
       message: email !== undefined && email !== user.email ? 
-        'Profile updated! Please check your new email for verification code.' : 
+        'Profile updated! Please verify your new email address.' : 
         'Profile updated successfully!',
       data: {
         user: userResponse,

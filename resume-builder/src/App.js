@@ -19,7 +19,7 @@ import TemplateSelection from './components/TemplateSelection';
 import Feedback from './components/feedback';
 import Subscription from './components/subscription';
 import Profile from './components/Profile';
-import PrivacyPolicy from './components/PrivacyPolicy';
+import PrivacyPolicy from './components/public/PrivacyPolicy';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 
 // Public Pages
@@ -125,11 +125,7 @@ function AppContent() {
               />
               <Route 
                 path="/feedback" 
-                element={
-                  <ProtectedRoute>
-                    <Feedback />
-                  </ProtectedRoute>
-                } 
+                element={<Feedback />} 
               />
               <Route 
                 path="/subscription" 

@@ -1,9 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useRouteScrollToTop } from '../../hooks/useAutoScroll';
 import { ArrowLeftIcon, TruckIcon, ClockIcon, CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 const Shipping = () => {
   const navigate = useNavigate();
+  useRouteScrollToTop();
 
   const handleBack = () => {
     navigate('/');

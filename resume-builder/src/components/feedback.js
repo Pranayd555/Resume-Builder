@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { feedbackAPI, apiHelpers } from '../services/api';
+import { useRouteScrollToTop } from '../hooks/useAutoScroll';
 import { toast } from 'react-toastify';
 import { 
   ChevronLeftIcon, 
@@ -12,6 +13,7 @@ import {
 
 function Feedback() {
   const navigate = useNavigate();
+  useRouteScrollToTop();
   const [feedback, setFeedback] = useState({
     name: '',
     email: '',
@@ -20,11 +22,6 @@ function Feedback() {
     rating: 5
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Scroll to top when component mounts
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
 
   const handleInputChange = (field, value) => {
     setFeedback(prev => ({
@@ -38,8 +35,8 @@ function Feedback() {
     setIsSubmitting(true);
     
     try {
-      // Submit feedback to API
-      const response = await feedbackAPI.submitFeedback(feedback);
+      // Submit feedback to API (public, no auth required)
+      const response = await feedbackAPI.submitFeedbackPublic(feedback);
       
       console.log('Feedback submitted successfully:', response);
       

@@ -18,7 +18,7 @@ const ErrorPage = ({
   const { errorMessage, from } = location.state || {};
 
   const handleLogin = () => {
-    navigate('/login');
+    navigate('/');
   };
 
   const handleGoBack = () => {
