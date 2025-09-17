@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRouteScrollToTop } from '../../hooks/useAutoScroll';
-import { ArrowLeftIcon, DocumentTextIcon, ShieldCheckIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, ShieldCheckIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 const TermsConditions = () => {
   const navigate = useNavigate();
@@ -12,34 +12,26 @@ const TermsConditions = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen pt-16">
+      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="flex items-center mb-8">
           <button
             onClick={handleBack}
-            className="flex items-center gap-2 text-white/80 hover:text-white transition-colors mb-6"
+            className="mr-4 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors group"
           >
-            <ArrowLeftIcon className="w-5 h-5" />
-            Back to Home
+            <ArrowLeftIcon className="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:-translate-x-1 transition-transform" />
           </button>
-          <h1 className="text-4xl sm:text-5xl font-bold mb-4 flex items-center gap-3">
-            <DocumentTextIcon className="w-10 h-10" />
-            Terms & Conditions
-          </h1>
-          <p className="text-xl text-white/90">
-            Please read these terms carefully before using our service
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Terms & Conditions</h1>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="prose prose-lg dark:prose-invert max-w-none">
+        {/* Content */}
+        <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-8">
+          <div className="prose prose-lg dark:prose-invert max-w-none">
           
           {/* Last Updated */}
           <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-6 mb-8">
-            <p className="text-gray-600 dark:text-gray-300">
+            <p className="text-gray-600 dark:text-gray-500">
               <strong>Last Updated:</strong> {new Date().toLocaleDateString('en-US', { 
                 year: 'numeric', 
                 month: 'long', 
@@ -50,7 +42,7 @@ const TermsConditions = () => {
 
           {/* Acceptance of Terms */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6 flex items-center gap-3">
               <ShieldCheckIcon className="w-8 h-8 text-green-500" />
               1. Acceptance of Terms
             </h2>
@@ -66,7 +58,7 @@ const TermsConditions = () => {
 
           {/* Description of Service */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
               2. Description of Service
             </h2>
             <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
@@ -86,11 +78,11 @@ const TermsConditions = () => {
 
           {/* User Accounts */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
               3. User Accounts
             </h2>
             <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Account Creation</h3>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-500 mb-4">Account Creation</h3>
               <p className="text-gray-600 dark:text-gray-300 mb-4">
                 To use certain features of our Service, you must create an account. You agree to:
               </p>
@@ -101,7 +93,7 @@ const TermsConditions = () => {
                 <li>• Accept responsibility for all activities under your account</li>
               </ul>
               
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Account Termination</h3>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-500 mb-4">Account Termination</h3>
               <p className="text-gray-600 dark:text-gray-300">
                 We reserve the right to terminate or suspend your account at any time for violation of these terms or for any other reason at our sole discretion.
               </p>
@@ -110,14 +102,14 @@ const TermsConditions = () => {
 
           {/* Acceptable Use */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6 flex items-center gap-3">
               <ExclamationTriangleIcon className="w-8 h-8 text-yellow-500" />
               4. Acceptable Use Policy
             </h2>
             <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Prohibited Activities</h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-4">You agree not to:</p>
-              <ul className="space-y-2 text-gray-600 dark:text-gray-300 ml-4">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4">Prohibited Activities</h3>
+              <p className="text-gray-600 dark:text-gray-500 mb-4">You agree not to:</p>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-500 ml-4">
                 <li>• Use the Service for any unlawful purpose or to solicit others to perform unlawful acts</li>
                 <li>• Violate any international, federal, provincial, or state regulations, rules, laws, or local ordinances</li>
                 <li>• Infringe upon or violate our intellectual property rights or the intellectual property rights of others</li>
@@ -131,7 +123,7 @@ const TermsConditions = () => {
 
           {/* Privacy and Data */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
               5. Privacy and Data Protection
             </h2>
             <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
@@ -146,16 +138,16 @@ const TermsConditions = () => {
 
           {/* Intellectual Property */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
               6. Intellectual Property Rights
             </h2>
             <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Our Rights</h3>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-500 mb-4">Our Rights</h3>
               <p className="text-gray-600 dark:text-gray-300 mb-4">
                 The Service and its original content, features, and functionality are and will remain the exclusive property of Resume Builder and its licensors. The Service is protected by copyright, trademark, and other laws.
               </p>
               
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Your Rights</h3>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-500 mb-4">Your Rights</h3>
               <p className="text-gray-600 dark:text-gray-300">
                 You retain ownership of the content you create using our Service. You grant us a limited license to store, process, and display your content as necessary to provide the Service.
               </p>
@@ -164,21 +156,21 @@ const TermsConditions = () => {
 
           {/* Subscription and Payment */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
               7. Subscription and Payment Terms
             </h2>
             <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Free Plan</h3>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-500 mb-4">Free Plan</h3>
               <p className="text-gray-600 dark:text-gray-300 mb-4">
                 Our free plan provides basic resume building features at no cost.
               </p>
               
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Pro Plan</h3>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-500 mb-4">Pro Plan</h3>
               <p className="text-gray-600 dark:text-gray-300 mb-4">
                 Pro plan subscriptions are billed monthly or annually. All fees are non-refundable except as required by law or as specified in our refund policy.
               </p>
               
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Price Changes</h3>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-500 mb-4">Price Changes</h3>
               <p className="text-gray-600 dark:text-gray-300">
                 We reserve the right to change our pricing at any time. Price changes will be communicated to existing subscribers with at least 30 days notice.
               </p>
@@ -187,14 +179,14 @@ const TermsConditions = () => {
 
           {/* Limitation of Liability */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
               8. Limitation of Liability
             </h2>
             <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl p-6">
-              <p className="text-gray-600 dark:text-gray-300 mb-4">
+              <p className="text-gray-600 dark:text-gray-500 mb-4">
                 In no event shall Resume Builder, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your use of the Service.
               </p>
-              <p className="text-gray-600 dark:text-gray-300">
+              <p className="text-gray-600 dark:text-gray-500">
                 Our total liability to you for any damages arising from or related to these terms or the Service shall not exceed the amount you paid us in the 12 months preceding the claim.
               </p>
             </div>
@@ -202,7 +194,7 @@ const TermsConditions = () => {
 
           {/* Changes to Terms */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
               9. Changes to Terms
             </h2>
             <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
@@ -217,14 +209,14 @@ const TermsConditions = () => {
 
           {/* Contact Information */}
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
               10. Contact Information
             </h2>
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-6">
-              <p className="text-gray-600 dark:text-gray-300 mb-4">
+              <p className="text-gray-600 dark:text-gray-500 mb-4">
                 If you have any questions about these Terms of Service, please contact us:
               </p>
-              <div className="space-y-2 text-gray-600 dark:text-gray-300">
+              <div className="space-y-2 text-gray-600 dark:text-gray-500">
                 <p><strong>Email:</strong> legal@resumebuilder.com</p>
                 <p><strong>Support:</strong> support@resumebuilder.com</p>
                 <p><strong>Response Time:</strong> Within 48 hours</p>
@@ -232,6 +224,7 @@ const TermsConditions = () => {
             </div>
           </section>
 
+          </div>
         </div>
       </div>
     </div>

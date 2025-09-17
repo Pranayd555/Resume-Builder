@@ -118,48 +118,39 @@ const ContactUs = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen pt-16">
+      <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="flex items-center mb-8">
           <button
             onClick={handleBack}
-            className="flex items-center gap-2 text-white/80 hover:text-white transition-colors mb-6"
+            className="mr-4 text-gray-600 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors group"
           >
-            <ArrowLeftIcon className="w-5 h-5" />
-            Back to Home
+            <ArrowLeftIcon className="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:-translate-x-1 transition-transform" />
           </button>
-          <h1 className="text-4xl sm:text-5xl font-bold mb-4 flex items-center gap-3">
-            <EnvelopeIcon className="w-10 h-10" />
-            Contact Us
-          </h1>
-          <p className="text-xl text-white/90">
-            We're here to help! Get in touch with our support team
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Contact Us</h1>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Content */}
         
         {/* Contact Information Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {contactInfo.map((info, index) => (
-            <div key={index} className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 text-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+            <div key={index} className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-6 text-center hover:shadow-2xl transition-all duration-200">
               <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center">
                 <info.icon className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-700 mb-2">
                 {info.title}
               </h3>
               <div className="space-y-1 mb-3">
                 {info.details.map((detail, idx) => (
-                  <p key={idx} className="text-gray-600 dark:text-gray-300 text-sm">
+                  <p key={idx} className="text-gray-600 dark:text-gray-500 text-sm">
                     {detail}
                   </p>
                 ))}
               </div>
-              <p className="text-gray-500 dark:text-gray-400 text-xs">
+              <p className="text-gray-500 dark:text-gray-500 text-xs">
                 {info.description}
               </p>
             </div>
@@ -169,8 +160,8 @@ const ContactUs = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           
           {/* Contact Form */}
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+          <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-8">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-6">
               Send us a Message
             </h2>
             
@@ -201,7 +192,7 @@ const ContactUs = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-900 dark:text-gray-700 mb-2">
                     Full Name *
                   </label>
                   <input
@@ -211,12 +202,12 @@ const ContactUs = () => {
                     value={formData.name}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-3 backdrop-blur-md bg-white/80 dark:bg-orange-50/95 border border-white/30 dark:border-orange-200/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-gray-900 dark:text-gray-700 shadow-lg hover:shadow-xl transition-all duration-200"
                     placeholder="Your full name"
                   />
                 </div>
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-900 dark:text-gray-700 mb-2">
                     Email Address *
                   </label>
                   <input
@@ -226,14 +217,14 @@ const ContactUs = () => {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-4 py-3 backdrop-blur-md bg-white/80 dark:bg-orange-50/95 border border-white/30 dark:border-orange-200/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-gray-900 dark:text-gray-700 shadow-lg hover:shadow-xl transition-all duration-200"
                     placeholder="your@email.com"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label htmlFor="category" className="block text-sm font-medium text-gray-900 dark:text-gray-700 mb-2">
                   Category
                 </label>
                 <select
@@ -241,7 +232,7 @@ const ContactUs = () => {
                   name="category"
                   value={formData.category}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-3 backdrop-blur-md bg-white/80 dark:bg-orange-50/95 border border-white/30 dark:border-orange-200/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-gray-900 dark:text-gray-700 shadow-lg hover:shadow-xl transition-all duration-200"
                 >
                   {categories.map((category) => (
                     <option key={category.value} value={category.value}>
@@ -252,7 +243,7 @@ const ContactUs = () => {
               </div>
 
               <div>
-                <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label htmlFor="subject" className="block text-sm font-medium text-gray-900 dark:text-gray-700 mb-2">
                   Subject *
                 </label>
                 <input
@@ -262,13 +253,13 @@ const ContactUs = () => {
                   value={formData.subject}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-4 py-3 backdrop-blur-md bg-white/80 dark:bg-orange-50/95 border border-white/30 dark:border-orange-200/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-gray-900 dark:text-gray-700 shadow-lg hover:shadow-xl transition-all duration-200"
                   placeholder="Brief description of your inquiry"
                 />
               </div>
 
               <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label htmlFor="message" className="block text-sm font-medium text-gray-900 dark:text-gray-700 mb-2">
                   Message *
                 </label>
                 <textarea
@@ -278,7 +269,7 @@ const ContactUs = () => {
                   onChange={handleInputChange}
                   required
                   rows={6}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-orange-50/50 text-gray-900 dark:text-gray-700 resize-none"
                   placeholder="Please provide details about your inquiry..."
                 />
               </div>
@@ -295,47 +286,47 @@ const ContactUs = () => {
 
           {/* FAQ Section */}
           <div className="space-y-6">
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+            <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-8">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-6">
                 Frequently Asked Questions
               </h2>
               
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-700 mb-2">
                     How quickly do you respond to support requests?
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-300">
+                  <p className="text-gray-600 dark:text-gray-500">
                     We typically respond to all inquiries within 24 hours during business days. 
                     Pro subscribers receive priority support with faster response times.
                   </p>
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-700 mb-2">
                     What information should I include in my message?
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-300">
+                  <p className="text-gray-600 dark:text-gray-500">
                     Please include your account email, a clear description of the issue, 
                     and any relevant screenshots or error messages to help us assist you better.
                   </p>
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-700 mb-2">
                     Do you offer phone support?
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-300">
+                  <p className="text-gray-600 dark:text-gray-500">
                     Yes! Phone support is available for Pro subscribers during business hours. 
                     Free users can contact us via email or through our contact form.
                   </p>
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-700 mb-2">
                     Can I request new features?
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-300">
+                  <p className="text-gray-600 dark:text-gray-500">
                     Absolutely! We love hearing from our users. Use the "Feature Request" 
                     category when submitting your message, and we'll consider it for future updates.
                   </p>
@@ -344,18 +335,18 @@ const ContactUs = () => {
             </div>
 
             {/* Emergency Contact */}
-            <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+            <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-700 mb-3 flex items-center gap-2">
                 <ExclamationTriangleIcon className="w-5 h-5 text-red-500" />
                 Emergency Support
               </h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-3">
+              <p className="text-gray-600 dark:text-gray-500 mb-3">
                 For urgent technical issues affecting your ability to access your account or resumes:
               </p>
               <p className="text-red-600 dark:text-red-400 font-semibold">
                 emergency@resumebuilder.com
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
                 Available 24/7 for critical issues
               </p>
             </div>

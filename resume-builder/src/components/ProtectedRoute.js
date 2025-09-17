@@ -3,7 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import AuthLoader from './AuthLoader';
 
-const ProtectedRoute = ({ children, requireAuth = true, redirectTo = '/login' }) => {
+const ProtectedRoute = ({ children, requireAuth = true, redirectTo = '/' }) => {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
@@ -84,7 +84,7 @@ export const SubscriptionProtectedRoute = ({
   if (!isAuthenticated) {
     return (
       <Navigate 
-        to="/login" 
+        to="/" 
         state={{ from: location }} 
         replace 
       />
@@ -155,7 +155,7 @@ export const RoleProtectedRoute = ({
   if (!isAuthenticated) {
     return (
       <Navigate 
-        to="/login" 
+        to="/" 
         state={{ from: location }} 
         replace 
       />
