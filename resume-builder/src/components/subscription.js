@@ -86,7 +86,7 @@ function Subscription() {
       if (response.success) {
         setCurrentSubscription(response.data.subscription);
         alert(`Trial started! You have ${trialType === 'free' ? '3' : '7'} days to try Pro features.`);
-        navigate('/resume-list');
+        navigate('/dashboard');
       }
     } catch (error) {
       console.error('Error starting trial:', error);
@@ -112,7 +112,7 @@ function Subscription() {
 
 
   const handleBack = () => {
-    navigate('/resume-list');
+    navigate('/dashboard');
   };
 
 

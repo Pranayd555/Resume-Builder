@@ -10,28 +10,42 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
-// Custom styles for pagination dots
+// Custom styles for pagination dots and navigation buttons matching TemplateSelection
 const customPaginationStyles = `
-  .template-showcase-swiper .swiper-pagination-bullet {
-    background: rgba(59, 130, 246, 0.5) !important;
-    opacity: 0.5 !important;
-    transition: all 0.3s ease !important;
-    width: 8px !important;
-    height: 8px !important;
+  .template-showcase-swiper {
+    padding: 20px 0;
   }
   
-  .template-showcase-swiper .swiper-pagination-bullet-active {
-    background: #3b82f6 !important;
-    opacity: 1 !important;
-    transform: scale(1.2) !important;
+  .swiper-button-prev::after,
+  .swiper-button-next::after {
+    display: none;
   }
   
-  .dark .template-showcase-swiper .swiper-pagination-bullet {
-    background: rgba(255, 255, 255, 0.6) !important;
+  .swiper-pagination-bullet {
+    background: rgba(59, 130, 246, 0.5);
+    opacity: 0.5;
+    transition: all 0.3s ease;
+    width: 8px;
+    height: 8px;
+    margin: 0 4px;
+    border-radius: 50%;
   }
   
-  .dark .template-showcase-swiper .swiper-pagination-bullet-active {
-    background: #ffffff !important;
+  .swiper-pagination-bullet-active {
+    background: #3b82f6;
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  
+  @media (max-width: 640px) {
+    .template-showcase-swiper {
+      padding: 10px 0;
+    }
+    
+    .swiper-button-prev,
+    .swiper-button-next {
+      display: none !important;
+    }
   }
 `;
 
@@ -43,6 +57,7 @@ function TemplateShowcase() {
   
   // Add ref to prevent duplicate API calls during StrictMode
   const hasFetchedRef = useRef(false);
+  const swiperRef = useRef(null);
 
   useEffect(() => {
     // Prevent duplicate calls during React StrictMode in development
@@ -149,13 +164,16 @@ function TemplateShowcase() {
             modules={[Navigation, Pagination, Autoplay]}
             spaceBetween={24}
             slidesPerView={1}
+            centeredSlides={true}
+            loop={true}
+            loopFillGroupWithBlank={true}
             navigation={{
-              nextEl: '.swiper-button-next-custom',
-              prevEl: '.swiper-button-prev-custom',
+              nextEl: '.swiper-button-next',
+              prevEl: '.swiper-button-prev',
             }}
             pagination={{
               clickable: true,
-              el: '.swiper-pagination-custom',
+              dynamicBullets: true,
             }}
             autoplay={{
               delay: 4000,
@@ -172,6 +190,9 @@ function TemplateShowcase() {
               },
             }}
             className="template-showcase-swiper"
+            onSwiper={(swiper) => {
+              swiperRef.current = swiper;
+            }}
           >
             {templates.map((template) => (
               <SwiperSlide key={template._id}>
@@ -181,7 +202,7 @@ function TemplateShowcase() {
                     <img
                       src={template.preview.thumbnail.url}
                       alt={template.name}
-                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                      className="w-full h-full object-cover"
                       onError={(e) => {
                         e.target.src = 'https://via.placeholder.com/300x400/64748b/ffffff?text=Template+Preview';
                       }}
@@ -239,21 +260,20 @@ function TemplateShowcase() {
             ))}
           </Swiper>
 
-           {/* Custom Navigation Buttons - Hidden on mobile */}
-           <button className="swiper-button-prev-custom absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-12 h-12 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-800 rounded-full shadow-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center transition-all duration-200 hover:scale-110 hidden md:flex">
-             <svg className="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {/* Navigation Buttons */}
+          <div className="swiper-button-prev !w-10 !h-10 !bg-white !rounded-full !shadow-lg !border !border-gray-200 !text-gray-600 hover:!text-blue-600 hover:!shadow-xl !transition-all !duration-200 !top-1/2 !-translate-y-1/2 !left-2 sm:!left-4">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
              </svg>
-           </button>
-           
-           <button className="swiper-button-next-custom absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-12 h-12 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-800 rounded-full shadow-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center transition-all duration-200 hover:scale-110 hidden md:flex">
-             <svg className="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          </div>
+          <div className="swiper-button-next !w-10 !h-10 !bg-white !rounded-full !shadow-lg !border !border-gray-200 !text-gray-600 hover:!text-blue-600 hover:!shadow-xl !transition-all !duration-200 !top-1/2 !-translate-y-1/2 !right-2 sm:!right-4">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
              </svg>
-           </button>
+          </div>
 
-          {/* Custom Pagination */}
-          <div className="swiper-pagination-custom flex justify-center mt-8 space-x-2"></div>
+          {/* Pagination */}
+          <div className="swiper-pagination !bottom-2 !static !mt-6"></div>
         </div>
 
         {/* Call to Action */}

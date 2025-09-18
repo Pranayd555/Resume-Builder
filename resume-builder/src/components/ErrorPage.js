@@ -80,7 +80,7 @@ const ErrorPage = ({
             {/* Text Content Overlay */}
             <div className="absolute bottom-0 left-0 right-0 transform translate-y-1/2 px-2">
               <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold gradient-text mb-2 sm:mb-3">
-                {from === 'resume-list' ? 'Error Loading Resumes' : title}
+                {from === 'dashboard' ? 'Error Loading Resumes' : title}
               </h1>
               <p className="text-xs sm:text-sm md:text-base lg:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
                 {errorMessage || subtitle}

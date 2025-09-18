@@ -26,7 +26,7 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
 
   // Get the redirect path from navigation state
-  const from = location.state?.from?.pathname || '/resume-list';
+  const from = location.state?.from?.pathname || '/dashboard';
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;

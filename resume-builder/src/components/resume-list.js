@@ -493,7 +493,7 @@ function ResumeList() {
       navigate('/error', { 
         state: { 
           errorMessage: error,
-          from: 'resume-list'
+          from: 'dashboard'
         } 
       });
     }

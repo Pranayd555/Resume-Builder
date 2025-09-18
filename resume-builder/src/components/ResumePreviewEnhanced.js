@@ -202,7 +202,7 @@ function ResumePreviewEnhanced() {
       } catch (error) {
         console.error('Failed to load resume data:', error);
         toast.error('Failed to load preview');
-        setTimeout(() => navigate('/resume-list'), 0);
+        setTimeout(() => navigate('/dashboard'), 0);
       } finally {
         setLoading(false);
       }
