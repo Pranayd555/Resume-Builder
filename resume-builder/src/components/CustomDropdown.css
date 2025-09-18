@@ -1,0 +1,276 @@
+/* Custom Dropdown Styles - Global component for consistent select elements */
+
+.custom-dropdown {
+  position: relative;
+  width: 100%;
+  font-family: inherit;
+}
+
+/* Dropdown Trigger (Main Button) */
+.dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background-color: white;
+  color: #111827;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  outline: none;
+  min-height: 48px;
+  box-sizing: border-box;
+}
+
+.dropdown-trigger:hover {
+  border-color: #9ca3af;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-trigger:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.dropdown-trigger.open {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.dropdown-trigger.disabled {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  cursor: not-allowed;
+  border-color: #e5e7eb;
+}
+
+.dropdown-trigger.disabled:hover {
+  border-color: #e5e7eb;
+  box-shadow: none;
+}
+
+/* Dropdown Value */
+.dropdown-value {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-value.placeholder {
+  color: #9ca3af;
+}
+
+/* Dropdown Icon */
+.dropdown-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  transition: transform 0.2s ease-in-out;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.dropdown-trigger.open .dropdown-icon {
+  transform: rotate(180deg);
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  margin-top: 4px;
+  max-height: 300px;
+  overflow: hidden;
+  animation: dropdownFadeIn 0.15s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Search Input */
+.dropdown-search {
+  padding: 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease-in-out;
+}
+
+.search-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Dropdown Options Container */
+.dropdown-options {
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+/* Custom Scrollbar */
+.dropdown-options::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-options::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.dropdown-options::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.dropdown-options::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Dropdown Options */
+.dropdown-option {
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  color: #374151;
+  font-size: 14px;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+}
+
+.dropdown-option:hover {
+  background-color: #f8fafc;
+  color: #1f2937;
+}
+
+.dropdown-option.selected {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+  font-weight: 500;
+}
+
+.dropdown-option.selected:hover {
+  background-color: #bfdbfe;
+}
+
+.dropdown-option.no-results {
+  color: #6b7280;
+  cursor: default;
+  font-style: italic;
+}
+
+.dropdown-option.no-results:hover {
+  background-color: transparent;
+}
+
+/* Error State */
+.custom-dropdown.error .dropdown-trigger {
+  border-color: #fca5a5;
+}
+
+.custom-dropdown.error .dropdown-trigger:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Keep light design for both light and dark modes */
+
+/* Mobile Responsive */
+@media (max-width: 640px) {
+  .dropdown-trigger {
+    padding: 14px 16px;
+    font-size: 16px; /* Prevents zoom on iOS */
+    min-height: 52px;
+  }
+  
+  .dropdown-menu {
+    max-height: 250px;
+  }
+  
+  .dropdown-options {
+    max-height: 200px;
+  }
+  
+  .dropdown-option {
+    padding: 14px 16px;
+    font-size: 16px;
+  }
+  
+  .search-input {
+    padding: 10px 12px;
+    font-size: 16px;
+  }
+}
+
+/* Tablet Responsive */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .dropdown-trigger {
+    padding: 13px 16px;
+    min-height: 50px;
+  }
+  
+  .dropdown-option {
+    padding: 13px 16px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .dropdown-trigger {
+    border-width: 2px;
+  }
+  
+  .dropdown-trigger:focus {
+    border-width: 3px;
+  }
+  
+  .dropdown-option.selected {
+    border: 2px solid #3b82f6;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .dropdown-trigger,
+  .dropdown-icon,
+  .dropdown-option,
+  .dropdown-menu {
+    transition: none;
+  }
+  
+  .dropdown-menu {
+    animation: none;
+  }
+}

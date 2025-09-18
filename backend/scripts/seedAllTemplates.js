@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Template = require('../models/Template');
 const User = require('../models/User');
+const Resume = require('../models/Resume');
 const PuppeteerThumbnailGenerator = require('../utils/puppeteerThumbnailGenerator');
 require('dotenv').config();
 const templatesList = require('../assets/templates');
@@ -90,6 +91,30 @@ class ThumbnailGenerationManager {
   }
 }
 
+// Function to update resume template references
+const updateResumeTemplateReferences = async (templateIdMapping) => {
+  console.log('\n🔄 Updating resume template references...');
+  
+  let updatedResumes = 0;
+  
+  for (const [oldTemplateId, newTemplateId] of templateIdMapping.entries()) {
+    if (oldTemplateId.toString() !== newTemplateId.toString()) {
+      const result = await Resume.updateMany(
+        { template: oldTemplateId },
+        { template: newTemplateId }
+      );
+      
+      if (result.modifiedCount > 0) {
+        console.log(`   ✅ Updated ${result.modifiedCount} resumes from template ${oldTemplateId} to ${newTemplateId}`);
+        updatedResumes += result.modifiedCount;
+      }
+    }
+  }
+  
+  console.log(`📊 Total resumes updated: ${updatedResumes}`);
+  return updatedResumes;
+};
+
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/resumebuilder', {
   useNewUrlParser: true,
@@ -116,23 +141,74 @@ const seedAllTemplates = async () => {
       console.log('✅ Created admin user');
     }
 
-    // Clear existing templates
-    await Template.deleteMany({});
-    console.log('🧹 Cleared existing templates');
+    // Get existing templates to preserve usage data
+    const existingTemplates = await Template.find({});
+    const existingTemplatesMap = new Map();
+    existingTemplates.forEach(template => {
+      existingTemplatesMap.set(template.name, template);
+    });
+    console.log(`📊 Found ${existingTemplates.length} existing templates with usage data`);
 
     const templates = templatesList.map(t => ({ ...t, creator: adminUser._id }));
 
-    console.log('📝 Processing templates...');
+    console.log('📝 Processing templates with data preservation...');
     
-    // Create templates in chunks to avoid memory issues
-    const chunkSize = 3;
+    // Process templates individually to preserve usage data
     const createdTemplates = [];
+    const templateIdMapping = new Map(); // Track old -> new template ID mappings
     
-    for (let i = 0; i < templates.length; i += chunkSize) {
-      const chunk = templates.slice(i, i + chunkSize);
-      const created = await Template.insertMany(chunk);
-      createdTemplates.push(...created);
-      console.log(`✅ Created ${created.length} templates (${i + 1}-${Math.min(i + chunkSize, templates.length)} of ${templates.length})`);
+    for (let i = 0; i < templates.length; i++) {
+      const templateData = templates[i];
+      const existingTemplate = existingTemplatesMap.get(templateData.name);
+      
+      let template;
+      
+      if (existingTemplate) {
+        // Update existing template while preserving usage data and calculated fields
+        const updateData = {
+          ...templateData,
+          // Preserve usage statistics (this maintains averageRating and popularityScore)
+          usage: {
+            totalUses: existingTemplate.usage.totalUses || 0,
+            uniqueUsers: existingTemplate.usage.uniqueUsers || [],
+            rating: {
+              average: existingTemplate.usage.rating?.average || 0,
+              count: existingTemplate.usage.rating?.count || 0
+            }
+          },
+          // Preserve reviews (this affects averageRating calculation)
+          reviews: existingTemplate.reviews || [],
+          // Preserve version and changelog if they exist
+          version: existingTemplate.version || templateData.version,
+          changelog: existingTemplate.changelog || templateData.changelog
+        };
+        
+        template = await Template.findByIdAndUpdate(
+          existingTemplate._id,
+          updateData,
+          { new: true, runValidators: true }
+        );
+        
+        // Track the ID mapping (in case the ID changes)
+        templateIdMapping.set(existingTemplate._id, template._id);
+        
+        console.log(`🔄 Updated existing template: ${template.name} (preserved usage data)`);
+        console.log(`   📊 Usage: ${template.usage.totalUses} uses, ${template.usage.uniqueUsers.length} unique users`);
+        console.log(`   ⭐ Rating: ${template.usage.rating.average}/5 (${template.usage.rating.count} reviews)`);
+        console.log(`   🎯 Popularity Score: ${template.popularityScore.toFixed(4)}`);
+      } else {
+        // Create new template
+        template = await Template.create(templateData);
+        console.log(`✨ Created new template: ${template.name}`);
+      }
+      
+      createdTemplates.push(template);
+      console.log(`   Progress: ${i + 1}/${templates.length} templates processed`);
+    }
+    
+    // Update resume template references if any template IDs changed
+    if (templateIdMapping.size > 0) {
+      await updateResumeTemplateReferences(templateIdMapping);
     }
 
     // Initialize thumbnail generation manager
@@ -156,11 +232,20 @@ const seedAllTemplates = async () => {
     const successfulThumbnails = thumbnailResults.filter(r => r.success).length;
     const failedThumbnails = thumbnailResults.filter(r => !r.success).length;
     
-    console.log(`\n🎉 Successfully created ${createdTemplates.length} templates:`);
+    const updatedTemplates = createdTemplates.filter(t => templateIdMapping.has(t._id)).length;
+    const newTemplates = createdTemplates.length - updatedTemplates;
+    
+    console.log(`\n🎉 Successfully processed ${createdTemplates.length} templates:`);
+    console.log(`   ✨ New templates: ${newTemplates}`);
+    console.log(`   🔄 Updated templates: ${updatedTemplates}`);
+    console.log(`   📊 Usage data preserved for existing templates`);
+    
     createdTemplates.forEach((template, index) => {
       const thumbnailResult = thumbnailResults.find(r => r.templateId.toString() === template._id.toString());
       const thumbnailStatus = thumbnailResult?.success ? '✅' : '❌';
-      console.log(`   ${index + 1}. ${template.name} (${template.category}) - ${template.availability.tier} ${thumbnailStatus}`);
+      const isUpdated = templateIdMapping.has(template._id);
+      const status = isUpdated ? '🔄' : '✨';
+      console.log(`   ${index + 1}. ${status} ${template.name} (${template.category}) - ${template.availability.tier} ${thumbnailStatus}`);
     });
 
     console.log(`\n📸 Thumbnail Generation Summary:`);
@@ -174,7 +259,13 @@ const seedAllTemplates = async () => {
       });
     }
     
-    console.log('\n✨ Template seeding with thumbnail generation completed successfully!');
+    console.log('\n✨ Template seeding with data preservation completed successfully!');
+    console.log(`\n📊 Data Preservation Summary:`);
+    console.log(`   ✅ Template usage statistics preserved (totalUses, uniqueUsers)`);
+    console.log(`   ✅ User reviews and ratings preserved (affects averageRating)`);
+    console.log(`   ✅ Virtual fields preserved (popularityScore, averageRating)`);
+    console.log(`   ✅ Resume template selections maintained`);
+    console.log(`   ✅ Template version history preserved`);
     console.log(`\n🔗 Templates are now accessible at:`);
     console.log(`   - API: ${process.env.BASE_URL || 'http://localhost:5000'}/api/templates`);
     console.log(`   - Thumbnails: ${process.env.BASE_URL || 'http://localhost:5000'}/thumbnails/`);

@@ -121,6 +121,10 @@ function Header() {
     navigate('/privacy-policy');
   };
 
+  const handleDashboard = () => {
+    navigate('/dashboard');
+  };
+
   const toggleMenu = (e) => {
     e.stopPropagation();
     setShowMenu(!showMenu);
@@ -144,7 +148,11 @@ function Header() {
           <nav className="hidden md:flex items-center space-x-4 lg:space-x-6">
             {/* User Info */}
             {user && (
-              <div className="flex items-center space-x-2 lg:space-x-3">
+              <div 
+                className="flex items-center space-x-2 lg:space-x-3 cursor-pointer hover:bg-white/30 dark:hover:bg-gray-800/30 rounded-lg px-2 py-1 transition-all duration-200"
+                onClick={handleDashboard}
+                title="Go to Dashboard"
+              >
                 <div className="w-7 h-7 lg:w-8 lg:h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden">
                   {getProfilePictureUrl(user) ? (
                     <>
@@ -241,7 +249,11 @@ function Header() {
             <div className="px-2 pt-2 pb-3 space-y-1 border-t border-white/20 dark:border-gray-700/20 bg-white/95 dark:bg-transparent rounded-b-lg shadow-lg backdrop-blur-sm">
               {/* User Info - Mobile */}
               {user && (
-                <div className="flex items-center space-x-3 px-2 py-2 border-b border-gray-200/50 dark:border-gray-700/50 mb-2">
+                <div 
+                  className="flex items-center space-x-3 px-2 py-2 border-b border-gray-200/50 dark:border-gray-700/50 mb-2 cursor-pointer hover:bg-gray-100/80 dark:hover:bg-gray-800/80 rounded-lg transition-all duration-200"
+                  onClick={handleDashboard}
+                  title="Go to Dashboard"
+                >
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
                     {getProfilePictureUrl(user) ? (
                       <>

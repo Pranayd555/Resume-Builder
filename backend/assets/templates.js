@@ -2083,8 +2083,8 @@ module.exports = [
           <div class="contact-info">
             <div class="contact-grid">
               <div class="contact-item"><span class="label">Email:</span><span class="value" itemprop="email">{{personalInfo.email}}</span></div>
-              {{#if personalInfo.phone}}<div class="contact-item"><span class="label">Phone:</span><span class="value" itemprop="telephone">{{personalInfo.phone}}</span></div>{{/if}}
               {{#if personalInfo.address}}<div class="contact-item"><span class="label">Address:</span><span class="value" itemprop="address">{{personalInfo.address}}</span></div>{{/if}}
+              {{#if personalInfo.phone}}<div class="contact-item"><span class="label">Phone:</span><span class="value" itemprop="telephone">{{personalInfo.phone}}</span></div>{{/if}}
               {{#if personalInfo.website}}<div class="contact-item"><span class="label">Website:</span><span class="value"><a href="{{personalInfo.website}}" target="_blank" itemprop="url">{{personalInfo.website}}</a></span></div>{{/if}}
               {{#if personalInfo.linkedin}}<div class="contact-item"><span class="label">LinkedIn:</span><span class="value"><a href="{{personalInfo.linkedin}}" target="_blank">{{personalInfo.linkedin}}</a></span></div>{{/if}}
               {{#if personalInfo.github}}<div class="contact-item"><span class="label">GitHub:</span><span class="value"><a href="{{personalInfo.github}}" target="_blank">{{personalInfo.github}}</a></span></div>{{/if}}
@@ -2220,38 +2220,38 @@ module.exports = [
         {{/if}}
       </article>`,
       css: `.resume.academic-research { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; font-size: 12px; line-height: 1.4; }
-      .header { text-align: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #059669; }
-      .name { font-family: 'Georgia', serif; font-size: 18px; font-weight: 600; color: #059669; margin-bottom: 10px; letter-spacing: 0.5px; }
-      .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 6px; max-width: 600px; margin: 0 auto; }
-      .contact-item { display: flex; justify-content: space-between; font-size: 10px; }
-      .contact-item .label { font-weight: 600; color: #6b7280; }
-      .contact-item .value { color: #1f2937; }
+      .header { text-align: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #059669; }
+      .name { font-family: 'Georgia', serif; font-size: 18px; font-weight: 600; color: #059669; margin-bottom: 6px; letter-spacing: 0.5px; }
+      .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 4px; max-width: 500px; margin: 0 auto; }
+      .contact-item { display: flex; align-items: flex-start; font-size: 10px; gap: 2px; margin-bottom: 2px; }
+      .contact-item .label { font-weight: 600; color: #6b7280; white-space: nowrap; flex-shrink: 0; }
+      .contact-item .value { color: #1f2937; text-align: left; word-wrap: break-word; line-height: 1.2; }
       .contact-item a { color: #1f2937; text-decoration: none; }
-      section { margin-bottom: 15px; }
-      h2 { font-family: 'Georgia', serif; font-size: 14px; font-weight: 600; color: #059669; margin-bottom: 10px; padding-bottom: 3px; border-bottom: 1px solid #e5e7eb; text-transform: uppercase; letter-spacing: 0.5px; }
+      section { margin-bottom: 10px; }
+      h2 { font-family: 'Georgia', serif; font-size: 14px; font-weight: 600; color: #059669; margin-bottom: 6px; padding-bottom: 2px; border-bottom: 1px solid #e5e7eb; text-transform: uppercase; letter-spacing: 0.5px; }
       .interests-text { font-size: 11px; line-height: 1.4; color: #4b5563; text-align: justify; font-style: italic; }
-      .edu-entry, .position-entry, .publication-entry, .cert-entry, .achievement-entry { margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #f3f4f6; }
-      .edu-header, .position-header, .cert-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
-      .edu-entry h3, .position-entry h3, .publication-entry h3, .cert-entry h3, .achievement-title { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+      .edu-entry, .position-entry, .publication-entry, .cert-entry, .achievement-entry { margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #f3f4f6; }
+      .edu-header, .position-header, .cert-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px; }
+      .edu-entry h3, .position-entry h3, .publication-entry h3, .cert-entry h3, .achievement-title { font-size: 12px; font-weight: 400; color: #1f2937; margin-bottom: 1px; }
       .institution-info { font-size: 10px; color: #6b7280; font-style: italic; }
       .edu-dates, .position-dates, .cert-date, .achievement-date { font-size: 9px; color: #9ca3af; font-weight: 500; }
-      .gpa { font-size: 9px; color: #6b7280; margin-bottom: 3px; }
-      .edu-description, .position-description, .publication-description, .achievement-description { margin: 4px 0; color: #4b5563; line-height: 1.4; text-align: justify; }
-      .methodologies { margin: 3px 0; font-size: 9px; }
-      .methodologies .label { font-weight: 600; color: #6b7280; }
+      .gpa { font-size: 9px; color: #6b7280; margin-bottom: 2px; }
+      .edu-description, .position-description, .publication-description, .achievement-description { margin: 2px 0; color: #4b5563; line-height: 1.3; text-align: justify; }
+      .methodologies { margin: 2px 0; font-size: 9px; }
+      .methodologies .label { font-weight: 400; color: #6b7280; }
       .publication-entry { border-left: 3px solid #10b981; padding-left: 8px; }
-      .skill-category { margin-bottom: 10px; }
-      .skill-category h3 { font-size: 11px; font-weight: 600; color: #1f2937; margin-bottom: 3px; }
+      .skill-category { margin-bottom: 6px; }
+      .skill-category h3 { font-size: 11px; font-weight: 400; color: #1f2937; margin-bottom: 2px; }
       .skill-items { color: #4b5563; line-height: 1.4; }
       .cert-issuer, .achievement-issuer { color: #6b7280; font-style: italic; }
       .achievement-date { font-style: italic; }
-      .languages-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 6px; }
-      .language-entry { display: flex; justify-content: space-between; margin-bottom: 3px; }
+      .languages-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 4px; }
+      .language-entry { display: flex; justify-content: space-between; margin-bottom: 2px; }
       .language-name { font-size: 11px; color: #1f2937; font-weight: 500; }
       .language-proficiency { font-size: 10px; color: #6b7280; text-transform: capitalize; }
       /* General list styling for HTML content in descriptions */
-      ul, ol { margin: 0.25rem 0; padding-left: 1rem; }
-      ul li, ol li { margin-bottom: 0.125rem; color: #4b5563; line-height: 1.3; font-size: 10px; }
+      ul, ol { margin: 0.15rem 0; padding-left: 0.8rem; }
+      ul li, ol li { margin-bottom: 0.1rem; color: #4b5563; line-height: 1.2; font-size: 10px; }
       ul { list-style-type: disc; }
       ol { list-style-type: decimal; }`
     },

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useRouteScrollToTop } from '../../hooks/useAutoScroll';
 import { contactAPI } from '../../services/api';
 import { toast } from 'react-toastify';
+import CustomDropdown from '../CustomDropdown';
 import { 
   ArrowLeftIcon, 
   EnvelopeIcon, 
@@ -223,26 +224,22 @@ const ContactUs = () => {
                 </div>
               </div>
 
-              <div>
+              <div className="relative z-10">
                 <label htmlFor="category" className="block text-sm font-medium text-gray-900 dark:text-gray-700 mb-2">
                   Category
                 </label>
-                <select
+                <CustomDropdown
                   id="category"
                   name="category"
                   value={formData.category}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 backdrop-blur-md bg-white/80 dark:bg-orange-50/95 border border-white/30 dark:border-orange-200/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-gray-900 dark:text-gray-700 shadow-lg hover:shadow-xl transition-all duration-200"
-                >
-                  {categories.map((category) => (
-                    <option key={category.value} value={category.value}>
-                      {category.label}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(value) => handleInputChange({ target: { name: 'category', value } })}
+                  options={categories}
+                  placeholder="Select a category"
+                  className="w-full backdrop-blur-md bg-white/80 dark:bg-orange-50/95 border border-white/30 dark:border-orange-200/40 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                />
               </div>
 
-              <div>
+              <div className="relative z-0">
                 <label htmlFor="subject" className="block text-sm font-medium text-gray-900 dark:text-gray-700 mb-2">
                   Subject *
                 </label>
@@ -258,7 +255,7 @@ const ContactUs = () => {
                 />
               </div>
 
-              <div>
+              <div className="relative z-0">
                 <label htmlFor="message" className="block text-sm font-medium text-gray-900 dark:text-gray-700 mb-2">
                   Message *
                 </label>

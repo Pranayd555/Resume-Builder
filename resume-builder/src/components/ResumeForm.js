@@ -9,6 +9,8 @@ import CKEditor from './CKEditor';
 import { ensureHtmlContent } from '../utils/htmlUtils';
 import AuthLoader from './AuthLoader';
 import AILoader from './AILoader';
+import CustomDatePicker from './DatePicker';
+import CustomDropdown from './CustomDropdown';
 
 import { 
   PlusIcon, 
@@ -1655,17 +1657,13 @@ function ResumeForm() {
               <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                 Start Date {!formData.isFresher && '*'}
               </label>
-              <input
-                type="date"
+              <CustomDatePicker
                 required={!formData.isFresher}
                 value={job.startDate}
-                onChange={(e) => handleInputChange('workExperience', 'startDate', e.target.value, index)}
+                onChange={(value) => handleInputChange('workExperience', 'startDate', value, index)}
                 onBlur={() => handleInputBlur('workExperience', 'startDate', index)}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${
-                  validationErrors[`workExperience_${index}_startDate`] 
-                    ? 'border-red-300 focus:border-red-500' 
-                    : 'border-gray-300'
-                }`}
+                hasError={!!validationErrors[`workExperience_${index}_startDate`]}
+                placeholder="Select start date"
               />
               {validationErrors[`workExperience_${index}_startDate`] && (
                 <p className="text-red-600 text-sm mt-1">{validationErrors[`workExperience_${index}_startDate`]}</p>
@@ -1675,17 +1673,13 @@ function ResumeForm() {
               <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                 End Date
               </label>
-              <input
-                type="date"
+              <CustomDatePicker
                 value={job.endDate}
                 disabled={job.isCurrentJob}
-                onChange={(e) => handleInputChange('workExperience', 'endDate', e.target.value, index)}
+                onChange={(value) => handleInputChange('workExperience', 'endDate', value, index)}
                 onBlur={() => handleInputBlur('workExperience', 'endDate', index)}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white disabled:bg-gray-100 ${
-                  validationErrors[`workExperience_${index}_dateRange`] 
-                    ? 'border-red-300 focus:border-red-500' 
-                    : 'border-gray-300'
-                }`}
+                hasError={!!validationErrors[`workExperience_${index}_dateRange`]}
+                placeholder="Select end date"
               />
               {validationErrors[`workExperience_${index}_dateRange`] && (
                 <p className="text-red-600 text-sm mt-1">{validationErrors[`workExperience_${index}_dateRange`]}</p>
@@ -1872,17 +1866,13 @@ function ResumeForm() {
               <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                 Start Date *
               </label>
-              <input
-                type="date"
+              <CustomDatePicker
                 required
                 value={edu.startDate}
-                onChange={(e) => handleInputChange('education', 'startDate', e.target.value, index)}
+                onChange={(value) => handleInputChange('education', 'startDate', value, index)}
                 onBlur={() => handleInputBlur('education', 'startDate', index)}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${
-                  validationErrors[`education_${index}_startDate`] 
-                    ? 'border-red-300 focus:border-red-500' 
-                    : 'border-gray-300'
-                }`}
+                hasError={!!validationErrors[`education_${index}_startDate`]}
+                placeholder="Select start date"
               />
               {validationErrors[`education_${index}_startDate`] && (
                 <p className="text-red-600 text-sm mt-1">{validationErrors[`education_${index}_startDate`]}</p>
@@ -1892,17 +1882,13 @@ function ResumeForm() {
               <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                 End Date
               </label>
-              <input
-                type="date"
+              <CustomDatePicker
                 value={edu.endDate}
                 disabled={edu.isCurrentlyStudying}
-                onChange={(e) => handleInputChange('education', 'endDate', e.target.value, index)}
+                onChange={(value) => handleInputChange('education', 'endDate', value, index)}
                 onBlur={() => handleInputBlur('education', 'endDate', index)}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white disabled:bg-gray-100 ${
-                  validationErrors[`education_${index}_dateRange`] 
-                    ? 'border-red-300 focus:border-red-500' 
-                    : 'border-gray-300'
-                }`}
+                hasError={!!validationErrors[`education_${index}_dateRange`]}
+                placeholder="Select end date"
               />
               {validationErrors[`education_${index}_dateRange`] && (
                 <p className="text-red-600 text-sm mt-1">{validationErrors[`education_${index}_dateRange`]}</p>
@@ -2116,20 +2102,22 @@ function ResumeForm() {
                   placeholder="Skill name"
                 />
                 <div className="flex gap-2">
-                  <select
+                  <CustomDropdown
                     value={skill.level}
-                    onChange={(e) => {
+                    onChange={(value) => {
                       const newSkills = [...formData.skills];
-                      newSkills[categoryIndex].items[skillIndex].level = e.target.value;
+                      newSkills[categoryIndex].items[skillIndex].level = value;
                       setFormData(prev => ({ ...prev, skills: newSkills }));
                     }}
-                    className="flex-1 sm:w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm dark:text-gray-500"
-                  >
-                    <option value="beginner">Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
-                    <option value="expert">Expert</option>
-                  </select>
+                    options={[
+                      { value: 'beginner', label: 'Beginner' },
+                      { value: 'intermediate', label: 'Intermediate' },
+                      { value: 'advanced', label: 'Advanced' },
+                      { value: 'expert', label: 'Expert' }
+                    ]}
+                    placeholder="Level"
+                    className="flex-1 sm:w-32"
+                  />
                   <button
                     onClick={() => {
                       const newSkills = [...formData.skills];
@@ -2347,11 +2335,10 @@ function ResumeForm() {
               <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                 Date
               </label>
-              <input
-                type="date"
+              <CustomDatePicker
                 value={achievement.date}
-                onChange={(e) => handleInputChange('achievements', 'date', e.target.value, index)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
+                onChange={(value) => handleInputChange('achievements', 'date', value, index)}
+                placeholder="Select date"
               />
             </div>
           </div>
@@ -2481,22 +2468,20 @@ function ResumeForm() {
                 <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                   Issue Date
                 </label>
-                <input
-                  type="date"
+                <CustomDatePicker
                   value={cert.date}
-                  onChange={(e) => handleInputChange('certifications', 'date', e.target.value, index)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
+                  onChange={(value) => handleInputChange('certifications', 'date', value, index)}
+                  placeholder="Select issue date"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
                   Expiry Date
                 </label>
-                <input
-                  type="date"
+                <CustomDatePicker
                   value={cert.expiryDate}
-                  onChange={(e) => handleInputChange('certifications', 'expiryDate', e.target.value, index)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
+                  onChange={(value) => handleInputChange('certifications', 'expiryDate', value, index)}
+                  placeholder="Select expiry date"
                 />
               </div>
               <div>
@@ -2558,16 +2543,18 @@ function ResumeForm() {
                 placeholder="Language name"
               />
               <div className="flex gap-2 sm:ml-auto">
-                <select
+                <CustomDropdown
                   value={lang.proficiency}
-                  onChange={(e) => handleInputChange('languages', 'proficiency', e.target.value, index)}
-                  className="w-full sm:w-40 min-w-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm dark:text-gray-500"
-                >
-                  <option value="basic">Basic</option>
-                  <option value="conversational">Conversational</option>
-                  <option value="fluent">Fluent</option>
-                  <option value="native">Native</option>
-                </select>
+                  onChange={(value) => handleInputChange('languages', 'proficiency', value, index)}
+                  options={[
+                    { value: 'basic', label: 'Basic' },
+                    { value: 'conversational', label: 'Conversational' },
+                    { value: 'fluent', label: 'Fluent' },
+                    { value: 'native', label: 'Native' }
+                  ]}
+                  placeholder="Proficiency"
+                  className="w-full sm:w-40 min-w-32"
+                />
                 <button
                   onClick={() => removeArrayItem('languages', index)}
                   className="text-red-600 hover:text-red-700 p-2 flex-shrink-0"
