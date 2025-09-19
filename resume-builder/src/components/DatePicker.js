@@ -40,7 +40,7 @@ const CustomDatePicker = ({
       dateFormat="yyyy-MM-dd"
       showYearDropdown
       showMonthDropdown
-      dropdownMode="select"
+      dropdownMode="scroll"
       yearDropdownItemNumber={50}
       scrollableYearDropdown
       autoComplete="off"
