@@ -376,6 +376,16 @@ const resumeSchema = new mongoose.Schema({
         min: 1,
         max: 5,
         default: 3
+      },
+      primaryFont: {
+        type: String,
+        enum: ['Arial', 'Calibri', 'Times New Roman', 'Verdana', 'Helvetica', 'Georgia', 'Cambria', 'Garamond', 'Trebuchet MS', 'Book Antiqua'],
+        default: 'Arial'
+      },
+      secondaryFont: {
+        type: String,
+        enum: ['Arial', 'Calibri', 'Times New Roman', 'Verdana', 'Helvetica', 'Georgia', 'Cambria', 'Garamond', 'Trebuchet MS', 'Book Antiqua'],
+        default: 'Arial'
       }
     },
     // Header styling options (keeping for backward compatibility)

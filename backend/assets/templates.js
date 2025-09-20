@@ -42,7 +42,8 @@ module.exports = [
         headerFontSize: 18,
         fontSize: 12,
         lineSpacing: 1.3,
-        sectionSpacing: 1
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
       }
     },
     availability: { tier: 'free', isPublic: true, isActive: true },
@@ -50,11 +51,11 @@ module.exports = [
       html: `<article class="resume modern-professional" itemscope itemtype="http://schema.org/Person">
         <div class="main-column">
           <header class="header">
-            <h1 class="name" itemprop="name">{{personalInfo.fullName}}</h1>
-            <div class="contact-info">
-              <div class="contact-item" itemprop="email">{{personalInfo.email}}</div>
-              {{#if personalInfo.phone}}<div class="contact-item" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
-              {{#if personalInfo.address}}<div class="contact-item" itemprop="address">{{personalInfo.address}}</div>{{/if}}
+            <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+            <div class="contact-info secondaryFont">
+              <div class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</div>
+              {{#if personalInfo.phone}}<div class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
+              {{#if personalInfo.address}}<div class="contact-item secondaryFont" itemprop="address">{{personalInfo.address}}</div>{{/if}}
               {{#if personalInfo.website}}<div class="contact-item"><a href="{{personalInfo.website}}" target="_blank" itemprop="url">{{personalInfo.website}}</a></div>{{/if}}
               {{#if personalInfo.linkedin}}<div class="contact-item"><a href="{{personalInfo.linkedin}}" target="_blank">{{personalInfo.linkedin}}</a></div>{{/if}}
               {{#if personalInfo.github}}<div class="contact-item"><a href="{{personalInfo.github}}" target="_blank">{{personalInfo.github}}</a></div>{{/if}}
@@ -62,19 +63,19 @@ module.exports = [
           </header>
           
           {{#if summary}}
-          <section class="summary">
-            <h3>Professional Summary</h3>
-            <div itemprop="description">{{{summary}}}</div>
+          <section class="summary secondaryFont">
+            <h3 class="primaryFont">Professional Summary</h3>
+            <div class="secondaryFont" itemprop="description">{{{summary}}}</div>
           </section>
           {{/if}}
           
           {{#if skills}}
-          <section class="skills">
-            <h3>Core Competencies</h3>
+          <section class="skills secondaryFont">
+            <h3 class="primaryFont">Core Competencies</h3>
             {{#each skills}}
             <div class="skill-category">
-              <div class="skill-category-title">{{category}}</div>
-              <div class="skill-items">
+              <div class="skill-category-title primaryFont">{{category}}</div>
+              <div class="skill-items secondaryFont">
                 {{#each items}}<span class="skill-item" data-level="{{level}}">{{name}}</span>{{/each}}
               </div>
             </div>
@@ -83,24 +84,24 @@ module.exports = [
           {{/if}}
           
           {{#if workExperience}}
-          <section class="work-experience">
-            <h3>Professional Experience</h3>
+          <section class="work-experience secondaryFont">
+            <h3 class="primaryFont">Professional Experience</h3>
             {{#each workExperience}}
             <div class="job-item" itemscope itemtype="http://schema.org/JobPosting">
               <div class="job-header">
-                <div class="job-title" itemprop="title">{{jobTitle}}</div>
+                <div class="job-title primaryFont" itemprop="title">{{jobTitle}}</div>
                 <div class="job-meta">
-                  <span class="company" itemprop="hiringOrganization">{{company}}</span>
-                  {{#if location}}<span class="location" itemprop="jobLocation">{{location}}</span>{{/if}}
+                  <span class="company secondaryFont" itemprop="hiringOrganization">{{company}}</span>
+                  {{#if location}}<span class="location secondaryFont" itemprop="jobLocation">{{location}}</span>{{/if}}
                 </div>
                 <div class="job-dates">
                   <time itemprop="datePosted">{{formatDate startDate}}</time> - 
                   {{#if isCurrentJob}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
                 </div>
               </div>
-              {{#if description}}<div class="job-description" itemprop="description">{{{description}}}</div>{{/if}}
+              {{#if description}}<div class="job-description secondaryFont" itemprop="description">{{{description}}}</div>{{/if}}
               {{#if achievements}}
-              <ul class="achievements">
+              <ul class="achievements secondaryFont">
                 {{#each achievements}}<li>{{this}}</li>{{/each}}
               </ul>
               {{/if}}
@@ -110,20 +111,20 @@ module.exports = [
           {{/if}}
           
           {{#if projects}}
-          <section class="projects">
-            <h3>Key Projects</h3>
+          <section class="projects secondaryFont">
+            <h3 class="primaryFont">Key Projects</h3>
             {{#each projects}}
             <div class="project-item">
-              <div class="project-name">{{name}}</div>
-              {{#if description}}<div class="project-description">{{{description}}}</div>{{/if}}
+              <div class="project-name primaryFont">{{name}}</div>
+              {{#if description}}<div class="project-description secondaryFont">{{{description}}}</div>{{/if}}
               {{#if technologies}}
               <div class="technologies">
-                <strong>Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
+                <strong class="secondaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
               </div>
               {{/if}}
               {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
               {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
-              {{#if startDate}}<div class="project-dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
+              {{#if startDate}}<div class="project-dates secondaryFont">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
             </div>
             {{/each}}
           </section>
@@ -132,12 +133,12 @@ module.exports = [
         
         <div class="sidebar">
           {{#if education}}
-          <section class="education">
-            <h3>Education</h3>
+          <section class="education secondaryFont">
+            <h3 class="primaryFont">Education</h3>
             {{#each education}}
             <div class="edu-item" itemscope itemtype="http://schema.org/EducationalOccupationalCredential">
               <div class="edu-header">
-                <div class="edu-degree" itemprop="credentialCategory">{{degree}}</div>
+                <div class="edu-degree primaryFont" itemprop="credentialCategory">{{degree}}</div>
                 <div class="edu-meta">
                   <span class="institution" itemprop="recognizedBy">{{institution}}</span>
                   {{#if location}}<span class="location">{{location}}</span>{{/if}}
@@ -148,18 +149,18 @@ module.exports = [
                 </div>
               </div>
               {{#if gpa}}<p class="gpa">GPA: {{gpa}}</p>{{/if}}
-              {{#if description}}<div class="edu-description">{{{description}}}</div>{{/if}}
+              {{#if description}}<div class="edu-description secondaryFont">{{{description}}}</div>{{/if}}
             </div>
             {{/each}}
           </section>
           {{/if}}
           
           {{#if certifications}}
-          <section class="certifications">
-            <h3>Professional Certifications</h3>
+          <section class="certifications secondaryFont">
+            <h3 class="primaryFont">Professional Certifications</h3>
             {{#each certifications}}
             <div class="cert-item">
-              <div class="cert-name">{{name}}</div>
+              <div class="cert-name primaryFont">{{name}}</div>
               <div class="cert-meta">
                 <span class="issuer">{{issuer}}</span>
                 {{#if date}}<span class="cert-dates">{{formatDate date}}</span>{{/if}}
@@ -173,12 +174,12 @@ module.exports = [
           {{/if}}
           
           {{#if achievements}}
-          <section class="achievements">
-            <h3>Achievements & Awards</h3>
+          <section class="achievements secondaryFont">
+            <h3 class="primaryFont">Achievements & Awards</h3>
             {{#each achievements}}
             <div class="achievement-item">
-              {{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}
-              {{#if description}}<p class="achievement-description">{{description}}</p>{{/if}}
+              {{#if title}}<div class="achievement-title primaryFont">{{title}}</div>{{/if}}
+              {{#if description}}<p class="achievement-description secondaryFont">{{description}}</p>{{/if}}
               {{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}
               {{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}
             </div>
@@ -187,8 +188,8 @@ module.exports = [
           {{/if}}
           
           {{#if languages}}
-          <section class="languages">
-            <h3>Languages</h3>
+          <section class="languages secondaryFont">
+            <h3 class="primaryFont">Languages</h3>
             {{#each languages}}
             <div class="language-item">
               <span class="language-name">{{name}}</span>
@@ -203,7 +204,7 @@ module.exports = [
             {{#each customFields}}
             <div class="custom-field">
               <div class="custom-field-title">{{title}}</div>
-              <div class="custom-content">{{content}}</div>
+              <div class="custom-content secondaryFont">{{content}}</div>
             </div>
             {{/each}}
           </section>
@@ -324,16 +325,17 @@ module.exports = [
         headerFontSize: 18,
         fontSize: 12,
         lineSpacing: 1.3,
-        sectionSpacing: 1
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
       }
     },
     availability: { tier: 'free', isPublic: true, isActive: true },
     templateCode: {
       html: `<article class="resume modern-executive" itemscope itemtype="http://schema.org/Person">
         <header class="header">
-          <h1 class="name" itemprop="name">{{personalInfo.fullName}}</h1>
+          <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
           <div class="title-line"></div>
-          <div class="contact-info">
+          <div class="contact-info secondaryFont">
             <span itemprop="email">{{personalInfo.email}}</span>
             {{#if personalInfo.phone}}<span itemprop="telephone">{{personalInfo.phone}}</span>{{/if}}
             {{#if personalInfo.address}}<span itemprop="address">{{personalInfo.address}}</span>{{/if}}
@@ -344,20 +346,20 @@ module.exports = [
         </header>
         
         {{#if summary}}
-        <section class="executive-summary">
-          <h3>Executive Summary</h3>
-          <div class="summary-text" itemprop="description">{{{summary}}}</div>
+        <section class="executive-summary secondaryFont">
+          <h3 class="primaryFont">Executive Summary</h3>
+          <div class="summary-text secondaryFont" itemprop="description">{{{summary}}}</div>
         </section>
         {{/if}}
         
         {{#if skills}}
         <section class="skills">
-          <h3>Core Competencies</h3>
+          <h3 class="primaryFont">Core Competencies</h3>
           {{#each skills}}
           <div class="skill-category">
-            <div class="skill-category-title">{{category}}</div>
+            <div class="skill-category-title primaryFont">{{category}}</div>
             <div class="skill-items">
-              {{#each items}}<span class="skill-item" data-level="{{level}}">{{name}}</span>{{/each}}
+              {{#each items}}<span class="skill-item secondaryFont" data-level="{{level}}">{{name}}</span>{{/each}}
             </div>
           </div>
           {{/each}}
@@ -365,15 +367,15 @@ module.exports = [
         {{/if}}
         
         {{#if workExperience}}
-        <section class="experience">
-          <h3>Professional Experience</h3>
+        <section class="experience secondaryFont">
+          <h3 class="primaryFont">Professional Experience</h3>
           {{#each workExperience}}
           <div class="position" itemscope itemtype="http://schema.org/JobPosting">
             <div class="position-header">
               <div class="position-title">
-                <div class="job-title" itemprop="title">{{jobTitle}}</div>
+                <div class="job-title primaryFont" itemprop="title">{{jobTitle}}</div>
                 <div class="company-info">
-                  <span class="company" itemprop="hiringOrganization">{{company}}</span>
+                  <span class="company secondaryFont" itemprop="hiringOrganization">{{company}}</span>
                   {{#if location}}<span class="location" itemprop="jobLocation">| {{location}}</span>{{/if}}
                 </div>
               </div>
@@ -382,9 +384,9 @@ module.exports = [
                 {{#if isCurrentJob}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
               </div>
             </div>
-            {{#if description}}<div class="description" itemprop="description">{{{description}}}</div>{{/if}}
+            {{#if description}}<div class="description secondaryFont" itemprop="description">{{{description}}}</div>{{/if}}
             {{#if achievements}}
-            <ul class="achievements">
+            <ul class="achievements secondaryFont">
               {{#each achievements}}<li>{{this}}</li>{{/each}}
             </ul>
             {{/if}}
@@ -395,13 +397,13 @@ module.exports = [
         
         {{#if projects}}
         <section class="projects">
-          <h3>Key Projects</h3>
+          <h3 class="primaryFont">Key Projects</h3>
           {{#each projects}}
           <div class="project-item">
-            <div class="project-name">{{name}}</div>
-            {{#if description}}<div class="project-description">{{{description}}}</div>{{/if}}
+            <div class="project-name primaryFont">{{name}}</div>
+            {{#if description}}<div class="project-description secondaryFont">{{{description}}}</div>{{/if}}
             {{#if technologies}}
-            <div class="technologies">
+            <div class="technologies secondaryFont">
               <strong>Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
             </div>
             {{/if}}
@@ -413,12 +415,12 @@ module.exports = [
         {{/if}}
         
         {{#if achievements}}
-        <section class="achievements-section">
-          <h3>Achievements & Awards</h3>
+        <section class="achievements-section secondaryFont">
+          <h3 class="primaryFont">Achievements & Awards</h3>
           {{#each achievements}}
           <div class="achievement-item">
-            {{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}
-            {{#if description}}<p class="achievement-description">{{description}}</p>{{/if}}
+            {{#if title}}<div class="achievement-title primaryFont">{{title}}</div>{{/if}}
+            {{#if description}}<p class="achievement-description secondaryFont">{{description}}</p>{{/if}}
             {{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}
             {{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}
           </div>
@@ -428,11 +430,11 @@ module.exports = [
         
         {{#if education}}
         <section class="education">
-          <h3>Education</h3>
+          <h3 class="primaryFont">Education</h3>
           {{#each education}}
           <div class="edu-entry" itemscope itemtype="http://schema.org/EducationalOccupationalCredential">
             <div class="edu-header">
-              <div class="edu-degree" itemprop="credentialCategory">{{degree}}</div>
+                <div class="edu-degree primaryFont" itemprop="credentialCategory">{{degree}}</div>
               <div class="edu-meta">
                 <span class="institution" itemprop="recognizedBy">{{institution}}</span>
                 {{#if location}}<span class="location">| {{location}}</span>{{/if}}
@@ -443,7 +445,7 @@ module.exports = [
               </div>
             </div>
             {{#if gpa}}<p class="gpa">GPA: {{gpa}}</p>{{/if}}
-            {{#if description}}<div class="description">{{{description}}}</div>{{/if}}
+            {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
           </div>
           {{/each}}
         </section>
@@ -451,10 +453,10 @@ module.exports = [
         
         {{#if certifications}}
         <section class="certifications">
-          <h3>Professional Certifications</h3>
+          <h3 class="primaryFont">Professional Certifications</h3>
           {{#each certifications}}
           <div class="cert-item">
-            <div class="cert-name">{{name}}</div>
+            <div class="cert-name secondaryFont">{{name}}</div>
             <div class="cert-meta">
               <span class="issuer">{{issuer}}</span>
               {{#if date}}<span class="cert-dates">{{formatDate date}}</span>{{/if}}
@@ -469,7 +471,7 @@ module.exports = [
         
         {{#if languages}}
         <section class="languages">
-          <h3>Languages</h3>
+          <h3 class="primaryFont">Languages</h3>
           {{#each languages}}
           <div class="language-item">
             <span class="language-name">{{name}}</span>
@@ -484,7 +486,7 @@ module.exports = [
           {{#each customFields}}
           <div class="custom-field">
             <div class="custom-field-title">{{title}}</div>
-            <div class="custom-content">{{content}}</div>
+            <div class="custom-content secondaryFont">{{content}}</div>
           </div>
           {{/each}}
         </section>
@@ -586,7 +588,8 @@ module.exports = [
         headerFontSize: 18,
         fontSize: 12,
         lineSpacing: 1.3,
-        sectionSpacing: 1
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
       }
     },
     availability: { tier: 'free', isPublic: true, isActive: true },
@@ -594,11 +597,11 @@ module.exports = [
       html: `<article class="resume modern-tech" itemscope itemtype="http://schema.org/Person">
         <header class="tech-header">
           <div class="header-left">
-            <h1 class="name" itemprop="name">{{personalInfo.fullName}}</h1>
-            <div class="contact-info">
+            <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+            <div class="contact-info secondaryFont">
               {{#if personalInfo.email}}<div class="contact-item" itemprop="email">{{personalInfo.email}}</div>{{/if}}
-              {{#if personalInfo.phone}}<div class="contact-item" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
-              {{#if personalInfo.address}}<div class="contact-item" itemprop="address">{{personalInfo.address}}</div>{{/if}}
+              {{#if personalInfo.phone}}<div class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
+              {{#if personalInfo.address}}<div class="contact-item secondaryFont" itemprop="address">{{personalInfo.address}}</div>{{/if}}
               {{#if personalInfo.website}}<div class="contact-item"><a href="{{personalInfo.website}}" target="_blank" itemprop="url">{{personalInfo.website}}</a></div>{{/if}}
               {{#if personalInfo.linkedin}}<div class="contact-item"><a href="{{personalInfo.linkedin}}" target="_blank">{{personalInfo.linkedin}}</a></div>{{/if}}
               {{#if personalInfo.github}}<div class="contact-item"><a href="{{personalInfo.github}}" target="_blank">{{personalInfo.github}}</a></div>{{/if}}
@@ -608,19 +611,19 @@ module.exports = [
         
         {{#if summary}}
         <section class="summary-section">
-          <h3>Professional Summary</h3>
-          <div itemprop="description">{{{summary}}}</div>
+          <h3 class="primaryFont">Professional Summary</h3>
+          <div itemprop="description secondaryFont">{{{summary}}}</div>
         </section>
         {{/if}}
         
         {{#if skills}}
         <section class="skills-section">
-          <h3>Technical Skills</h3>
+          <h3 class="primaryFont">Technical Skills</h3>
           {{#each skills}}
           <div class="skill-category">
-            <div class="skill-category-title">{{category}}</div>
+            <div class="skill-category-title primaryFont">{{category}}</div>
             <div class="skill-items">
-              {{#each items}}<span class="skill-item" data-level="{{level}}">{{name}}</span>{{/each}}
+              {{#each items}}<span class="skill-item secondaryFont" data-level="{{level}}">{{name}}</span>{{/each}}
             </div>
           </div>
           {{/each}}
@@ -629,21 +632,21 @@ module.exports = [
         
         {{#if workExperience}}
         <section class="experience-section">
-          <h3>Professional Experience</h3>
+          <h3 class="primaryFont">Professional Experience</h3>
           {{#each workExperience}}
           <div class="job-item" itemscope itemtype="http://schema.org/JobPosting">
             <div class="job-header">
-              <div class="job-title" itemprop="title">{{jobTitle}}</div>
-              <div class="job-company" itemprop="hiringOrganization">{{company}}</div>
+              <div class="job-title primaryFont" itemprop="title">{{jobTitle}}</div>
+              <div class="job-company secondaryFont" itemprop="hiringOrganization">{{company}}</div>
               <div class="job-duration">
                 <time itemprop="datePosted">{{formatDate startDate}}</time> - 
                 {{#if isCurrentJob}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
               </div>
             </div>
             {{#if location}}<div class="job-location" itemprop="jobLocation">{{location}}</div>{{/if}}
-            {{#if description}}<div class="job-description" itemprop="description">{{{description}}}</div>{{/if}}
+            {{#if description}}<div class="job-description secondaryFont" itemprop="description">{{{description}}}</div>{{/if}}
             {{#if achievements}}
-            <ul class="achievements">
+            <ul class="achievements secondaryFont">
               {{#each achievements}}<li>{{this}}</li>{{/each}}
             </ul>
             {{/if}}
@@ -654,11 +657,11 @@ module.exports = [
         
         {{#if projects}}
         <section class="projects-section">
-          <h3>Key Projects</h3>
+          <h3 class="primaryFont">Key Projects</h3>
           {{#each projects}}
           <div class="project-item">
-            <div class="project-name">{{name}}</div>
-            {{#if description}}<div class="project-description">{{{description}}}</div>{{/if}}
+            <div class="project-name primaryFont">{{name}}</div>
+            {{#if description}}<div class="project-description secondaryFont">{{{description}}}</div>{{/if}}
             {{#if technologies}}
             <div class="technologies">
               <strong>Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
@@ -674,11 +677,11 @@ module.exports = [
         
         {{#if education}}
         <section class="education-section">
-          <h3>Education</h3>
+          <h3 class="primaryFont">Education</h3>
           {{#each education}}
           <div class="edu-item" itemscope itemtype="http://schema.org/EducationalOccupationalCredential">
             <div class="edu-header">
-              <div class="edu-degree" itemprop="credentialCategory">{{degree}}</div>
+                <div class="edu-degree primaryFont" itemprop="credentialCategory">{{degree}}</div>
               <div class="edu-institution" itemprop="recognizedBy">{{institution}}</div>
               <div class="edu-duration">
                 <time>{{formatDate startDate}}</time> - 
@@ -687,19 +690,19 @@ module.exports = [
             </div>
             {{#if location}}<div class="edu-location">{{location}}</div>{{/if}}
             {{#if gpa}}<div class="gpa">GPA: {{gpa}}</div>{{/if}}
-            {{#if description}}<div class="edu-description">{{{description}}}</div>{{/if}}
+            {{#if description}}<div class="edu-description secondaryFont">{{{description}}}</div>{{/if}}
           </div>
           {{/each}}
         </section>
         {{/if}}
         
         {{#if achievements}}
-        <section class="achievements-section">
-          <h3>Achievements & Awards</h3>
+        <section class="achievements-section secondaryFont">
+          <h3 class="primaryFont">Achievements & Awards</h3>
           {{#each achievements}}
           <div class="achievement-item">
-            {{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}
-            {{#if description}}<p class="achievement-description">{{{description}}}</p>{{/if}}
+            {{#if title}}<div class="achievement-title primaryFont">{{title}}</div>{{/if}}
+            {{#if description}}<p class="achievement-description secondaryFont">{{{description}}}</p>{{/if}}
             {{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}
             {{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}
           </div>
@@ -709,10 +712,10 @@ module.exports = [
         
         {{#if certifications}}
         <section class="certifications-section">
-          <h3>Professional Certifications</h3>
+          <h3 class="primaryFont">Professional Certifications</h3>
           {{#each certifications}}
           <div class="cert-item">
-            <div class="cert-name">{{name}}</div>
+            <div class="cert-name secondaryFont">{{name}}</div>
             <div class="cert-meta">
               <span class="issuer">{{issuer}}</span>
               {{#if date}}<span class="cert-dates">{{formatDate date}}</span>{{/if}}
@@ -727,10 +730,10 @@ module.exports = [
         
         {{#if languages}}
         <section class="languages-section">
-          <h3>Languages</h3>
+          <h3 class="primaryFont">Languages</h3>
           {{#each languages}}
           <div class="language-item">
-            <span class="language-name">{{name}}</span>
+            <span class="language-name secondaryFont">{{name}}</span>
             <span class="language-level">{{proficiency}}</span>
           </div>
           {{/each}}
@@ -742,7 +745,7 @@ module.exports = [
           {{#each customFields}}
           <div class="custom-field">
             <div class="custom-field-title">{{title}}</div>
-            <div class="custom-content">{{content}}</div>
+            <div class="custom-content secondaryFont">{{content}}</div>
           </div>
           {{/each}}
         </section>
@@ -846,7 +849,8 @@ module.exports = [
         headerFontSize: 18,
         fontSize: 12,
         lineSpacing: 1.3,
-        sectionSpacing: 1
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
       }
     },
     availability: { tier: 'free', isPublic: true, isActive: true },
@@ -854,8 +858,8 @@ module.exports = [
       html: `<div class="resume creative-designer">
         <div class="sidebar">
           <div class="profile-section">
-            <h1 class="name">{{personalInfo.fullName}}</h1>
-            <div class="contact-info">
+            <h1 class="name primaryFont">{{personalInfo.fullName}}</h1>
+            <div class="contact-info secondaryFont">
               <div class="contact-item"><span class="icon">📧</span><span>{{personalInfo.email}}</span></div>
               {{#if personalInfo.phone}}<div class="contact-item"><span class="icon">📱</span><span>{{personalInfo.phone}}</span></div>{{/if}}
               {{#if personalInfo.address}}<div class="contact-item"><span class="icon">📍</span><span>{{personalInfo.address}}</span></div>{{/if}}
@@ -864,17 +868,17 @@ module.exports = [
               {{#if personalInfo.github}}<div class="contact-item"><span class="icon">🐱</span><span><a href="{{personalInfo.github}}" target="_blank">{{personalInfo.github}}</a></span></div>{{/if}}
             </div>
           </div>
-          {{#if skills}}<section class="skills"><h2>Skills</h2>{{#each skills}}<div class="skill-category"><div class="skill-category-title">{{category}}</div><div class="skill-bars">{{#each items}}<div class="skill-item"><span class="skill-name">{{name}}</span><div class="skill-bar"><div class="skill-progress" data-level="{{level}}"></div></div></div>{{/each}}</div></div>{{/each}}</section>{{/if}}
-          {{#if languages}}<section class="languages"><h2>Languages</h2>{{#each languages}}<div class="language-item"><span class="language-name">{{name}}</span><span class="language-level">{{proficiency}}</span></div>{{/each}}</section>{{/if}}
-          {{#if certifications}}<section class="certifications"><h2>Certifications</h2>{{#each certifications}}<div class="cert-item"><div class="cert-title">{{name}}</div><div class="cert-meta"><span class="issuer">{{issuer}}</span>{{#if date}}<span class="date">{{formatDate date}}</span>{{/if}}</div>{{#if expiryDate}}<div class="cert-expiry">Expires: {{formatDate expiryDate}}</div>{{/if}}{{#if credentialId}}<div class="cert-id">ID: {{credentialId}}</div>{{/if}}{{#if url}}<div class="cert-link"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}</div>{{/each}}</section>{{/if}}
+          {{#if skills}}<section class="skills"><h2 class="primaryFont">Skills</h2>{{#each skills}}<div class="skill-category"><div class="skill-category-title primaryFont">{{category}}</div><div class="skill-bars">{{#each items}}<div class="skill-item"><span class="skill-name secondaryFont">{{name}}</span><div class="skill-bar"><div class="skill-progress" data-level="{{level}}"></div></div></div>{{/each}}</div></div>{{/each}}</section>{{/if}}
+          {{#if languages}}<section class="languages"><h2 class="primaryFont">Languages</h2>{{#each languages}}<div class="language-item"><span class="language-name secondaryFont">{{name}}</span><span class="language-level">{{proficiency}}</span></div>{{/each}}</section>{{/if}}
+          {{#if certifications}}<section class="certifications"><h2 class="primaryFont">Certifications</h2>{{#each certifications}}<div class="cert-item"><div class="cert-title secondaryFont">{{name}}</div><div class="cert-meta"><span class="issuer">{{issuer}}</span>{{#if date}}<span class="date">{{formatDate date}}</span>{{/if}}</div>{{#if expiryDate}}<div class="cert-expiry">Expires: {{formatDate expiryDate}}</div>{{/if}}{{#if credentialId}}<div class="cert-id">ID: {{credentialId}}</div>{{/if}}{{#if url}}<div class="cert-link"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}</div>{{/each}}</section>{{/if}}
         </div>
         <div class="main-content">
-          {{#if summary}}<section class="about"><h2>About Me</h2><div class="about-text">{{{summary}}}</div></section>{{/if}}
-          {{#if workExperience}}<section class="experience"><h2>Experience</h2><div class="timeline">{{#each workExperience}}<div class="timeline-item"><div class="timeline-marker"></div><div class="timeline-content"><h3>{{jobTitle}}</h3><div class="job-meta"><span class="company">{{company}}</span>{{#if location}}<span class="location">{{location}}</span>{{/if}}</div><div class="dates">{{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{formatDate endDate}}{{/if}}</div>{{#if description}}<div class="description">{{{description}}}</div>{{/if}}{{#if achievements}}<ul class="achievements">{{#each achievements}}<li>{{this}}</li>{{/each}}</ul>{{/if}}</div></div>{{/each}}</div></section>{{/if}}
-                          {{#if education}}<section class="education"><h2>Education</h2>{{#each education}}<div class="edu-item"><h3>{{degree}}</h3><div class="edu-meta"><span class="institution">{{institution}}</span>{{#if location}}<span class="location">{{location}}</span>{{/if}}</div><div class="edu-dates">{{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{formatDate endDate}}{{/if}}</div>{{#if gpa}}<div class="gpa">GPA: {{gpa}}</div>{{/if}}{{#if description}}<div class="edu-description">{{{description}}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
-                          {{#if projects}}<section class="projects"><h2>Projects</h2>{{#each projects}}<div class="project-item"><h3>{{name}}</h3>{{#if description}}<div>{{{description}}}</div>{{/if}}{{#if technologies}}<div class="technologies">{{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}</div>{{/if}}{{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}{{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}{{#if startDate}}<div class="project-dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
-                          {{#if achievements}}<section class="achievements-section"><h2>Achievements</h2>{{#each achievements}}<div class="achievement-item">{{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}{{#if description}}<div>{{{description}}}</div>{{/if}}{{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}{{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
-          {{#if customFields}}<section class="custom-fields">{{#each customFields}}<div class="custom-field"><h3>{{title}}</h3><div class="custom-content">{{content}}</div></div>{{/each}}</section>{{/if}}
+          {{#if summary}}<section class="about"><h2 class="primaryFont">About Me</h2><div class="about-text secondaryFont">{{{summary}}}</div></section>{{/if}}
+          {{#if workExperience}}<section class="experience"><h2 class="primaryFont">Experience</h2><div class="timeline">{{#each workExperience}}<div class="timeline-item"><div class="timeline-marker"></div><div class="timeline-content"><h3 class="primaryFont">{{jobTitle}}</h3><div class="job-meta"><span class="company">{{company}}</span>{{#if location}}<span class="location">{{location}}</span>{{/if}}</div><div class="dates">{{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{formatDate endDate}}{{/if}}</div>{{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}{{#if achievements}}<ul class="achievements secondaryFont">{{#each achievements}}<li>{{this}}</li>{{/each}}</ul>{{/if}}</div></div>{{/each}}</div></section>{{/if}}
+                          {{#if education}}<section class="education"><h2 class="primaryFont">Education</h2>{{#each education}}<div class="edu-item"><h3 class="primaryFont">{{degree}}</h3><div class="edu-meta"><span class="institution">{{institution}}</span>{{#if location}}<span class="location">{{location}}</span>{{/if}}</div><div class="edu-dates">{{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{formatDate endDate}}{{/if}}</div>{{#if gpa}}<div class="gpa">GPA: {{gpa}}</div>{{/if}}{{#if description}}<div class="edu-description secondaryFont">{{{description}}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
+                          {{#if projects}}<section class="projects"><h2 class="primaryFont">Projects</h2>{{#each projects}}<div class="project-item"><h3 class="primaryFont">{{name}}</h3>{{#if description}}<div class="secondaryFont">{{{description}}}</div>{{/if}}{{#if technologies}}<div class="technologies">{{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}</div>{{/if}}{{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}{{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}{{#if startDate}}<div class="project-dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
+                          {{#if achievements}}<section class="achievements-section"><h2 class="primaryFont">Achievements</h2>{{#each achievements}}<div class="achievement-item">{{#if title}}<div class="achievement-title primaryFont">{{title}}</div>{{/if}}{{#if description}}<div class="secondaryFont">{{{description}}}</div>{{/if}}{{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}{{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
+          {{#if customFields}}<section class="custom-fields">{{#each customFields}}<div class="custom-field"><h3 class="primaryFont">{{title}}</h3><div class="custom-content secondaryFont">{{content}}</div></div>{{/each}}</section>{{/if}}
         </div>
       </div>`,
       css: `.resume.creative-designer { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; background: white; color: #1f2937; display: grid; grid-template-columns: 280px 1fr; font-size: 12px; line-height: 1; }
@@ -993,15 +997,16 @@ module.exports = [
         headerFontSize: 18,
         fontSize: 12,
         lineSpacing: 1.3,
-        sectionSpacing: 1
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
       }
     },
     availability: { tier: 'free', isPublic: true, isActive: true },
     templateCode: {
       html: `<article class="resume classic-traditional" itemscope itemtype="http://schema.org/Person">
         <header class="header">
-          <h1 class="name" itemprop="name">{{personalInfo.fullName}}</h1>
-          <div class="contact-info">
+          <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+          <div class="contact-info secondaryFont">
             <span itemprop="email">{{personalInfo.email}}</span>
             {{#if personalInfo.phone}} | <span itemprop="telephone">{{personalInfo.phone}}</span>{{/if}}
             {{#if personalInfo.address}} | <span itemprop="address">{{personalInfo.address}}</span>{{/if}}
@@ -1012,42 +1017,42 @@ module.exports = [
         </header>
         
         {{#if summary}}
-        <section class="objective">
-          <h2>PROFESSIONAL OBJECTIVE</h2>
-          <div itemprop="description">{{{summary}}}</div>
+        <section class="objective secondaryFont">
+          <h2 class="primaryFont">PROFESSIONAL OBJECTIVE</h2>
+          <div class="secondaryFont" itemprop="description">{{{summary}}}</div>
         </section>
         {{/if}}
         
         {{#if skills}}
         <section class="skills">
-          <h2>CORE COMPETENCIES</h2>
+          <h2 class="primaryFont">CORE COMPETENCIES</h2>
           {{#each skills}}
           <div class="skill-category">
-            <div class="skill-category-title">{{category}}:</div>
-            <div class="skill-items">{{#each items}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}</div>
+            <div class="skill-category-title primaryFont">{{category}}:</div>
+            <div class="skill-items secondaryFont">{{#each items}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}</div>
           </div>
           {{/each}}
         </section>
         {{/if}}
         
         {{#if workExperience}}
-        <section class="experience">
-          <h2>PROFESSIONAL EXPERIENCE</h2>
+        <section class="experience secondaryFont">
+          <h2 class="primaryFont">PROFESSIONAL EXPERIENCE</h2>
           {{#each workExperience}}
           <div class="job-entry" itemscope itemtype="http://schema.org/JobPosting">
             <div class="job-header">
-              <h3 itemprop="title">{{jobTitle}}</h3>
-              <span class="dates">
+              <h3 class="primaryFont" itemprop="title">{{jobTitle}}</h3>
+              <span class="dates secondaryFont">
                 <time itemprop="datePosted">{{formatDate startDate}}</time> - 
                 {{#if isCurrentJob}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
               </span>
             </div>
-            <div class="company-info">
+            <div class="company-info secondaryFont">
               <em itemprop="hiringOrganization">{{company}}</em>{{#if location}}, <span itemprop="jobLocation">{{location}}</span>{{/if}}
             </div>
-            {{#if description}}<div class="job-description" itemprop="description">{{{description}}}</div>{{/if}}
+            {{#if description}}<div class="job-description secondaryFont" itemprop="description">{{{description}}}</div>{{/if}}
             {{#if achievements}}
-            <ul class="achievements">
+            <ul class="achievements secondaryFont">
               {{#each achievements}}<li>{{this}}</li>{{/each}}
             </ul>
             {{/if}}
@@ -1058,21 +1063,21 @@ module.exports = [
         
         {{#if education}}
         <section class="education">
-          <h2>EDUCATION</h2>
+          <h2 class="primaryFont">EDUCATION</h2>
           {{#each education}}
           <div class="edu-entry" itemscope itemtype="http://schema.org/EducationalOccupationalCredential">
             <div class="edu-header">
-              <h3 itemprop="credentialCategory">{{degree}}</h3>
-              <span class="dates">
+              <h3 class="primaryFont" itemprop="credentialCategory">{{degree}}</h3>
+              <span class="dates secondaryFont">
                 <time>{{formatDate startDate}}</time> - 
                 {{#if isCurrentlyStudying}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
               </span>
             </div>
-            <div class="institution-info">
+            <div class="institution-info secondaryFont">
               <em itemprop="recognizedBy">{{institution}}</em>{{#if location}}, {{location}}{{/if}}
             </div>
-            {{#if gpa}}<div class="gpa">GPA: {{gpa}}</div>{{/if}}
-            {{#if description}}<div class="edu-description">{{{description}}}</div>{{/if}}
+            {{#if gpa}}<div class="gpa secondaryFont">GPA: {{gpa}}</div>{{/if}}
+            {{#if description}}<div class="edu-description secondaryFont">{{{description}}}</div>{{/if}}
           </div>
           {{/each}}
         </section>
@@ -1080,14 +1085,14 @@ module.exports = [
         
         {{#if projects}}
         <section class="projects">
-          <h2>KEY PROJECTS</h2>
+          <h2 class="primaryFont">KEY PROJECTS</h2>
           {{#each projects}}
           <div class="project-entry">
             <div class="project-header">
-              <h3>{{name}}</h3>
+              <h3 class="primaryFont">{{name}}</h3>
               {{#if startDate}}<span class="dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</span>{{/if}}
             </div>
-            {{#if description}}<div class="project-description">{{{description}}}</div>{{/if}}
+            {{#if description}}<div class="project-description secondaryFont">{{{description}}}</div>{{/if}}
             {{#if technologies}}<div class="technologies"><div class="tech-label">Technologies:</div> {{#each technologies}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/if}}
             {{#if url}}<div class="project-url"><div class="url-label">URL:</div> <a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
             {{#if githubUrl}}<div class="github-url"><div class="github-label">GitHub:</div> <a href="{{githubUrl}}" target="_blank">{{githubUrl}}</a></div>{{/if}}
@@ -1097,12 +1102,12 @@ module.exports = [
         {{/if}}
         
         {{#if achievements}}
-        <section class="achievements-section">
-          <h2>ACHIEVEMENTS & AWARDS</h2>
+        <section class="achievements-section secondaryFont">
+          <h2 class="primaryFont">ACHIEVEMENTS & AWARDS</h2>
           {{#each achievements}}
           <div class="achievement-entry">
-            {{#if title}}<div class="achievement-header"><h3>{{title}}</h3>{{#if date}}<span class="dates">{{formatDate date}}</span>{{/if}}</div>{{/if}}
-            {{#if description}}<div class="achievement-description">{{{description}}}</div>{{/if}}
+            {{#if title}}<div class="achievement-header"><h3 class="primaryFont">{{title}}</h3>{{#if date}}<span class="dates">{{formatDate date}}</span>{{/if}}</div>{{/if}}
+            {{#if description}}<div class="achievement-description secondaryFont">{{{description}}}</div>{{/if}}
             {{#if issuer}}<div class="issuer-info"><em>{{issuer}}</em></div>{{/if}}
           </div>
           {{/each}}
@@ -1111,11 +1116,11 @@ module.exports = [
         
         {{#if certifications}}
         <section class="certifications">
-          <h2>PROFESSIONAL CERTIFICATIONS</h2>
+          <h2 class="primaryFont">PROFESSIONAL CERTIFICATIONS</h2>
           {{#each certifications}}
           <div class="cert-entry">
             <div class="cert-header">
-              <h3>{{name}}</h3>
+              <h3 class="primaryFont">{{name}}</h3>
               {{#if date}}<span class="dates">{{formatDate date}}</span>{{/if}}
             </div>
             {{#if issuer}}<div class="cert-issuer"><em>{{issuer}}</em></div>{{/if}}
@@ -1129,8 +1134,8 @@ module.exports = [
         
         {{#if languages}}
         <section class="languages">
-          <h2>LANGUAGES</h2>
-          {{#each languages}}<div class="language-entry"><div class="language-name">{{name}}:</div> {{proficiency}}</div>{{/each}}
+          <h2 class="primaryFont">LANGUAGES</h2>
+          {{#each languages}}<div class="language-entry"><div class="language-name secondaryFont">{{name}}:</div> <span class="secondaryFont">{{proficiency}}</span></div>{{/each}}
         </section>
         {{/if}}
         
@@ -1138,8 +1143,8 @@ module.exports = [
         <section class="custom-fields">
           {{#each customFields}}
           <div class="custom-field-entry">
-            <h2>{{title}}</h2>
-            <div class="custom-field-content">{{content}}</div>
+            <h2 class="primaryFont">{{title}}</h2>
+            <div class="custom-field-content secondaryFont">{{content}}</div>
           </div>
           {{/each}}
         </section>
@@ -1239,29 +1244,30 @@ module.exports = [
         headerFontSize: 18,
         fontSize: 12,
         lineSpacing: 1.3,
-        sectionSpacing: 1
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
       }
     },
     availability: { tier: 'free', isPublic: true, isActive: true },
     templateCode: {
       html: `<div class="resume classic-professional">
         <header class="classic-header">
-          <h1 class="name">{{personalInfo.fullName}}</h1>
-          <div class="contact-details">
+          <h1 class="name primaryFont">{{personalInfo.fullName}}</h1>
+          <div class="contact-details secondaryFont">
             {{#if personalInfo.address}}{{personalInfo.address}}{{/if}}
             {{#if personalInfo.phone}}{{#if personalInfo.address}} | {{/if}}{{personalInfo.phone}}{{/if}}
             {{#if personalInfo.email}}{{#if personalInfo.phone}} | {{/if}}{{personalInfo.email}}{{/if}}
           </div>
-          {{#if personalInfo.linkedin}}<div class="linkedin">LinkedIn: <a href="{{personalInfo.linkedin}}" target="_blank">{{personalInfo.linkedin}}</a></div>{{/if}}
-          {{#if personalInfo.github}}<div class="github">GitHub: <a href="{{personalInfo.github}}" target="_blank" itemprop="url">{{personalInfo.github}}</a></div>{{/if}}
-          {{#if personalInfo.website}}<div class="website">Website: <a href="{{personalInfo.website}}" target="_blank" itemprop="url">{{personalInfo.website}}</a></div>{{/if}}
+          {{#if personalInfo.linkedin}}<div class="linkedin secondaryFont">LinkedIn: <a href="{{personalInfo.linkedin}}" target="_blank">{{personalInfo.linkedin}}</a></div>{{/if}}
+          {{#if personalInfo.github}}<div class="github secondaryFont">GitHub: <a href="{{personalInfo.github}}" target="_blank" itemprop="url">{{personalInfo.github}}</a></div>{{/if}}
+          {{#if personalInfo.website}}<div class="website secondaryFont">Website: <a href="{{personalInfo.website}}" target="_blank" itemprop="url">{{personalInfo.website}}</a></div>{{/if}}
         </header>
-        {{#if summary}}<section class="summary-section"><h2>PROFESSIONAL SUMMARY</h2><div>{{{summary}}}</div></section>{{/if}}
-        {{#if workExperience}}<section class="experience-section"><h2>PROFESSIONAL EXPERIENCE</h2>{{#each workExperience}}<div class="job-entry"><div class="job-title-line"><h3>{{jobTitle}}</h3><span class="job-dates">{{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div><div class="company-line">{{company}}{{#if location}}, {{location}}{{/if}}</div>{{#if description}}<div class="job-description">{{{description}}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
-        {{#if education}}<section class="education-section"><h2>EDUCATION</h2>{{#each education}}<div class="education-entry"><div class="education-line"><h3>{{degree}}</h3><span class="education-dates">{{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div><div class="school-line">{{institution}}{{#if location}}, {{location}}{{/if}}</div>{{#if gpa}}<div class="gpa">GPA: {{gpa}}</div>{{/if}}{{#if description}}<div class="education-description">{{{description}}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
-        {{#if projects}}<section class="projects-section"><h2>KEY PROJECTS</h2>{{#each projects}}<div class="project-entry"><div class="project-line"><h3>{{name}}</h3>{{#if startDate}}<span class="project-dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</span>{{/if}}</div>{{#if description}}<div class="project-description">{{{description}}}</div>{{/if}}{{#if technologies}}<div class="project-technologies">Technologies: {{#each technologies}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/if}}{{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}{{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}</div>{{/each}}</section>{{/if}}
-        {{#if skills}}<section class="skills-section"><h2>CORE COMPETENCIES</h2><div class="skills-grid">{{#each skills}}<div class="skill-category"><div class="skill-category-title">{{category}}</div><div class="skill-items">{{#each items}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}</div></div>{{/each}}</div>{{/if}}
-        {{#if certifications}}<section class="certifications-section"><h2>CERTIFICATIONS</h2>{{#each certifications}}<div class="cert-entry"><div class="cert-line"><h3>{{name}}</h3>{{#if date}}<span class="cert-date">{{formatDate date}}</span>{{/if}}</div>{{#if issuer}}<div class="cert-issuer">{{issuer}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
+        {{#if summary}}<section class="summary-section"><h2 class="primaryFont">PROFESSIONAL SUMMARY</h2><div class="secondaryFont">{{{summary}}}</div></section>{{/if}}
+        {{#if workExperience}}<section class="experience-section"><h2 class="primaryFont">PROFESSIONAL EXPERIENCE</h2>{{#each workExperience}}<div class="job-entry"><div class="job-title-line"><h3 class="primaryFont">{{jobTitle}}</h3><span class="job-dates secondaryFont">{{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div><div class="company-line secondaryFont">{{company}}{{#if location}}, {{location}}{{/if}}</div>{{#if description}}<div class="job-description secondaryFont">{{{description}}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
+        {{#if education}}<section class="education-section"><h2 class="primaryFont">EDUCATION</h2>{{#each education}}<div class="education-entry"><div class="education-line"><h3 class="primaryFont">{{degree}}</h3><span class="education-dates secondaryFont">{{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div><div class="school-line secondaryFont">{{institution}}{{#if location}}, {{location}}{{/if}}</div>{{#if gpa}}<div class="gpa secondaryFont">GPA: {{gpa}}</div>{{/if}}{{#if description}}<div class="education-description secondaryFont">{{{description}}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
+        {{#if projects}}<section class="projects-section"><h2 class="primaryFont">KEY PROJECTS</h2>{{#each projects}}<div class="project-entry"><div class="project-line"><h3 class="primaryFont">{{name}}</h3>{{#if startDate}}<span class="project-dates secondaryFont">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</span>{{/if}}</div>{{#if description}}<div class="project-description secondaryFont">{{{description}}}</div>{{/if}}{{#if technologies}}<div class="project-technologies secondaryFont">Technologies: {{#each technologies}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/if}}{{#if url}}<div class="project-links secondaryFont"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}{{#if githubUrl}}<div class="project-links secondaryFont"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}</div>{{/each}}</section>{{/if}}
+        {{#if skills}}<section class="skills-section"><h2 class="primaryFont">CORE COMPETENCIES</h2><div class="skills-grid">{{#each skills}}<div class="skill-category"><div class="skill-category-title primaryFont">{{category}}</div><div class="skill-items secondaryFont">{{#each items}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}</div></div>{{/each}}</div>{{/if}}
+        {{#if certifications}}<section class="certifications-section"><h2 class="primaryFont">CERTIFICATIONS</h2>{{#each certifications}}<div class="cert-entry"><div class="cert-line"><h3 class="primaryFont">{{name}}</h3>{{#if date}}<span class="cert-date secondaryFont">{{formatDate date}}</span>{{/if}}</div>{{#if issuer}}<div class="cert-issuer secondaryFont">{{issuer}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
       </div>`,
       css: `.resume.classic-professional { font-family: 'Georgia', serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: black; line-height: 1; }
       .classic-header { text-align: center; margin-bottom: 6px; padding-bottom: 8px; border-bottom: 2px solid #1f2937; }
@@ -1356,15 +1362,16 @@ module.exports = [
         headerFontSize: 18,
         fontSize: 12,
         lineSpacing: 1.3,
-        sectionSpacing: 1
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
       }
     },
     availability: { tier: 'free', isPublic: true, isActive: true },
     templateCode: {
       html: `<article class="resume minimalist-clean" itemscope itemtype="http://schema.org/Person">
         <header class="header">
-          <h1 class="name" itemprop="name">{{personalInfo.fullName}}</h1>
-          <div class="contact-info">
+          <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+          <div class="contact-info secondaryFont">
             <span class="contact-item" itemprop="email">{{personalInfo.email}}</span>
             {{#if personalInfo.phone}}<span class="contact-item" itemprop="telephone">{{personalInfo.phone}}</span>{{/if}}
             {{#if personalInfo.address}}<span class="contact-item" itemprop="address">{{personalInfo.address}}</span>{{/if}}
@@ -1376,19 +1383,19 @@ module.exports = [
         
         {{#if summary}}
         <section class="summary">
-          <h2>Professional Summary</h2>
-          <div class="summary-text" itemprop="description">{{{summary}}}</div>
+          <h2 class="primaryFont">Professional Summary</h2>
+          <div class="summary-text secondaryFont" itemprop="description">{{{summary}}}</div>
         </section>
         {{/if}}
         
         {{#if skills}}
         <section class="skills">
-          <h2>Core Competencies</h2>
+          <h2 class="primaryFont">Core Competencies</h2>
           <div class="skills-grid">
             {{#each skills}}
             <div class="skill-category">
-              <div class="skill-category-title">{{category}}</div>
-              <div class="skill-items">
+              <div class="skill-category-title primaryFont">{{category}}</div>
+              <div class="skill-items secondaryFont">
                 {{#each items}}<span class="skill-item" data-level="{{level}}">{{name}}</span>{{/each}}
               </div>
             </div>
@@ -1398,24 +1405,24 @@ module.exports = [
         {{/if}}
         
         {{#if workExperience}}
-        <section class="experience">
-          <h2>Professional Experience</h2>
+        <section class="experience secondaryFont">
+          <h2 class="primaryFont">Professional Experience</h2>
           {{#each workExperience}}
           <div class="experience-item" itemscope itemtype="http://schema.org/JobPosting">
             <div class="item-header">
               <div class="item-title">
-                <h3 itemprop="title">{{jobTitle}}</h3>
-                <span class="company" itemprop="hiringOrganization">{{company}}</span>
-                {{#if location}}<span class="location" itemprop="jobLocation"> • {{location}}</span>{{/if}}
+                <h3 class="primaryFont" itemprop="title">{{jobTitle}}</h3>
+                <span class="company secondaryFont" itemprop="hiringOrganization">{{company}}</span>
+                {{#if location}}<span class="location secondaryFont" itemprop="jobLocation"> • {{location}}</span>{{/if}}
               </div>
-              <span class="dates">
+              <span class="dates secondaryFont">
                 <time itemprop="datePosted">{{formatDate startDate}}</time> - 
                 {{#if isCurrentJob}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
               </span>
             </div>
-            {{#if description}}<div class="item-description" itemprop="description">{{{description}}}</div>{{/if}}
+            {{#if description}}<div class="item-description secondaryFont" itemprop="description">{{{description}}}</div>{{/if}}
             {{#if achievements}}
-            <ul class="achievements">
+            <ul class="achievements secondaryFont">
               {{#each achievements}}<li>{{this}}</li>{{/each}}
             </ul>
             {{/if}}
@@ -1426,18 +1433,18 @@ module.exports = [
         
         {{#if projects}}
         <section class="projects">
-          <h2>Key Projects</h2>
+          <h2 class="primaryFont">Key Projects</h2>
           {{#each projects}}
           <div class="project-item">
             <div class="item-header">
               <div class="item-title">
-                <h3>{{name}}</h3>
-                {{#if startDate}}<span class="dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</span>{{/if}}
+                <h3 class="primaryFont">{{name}}</h3>
+                {{#if startDate}}<span class="dates secondaryFont">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</span>{{/if}}
               </div>
             </div>
-            {{#if description}}<div class="item-description">{{{description}}}</div>{{/if}}
+            {{#if description}}<div class="item-description secondaryFont">{{{description}}}</div>{{/if}}
             {{#if technologies}}
-            <div class="technologies">
+            <div class="technologies secondaryFont">
               <div class="tech-label">Technologies:</div> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
             </div>
             {{/if}}
@@ -1450,36 +1457,36 @@ module.exports = [
         
         {{#if education}}
         <section class="education">
-          <h2>Education</h2>
+          <h2 class="primaryFont">Education</h2>
           {{#each education}}
           <div class="education-item" itemscope itemtype="http://schema.org/EducationalOccupationalCredential">
             <div class="item-header">
               <div class="item-title">
-                <h3 itemprop="credentialCategory">{{degree}}</h3>
-                <span class="institution" itemprop="recognizedBy">{{institution}}</span>
-                {{#if location}}<span class="location"> • {{location}}</span>{{/if}}
+                <h3 class="primaryFont" itemprop="credentialCategory">{{degree}}</h3>
+                <span class="institution secondaryFont" itemprop="recognizedBy">{{institution}}</span>
+                {{#if location}}<span class="location secondaryFont"> • {{location}}</span>{{/if}}
               </div>
-              <span class="dates">
+              <span class="dates secondaryFont">
                 <time>{{formatDate startDate}}</time> - 
                 {{#if isCurrentlyStudying}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
               </span>
             </div>
-            {{#if gpa}}<div class="gpa">GPA: {{gpa}}</div>{{/if}}
-            {{#if description}}<div class="item-description">{{{description}}}</div>{{/if}}
+            {{#if gpa}}<div class="gpa secondaryFont">GPA: {{gpa}}</div>{{/if}}
+            {{#if description}}<div class="item-description secondaryFont">{{{description}}}</div>{{/if}}
           </div>
           {{/each}}
         </section>
         {{/if}}
         
         {{#if achievements}}
-        <section class="achievements-section">
-          <h2>Achievements & Awards</h2>
+        <section class="achievements-section secondaryFont">
+          <h2 class="primaryFont">Achievements & Awards</h2>
           {{#each achievements}}
           <div class="achievement-item">
-            {{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}
-            {{#if description}}<div class="item-description">{{{description}}}</div>{{/if}}
-            {{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}
-            {{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}
+            {{#if title}}<div class="achievement-title primaryFont">{{title}}</div>{{/if}}
+            {{#if description}}<div class="item-description secondaryFont">{{{description}}}</div>{{/if}}
+            {{#if date}}<div class="achievement-date secondaryFont">{{formatDate date}}</div>{{/if}}
+            {{#if issuer}}<div class="achievement-issuer secondaryFont">{{issuer}}</div>{{/if}}
           </div>
           {{/each}}
         </section>
@@ -1487,15 +1494,15 @@ module.exports = [
         
         {{#if certifications}}
         <section class="certifications">
-          <h2>Professional Certifications</h2>
+          <h2 class="primaryFont">Professional Certifications</h2>
           {{#each certifications}}
           <div class="cert-item">
             <div class="item-header">
               <div class="item-title">
-                <h3>{{name}}</h3>
-                <span class="cert-issuer">{{issuer}}</span>
+                <h3 class="primaryFont">{{name}}</h3>
+                <span class="cert-issuer secondaryFont">{{issuer}}</span>
               </div>
-              {{#if date}}<span class="dates">{{formatDate date}}</span>{{/if}}
+              {{#if date}}<span class="dates secondaryFont">{{formatDate date}}</span>{{/if}}
             </div>
             {{#if expiryDate}}<div class="cert-expiry">Expires: {{formatDate expiryDate}}</div>{{/if}}
             {{#if credentialId}}<div class="cert-id">ID: {{credentialId}}</div>{{/if}}
@@ -1507,12 +1514,12 @@ module.exports = [
         
         {{#if languages}}
         <section class="languages">
-          <h2>Languages</h2>
+          <h2 class="primaryFont">Languages</h2>
           <div class="languages-grid">
             {{#each languages}}
             <div class="language-item">
-              <span class="language-name">{{name}}</span>
-              <span class="language-level">{{proficiency}}</span>
+              <span class="language-name secondaryFont">{{name}}</span>
+              <span class="language-level secondaryFont">{{proficiency}}</span>
             </div>
             {{/each}}
           </div>
@@ -1521,11 +1528,11 @@ module.exports = [
         
         {{#if customFields}}
         <section class="custom-fields">
-          <h2>Additional Information</h2>
+          <h2 class="primaryFont">Additional Information</h2>
           {{#each customFields}}
           <div class="custom-field">
-            <h3>{{title}}</h3>
-            <div class="custom-content">{{content}}</div>
+            <h3 class="primaryFont">{{title}}</h3>
+            <div class="custom-content secondaryFont">{{content}}</div>
           </div>
           {{/each}}
         </section>
@@ -1637,7 +1644,8 @@ module.exports = [
         headerFontSize: 18,
         fontSize: 12,
         lineSpacing: 1.3,
-        sectionSpacing: 1
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
       }
     },
     availability: { tier: 'free', isPublic: true, isActive: true },
@@ -1645,8 +1653,8 @@ module.exports = [
       html: `<article class="resume professional-corporate" itemscope itemtype="http://schema.org/Person">
         <header class="header">
           <div class="header-content">
-            <h1 class="name" itemprop="name">{{personalInfo.fullName}}</h1>
-            <div class="contact-info">
+            <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+            <div class="contact-info secondaryFont">
               <div class="contact-row">
                 <span class="contact-item" itemprop="email">{{personalInfo.email}}</span>
                 {{#if personalInfo.phone}}<span class="contact-item" itemprop="telephone">{{personalInfo.phone}}</span>{{/if}}
@@ -1666,19 +1674,19 @@ module.exports = [
         <div class="content-grid">
           <div class="main-content">
             {{#if summary}}
-            <section class="summary">
-              <h2>Professional Summary</h2>
-              <div class="summary-text" itemprop="description">{{{summary}}}</div>
+            <section class="summary secondaryFont">
+              <h2 class="primaryFont">Professional Summary</h2>
+              <div class="summary-text secondaryFont" itemprop="description">{{{summary}}}</div>
             </section>
             {{/if}}
             
             {{#if skills}}
-            <section class="skills">
-              <h2>Core Competencies</h2>
+            <section class="skills secondaryFont">
+              <h2 class="primaryFont">Core Competencies</h2>
               {{#each skills}}
               <div class="skill-category">
-                <div class="skill-category-title">{{category}}</div>
-                <div class="skill-items">
+                <div class="skill-category-title primaryFont">{{category}}</div>
+                <div class="skill-items secondaryFont">
                   {{#each items}}<span class="skill-item" data-level="{{level}}">{{name}}</span>{{/each}}
                 </div>
               </div>
@@ -1687,26 +1695,26 @@ module.exports = [
             {{/if}}
             
             {{#if workExperience}}
-            <section class="experience">
-              <h2>Professional Experience</h2>
+            <section class="experience secondaryFont">
+              <h2 class="primaryFont">Professional Experience</h2>
               {{#each workExperience}}
               <div class="job-entry" itemscope itemtype="http://schema.org/JobPosting">
                 <div class="job-header">
                   <div class="job-title-company">
-                    <h3 itemprop="title">{{jobTitle}}</h3>
+                    <h3 class="primaryFont" itemprop="title">{{jobTitle}}</h3>
                     <div class="company-location">
-                      <span class="company" itemprop="hiringOrganization">{{company}}</span>
-                      {{#if location}}<span class="location" itemprop="jobLocation">{{location}}</span>{{/if}}
+                      <span class="company secondaryFont" itemprop="hiringOrganization">{{company}}</span>
+                      {{#if location}}<span class="location secondaryFont" itemprop="jobLocation">{{location}}</span>{{/if}}
                     </div>
                   </div>
-                  <div class="job-dates">
+                  <div class="job-dates secondaryFont">
                     <time itemprop="datePosted">{{formatDate startDate}}</time> - 
                     {{#if isCurrentJob}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
                   </div>
                 </div>
-                {{#if description}}<div class="job-description" itemprop="description">{{{description}}}</div>{{/if}}
+                {{#if description}}<div class="job-description secondaryFont" itemprop="description">{{{description}}}</div>{{/if}}
                 {{#if achievements}}
-                <ul class="achievements">
+                <ul class="achievements secondaryFont">
                   {{#each achievements}}<li>{{this}}</li>{{/each}}
                 </ul>
                 {{/if}}
@@ -1716,22 +1724,22 @@ module.exports = [
             {{/if}}
             
             {{#if projects}}
-            <section class="projects">
-              <h2>Key Projects</h2>
+            <section class="projects secondaryFont">
+              <h2 class="primaryFont">Key Projects</h2>
               {{#each projects}}
               <div class="project-entry">
                 <div class="project-header">
-                  <h3>{{name}}</h3>
-                  {{#if startDate}}<div class="project-dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
+                  <h3 class="primaryFont">{{name}}</h3>
+                  {{#if startDate}}<div class="project-dates secondaryFont">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
                 </div>
-                {{#if description}}<div class="project-description">{{{description}}}</div>{{/if}}
+                {{#if description}}<div class="project-description secondaryFont">{{{description}}}</div>{{/if}}
                 {{#if technologies}}
-                <div class="technologies">
+                <div class="technologies secondaryFont">
                   <div class="tech-label">Technologies:</div> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
                 </div>
                 {{/if}}
-                {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
-                {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
+                {{#if url}}<div class="project-links secondaryFont"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
+                {{#if githubUrl}}<div class="project-links secondaryFont"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
               </div>
               {{/each}}
             </section>
@@ -1739,11 +1747,11 @@ module.exports = [
             
             {{#if customFields}}
             <section class="custom-fields">
-              <h2>Additional Information</h2>
+              <h2 class="primaryFont">Additional Information</h2>
               {{#each customFields}}
               <div class="custom-field">
-                <h3>{{title}}</h3>
-                <div class="custom-content">{{content}}</div>
+                <h3 class="primaryFont">{{title}}</h3>
+                <div class="custom-content secondaryFont">{{content}}</div>
               </div>
               {{/each}}
             </section>
@@ -1752,67 +1760,67 @@ module.exports = [
           
           <div class="sidebar">
             {{#if education}}
-            <section class="education">
-              <h2>Education</h2>
+            <section class="education secondaryFont">
+              <h2 class="primaryFont">Education</h2>
               {{#each education}}
               <div class="edu-entry" itemscope itemtype="http://schema.org/EducationalOccupationalCredential">
                 <div class="edu-title-institution">
-                  <h3 itemprop="credentialCategory">{{degree}}</h3>
+                  <h3 class="primaryFont" itemprop="credentialCategory">{{degree}}</h3>
                   <div class="institution-location">
-                    <span class="institution" itemprop="recognizedBy">{{institution}}</span>
-                    {{#if location}}<span class="location">{{location}}</span>{{/if}}
+                    <span class="institution secondaryFont" itemprop="recognizedBy">{{institution}}</span>
+                    {{#if location}}<span class="location secondaryFont">{{location}}</span>{{/if}}
                   </div>
-                  <div class="edu-dates">
+                  <div class="edu-dates secondaryFont">
                     <time>{{formatDate startDate}}</time> - 
                     {{#if isCurrentlyStudying}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
                   </div>
                 </div>
-                {{#if gpa}}<p class="gpa">GPA: {{gpa}}</p>{{/if}}
-                {{#if description}}<div class="edu-description">{{{description}}}</div>{{/if}}
+                {{#if gpa}}<p class="gpa secondaryFont">GPA: {{gpa}}</p>{{/if}}
+                {{#if description}}<div class="edu-description secondaryFont">{{{description}}}</div>{{/if}}
               </div>
               {{/each}}
             </section>
             {{/if}}
             
             {{#if achievements}}
-            <section class="achievements-section">
-              <h2>Achievements & Awards</h2>
+            <section class="achievements-section secondaryFont">
+              <h2 class="primaryFont">Achievements & Awards</h2>
               {{#each achievements}}
               <div class="achievement-entry">
-                {{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}
-                {{#if description}}<div>{{{description}}}</div>{{/if}}
-                {{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}
-                {{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}
+                {{#if title}}<div class="achievement-title primaryFont">{{title}}</div>{{/if}}
+                {{#if description}}<div class="secondaryFont">{{{description}}}</div>{{/if}}
+                {{#if date}}<div class="achievement-date secondaryFont">{{formatDate date}}</div>{{/if}}
+                {{#if issuer}}<div class="achievement-issuer secondaryFont">{{issuer}}</div>{{/if}}
               </div>
               {{/each}}
             </section>
             {{/if}}
             
             {{#if certifications}}
-            <section class="certifications">
-              <h2>Professional Certifications</h2>
+            <section class="certifications secondaryFont">
+              <h2 class="primaryFont">Professional Certifications</h2>
               {{#each certifications}}
               <div class="cert-item">
-                <h3>{{name}}</h3>
-                <div class="cert-details">
+                <h3 class="primaryFont">{{name}}</h3>
+                <div class="cert-details secondaryFont">
                   <span class="issuer">{{issuer}}</span>
                   {{#if date}}<span class="date">{{formatDate date}}</span>{{/if}}
                 </div>
-                {{#if expiryDate}}<div class="cert-expiry">Expires: {{formatDate expiryDate}}</div>{{/if}}
-                {{#if credentialId}}<div class="cert-id">ID: {{credentialId}}</div>{{/if}}
-                {{#if url}}<div class="cert-link"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}
+                {{#if expiryDate}}<div class="cert-expiry secondaryFont">Expires: {{formatDate expiryDate}}</div>{{/if}}
+                {{#if credentialId}}<div class="cert-id secondaryFont">ID: {{credentialId}}</div>{{/if}}
+                {{#if url}}<div class="cert-link secondaryFont"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}
               </div>
               {{/each}}
             </section>
             {{/if}}
             
             {{#if languages}}
-            <section class="languages">
-              <h2>Languages</h2>
+            <section class="languages secondaryFont">
+              <h2 class="primaryFont">Languages</h2>
               {{#each languages}}
               <div class="language-item">
-                <span class="language-name">{{name}}</span>
-                <span class="language-level">{{proficiency}}</span>
+                <span class="language-name secondaryFont">{{name}}</span>
+                <span class="language-level secondaryFont">{{proficiency}}</span>
               </div>
               {{/each}}
             </section>
@@ -1942,15 +1950,16 @@ module.exports = [
         headerFontSize: 24,
         fontSize: 12,
         lineSpacing: 1.3,
-        sectionSpacing: 1
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
       }
     },
     availability: { tier: 'free', isPublic: true, isActive: true },
     templateCode: {
       html: `<div class="resume professional-executive">
         <header class="executive-header">
-          <h1 class="name">{{personalInfo.fullName}}</h1>
-          <div class="contact-bar">
+          <h1 class="name primaryFont">{{personalInfo.fullName}}</h1>
+          <div class="contact-bar secondaryFont">
             {{#if personalInfo.email}}<span class="contact-item">{{personalInfo.email}}</span>{{/if}}
             {{#if personalInfo.phone}}<span class="contact-item">{{personalInfo.phone}}</span>{{/if}}
             {{#if personalInfo.address}}<span class="contact-item">{{personalInfo.address}}</span>{{/if}}
@@ -1959,17 +1968,17 @@ module.exports = [
             {{#if personalInfo.github}}<span class="contact-item"><a href="{{personalInfo.github}}" target="_blank">{{personalInfo.github}}</a></span>{{/if}}
           </div>
         </header>
-        {{#if summary}}<section class="executive-summary"><h2>EXECUTIVE SUMMARY</h2><div>{{{summary}}}</div></section>{{/if}}
-        {{#if workExperience}}<section class="leadership-experience"><h2>LEADERSHIP EXPERIENCE</h2>{{#each workExperience}}<div class="executive-role"><div class="role-header"><h3 class="role-title">{{jobTitle}}</h3><div class="role-company">{{company}}</div><div class="role-duration">{{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</div></div>{{#if location}}<div class="role-location">{{location}}</div>{{/if}}{{#if description}}<div class="description">{{{description}}}</div>{{/if}}{{#if achievements}}<ul class="role-achievements">{{#each achievements}}<li>{{this}}</li>{{/each}}</ul>{{/if}}</div>{{/each}}</section>{{/if}}
-        {{#if projects}}<section class="executive-projects"><h2>KEY INITIATIVES & PROJECTS</h2>{{#each projects}}<div class="project-item"><h3>{{name}}</h3>{{#if description}}<div class="description">{{{description}}}</div>{{/if}}{{#if technologies}}<div class="project-technologies"><div class="tech-label">Technologies/Methods:</div> {{#each technologies}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/if}}{{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}{{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">Repository</a></div>{{/if}}</div>{{/each}}</section>{{/if}}
-        {{#if education}}<section class="education-section"><h2>EDUCATION</h2>{{#each education}}<div class="education-item"><h3 class="degree">{{degree}}</h3><div class="institution">{{institution}}</div><div class="education-year">{{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</div>{{#if gpa}}<div class="gpa">GPA: {{gpa}}</div>{{/if}}{{#if description}}<div class="education-description">{{{description}}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
-        {{#if skills}}<section class="executive-skills"><h2>CORE COMPETENCIES</h2><div class="competencies-grid">{{#each skills}}<div class="competency-area"><div class="competency-title">{{category}}</div><div class="competency-items">{{#each items}}{{name}}{{#unless @last}} • {{/unless}}{{/each}}</div></div>{{/each}}</div></section>{{/if}}
+        {{#if summary}}<section class="executive-summary"><h2 class="primaryFont">EXECUTIVE SUMMARY</h2><div class="secondaryFont">{{{summary}}}</div></section>{{/if}}
+        {{#if workExperience}}<section class="leadership-experience"><h2 class="primaryFont">LEADERSHIP EXPERIENCE</h2>{{#each workExperience}}<div class="executive-role"><div class="role-header"><h3 class="role-title primaryFont">{{jobTitle}}</h3><div class="role-company secondaryFont">{{company}}</div><div class="role-duration secondaryFont">{{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</div></div>{{#if location}}<div class="role-location secondaryFont">{{location}}</div>{{/if}}{{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}{{#if achievements}}<ul class="role-achievements secondaryFont">{{#each achievements}}<li>{{this}}</li>{{/each}}</ul>{{/if}}</div>{{/each}}</section>{{/if}}
+        {{#if projects}}<section class="executive-projects"><h2 class="primaryFont">KEY INITIATIVES & PROJECTS</h2>{{#each projects}}<div class="project-item"><h3 class="primaryFont">{{name}}</h3>{{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}{{#if technologies}}<div class="project-technologies secondaryFont"><div class="tech-label">Technologies/Methods:</div> {{#each technologies}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/if}}{{#if url}}<div class="project-links secondaryFont"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}{{#if githubUrl}}<div class="project-links secondaryFont"><a href="{{githubUrl}}" target="_blank">Repository</a></div>{{/if}}</div>{{/each}}</section>{{/if}}
+        {{#if education}}<section class="education-section"><h2 class="primaryFont">EDUCATION</h2>{{#each education}}<div class="education-item"><h3 class="degree primaryFont">{{degree}}</h3><div class="institution secondaryFont">{{institution}}</div><div class="education-year secondaryFont">{{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</div>{{#if gpa}}<div class="gpa secondaryFont">GPA: {{gpa}}</div>{{/if}}{{#if description}}<div class="education-description secondaryFont">{{{description}}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
+        {{#if skills}}<section class="executive-skills"><h2 class="primaryFont">CORE COMPETENCIES</h2><div class="competencies-grid">{{#each skills}}<div class="competency-area"><div class="competency-title primaryFont">{{category}}</div><div class="competency-items secondaryFont">{{#each items}}{{name}}{{#unless @last}} • {{/unless}}{{/each}}</div></div>{{/each}}</div></section>{{/if}}
         <div class="executive-bottom">
-          {{#if achievements}}<section class="achievements-section"><h2>ACHIEVEMENTS & AWARDS</h2>{{#each achievements}}<div class="achievement-item">{{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}{{#if description}}<div>{{{description}}}</div>{{/if}}{{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}{{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
-          {{#if certifications}}<section class="certifications-section"><h2>PROFESSIONAL CERTIFICATIONS</h2><div class="certifications-grid">{{#each certifications}}<div class="certification-item"><h3 class="cert-name">{{name}}</h3><div class="cert-issuer">{{issuer}}</div>{{#if date}}<div class="cert-date">{{formatDate date}}</div>{{/if}}{{#if expiryDate}}<div class="cert-expiry">Expires: {{formatDate expiryDate}}</div>{{/if}}{{#if credentialId}}<div class="cert-id">ID: {{credentialId}}</div>{{/if}}{{#if url}}<div class="cert-link"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}</div>{{/each}}</div>{{/if}}
+          {{#if achievements}}<section class="achievements-section"><h2 class="primaryFont">ACHIEVEMENTS & AWARDS</h2>{{#each achievements}}<div class="achievement-item">{{#if title}}<div class="achievement-title primaryFont">{{title}}</div>{{/if}}{{#if description}}<div class="secondaryFont">{{{description}}}</div>{{/if}}{{#if date}}<div class="achievement-date secondaryFont">{{formatDate date}}</div>{{/if}}{{#if issuer}}<div class="achievement-issuer secondaryFont">{{issuer}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
+          {{#if certifications}}<section class="certifications-section"><h2 class="primaryFont">PROFESSIONAL CERTIFICATIONS</h2><div class="certifications-grid">{{#each certifications}}<div class="certification-item"><h3 class="cert-name primaryFont">{{name}}</h3><div class="cert-issuer secondaryFont">{{issuer}}</div>{{#if date}}<div class="cert-date secondaryFont">{{formatDate date}}</div>{{/if}}{{#if expiryDate}}<div class="cert-expiry secondaryFont">Expires: {{formatDate expiryDate}}</div>{{/if}}{{#if credentialId}}<div class="cert-id secondaryFont">ID: {{credentialId}}</div>{{/if}}{{#if url}}<div class="cert-link secondaryFont"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}</div>{{/each}}</div>{{/if}}
         </div>
-        {{#if languages}}<section class="languages-section"><h2>LANGUAGES</h2><div class="languages-grid">{{#each languages}}<div class="language-item"><span class="language-name">{{name}}</span><span class="language-level">{{proficiency}}</span></div>{{/each}}</div>{{/if}}
-        {{#if customFields}}<section class="custom-fields-section">{{#each customFields}}<div class="custom-field"><h2>{{title}}</h2><div class="custom-content">{{content}}</div></div>{{/each}}</section>{{/if}}
+        {{#if languages}}<section class="languages-section"><h2 class="primaryFont">LANGUAGES</h2><div class="languages-grid">{{#each languages}}<div class="language-item"><span class="language-name secondaryFont">{{name}}</span><span class="language-level secondaryFont">{{proficiency}}</span></div>{{/each}}</div>{{/if}}
+        {{#if customFields}}<section class="custom-fields-section">{{#each customFields}}<div class="custom-field"><h2 class="primaryFont">{{title}}</h2><div class="custom-content secondaryFont">{{content}}</div></div>{{/each}}</section>{{/if}}
       </div>`,
       css: `.resume.professional-executive { font-family: 'Calibri', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; line-height: 1; }
       .executive-header { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); color: white; padding: 1.5rem; margin: 0 0 6px 0; text-align: center; }
@@ -2072,15 +2081,16 @@ module.exports = [
         headerFontSize: 18,
         fontSize: 12,
         lineSpacing: 1.3,
-        sectionSpacing: 1
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
       }
     },
     availability: { tier: 'free', isPublic: true, isActive: true },
     templateCode: {
       html: `<article class="resume academic-research" itemscope itemtype="http://schema.org/Person">
         <header class="header">
-          <h1 class="name" itemprop="name">{{personalInfo.fullName}}</h1>
-          <div class="contact-info">
+          <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+          <div class="contact-info secondaryFont">
             <div class="contact-grid">
               <div class="contact-item"><span class="label">Email:</span><span class="value" itemprop="email">{{personalInfo.email}}</span></div>
               {{#if personalInfo.address}}<div class="contact-item"><span class="label">Address:</span><span class="value" itemprop="address">{{personalInfo.address}}</span></div>{{/if}}
@@ -2094,18 +2104,18 @@ module.exports = [
         
         {{#if summary}}
         <section class="research-interests">
-          <h2>Research Interests</h2>
-          <div itemprop="description">{{{summary}}}</div>
+          <h2 class="primaryFont">Research Interests</h2>
+          <div class="secondaryFont" itemprop="description">{{{summary}}}</div>
         </section>
         {{/if}}
         
         {{#if skills}}
         <section class="skills">
-          <h2>Technical Skills</h2>
+          <h2 class="primaryFont">Technical Skills</h2>
           {{#each skills}}
           <div class="skill-category">
-            <h3>{{category}}</h3>
-            <div class="skill-items">
+            <h3 class="primaryFont">{{category}}</h3>
+            <div class="skill-items secondaryFont">
               {{#each items}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}
             </div>
           </div>
@@ -2114,21 +2124,21 @@ module.exports = [
         {{/if}}
         
         {{#if workExperience}}
-        <section class="experience">
-          <h2>Academic & Professional Experience</h2>
+        <section class="experience secondaryFont">
+          <h2 class="primaryFont">Academic & Professional Experience</h2>
           {{#each workExperience}}
           <div class="position-entry" itemscope itemtype="http://schema.org/JobPosting">
             <div class="position-header">
               <div class="position-info">
-                <h3 itemprop="title">{{jobTitle}}</h3>
-                <div class="institution-info" itemprop="hiringOrganization">{{company}}{{#if location}}, <span itemprop="jobLocation">{{location}}</span>{{/if}}</div>
+                <h3 class="primaryFont" itemprop="title">{{jobTitle}}</h3>
+                <div class="institution-info secondaryFont" itemprop="hiringOrganization">{{company}}{{#if location}}, <span itemprop="jobLocation">{{location}}</span>{{/if}}</div>
               </div>
-              <div class="position-dates">
+              <div class="position-dates secondaryFont">
                 <time itemprop="datePosted">{{formatDate startDate}}</time> - 
                 {{#if isCurrentJob}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
               </div>
             </div>
-            {{#if description}}<div class="position-description" itemprop="description">{{{description}}}</div>{{/if}}
+            {{#if description}}<div class="position-description secondaryFont" itemprop="description">{{{description}}}</div>{{/if}}
           </div>
           {{/each}}
         </section>
@@ -2136,18 +2146,18 @@ module.exports = [
         
         {{#if projects}}
         <section class="publications">
-          <h2>Research Projects & Publications</h2>
+          <h2 class="primaryFont">Research Projects & Publications</h2>
           {{#each projects}}
           <div class="publication-entry">
-            <h3>{{name}}</h3>
-            {{#if description}}<div class="publication-description">{{{description}}}</div>{{/if}}
+            <h3 class="primaryFont">{{name}}</h3>
+            {{#if description}}<div class="publication-description secondaryFont">{{{description}}}</div>{{/if}}
             {{#if technologies}}
-            <div class="methodologies">
+            <div class="methodologies secondaryFont">
               <span class="label">Methodologies/Tools:</span>{{#each technologies}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}
             </div>
             {{/if}}
-            {{#if url}}<div class="publication-links"><a href="{{url}}" target="_blank">View Publication</a></div>{{/if}}
-            {{#if startDate}}<div class="publication-date">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
+            {{#if url}}<div class="publication-links secondaryFont"><a href="{{url}}" target="_blank">View Publication</a></div>{{/if}}
+            {{#if startDate}}<div class="publication-date secondaryFont">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
           </div>
           {{/each}}
         </section>
@@ -2155,21 +2165,21 @@ module.exports = [
         
         {{#if education}}
         <section class="education">
-          <h2>Education</h2>
+          <h2 class="primaryFont">Education</h2>
           {{#each education}}
           <div class="edu-entry" itemscope itemtype="http://schema.org/EducationalOccupationalCredential">
             <div class="edu-header">
               <div class="degree-info">
-                <h3 itemprop="credentialCategory">{{degree}}</h3>
-                <div class="institution-info" itemprop="recognizedBy">{{institution}}{{#if location}}, {{location}}{{/if}}</div>
+                <h3 class="primaryFont" itemprop="credentialCategory">{{degree}}</h3>
+                <div class="institution-info secondaryFont" itemprop="recognizedBy">{{institution}}{{#if location}}, {{location}}{{/if}}</div>
               </div>
-              <div class="edu-dates">
+              <div class="edu-dates secondaryFont">
                 <time>{{formatDate startDate}}</time> - 
                 {{#if isCurrentlyStudying}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
               </div>
             </div>
-            {{#if gpa}}<div class="gpa">GPA: {{gpa}}</div>{{/if}}
-            {{#if description}}<div class="edu-description">{{{description}}}</div>{{/if}}
+            {{#if gpa}}<div class="gpa secondaryFont">GPA: {{gpa}}</div>{{/if}}
+            {{#if description}}<div class="edu-description secondaryFont">{{{description}}}</div>{{/if}}
           </div>
           {{/each}}
         </section>
@@ -2177,29 +2187,29 @@ module.exports = [
         
         {{#if certifications}}
         <section class="certifications">
-          <h2>Professional Certifications</h2>
+          <h2 class="primaryFont">Professional Certifications</h2>
           {{#each certifications}}
           <div class="cert-entry">
             <div class="cert-header">
-              <h3>{{name}}</h3>
-              {{#if date}}<span class="cert-date">{{formatDate date}}</span>{{/if}}
+              <h3 class="primaryFont">{{name}}</h3>
+              {{#if date}}<span class="cert-date secondaryFont">{{formatDate date}}</span>{{/if}}
             </div>
-            {{#if issuer}}<div class="cert-issuer">{{issuer}}</div>{{/if}}
-            {{#if url}}<div class="cert-link"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}
+            {{#if issuer}}<div class="cert-issuer secondaryFont">{{issuer}}</div>{{/if}}
+            {{#if url}}<div class="cert-link secondaryFont"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}
           </div>
           {{/each}}
         </section>
         {{/if}}
         
         {{#if achievements}}
-        <section class="achievements-section">
-          <h2>Achievements & Awards</h2>
+        <section class="achievements-section secondaryFont">
+          <h2 class="primaryFont">Achievements & Awards</h2>
           {{#each achievements}}
           <div class="achievement-entry">
-            {{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}
-            {{#if description}}<div class="achievement-description">{{{description}}}</div>{{/if}}
-            {{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}
-            {{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}
+            {{#if title}}<div class="achievement-title primaryFont">{{title}}</div>{{/if}}
+            {{#if description}}<div class="achievement-description secondaryFont">{{{description}}}</div>{{/if}}
+            {{#if date}}<div class="achievement-date secondaryFont">{{formatDate date}}</div>{{/if}}
+            {{#if issuer}}<div class="achievement-issuer secondaryFont">{{issuer}}</div>{{/if}}
           </div>
           {{/each}}
         </section>
@@ -2207,12 +2217,12 @@ module.exports = [
         
         {{#if languages}}
         <section class="languages">
-          <h2>Languages</h2>
+          <h2 class="primaryFont">Languages</h2>
           <div class="languages-grid">
             {{#each languages}}
             <div class="language-entry">
-              <span class="language-name">{{name}}</span>
-              <span class="language-proficiency">{{proficiency}}</span>
+              <span class="language-name secondaryFont">{{name}}</span>
+              <span class="language-proficiency secondaryFont">{{proficiency}}</span>
             </div>
             {{/each}}
           </div>
@@ -2302,7 +2312,8 @@ module.exports = [
         headerFontSize: 18,
         fontSize: 12,
         lineSpacing: 1.3,
-        sectionSpacing: 1
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
       }
     },
     availability: { tier: 'free', isPublic: true, isActive: true },
@@ -2310,11 +2321,11 @@ module.exports = [
       html: `<article class="resume sleek-professional" itemscope itemtype="http://schema.org/Person">
         <div class="main-column">
           <header class="header">
-            <h1 class="name" itemprop="name">{{personalInfo.fullName}}</h1>
-            <div class="contact-info">
-              <div class="contact-item" itemprop="email">{{personalInfo.email}}</div>
-              {{#if personalInfo.phone}}<div class="contact-item" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
-              {{#if personalInfo.address}}<div class="contact-item" itemprop="address">{{personalInfo.address}}</div>{{/if}}
+            <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+            <div class="contact-info secondaryFont">
+              <div class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</div>
+              {{#if personalInfo.phone}}<div class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
+              {{#if personalInfo.address}}<div class="contact-item secondaryFont" itemprop="address">{{personalInfo.address}}</div>{{/if}}
               {{#if personalInfo.website}}<div class="contact-item"><a href="{{personalInfo.website}}" target="_blank" itemprop="url">{{personalInfo.website}}</a></div>{{/if}}
               {{#if personalInfo.linkedin}}<div class="contact-item"><a href="{{personalInfo.linkedin}}" target="_blank">{{personalInfo.linkedin}}</a></div>{{/if}}
               {{#if personalInfo.github}}<div class="contact-item"><a href="{{personalInfo.github}}" target="_blank">{{personalInfo.github}}</a></div>{{/if}}
@@ -2322,19 +2333,19 @@ module.exports = [
           </header>
           
           {{#if summary}}
-          <section class="summary">
-            <h3>Professional Summary</h3>
-            <div itemprop="description">{{{summary}}}</div>
+          <section class="summary secondaryFont">
+            <h3 class="primaryFont">Professional Summary</h3>
+            <div class="secondaryFont" itemprop="description">{{{summary}}}</div>
           </section>
           {{/if}}
           
           {{#if skills}}
-          <section class="skills">
-            <h3>Core Competencies</h3>
+          <section class="skills secondaryFont">
+            <h3 class="primaryFont">Core Competencies</h3>
             {{#each skills}}
             <div class="skill-category">
-              <div class="skill-category-title">{{category}}</div>
-              <div class="skill-items">
+              <div class="skill-category-title primaryFont">{{category}}</div>
+              <div class="skill-items secondaryFont">
                 {{#each items}}<span class="skill-item" data-level="{{level}}">{{name}}</span>{{/each}}
               </div>
             </div>
@@ -2343,24 +2354,24 @@ module.exports = [
           {{/if}}
           
           {{#if workExperience}}
-          <section class="work-experience">
-            <h3>Professional Experience</h3>
+          <section class="work-experience secondaryFont">
+            <h3 class="primaryFont">Professional Experience</h3>
             {{#each workExperience}}
             <div class="job-item" itemscope itemtype="http://schema.org/JobPosting">
               <div class="job-header">
-                <div class="job-title" itemprop="title">{{jobTitle}}</div>
+                <div class="job-title primaryFont" itemprop="title">{{jobTitle}}</div>
                 <div class="job-meta">
-                  <span class="company" itemprop="hiringOrganization">{{company}}</span>
-                  {{#if location}}<span class="location" itemprop="jobLocation">{{location}}</span>{{/if}}
+                  <span class="company secondaryFont" itemprop="hiringOrganization">{{company}}</span>
+                  {{#if location}}<span class="location secondaryFont" itemprop="jobLocation">{{location}}</span>{{/if}}
                 </div>
                 <div class="job-dates">
                   <time itemprop="datePosted">{{formatDate startDate}}</time> - 
                   {{#if isCurrentJob}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
                 </div>
               </div>
-              {{#if description}}<div class="job-description" itemprop="description">{{{description}}}</div>{{/if}}
+              {{#if description}}<div class="job-description secondaryFont" itemprop="description">{{{description}}}</div>{{/if}}
               {{#if achievements}}
-              <ul class="achievements">
+              <ul class="achievements secondaryFont">
                 {{#each achievements}}<li>{{this}}</li>{{/each}}
               </ul>
               {{/if}}
@@ -2370,20 +2381,20 @@ module.exports = [
           {{/if}}
           
           {{#if projects}}
-          <section class="projects">
-            <h3>Key Projects</h3>
+          <section class="projects secondaryFont">
+            <h3 class="primaryFont">Key Projects</h3>
             {{#each projects}}
             <div class="project-item">
-              <div class="project-name">{{name}}</div>
-              {{#if description}}<div class="description">{{{description}}}</div>{{/if}}
+              <div class="project-name primaryFont">{{name}}</div>
+              {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
               {{#if technologies}}
               <div class="technologies">
-                <strong>Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
+                <strong class="secondaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
               </div>
               {{/if}}
               {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
               {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
-              {{#if startDate}}<div class="project-dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
+              {{#if startDate}}<div class="project-dates secondaryFont">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
             </div>
             {{/each}}
           </section>
@@ -2392,12 +2403,12 @@ module.exports = [
         
         <div class="sidebar">
           {{#if education}}
-          <section class="education">
-            <h3>Education</h3>
+          <section class="education secondaryFont">
+            <h3 class="primaryFont">Education</h3>
             {{#each education}}
             <div class="edu-item" itemscope itemtype="http://schema.org/EducationalOccupationalCredential">
               <div class="edu-header">
-                <div class="edu-degree" itemprop="credentialCategory">{{degree}}</div>
+                <div class="edu-degree primaryFont" itemprop="credentialCategory">{{degree}}</div>
                 <div class="edu-meta">
                   <span class="institution" itemprop="recognizedBy">{{institution}}</span>
                   {{#if location}}<span class="location">{{location}}</span>{{/if}}
@@ -2408,20 +2419,20 @@ module.exports = [
                 </div>
               </div>
               {{#if gpa}}<p class="gpa">GPA: {{gpa}}</p>{{/if}}
-              {{#if description}}<div class="edu-description">{{{description}}}</div>{{/if}}
+              {{#if description}}<div class="edu-description secondaryFont">{{{description}}}</div>{{/if}}
             </div>
             {{/each}}
           </section>
           {{/if}}
           
           {{#if certifications}}
-          <section class="certifications">
-            <h3>Professional Certifications</h3>
+          <section class="certifications secondaryFont">
+            <h3 class="primaryFont">Professional Certifications</h3>
             {{#each certifications}}
             <div class="cert-item">
-              <div class="cert-name">{{name}}</div>
+              <div class="cert-name secondaryFont">{{name}}</div>
               <div class="cert-meta">
-                <span class="issuer">{{issuer}}</span>
+                <span class="issuer secondaryFont">{{issuer}}</span>
                 {{#if date}}<span class="cert-dates">{{formatDate date}}</span>{{/if}}
               </div>
               {{#if expiryDate}}<div class="cert-expiry">Expires: {{formatDate expiryDate}}</div>{{/if}}
@@ -2433,12 +2444,12 @@ module.exports = [
           {{/if}}
           
           {{#if achievements}}
-          <section class="achievements">
-            <h3>Achievements & Awards</h3>
+          <section class="achievements secondaryFont">
+            <h3 class="primaryFont">Achievements & Awards</h3>
             {{#each achievements}}
             <div class="achievement-item">
-              {{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}
-              {{#if description}}<div class="description">{{{description}}}</div>{{/if}}
+              {{#if title}}<div class="achievement-title primaryFont">{{title}}</div>{{/if}}
+              {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
               {{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}
               {{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}
             </div>
@@ -2447,8 +2458,8 @@ module.exports = [
           {{/if}}
           
           {{#if languages}}
-          <section class="languages">
-            <h3>Languages</h3>
+          <section class="languages secondaryFont">
+            <h3 class="primaryFont">Languages</h3>
             {{#each languages}}
             <div class="language-item">
               <span class="language-name">{{name}}</span>
@@ -2462,7 +2473,7 @@ module.exports = [
           <section class="custom-fields">
             {{#each customFields}}
             <div class="custom-field-item">
-              <h3>{{title}}</h3>
+              <h3 class="primaryFont">{{title}}</h3>
               <div class="custom-field-content">{{content}}</div>
             </div>
             {{/each}}
@@ -2563,15 +2574,16 @@ module.exports = [
         headerFontSize: 18,
         fontSize: 12,
         lineSpacing: 1.3,
-        sectionSpacing: 1
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
       }
     },
     availability: { tier: 'free', isPublic: true, isActive: true },
     templateCode: {
       html: `<article class="resume creative-portfolio" itemscope itemtype="http://schema.org/Person">
         <header class="header">
-          <h1 class="name" itemprop="name">{{personalInfo.fullName}}</h1>
-          <div class="contact-info">
+          <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+          <div class="contact-info secondaryFont">
             <div class="contact-item" itemprop="email">{{personalInfo.email}}</div>
             {{#if personalInfo.phone}}<div class="contact-item" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
             {{#if personalInfo.address}}<div class="contact-item" itemprop="address">{{personalInfo.address}}</div>{{/if}}
@@ -2583,28 +2595,28 @@ module.exports = [
         
         {{#if summary}}
         <section class="summary">
-          <h2>Professional Summary</h2>
-          <div itemprop="description">{{{summary}}}</div>
+          <h2 class="primaryFont">Professional Summary</h2>
+          <div itemprop="description secondaryFont">{{{summary}}}</div>
         </section>
         {{/if}}
         
         {{#if projects}}
         <section class="projects">
-          <h2>Featured Projects</h2>
+          <h2 class="primaryFont">Featured Projects</h2>
           {{#each projects}}
           <div class="project-item">
             <div class="project-header">
-              <div class="project-name">{{name}}</div>
-              {{#if startDate}}<div class="project-dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
+              <div class="project-name primaryFont">{{name}}</div>
+              {{#if startDate}}<div class="project-dates secondaryFont">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
             </div>
-            {{#if description}}<div class="description">{{{description}}}</div>{{/if}}
+            {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
             {{#if technologies}}
-            <div class="technologies">
+            <div class="technologies secondaryFont">
               <strong>Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
             </div>
             {{/if}}
-            {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
-            {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
+            {{#if url}}<div class="project-links secondaryFont"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
+            {{#if githubUrl}}<div class="project-links secondaryFont"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
           </div>
           {{/each}}
         </section>
@@ -2612,12 +2624,12 @@ module.exports = [
         
         {{#if skills}}
         <section class="skills">
-          <h2>Skills & Expertise</h2>
+          <h2 class="primaryFont">Skills & Expertise</h2>
           {{#each skills}}
           <div class="skill-category">
-            <div class="skill-category-title">{{category}}</div>
+            <div class="skill-category-title primaryFont">{{category}}</div>
             <div class="skill-items">
-              {{#each items}}<span class="skill-item" data-level="{{level}}">{{name}}</span>{{/each}}
+              {{#each items}}<span class="skill-item secondaryFont" data-level="{{level}}">{{name}}</span>{{/each}}
             </div>
           </div>
           {{/each}}
@@ -2626,23 +2638,23 @@ module.exports = [
         
         {{#if workExperience}}
         <section class="work-experience">
-          <h2>Professional Experience</h2>
+          <h2 class="primaryFont">Professional Experience</h2>
           {{#each workExperience}}
           <div class="job-item" itemscope itemtype="http://schema.org/JobPosting">
             <div class="job-header">
-              <div class="job-title" itemprop="title">{{jobTitle}}</div>
+              <div class="job-title primaryFont" itemprop="title">{{jobTitle}}</div>
               <div class="job-meta">
-                <span class="company" itemprop="hiringOrganization">{{company}}</span>
-                {{#if location}}<span class="location" itemprop="jobLocation">{{location}}</span>{{/if}}
+                <span class="company secondaryFont" itemprop="hiringOrganization">{{company}}</span>
+                {{#if location}}<span class="location secondaryFont" itemprop="jobLocation">{{location}}</span>{{/if}}
               </div>
-              <div class="job-dates">
+              <div class="job-dates secondaryFont">
                 <time itemprop="datePosted">{{formatDate startDate}}</time> - 
                 {{#if isCurrentJob}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
               </div>
             </div>
-            {{#if description}}<div class="job-description" itemprop="description">{{{description}}}</div>{{/if}}
+            {{#if description}}<div class="job-description secondaryFont" itemprop="description">{{{description}}}</div>{{/if}}
             {{#if achievements}}
-            <ul class="achievements">
+            <ul class="achievements secondaryFont">
               {{#each achievements}}<li>{{this}}</li>{{/each}}
             </ul>
             {{/if}}
@@ -2653,11 +2665,11 @@ module.exports = [
         
         {{#if education}}
         <section class="education">
-          <h2>Education</h2>
+          <h2 class="primaryFont">Education</h2>
           {{#each education}}
           <div class="edu-item" itemscope itemtype="http://schema.org/EducationalOccupationalCredential">
             <div class="edu-header">
-              <div class="edu-degree" itemprop="credentialCategory">{{degree}}</div>
+                <div class="edu-degree primaryFont" itemprop="credentialCategory">{{degree}}</div>
               <div class="edu-meta">
                 <span class="institution" itemprop="recognizedBy">{{institution}}</span>
                 {{#if location}}<span class="location">{{location}}</span>{{/if}}
@@ -2668,7 +2680,7 @@ module.exports = [
               </div>
             </div>
             {{#if gpa}}<p class="gpa">GPA: {{gpa}}</p>{{/if}}
-            {{#if description}}<div class="edu-description">{{{description}}}</div>{{/if}}
+            {{#if description}}<div class="edu-description secondaryFont">{{{description}}}</div>{{/if}}
           </div>
           {{/each}}
         </section>
@@ -2676,7 +2688,7 @@ module.exports = [
         
         {{#if certifications}}
         <section class="certifications">
-          <h2>Professional Certifications</h2>
+          <h2 class="primaryFont">Professional Certifications</h2>
           {{#each certifications}}
           <div class="cert-item">
             <div class="cert-name">{{name}}</div>
@@ -2694,11 +2706,11 @@ module.exports = [
         
         {{#if achievements}}
         <section class="achievements">
-          <h2>Achievements & Awards</h2>
+          <h2 class="primaryFont">Achievements & Awards</h2>
           {{#each achievements}}
           <div class="achievement-item">
-            {{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}
-            {{#if description}}<div class="description">{{{description}}}</div>{{/if}}
+            {{#if title}}<div class="achievement-title primaryFont">{{title}}</div>{{/if}}
+            {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
             {{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}
             {{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}
           </div>
@@ -2708,7 +2720,7 @@ module.exports = [
         
         {{#if languages}}
         <section class="languages">
-          <h2>Languages</h2>
+          <h2 class="primaryFont">Languages</h2>
           {{#each languages}}
           <div class="language-item">
             <span class="language-name">{{name}}</span>
@@ -2722,7 +2734,7 @@ module.exports = [
         <section class="custom-fields">
           {{#each customFields}}
           <div class="custom-field-item">
-            <h2>{{title}}</h2>
+            <h2 class="primaryFont">{{title}}</h2>
             <div class="custom-field-content">{{content}}</div>
           </div>
           {{/each}}
@@ -2826,7 +2838,8 @@ module.exports = [
         headerFontSize: 18,
         fontSize: 12,
         lineSpacing: 1.3,
-        sectionSpacing: 1
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
       }
     },
     availability: { tier: 'free', isPublic: true, isActive: true },
@@ -2834,11 +2847,11 @@ module.exports = [
       html: `<article class="resume dark-mode-dev" itemscope itemtype="http://schema.org/Person">
         <div class="main-column">
           <header class="header">
-            <h1 class="name" itemprop="name">{{personalInfo.fullName}}</h1>
-            <div class="contact-info">
-              <div class="contact-item" itemprop="email">{{personalInfo.email}}</div>
-              {{#if personalInfo.phone}}<div class="contact-item" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
-              {{#if personalInfo.address}}<div class="contact-item" itemprop="address">{{personalInfo.address}}</div>{{/if}}
+            <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+            <div class="contact-info secondaryFont">
+              <div class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</div>
+              {{#if personalInfo.phone}}<div class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
+              {{#if personalInfo.address}}<div class="contact-item secondaryFont" itemprop="address">{{personalInfo.address}}</div>{{/if}}
               {{#if personalInfo.website}}<div class="contact-item"><a href="{{personalInfo.website}}" target="_blank" itemprop="url">{{personalInfo.website}}</a></div>{{/if}}
               {{#if personalInfo.linkedin}}<div class="contact-item"><a href="{{personalInfo.linkedin}}" target="_blank">{{personalInfo.linkedin}}</a></div>{{/if}}
               {{#if personalInfo.github}}<div class="contact-item"><a href="{{personalInfo.github}}" target="_blank">{{personalInfo.github}}</a></div>{{/if}}
@@ -2846,19 +2859,19 @@ module.exports = [
           </header>
           
           {{#if summary}}
-          <section class="summary">
-            <h3>Professional Summary</h3>
-            <div itemprop="description">{{{summary}}}</div>
+          <section class="summary secondaryFont">
+            <h3 class="primaryFont">Professional Summary</h3>
+            <div class="secondaryFont" itemprop="description">{{{summary}}}</div>
           </section>
           {{/if}}
           
           {{#if skills}}
-          <section class="skills">
-            <h3>Technical Skills</h3>
+          <section class="skills secondaryFont">
+            <h3 class="primaryFont">Technical Skills</h3>
             {{#each skills}}
             <div class="skill-category">
-              <div class="skill-category-title">{{category}}</div>
-              <div class="skill-items">
+              <div class="skill-category-title primaryFont">{{category}}</div>
+              <div class="skill-items secondaryFont">
                 {{#each items}}<span class="skill-item" data-level="{{level}}">{{name}}</span>{{/each}}
               </div>
             </div>
@@ -2867,24 +2880,24 @@ module.exports = [
           {{/if}}
           
           {{#if workExperience}}
-          <section class="work-experience">
-            <h3>Professional Experience</h3>
+          <section class="work-experience secondaryFont">
+            <h3 class="primaryFont">Professional Experience</h3>
             {{#each workExperience}}
             <div class="job-item" itemscope itemtype="http://schema.org/JobPosting">
               <div class="job-header">
-                <div class="job-title" itemprop="title">{{jobTitle}}</div>
+                <div class="job-title primaryFont" itemprop="title">{{jobTitle}}</div>
                 <div class="job-meta">
-                  <span class="company" itemprop="hiringOrganization">{{company}}</span>
-                  {{#if location}}<span class="location" itemprop="jobLocation">{{location}}</span>{{/if}}
+                  <span class="company secondaryFont" itemprop="hiringOrganization">{{company}}</span>
+                  {{#if location}}<span class="location secondaryFont" itemprop="jobLocation">{{location}}</span>{{/if}}
                 </div>
                 <div class="job-dates">
                   <time itemprop="datePosted">{{formatDate startDate}}</time> - 
                   {{#if isCurrentJob}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
                 </div>
               </div>
-              {{#if description}}<div class="job-description" itemprop="description">{{{description}}}</div>{{/if}}
+              {{#if description}}<div class="job-description secondaryFont" itemprop="description">{{{description}}}</div>{{/if}}
               {{#if achievements}}
-              <ul class="achievements">
+              <ul class="achievements secondaryFont">
                 {{#each achievements}}<li>{{this}}</li>{{/each}}
               </ul>
               {{/if}}
@@ -2894,20 +2907,20 @@ module.exports = [
           {{/if}}
           
           {{#if projects}}
-          <section class="projects">
-            <h3>Key Projects</h3>
+          <section class="projects secondaryFont">
+            <h3 class="primaryFont">Key Projects</h3>
             {{#each projects}}
             <div class="project-item">
-              <div class="project-name">{{name}}</div>
-              {{#if description}}<div class="description">{{{description}}}</div>{{/if}}
+              <div class="project-name primaryFont">{{name}}</div>
+              {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
               {{#if technologies}}
               <div class="technologies">
-                <strong>Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
+                <strong class="secondaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
               </div>
               {{/if}}
               {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
               {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
-              {{#if startDate}}<div class="project-dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
+              {{#if startDate}}<div class="project-dates secondaryFont">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
             </div>
             {{/each}}
           </section>
@@ -2916,12 +2929,12 @@ module.exports = [
         
         <div class="sidebar">
           {{#if education}}
-          <section class="education">
-            <h3>Education</h3>
+          <section class="education secondaryFont">
+            <h3 class="primaryFont">Education</h3>
             {{#each education}}
             <div class="edu-item" itemscope itemtype="http://schema.org/EducationalOccupationalCredential">
               <div class="edu-header">
-                <div class="edu-degree" itemprop="credentialCategory">{{degree}}</div>
+                <div class="edu-degree primaryFont" itemprop="credentialCategory">{{degree}}</div>
                 <div class="edu-meta">
                   <span class="institution" itemprop="recognizedBy">{{institution}}</span>
                   {{#if location}}<span class="location">{{location}}</span>{{/if}}
@@ -2932,18 +2945,18 @@ module.exports = [
                 </div>
               </div>
               {{#if gpa}}<p class="gpa">GPA: {{gpa}}</p>{{/if}}
-              {{#if description}}<div class="edu-description">{{{description}}}</div>{{/if}}
+              {{#if description}}<div class="edu-description secondaryFont">{{{description}}}</div>{{/if}}
             </div>
             {{/each}}
           </section>
           {{/if}}
           
           {{#if certifications}}
-          <section class="certifications">
-            <h3>Professional Certifications</h3>
+          <section class="certifications secondaryFont">
+            <h3 class="primaryFont">Professional Certifications</h3>
             {{#each certifications}}
             <div class="cert-item">
-              <div class="cert-name">{{name}}</div>
+              <div class="cert-name primaryFont">{{name}}</div>
               <div class="cert-meta">
                 <span class="issuer">{{issuer}}</span>
                 {{#if date}}<span class="cert-dates">{{formatDate date}}</span>{{/if}}
@@ -2957,12 +2970,12 @@ module.exports = [
           {{/if}}
           
           {{#if achievements}}
-          <section class="achievements">
-            <h3>Achievements & Awards</h3>
+          <section class="achievements secondaryFont">
+            <h3 class="primaryFont">Achievements & Awards</h3>
             {{#each achievements}}
             <div class="achievement-item">
-              {{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}
-              {{#if description}}<div class="description">{{{description}}}</div>{{/if}}
+              {{#if title}}<div class="achievement-title primaryFont">{{title}}</div>{{/if}}
+              {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
               {{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}
               {{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}
             </div>
@@ -2971,8 +2984,8 @@ module.exports = [
           {{/if}}
           
           {{#if languages}}
-          <section class="languages">
-            <h3>Languages</h3>
+          <section class="languages secondaryFont">
+            <h3 class="primaryFont">Languages</h3>
             {{#each languages}}
             <div class="language-item">
               <span class="language-name">{{name}}</span>
@@ -2986,7 +2999,7 @@ module.exports = [
           <section class="custom-fields">
             {{#each customFields}}
             <div class="custom-field-item">
-              <h3>{{title}}</h3>
+              <h3 class="primaryFont">{{title}}</h3>
               <div class="custom-field-content">{{content}}</div>
             </div>
             {{/each}}
@@ -3088,15 +3101,16 @@ module.exports = [
         headerFontSize: 18,
         fontSize: 12,
         lineSpacing: 1.3,
-        sectionSpacing: 1
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
       }
     },
     availability: { tier: 'free', isPublic: true, isActive: true },
     templateCode: {
       html: `<article class="resume elegant-minimal" itemscope itemtype="http://schema.org/Person">
         <header class="header">
-          <h1 class="name" itemprop="name">{{personalInfo.fullName}}</h1>
-          <div class="contact-info">
+          <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+          <div class="contact-info secondaryFont">
             <div class="contact-item" itemprop="email">{{personalInfo.email}}</div>
             {{#if personalInfo.phone}}<div class="contact-item" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
             {{#if personalInfo.address}}<div class="contact-item" itemprop="address">{{personalInfo.address}}</div>{{/if}}
@@ -3108,14 +3122,14 @@ module.exports = [
         
         {{#if summary}}
         <section class="summary">
-          <h2>Professional Summary</h2>
+          <h2 class="primaryFont">Professional Summary</h2>
           <div itemprop="description">{{{summary}}}</div>
         </section>
         {{/if}}
         
         {{#if skills}}
         <section class="skills">
-          <h2>Skills & Expertise</h2>
+          <h2 class="primaryFont">Skills & Expertise</h2>
           {{#each skills}}
           <div class="skill-category">
             <div class="skill-category-title">{{category}}</div>
@@ -3129,11 +3143,11 @@ module.exports = [
         
         {{#if workExperience}}
         <section class="work-experience">
-          <h2>Professional Experience</h2>
+          <h2 class="primaryFont">Professional Experience</h2>
           {{#each workExperience}}
           <div class="job-item" itemscope itemtype="http://schema.org/JobPosting">
             <div class="job-header">
-              <div class="job-title" itemprop="title">{{jobTitle}}</div>
+                <div class="job-title primaryFont" itemprop="title">{{jobTitle}}</div>
               <div class="job-meta">
                 <span class="company" itemprop="hiringOrganization">{{company}}</span>
                 {{#if location}}<span class="location" itemprop="jobLocation">{{location}}</span>{{/if}}
@@ -3143,9 +3157,9 @@ module.exports = [
                 {{#if isCurrentJob}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
               </div>
             </div>
-            {{#if description}}<div class="job-description" itemprop="description">{{{description}}}</div>{{/if}}
+            {{#if description}}<div class="job-description secondaryFont" itemprop="description">{{{description}}}</div>{{/if}}
             {{#if achievements}}
-            <ul class="achievements">
+            <ul class="achievements secondaryFont">
               {{#each achievements}}<li>{{this}}</li>{{/each}}
             </ul>
             {{/if}}
@@ -3156,14 +3170,14 @@ module.exports = [
         
         {{#if projects}}
         <section class="projects">
-          <h2>Key Projects</h2>
+          <h2 class="primaryFont">Key Projects</h2>
           {{#each projects}}
           <div class="project-item">
             <div class="project-header">
-              <div class="project-name">{{name}}</div>
-              {{#if startDate}}<div class="project-dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
+              <div class="project-name primaryFont">{{name}}</div>
+              {{#if startDate}}<div class="project-dates secondaryFont">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
             </div>
-            {{#if description}}<div class="description">{{{description}}}</div>{{/if}}
+            {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
             {{#if technologies}}
             <div class="technologies">
               <strong>Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
@@ -3178,11 +3192,11 @@ module.exports = [
         
         {{#if education}}
         <section class="education">
-          <h2>Education</h2>
+          <h2 class="primaryFont">Education</h2>
           {{#each education}}
           <div class="edu-item" itemscope itemtype="http://schema.org/EducationalOccupationalCredential">
             <div class="edu-header">
-              <div class="edu-degree" itemprop="credentialCategory">{{degree}}</div>
+                <div class="edu-degree primaryFont" itemprop="credentialCategory">{{degree}}</div>
               <div class="edu-meta">
                 <span class="institution" itemprop="recognizedBy">{{institution}}</span>
                 {{#if location}}<span class="location">{{location}}</span>{{/if}}
@@ -3193,7 +3207,7 @@ module.exports = [
               </div>
             </div>
             {{#if gpa}}<p class="gpa">GPA: {{gpa}}</p>{{/if}}
-            {{#if description}}<div class="edu-description">{{{description}}}</div>{{/if}}
+            {{#if description}}<div class="edu-description secondaryFont">{{{description}}}</div>{{/if}}
           </div>
           {{/each}}
         </section>
@@ -3201,7 +3215,7 @@ module.exports = [
         
         {{#if certifications}}
         <section class="certifications">
-          <h2>Professional Certifications</h2>
+          <h2 class="primaryFont">Professional Certifications</h2>
           {{#each certifications}}
           <div class="cert-item">
             <div class="cert-name">{{name}}</div>
@@ -3219,11 +3233,11 @@ module.exports = [
         
         {{#if achievements}}
         <section class="achievements">
-          <h2>Achievements & Awards</h2>
+          <h2 class="primaryFont">Achievements & Awards</h2>
           {{#each achievements}}
           <div class="achievement-item">
-            {{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}
-            {{#if description}}<div class="description">{{{description}}}</div>{{/if}}
+            {{#if title}}<div class="achievement-title primaryFont">{{title}}</div>{{/if}}
+            {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
             {{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}
             {{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}
           </div>
@@ -3233,7 +3247,7 @@ module.exports = [
         
         {{#if languages}}
         <section class="languages">
-          <h2>Languages</h2>
+          <h2 class="primaryFont">Languages</h2>
           {{#each languages}}
           <div class="language-item">
             <span class="language-name">{{name}}</span>
@@ -3247,7 +3261,7 @@ module.exports = [
         <section class="custom-fields">
           {{#each customFields}}
           <div class="custom-field-item">
-            <h2>{{title}}</h2>
+            <h2 class="primaryFont">{{title}}</h2>
             <div class="custom-field-content">{{content}}</div>
           </div>
           {{/each}}
@@ -3349,15 +3363,16 @@ module.exports = [
         headerFontSize: 18,
         fontSize: 12,
         lineSpacing: 1.3,
-        sectionSpacing: 1
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
       }
     },
     availability: { tier: 'free', isPublic: true, isActive: true },
     templateCode: {
       html: `<article class="resume bold-accent" itemscope itemtype="http://schema.org/Person">
         <header class="header">
-          <h1 class="name" itemprop="name">{{personalInfo.fullName}}</h1>
-          <div class="contact-info">
+          <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+          <div class="contact-info secondaryFont">
             <div class="contact-item" itemprop="email">{{personalInfo.email}}</div>
             {{#if personalInfo.phone}}<div class="contact-item" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
             {{#if personalInfo.address}}<div class="contact-item" itemprop="address">{{personalInfo.address}}</div>{{/if}}
@@ -3369,14 +3384,14 @@ module.exports = [
         
         {{#if summary}}
         <section class="summary">
-          <h2>Professional Summary</h2>
+          <h2 class="primaryFont">Professional Summary</h2>
           <div itemprop="description">{{{summary}}}</div>
         </section>
         {{/if}}
         
         {{#if skills}}
         <section class="skills">
-          <h2>Core Skills</h2>
+          <h2 class="primaryFont">Core Skills</h2>
           {{#each skills}}
           <div class="skill-category">
             <div class="skill-category-title">{{category}}</div>
@@ -3390,11 +3405,11 @@ module.exports = [
         
         {{#if workExperience}}
         <section class="work-experience">
-          <h2>Professional Experience</h2>
+          <h2 class="primaryFont">Professional Experience</h2>
           {{#each workExperience}}
           <div class="job-item" itemscope itemtype="http://schema.org/JobPosting">
             <div class="job-header">
-              <div class="job-title" itemprop="title">{{jobTitle}}</div>
+                <div class="job-title primaryFont" itemprop="title">{{jobTitle}}</div>
               <div class="job-meta">
                 <span class="company" itemprop="hiringOrganization">{{company}}</span>
                 {{#if location}}<span class="location" itemprop="jobLocation">{{location}}</span>{{/if}}
@@ -3404,9 +3419,9 @@ module.exports = [
                 {{#if isCurrentJob}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
               </div>
             </div>
-            {{#if description}}<div class="job-description" itemprop="description">{{{description}}}</div>{{/if}}
+            {{#if description}}<div class="job-description secondaryFont" itemprop="description">{{{description}}}</div>{{/if}}
             {{#if achievements}}
-            <ul class="achievements">
+            <ul class="achievements secondaryFont">
               {{#each achievements}}<li>{{this}}</li>{{/each}}
             </ul>
             {{/if}}
@@ -3417,14 +3432,14 @@ module.exports = [
         
         {{#if projects}}
         <section class="projects">
-          <h2>Key Projects</h2>
+          <h2 class="primaryFont">Key Projects</h2>
           {{#each projects}}
           <div class="project-item">
             <div class="project-header">
-              <div class="project-name">{{name}}</div>
-              {{#if startDate}}<div class="project-dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
+              <div class="project-name primaryFont">{{name}}</div>
+              {{#if startDate}}<div class="project-dates secondaryFont">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
             </div>
-            {{#if description}}<div class="description">{{{description}}}</div>{{/if}}
+            {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
             {{#if technologies}}
             <div class="technologies">
               <strong>Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
@@ -3439,11 +3454,11 @@ module.exports = [
         
         {{#if education}}
         <section class="education">
-          <h2>Education</h2>
+          <h2 class="primaryFont">Education</h2>
           {{#each education}}
           <div class="edu-item" itemscope itemtype="http://schema.org/EducationalOccupationalCredential">
             <div class="edu-header">
-              <div class="edu-degree" itemprop="credentialCategory">{{degree}}</div>
+                <div class="edu-degree primaryFont" itemprop="credentialCategory">{{degree}}</div>
               <div class="edu-meta">
                 <span class="institution" itemprop="recognizedBy">{{institution}}</span>
                 {{#if location}}<span class="location">{{location}}</span>{{/if}}
@@ -3454,7 +3469,7 @@ module.exports = [
               </div>
             </div>
             {{#if gpa}}<p class="gpa">GPA: {{gpa}}</p>{{/if}}
-            {{#if description}}<div class="edu-description">{{{description}}}</div>{{/if}}
+            {{#if description}}<div class="edu-description secondaryFont">{{{description}}}</div>{{/if}}
           </div>
           {{/each}}
         </section>
@@ -3462,7 +3477,7 @@ module.exports = [
         
         {{#if certifications}}
         <section class="certifications">
-          <h2>Professional Certifications</h2>
+          <h2 class="primaryFont">Professional Certifications</h2>
           {{#each certifications}}
           <div class="cert-item">
             <div class="cert-name">{{name}}</div>
@@ -3480,11 +3495,11 @@ module.exports = [
         
         {{#if achievements}}
         <section class="achievements">
-          <h2>Achievements & Awards</h2>
+          <h2 class="primaryFont">Achievements & Awards</h2>
           {{#each achievements}}
           <div class="achievement-item">
-            {{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}
-            {{#if description}}<div class="description">{{{description}}}</div>{{/if}}
+            {{#if title}}<div class="achievement-title primaryFont">{{title}}</div>{{/if}}
+            {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
             {{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}
             {{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}
           </div>
@@ -3494,7 +3509,7 @@ module.exports = [
         
         {{#if languages}}
         <section class="languages">
-          <h2>Languages</h2>
+          <h2 class="primaryFont">Languages</h2>
           {{#each languages}}
           <div class="language-item">
             <span class="language-name">{{name}}</span>
@@ -3615,8 +3630,8 @@ module.exports = [
     "templateCode": {
       "html": `<article class="resume classic-serif" itemscope itemtype="http://schema.org/Person">
         <header class="header">
-          <h1 class="name" itemprop="name">{{personalInfo.fullName}}</h1>
-          <div class="contact-info">
+          <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+          <div class="contact-info secondaryFont">
             <div class="contact-item" itemprop="email">{{personalInfo.email}}</div>
             {{#if personalInfo.phone}}<div class="contact-item" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
             {{#if personalInfo.address}}<div class="contact-item" itemprop="address">{{personalInfo.address}}</div>{{/if}}
@@ -3628,18 +3643,18 @@ module.exports = [
         
         {{#if summary}}
         <section class="summary">
-          <h2>Professional Summary</h2>
+          <h2 class="primaryFont">Professional Summary</h2>
           <div itemprop="description">{{{summary}}}</div>
         </section>
         {{/if}}
         
         {{#if education}}
         <section class="education">
-          <h2>Education</h2>
+          <h2 class="primaryFont">Education</h2>
           {{#each education}}
           <div class="edu-item" itemscope itemtype="http://schema.org/EducationalOccupationalCredential">
             <div class="edu-header">
-              <div class="edu-degree" itemprop="credentialCategory">{{degree}}</div>
+                <div class="edu-degree primaryFont" itemprop="credentialCategory">{{degree}}</div>
               <div class="edu-meta">
                 <span class="institution" itemprop="recognizedBy">{{institution}}</span>
                 {{#if location}}<span class="location">{{location}}</span>{{/if}}
@@ -3650,7 +3665,7 @@ module.exports = [
               </div>
             </div>
             {{#if gpa}}<p class="gpa">GPA: {{gpa}}</p>{{/if}}
-            {{#if description}}<div class="edu-description">{{{description}}}</div>{{/if}}
+            {{#if description}}<div class="edu-description secondaryFont">{{{description}}}</div>{{/if}}
           </div>
           {{/each}}
         </section>
@@ -3658,11 +3673,11 @@ module.exports = [
         
         {{#if workExperience}}
         <section class="work-experience">
-          <h2>Professional Experience</h2>
+          <h2 class="primaryFont">Professional Experience</h2>
           {{#each workExperience}}
           <div class="job-item" itemscope itemtype="http://schema.org/JobPosting">
             <div class="job-header">
-              <div class="job-title" itemprop="title">{{jobTitle}}</div>
+                <div class="job-title primaryFont" itemprop="title">{{jobTitle}}</div>
               <div class="job-meta">
                 <span class="company" itemprop="hiringOrganization">{{company}}</span>
                 {{#if location}}<span class="location" itemprop="jobLocation">{{location}}</span>{{/if}}
@@ -3672,9 +3687,9 @@ module.exports = [
                 {{#if isCurrentJob}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
               </div>
             </div>
-            {{#if description}}<div class="job-description" itemprop="description">{{{description}}}</div>{{/if}}
+            {{#if description}}<div class="job-description secondaryFont" itemprop="description">{{{description}}}</div>{{/if}}
             {{#if achievements}}
-            <ul class="achievements">
+            <ul class="achievements secondaryFont">
               {{#each achievements}}<li>{{this}}</li>{{/each}}
             </ul>
             {{/if}}
@@ -3699,14 +3714,14 @@ module.exports = [
         
         {{#if projects}}
         <section class="projects">
-          <h2>Key Projects</h2>
+          <h2 class="primaryFont">Key Projects</h2>
           {{#each projects}}
           <div class="project-item">
             <div class="project-header">
-              <div class="project-name">{{name}}</div>
-              {{#if startDate}}<div class="project-dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
+              <div class="project-name primaryFont">{{name}}</div>
+              {{#if startDate}}<div class="project-dates secondaryFont">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
             </div>
-            {{#if description}}<div class="description">{{{description}}}</div>{{/if}}
+            {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
             {{#if technologies}}
             <div class="technologies">
               <strong>Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
@@ -3721,7 +3736,7 @@ module.exports = [
         
         {{#if certifications}}
         <section class="certifications">
-          <h2>Professional Certifications</h2>
+          <h2 class="primaryFont">Professional Certifications</h2>
           {{#each certifications}}
           <div class="cert-item">
             <div class="cert-name">{{name}}</div>
@@ -3739,11 +3754,11 @@ module.exports = [
         
         {{#if achievements}}
         <section class="achievements">
-          <h2>Achievements & Awards</h2>
+          <h2 class="primaryFont">Achievements & Awards</h2>
           {{#each achievements}}
           <div class="achievement-item">
-            {{#if title}}<div class="achievement-title">{{title}}</div>{{/if}}
-            {{#if description}}<div class="description">{{{description}}}</div>{{/if}}
+            {{#if title}}<div class="achievement-title primaryFont">{{title}}</div>{{/if}}
+            {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
             {{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}
             {{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}
           </div>
@@ -3753,7 +3768,7 @@ module.exports = [
         
         {{#if languages}}
         <section class="languages">
-          <h2>Languages</h2>
+          <h2 class="primaryFont">Languages</h2>
           {{#each languages}}
           <div class="language-item">
             <span class="language-name">{{name}}</span>
@@ -3826,11 +3841,11 @@ module.exports = [
       "html": `
         <div class="resume fresh-gradient">
           <header class="header">
-            <h1 class="name">{{personalInfo.fullName}}</h1>
-            <div class="contact-info">
-              <div class="contact-item" itemprop="email">{{personalInfo.email}}</div>
-              {{#if personalInfo.phone}}<div class="contact-item" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
-              {{#if personalInfo.address}}<div class="contact-item" itemprop="address">{{personalInfo.address}}</div>{{/if}}
+             <h1 class="name primaryFont">{{personalInfo.fullName}}</h1>
+            <div class="contact-info secondaryFont">
+              <div class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</div>
+              {{#if personalInfo.phone}}<div class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
+              {{#if personalInfo.address}}<div class="contact-item secondaryFont" itemprop="address">{{personalInfo.address}}</div>{{/if}}
               {{#if personalInfo.website}}<div class="contact-item"><a href="{{personalInfo.website}}" target="_blank" itemprop="url">{{personalInfo.website}}</a></div>{{/if}}
               {{#if personalInfo.linkedin}}<div class="contact-item"><a href="{{personalInfo.linkedin}}" target="_blank">{{personalInfo.linkedin}}</a></div>{{/if}}
               {{#if personalInfo.github}}<div class="contact-item"><a href="{{personalInfo.github}}" target="_blank">{{personalInfo.github}}</a></div>{{/if}}
@@ -3868,7 +3883,7 @@ module.exports = [
               {{#each projects}}
                 <div class="project">
                   <div class="project-header"><strong>{{name}}</strong>{{#if startDate}}<span class="dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</span>{{/if}}</div>
-                  {{#if description}}<div class="description">{{{description}}}</div>{{/if}}
+                  {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
                   {{#if technologies}}<div class="tech">{{#each technologies}}<span class="tag">{{this}}</span>{{/each}}</div>{{/if}}
                   {{#if url}}<div class="project-url"><strong>URL:</strong> {{url}}</div>{{/if}}
                   {{#if githubUrl}}<div class="github-url"><strong>GitHub:</strong> {{githubUrl}}</div>{{/if}}
