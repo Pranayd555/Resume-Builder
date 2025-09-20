@@ -148,7 +148,7 @@ class OptimizedTemplateRenderer {
 
       // Apply template styling options if available
       if (dataStyling?.template) {
-        css += this.generateTemplateStyling(dataStyling.template, uniqueId);
+        css += this.generateTemplateStyling(dataStyling.template, uniqueId, styling);
       }
 
       // Add final spacing rules
@@ -162,9 +162,10 @@ class OptimizedTemplateRenderer {
    * Generate template-specific styling CSS
    * @param {Object} templateStyling - Template styling configuration
    * @param {string} uniqueId - Unique CSS identifier
+   * @param {Object} styling - Template styling object
    * @returns {string} - Generated CSS
    */
-  generateTemplateStyling(templateStyling, uniqueId) {
+  generateTemplateStyling(templateStyling, uniqueId, styling) {
     let css = '';
 
     // Header level mapping
@@ -269,6 +270,20 @@ class OptimizedTemplateRenderer {
         }
       `;
     }
+
+    // Apply primary and secondary font classes
+    // Use user-selected fonts if available, otherwise use template defaults
+    const primaryFont = templateStyling?.primaryFont || styling?.fonts?.primary || 'Arial';
+    const secondaryFont = templateStyling?.secondaryFont || styling?.fonts?.secondary || 'Arial';
+    
+    css += `
+      .${uniqueId} .primaryFont {
+        font-family: '${primaryFont}', sans-serif !important;
+      }
+      .${uniqueId} .secondaryFont {
+        font-family: '${secondaryFont}', sans-serif !important;
+      }
+    `;
 
     return css;
   }

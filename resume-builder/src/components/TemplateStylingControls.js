@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { resumeAPI } from '../services/api';
+import CustomDropdown from './CustomDropdown';
 import { 
   SwatchIcon, 
   ChevronUpDownIcon, 
@@ -17,7 +18,9 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
     headerFontSize: 18,
     fontSize: 14,
     lineSpacing: 1.3,
-    sectionSpacing: 1
+    sectionSpacing: 1,
+    primaryFont: 'Arial',
+    secondaryFont: 'Arial'
   });
   const [originalStyling, setOriginalStyling] = useState(null);
   const [pendingStyling, setPendingStyling] = useState(null);
@@ -31,7 +34,9 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
       headerFontSize: 18,
       fontSize: 14,
       lineSpacing: 1.3,
-      sectionSpacing: 1
+      sectionSpacing: 1,
+      primaryFont: 'Arial',
+      secondaryFont: 'Arial'
     };
 
     // Use backend default styling if available and no current styling exists
@@ -41,7 +46,9 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
         headerFontSize: defaultStyling.headerFontSize || 18,
         fontSize: defaultStyling.fontSize || 14,
         lineSpacing: defaultStyling.lineSpacing || 1.3,
-        sectionSpacing: defaultStyling.sectionSpacing || 1
+        sectionSpacing: defaultStyling.sectionSpacing || 1,
+        primaryFont: defaultStyling.primaryFont || 'Arial',
+        secondaryFont: defaultStyling.secondaryFont || 'Arial'
       };
     }
     // Use current styling if available
@@ -51,7 +58,9 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
         headerFontSize: currentStyling.template.headerFontSize || 18,
         fontSize: currentStyling.template.fontSize || 14,
         lineSpacing: currentStyling.template.lineSpacing || 1.3,
-        sectionSpacing: currentStyling.template.sectionSpacing || 1
+        sectionSpacing: currentStyling.template.sectionSpacing || 1,
+        primaryFont: currentStyling.template.primaryFont || 'Arial',
+        secondaryFont: currentStyling.template.secondaryFont || 'Arial'
       };
     }
 
@@ -77,7 +86,9 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
           headerFontSize: stylingData.headerFontSize,
           fontSize: stylingData.fontSize,
           lineSpacing: stylingData.lineSpacing,
-          sectionSpacing: stylingData.sectionSpacing
+          sectionSpacing: stylingData.sectionSpacing,
+          primaryFont: stylingData.primaryFont,
+          secondaryFont: stylingData.secondaryFont
         }
       }
     };
@@ -149,7 +160,9 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
       headerFontSize: defaultStyling.headerFontSize || 18,
       fontSize: defaultStyling.fontSize || 14,
       lineSpacing: defaultStyling.lineSpacing || 1.3,
-      sectionSpacing: defaultStyling.sectionSpacing || 1
+      sectionSpacing: defaultStyling.sectionSpacing || 1,
+      primaryFont: defaultStyling.primaryFont || 'Arial',
+      secondaryFont: defaultStyling.secondaryFont || 'Arial'
     };
 
     if(JSON.stringify(originalStyling) === JSON.stringify(defaultValues)) {
@@ -167,6 +180,19 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
     { value: 'h3', label: 'H3', icon: 'H3' },
     { value: 'h4', label: 'H4', icon: 'H4' },
     { value: 'h5', label: 'H5', icon: 'H5' }
+  ];
+
+  const fontOptions = [
+    { value: 'Arial', label: 'Arial', fontFamily: 'Arial', description: 'Modern, simple, and widely accepted' },
+    { value: 'Calibri', label: 'Calibri', fontFamily: 'Calibri', description: 'Default in Microsoft Word, very ATS-friendly' },
+    { value: 'Times New Roman', label: 'Times New Roman', fontFamily: 'Times New Roman', description: 'Traditional, conservative, still widely supported' },
+    { value: 'Verdana', label: 'Verdana', fontFamily: 'Verdana', description: 'Wide spacing, easy readability' },
+    { value: 'Helvetica', label: 'Helvetica', fontFamily: 'Helvetica', description: 'Clean and professional (Mac-friendly)' },
+    { value: 'Georgia', label: 'Georgia', fontFamily: 'Georgia', description: 'A serif alternative that remains ATS-safe' },
+    { value: 'Cambria', label: 'Cambria', fontFamily: 'Cambria', description: 'Designed for on-screen readability, ATS-compatible' },
+    { value: 'Garamond', label: 'Garamond', fontFamily: 'Garamond', description: 'Elegant but still ATS-readable' },
+    { value: 'Trebuchet MS', label: 'Trebuchet MS', fontFamily: 'Trebuchet MS', description: 'Slightly more modern but still standard' },
+    { value: 'Book Antiqua', label: 'Book Antiqua', fontFamily: 'Book Antiqua', description: 'A serif font that passes ATS scans reliably' }
   ];
 
   return (
@@ -207,6 +233,53 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
                 {level.icon}
               </button>
             ))}
+          </div>
+        </div>
+
+
+        {/* Primary Font */}
+        <div>
+          <label className="text-sm font-medium text-gray-700 mb-1 block">Primary Font</label>
+          <div className="bg-gray-50 rounded p-2">
+            <CustomDropdown
+              options={fontOptions}
+              value={styling.primaryFont}
+              onChange={(value) => handleStylingChange('primaryFont', value)}
+              placeholder="Select primary font"
+              disabled={updating}
+              className="w-full font-dropdown-small"
+              showFontStyles={true}
+              style={{
+                fontSize: '12px',
+                minHeight: '32px'
+              }}
+            />
+            <div className="text-xs text-gray-500 mt-1">
+              {fontOptions.find(font => font.value === styling.primaryFont)?.description}
+            </div>
+          </div>
+        </div>
+
+        {/* Secondary Font */}
+        <div>
+          <label className="text-sm font-medium text-gray-700 mb-1 block">Secondary Font</label>
+          <div className="bg-gray-50 rounded p-2">
+            <CustomDropdown
+              options={fontOptions}
+              value={styling.secondaryFont}
+              onChange={(value) => handleStylingChange('secondaryFont', value)}
+              placeholder="Select secondary font"
+              disabled={updating}
+              className="w-full font-dropdown-small"
+              showFontStyles={true}
+              style={{
+                fontSize: '12px',
+                minHeight: '32px'
+              }}
+            />
+            <div className="text-xs text-gray-500 mt-1">
+              {fontOptions.find(font => font.value === styling.secondaryFont)?.description}
+            </div>
           </div>
         </div>
 
@@ -398,6 +471,24 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
         }
         .slider::-moz-range-thumb:hover {
           transform: scale(1.1);
+        }
+        
+        /* Small font dropdown styles */
+        .font-dropdown-small .dropdown-trigger {
+          padding: 8px 12px;
+          font-size: 12px;
+          min-height: 32px;
+        }
+        .font-dropdown-small .dropdown-option {
+          padding: 8px 12px;
+          font-size: 12px;
+        }
+        .font-dropdown-small .dropdown-value {
+          font-size: 12px;
+        }
+        .font-dropdown-small .dropdown-icon {
+          width: 16px;
+          height: 16px;
         }
       `}</style>
     </div>

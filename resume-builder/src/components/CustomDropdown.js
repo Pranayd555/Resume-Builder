@@ -14,6 +14,7 @@ const CustomDropdown = ({
   className = "",
   name = "",
   id = "",
+  showFontStyles = false,
   ...props
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -127,7 +128,17 @@ const CustomDropdown = ({
         {...props}
       >
         <span className={`dropdown-value ${!selectedOption ? 'placeholder' : ''}`}>
-          {selectedOption ? selectedOption.label : placeholder}
+          {selectedOption ? (
+            showFontStyles && selectedOption.fontFamily ? (
+              <span style={{ fontFamily: selectedOption.fontFamily }}>
+                {selectedOption.label}
+              </span>
+            ) : (
+              selectedOption.label
+            )
+          ) : (
+            placeholder
+          )}
         </span>
         <div className="dropdown-icon">
           {isOpen ? (
@@ -163,7 +174,13 @@ const CustomDropdown = ({
                   role="option"
                   aria-selected={option.value === value}
                 >
-                  {option.label}
+                  {showFontStyles && option.fontFamily ? (
+                    <span style={{ fontFamily: option.fontFamily }}>
+                      {option.label}
+                    </span>
+                  ) : (
+                    option.label
+                  )}
                 </div>
               ))
             ) : (

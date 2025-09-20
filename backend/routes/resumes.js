@@ -368,7 +368,9 @@ router.put('/:id/template-styling', [
   body('styling.template.headerFontSize').optional().isInt({ min: 12, max: 24 }).withMessage('Header font size must be between 12 and 24'),
   body('styling.template.fontSize').optional().isInt({ min: 12, max: 18 }).withMessage('Font size must be between 12 and 18'),
   body('styling.template.lineSpacing').optional().isFloat({ min: 1, max: 3 }).withMessage('Line spacing must be between 1 and 3'),
-  body('styling.template.sectionSpacing').optional().isFloat({ min: 1, max: 5 }).withMessage('Section spacing must be between 1 and 5')
+  body('styling.template.sectionSpacing').optional().isFloat({ min: 1, max: 5 }).withMessage('Section spacing must be between 1 and 5'),
+  body('styling.template.primaryFont').optional().isIn(['Arial', 'Calibri', 'Times New Roman', 'Verdana', 'Helvetica', 'Georgia', 'Cambria', 'Garamond', 'Trebuchet MS', 'Book Antiqua']).withMessage('Invalid primary font'),
+  body('styling.template.secondaryFont').optional().isIn(['Arial', 'Calibri', 'Times New Roman', 'Verdana', 'Helvetica', 'Georgia', 'Cambria', 'Garamond', 'Trebuchet MS', 'Book Antiqua']).withMessage('Invalid secondary font')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -625,7 +627,8 @@ router.get('/:id/preview/pdf-images', protect, async (req, res) => {
             headerLevel: 'h3',
             fontSize: 16,
             lineSpacing: 1.3,
-            sectionSpacing: 1
+            sectionSpacing: 1,
+            fontFamily: 'Arial'
           }
         };
         await resume.save();
@@ -928,7 +931,8 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
             headerLevel: 'h3',
             fontSize: 16,
             lineSpacing: 1.3,
-            sectionSpacing: 1
+            sectionSpacing: 1,
+            fontFamily: 'Arial'
           }
         };
         await resume.save();
@@ -1204,7 +1208,8 @@ router.get('/:id/download/docx', protect, async (req, res) => {
             headerLevel: 'h3',
             fontSize: 16,
             lineSpacing: 1.3,
-            sectionSpacing: 1
+            sectionSpacing: 1,
+            fontFamily: 'Arial'
           }
         };
         await resume.save();
