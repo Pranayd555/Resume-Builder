@@ -271,16 +271,65 @@ class OptimizedTemplateRenderer {
       `;
     }
 
-    // Apply primary and secondary font classes
+    // Apply primary and secondary font classes with appropriate sizes
     // Use user-selected fonts if available, otherwise use template defaults
     const primaryFont = templateStyling?.primaryFont || styling?.fonts?.primary || 'Arial';
     const secondaryFont = templateStyling?.secondaryFont || styling?.fonts?.secondary || 'Arial';
     
+    // Get font sizes from template styling (prioritize user settings over template defaults)
+    const headingSize = templateStyling?.headerFontSize || styling?.fonts?.sizes?.heading || 18;
+    const subheadingSize = templateStyling?.headerFontSize || styling?.fonts?.sizes?.subheading || 16;
+    const bodySize = templateStyling?.fontSize || styling?.fonts?.sizes?.body || 12;
+    const smallSize = styling?.fonts?.sizes?.small || 10;
+    
     css += `
-      .${uniqueId} .primaryFont {
+      /* Primary and Secondary Font Classes - High Specificity */
+      .${uniqueId} .primaryFont,
+      .${uniqueId} .primaryFont * {
+        font-family: '${primaryFont}', sans-serif !important;
+        font-size: ${headingSize}px !important;
+        font-weight: 600 !important;
+      }
+      .${uniqueId} .secondaryFont,
+      .${uniqueId} .secondaryFont * {
+        font-family: '${secondaryFont}', sans-serif !important;
+        font-size: ${bodySize}px !important;
+        font-weight: 400 !important;
+      }
+      
+      /* Specific heading sizes for primaryFont */
+      .${uniqueId} .primaryFont h1,
+      .${uniqueId} h1.primaryFont,
+      .${uniqueId} .name.primaryFont {
+        font-size: ${headingSize + 2}px !important;
+        font-weight: 700 !important;
+      }
+      .${uniqueId} .primaryFont h2,
+      .${uniqueId} h2.primaryFont {
+        font-size: ${headingSize}px !important;
+        font-weight: 600 !important;
+      }
+      .${uniqueId} .primaryFont h3,
+      .${uniqueId} h3.primaryFont {
+        font-size: ${subheadingSize}px !important;
+        font-weight: 600 !important;
+      }
+      
+      /* Small text for secondaryFont */
+      .${uniqueId} .secondaryFont small,
+      .${uniqueId} small.secondaryFont,
+      .${uniqueId} .secondaryFont .dates,
+      .${uniqueId} .secondaryFont .contact-item {
+        font-size: ${smallSize}px !important;
+      }
+      
+      /* Override any existing font rules for these classes */
+      .${uniqueId} .primaryFont,
+      .${uniqueId} .primaryFont * {
         font-family: '${primaryFont}', sans-serif !important;
       }
-      .${uniqueId} .secondaryFont {
+      .${uniqueId} .secondaryFont,
+      .${uniqueId} .secondaryFont * {
         font-family: '${secondaryFont}', sans-serif !important;
       }
     `;

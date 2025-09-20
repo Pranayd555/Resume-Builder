@@ -447,7 +447,7 @@ function TemplateSelection() {
       {/* Custom CSS for Swiper */}
       <style jsx>{`
         .template-swiper {
-          padding: 20px 0;
+          padding: 20px 0 40px 0;
         }
         
         .swiper-button-prev::after,
@@ -513,7 +513,7 @@ function TemplateSelection() {
         /* Mobile optimizations */
         @media (max-width: 640px) {
           .template-swiper {
-            padding: 10px 0;
+            padding: 10px 0 20px 0;
           }
           
           .swiper-button-prev,
