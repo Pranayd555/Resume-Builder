@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { resumeAPI } from '../services/api';
 import CustomDropdown from './CustomDropdown';
+import ColorCustomization from './ColorCustomization';
 import { 
   SwatchIcon, 
   ChevronUpDownIcon, 
@@ -9,7 +10,8 @@ import {
   InformationCircleIcon,
   CheckIcon,
   XMarkIcon,
-  ArrowPathIcon
+  ArrowPathIcon,
+  PaintBrushIcon
 } from '@heroicons/react/24/outline'; //heroicons
 
 const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, defaultStyling, onClose }) => {
@@ -26,6 +28,8 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
   const [pendingStyling, setPendingStyling] = useState(null);
   const [updating, setUpdating] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [showColorCustomization, setShowColorCustomization] = useState(false);
+  const [currentColors, setCurrentColors] = useState(null);
 
   // Initialize styling and check for changes
   useEffect(() => {
@@ -67,6 +71,19 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
     setStyling(initialStyling);
     setOriginalStyling(initialStyling);
     setPendingStyling(initialStyling);
+
+    // Initialize colors
+    if (currentStyling?.template?.colors) {
+      setCurrentColors(currentStyling.template.colors);
+    } else {
+      setCurrentColors({
+        primary: '#3b82f6',
+        secondary: '#6b7280',
+        accent: '#0ea5e9',
+        text: '#1f2937',
+        background: '#ffffff'
+      });
+    }
   }, [currentStyling, defaultStyling]);
 
   // Check for changes when pending styling changes
@@ -148,6 +165,19 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
     }
   };
 
+  // Handle color updates
+  const handleColorsUpdate = (updatedResume) => {
+    if (onStylingUpdate) {
+      onStylingUpdate(updatedResume);
+    }
+    setCurrentColors(updatedResume.styling?.template?.colors);
+  };
+
+  // Toggle color customization
+  const toggleColorCustomization = () => {
+    setShowColorCustomization(!showColorCustomization);
+  };
+
   // Reset to template defaults
   const handleReset = () => {
     if (!defaultStyling) {
@@ -213,8 +243,35 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
         )}
       </div>
 
-      {/* Controls Grid */}
-      <div className="space-y-3">
+      {/* Color Customization Section */}
+      <div className="border-t pt-3">
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-medium text-gray-700">Colors</h4>
+          <button
+            onClick={toggleColorCustomization}
+            className="flex items-center space-x-1 px-2 py-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+          >
+            <PaintBrushIcon className="w-3 h-3" />
+            <span>{showColorCustomization ? 'Hide' : 'Customize'}</span>
+          </button>
+        </div>
+
+        {showColorCustomization && (
+          <div className="p-3 bg-gray-50 rounded-lg border">
+            <ColorCustomization
+              resumeId={resumeId}
+              currentColors={currentColors}
+              onColorsUpdate={handleColorsUpdate}
+              onClose={() => setShowColorCustomization(false)}
+              disabled={updating}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Controls Grid - Hidden when color customization is open */}
+      {!showColorCustomization && (
+        <div className="space-y-3">
         {/* Header Level */}
         <div>
           <label className="text-sm font-medium text-gray-700 mb-2 block">Header Level</label>
@@ -387,8 +444,10 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
           </div>
         </div>
       </div>
+      )}
 
-             {/* Action Buttons */}
+      {/* Action Buttons - Hidden when color customization is open */}
+      {!showColorCustomization && (
        <div className="mt-6 space-y-3">
                    <button
             onClick={handleApply}
@@ -435,6 +494,7 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
            </button>
          {/* </div> */}
        </div>
+      )}
 
       {/* Status Info */}
       

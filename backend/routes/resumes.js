@@ -317,11 +317,15 @@ router.put('/:id/template', [
       });
     }
 
+    // Check if this is the same template (preserve custom colors) or a new template (reset to defaults)
+    const isSameTemplate = resume.template && resume.template.toString() === req.body.templateId;
+    const previousTemplate = resume.template;
+    
     // Update resume with selected template
     resume.template = req.body.templateId;
     
     // Initialize styling with template defaults and proper template styling structure
-    resume.styling = {
+    let newStyling = {
       ...template.styling, // Template's default styling (colors, fonts, etc.)
       template: {
         headerLevel: template.styling?.template?.headerLevel || 'h3',
@@ -331,6 +335,19 @@ router.put('/:id/template', [
         sectionSpacing: template.styling?.template?.sectionSpacing || 1
       }
     };
+    
+    // Handle colors based on template change
+    if (isSameTemplate) {
+      // Same template: preserve custom colors if they exist
+      if (resume.styling?.template?.colors) {
+        newStyling.template.colors = resume.styling.template.colors;
+      }
+    } else {
+      // New template: reset colors to null (use template defaults)
+      newStyling.template.colors = null;
+    }
+    
+    resume.styling = newStyling;
     
     // Override with any provided styling from request
     if (req.body.styling) {
@@ -370,7 +387,12 @@ router.put('/:id/template-styling', [
   body('styling.template.lineSpacing').optional().isFloat({ min: 1, max: 3 }).withMessage('Line spacing must be between 1 and 3'),
   body('styling.template.sectionSpacing').optional().isFloat({ min: 1, max: 5 }).withMessage('Section spacing must be between 1 and 5'),
   body('styling.template.primaryFont').optional().isIn(['Arial', 'Calibri', 'Times New Roman', 'Verdana', 'Helvetica', 'Georgia', 'Cambria', 'Garamond', 'Trebuchet MS', 'Book Antiqua']).withMessage('Invalid primary font'),
-  body('styling.template.secondaryFont').optional().isIn(['Arial', 'Calibri', 'Times New Roman', 'Verdana', 'Helvetica', 'Georgia', 'Cambria', 'Garamond', 'Trebuchet MS', 'Book Antiqua']).withMessage('Invalid secondary font')
+  body('styling.template.secondaryFont').optional().isIn(['Arial', 'Calibri', 'Times New Roman', 'Verdana', 'Helvetica', 'Georgia', 'Cambria', 'Garamond', 'Trebuchet MS', 'Book Antiqua']).withMessage('Invalid secondary font'),
+  // Color validation
+  body('styling.template.colors.primary').optional().matches(/^#[0-9A-Fa-f]{6}$/).withMessage('Primary color must be a valid hex color'),
+  body('styling.template.colors.secondary').optional().matches(/^#[0-9A-Fa-f]{6}$/).withMessage('Secondary color must be a valid hex color'),
+  body('styling.template.colors.accent').optional().matches(/^#[0-9A-Fa-f]{6}$/).withMessage('Accent color must be a valid hex color'),
+  body('styling.template.colors.text').optional().matches(/^#[0-9A-Fa-f]{6}$/).withMessage('Text color must be a valid hex color'),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -551,7 +573,6 @@ router.get('/:id/preview', protect, async (req, res) => {
       customFields: resume.customFields,
       styling: resume.styling || {} // Include styling data
     };
-
 
 
     // Render template with user data
@@ -2592,6 +2613,129 @@ router.put('/:id/toggle-active', protect, async (req, res) => {
     });
   } catch (error) {
     logger.error('Toggle resume active status error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+});
+
+// @desc    Update resume colors
+// @route   PUT /api/resumes/:id/colors
+// @access  Private
+router.put('/:id/colors', [
+  protect,
+  body('colors.primary').optional().matches(/^#[0-9A-Fa-f]{6}$/).withMessage('Primary color must be a valid hex color'),
+  body('colors.secondary').optional().matches(/^#[0-9A-Fa-f]{6}$/).withMessage('Secondary color must be a valid hex color'),
+  body('colors.accent').optional().matches(/^#[0-9A-Fa-f]{6}$/).withMessage('Accent color must be a valid hex color'),
+  body('colors.text').optional().matches(/^#[0-9A-Fa-f]{6}$/).withMessage('Text color must be a valid hex color')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
+    }
+
+    const resume = await Resume.findById(req.params.id);
+    if (!resume) {
+      return res.status(404).json({
+        success: false,
+        error: 'Resume not found'
+      });
+    }
+
+    // Check if user owns the resume
+    if (resume.user.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        error: 'Not authorized to update this resume'
+      });
+    }
+
+    // Update colors in styling
+    if (!resume.styling) {
+      resume.styling = {};
+    }
+    if (!resume.styling.template) {
+      resume.styling.template = {};
+    }
+    
+    resume.styling.template.colors = {
+      ...resume.styling.template.colors,
+      ...req.body.colors
+    };
+
+    await resume.save();
+
+    logger.info('Resume colors updated:', { 
+      resumeId: resume._id, 
+      userId: req.user.id, 
+      colors: req.body.colors 
+    });
+
+    res.json({
+      success: true,
+      message: 'Colors updated successfully',
+      data: {
+        resume: resume
+      }
+    });
+
+  } catch (error) {
+    logger.error('Error updating resume colors:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+});
+
+
+// @desc    Get available color presets
+// @route   GET /api/resumes/color-presets
+// @access  Private
+router.get('/color-presets', protect, async (req, res) => {
+  try {
+    const colorPresets = {
+      primary: [
+        { name: 'Blue', value: '#3b82f6', category: 'primary' },
+        { name: 'Indigo', value: '#6366f1', category: 'primary' },
+        { name: 'Purple', value: '#8b5cf6', category: 'primary' },
+        { name: 'Pink', value: '#ec4899', category: 'primary' },
+        { name: 'Red', value: '#ef4444', category: 'primary' },
+        { name: 'Orange', value: '#f97316', category: 'primary' },
+        { name: 'Yellow', value: '#eab308', category: 'primary' },
+        { name: 'Green', value: '#22c55e', category: 'primary' },
+        { name: 'Teal', value: '#14b8a6', category: 'primary' },
+        { name: 'Cyan', value: '#06b6d4', category: 'primary' }
+      ],
+      neutral: [
+        { name: 'Gray', value: '#6b7280', category: 'neutral' },
+        { name: 'Slate', value: '#64748b', category: 'neutral' },
+        { name: 'Zinc', value: '#71717a', category: 'neutral' },
+        { name: 'Stone', value: '#78716c', category: 'neutral' },
+        { name: 'Black', value: '#000000', category: 'neutral' },
+        { name: 'White', value: '#ffffff', category: 'neutral' }
+      ],
+      professional: [
+        { name: 'Navy Blue', value: '#1e3a8a', category: 'professional' },
+        { name: 'Dark Gray', value: '#374151', category: 'professional' },
+        { name: 'Charcoal', value: '#1f2937', category: 'professional' },
+        { name: 'Forest Green', value: '#059669', category: 'professional' },
+        { name: 'Burgundy', value: '#7c2d12', category: 'professional' }
+      ]
+    };
+
+    res.json({
+      success: true,
+      data: colorPresets
+    });
+
+  } catch (error) {
+    logger.error('Error fetching color presets:', error);
     res.status(500).json({
       success: false,
       error: 'Server error'

@@ -386,6 +386,28 @@ const resumeSchema = new mongoose.Schema({
         type: String,
         enum: ['Arial', 'Calibri', 'Times New Roman', 'Verdana', 'Helvetica', 'Georgia', 'Cambria', 'Garamond', 'Trebuchet MS', 'Book Antiqua'],
         default: 'Arial'
+      },
+      colors: {
+        primary: {
+          type: String,
+          default: '#3b82f6',
+          match: [/^#[0-9A-Fa-f]{6}$/, 'Primary color must be a valid hex color']
+        },
+        secondary: {
+          type: String,
+          default: '#6b7280',
+          match: [/^#[0-9A-Fa-f]{6}$/, 'Secondary color must be a valid hex color']
+        },
+        accent: {
+          type: String,
+          default: '#0ea5e9',
+          match: [/^#[0-9A-Fa-f]{6}$/, 'Accent color must be a valid hex color']
+        },
+        text: {
+          type: String,
+          default: '#1f2937',
+          match: [/^#[0-9A-Fa-f]{6}$/, 'Text color must be a valid hex color']
+        }
       }
     },
     // Header styling options (keeping for backward compatibility)

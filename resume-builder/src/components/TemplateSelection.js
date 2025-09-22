@@ -73,7 +73,13 @@ function TemplateSelection() {
       
       if (response.success) {
         toast.success('Template selected successfully!');
-        navigate(`/resume-preview/${resumeId}`);
+        // Navigate to preview with updated resume data
+        navigate(`/resume-preview/${resumeId}`, { 
+          state: { 
+            resume: response.data.resume,
+            templateChanged: true 
+          } 
+        });
       } else {
         throw new Error(response.error || 'Failed to select template');
       }
