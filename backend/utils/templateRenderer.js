@@ -151,6 +151,11 @@ class OptimizedTemplateRenderer {
         css += this.generateTemplateStyling(dataStyling.template, uniqueId, styling);
       }
 
+      // Apply user color overrides if available
+      if (dataStyling?.template?.colors) {
+        css += this.generateColorOverrides(dataStyling.template.colors, uniqueId);
+      }
+
       // Add final spacing rules
       css += this.generateSpacingRules(uniqueId);
 
@@ -167,6 +172,19 @@ class OptimizedTemplateRenderer {
    */
   generateTemplateStyling(templateStyling, uniqueId, styling) {
     let css = '';
+
+    // Add CSS variables for user-selected colors
+    if (templateStyling?.colors) {
+      css += `
+        .${uniqueId} {
+          --user-color-primary: ${templateStyling.colors.primary || 'var(--color-primary)'};
+          --user-color-secondary: ${templateStyling.colors.secondary || 'var(--color-secondary)'};
+          --user-color-accent: ${templateStyling.colors.accent || 'var(--color-accent)'};
+          --user-color-text: ${templateStyling.colors.text || 'var(--color-text)'};
+          --user-color-background: ${templateStyling.colors.background || 'var(--color-background)'};
+        }
+      `;
+    }
 
     // Header level mapping
     const headerLevels = {
@@ -333,6 +351,106 @@ class OptimizedTemplateRenderer {
         font-family: '${secondaryFont}', sans-serif !important;
       }
     `;
+
+    return css;
+  }
+
+  /**
+   * Generate color override CSS for user-selected colors
+   * @param {Object} userColors - User-selected color configuration
+   * @param {string} uniqueId - Unique CSS identifier
+   * @returns {string} - Generated CSS
+   */
+  generateColorOverrides(userColors, uniqueId) {
+    if (!userColors) return '';
+
+    let css = '';
+    
+    // Override primary colors
+    if (userColors.primary) {
+      css += `
+        .${uniqueId} .name,
+        .${uniqueId} h1,
+        .${uniqueId} h2,
+        .${uniqueId} h3,
+        .${uniqueId} h4,
+        .${uniqueId} h5,
+        .${uniqueId} .primaryFont,
+        .${uniqueId} .contact-info,
+        .${uniqueId} .skill-category-title,
+        .${uniqueId} .job-title,
+        .${uniqueId} .edu-degree,
+        .${uniqueId} .project-name,
+        .${uniqueId} .achievement-title,
+        .${uniqueId} .cert-name {
+          color: ${userColors.primary} !important;
+        }
+        .${uniqueId} .skill-item,
+        .${uniqueId} .tech-tag,
+        .${uniqueId} h2,
+        .${uniqueId} h3 {
+          border-bottom-color: ${userColors.primary} !important;
+        }
+      `;
+    }
+
+    // Override secondary colors
+    if (userColors.secondary) {
+      css += `
+        .${uniqueId} .job-description,
+        .${uniqueId} .edu-description,
+        .${uniqueId} .achievements li,
+        .${uniqueId} .skill-items,
+        .${uniqueId} .project-links,
+        .${uniqueId} .cert-expiry,
+        .${uniqueId} .cert-id,
+        .${uniqueId} .language-level,
+        .${uniqueId} .tech-tag,
+        .${uniqueId} .custom-content {
+          color: ${userColors.secondary} !important;
+        }
+      `;
+    }
+
+    // Override accent colors
+    if (userColors.accent) {
+      css += `
+        .${uniqueId} .company,
+        .${uniqueId} .institution,
+        .${uniqueId} .issuer,
+        .${uniqueId} .location,
+        .${uniqueId} .dates,
+        .${uniqueId} .job-dates,
+        .${uniqueId} .edu-dates,
+        .${uniqueId} .project-dates,
+        .${uniqueId} .achievement-date,
+        .${uniqueId} .cert-date {
+          color: ${userColors.accent} !important;
+        }
+        .${uniqueId} .project-links a,
+        .${uniqueId} .cert-link a,
+        .${uniqueId} .contact-item a {
+          color: ${userColors.accent} !important;
+        }
+      `;
+    }
+
+    // Override text colors
+    if (userColors.text) {
+      css += `
+        .${uniqueId} p,
+        .${uniqueId} .summary,
+        .${uniqueId} .about-text,
+        .${uniqueId} .description,
+        .${uniqueId} .achievement-description,
+        .${uniqueId} .custom-content,
+        .${uniqueId} ul li,
+        .${uniqueId} ol li {
+          color: ${userColors.text} !important;
+        }
+      `;
+    }
+
 
     return css;
   }
@@ -517,7 +635,7 @@ class OptimizedTemplateRenderer {
       },
       // Add template-specific settings
       template: {
-        colors: template.styling?.colors || {},
+        colors: plainData.styling?.template?.colors || template.styling?.colors || {},
         fonts: template.styling?.fonts || {},
         layout: template.layout?.type || 'single-column',
         category: template.category || 'modern'

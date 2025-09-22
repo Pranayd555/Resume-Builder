@@ -119,7 +119,7 @@ module.exports = [
               {{#if description}}<div class="project-description secondaryFont">{{{description}}}</div>{{/if}}
               {{#if technologies}}
               <div class="technologies">
-                <strong class="secondaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
+                <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
               </div>
               {{/if}}
               {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
@@ -179,7 +179,7 @@ module.exports = [
             {{#each achievements}}
             <div class="achievement-item">
               {{#if title}}<div class="achievement-title primaryFont">{{title}}</div>{{/if}}
-              {{#if description}}<p class="achievement-description secondaryFont">{{description}}</p>{{/if}}
+              {{#if description}}<p class="achievement-description secondaryFont">{{{description}}}</p>{{/if}}
               {{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}
               {{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}
             </div>
@@ -211,24 +211,24 @@ module.exports = [
           {{/if}}
         </div>
       </article>`,
-      css: `.resume.modern-professional { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; display: grid; grid-template-columns: 2fr 1fr; gap: 20px; font-size: 12px; line-height: 1; }
+      css: `.resume.modern-professional { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; display: grid; grid-template-columns: 2fr 1fr; gap: 20px; font-size: 15px; line-height: 1; }
       @media print { .resume.modern-professional { max-width: none; margin: 0; padding: 0.5in; } }
       @media (max-width: 768px) { .resume.modern-professional { grid-template-columns: 1fr; gap: 15px; padding: 15px; } }
       
       .header { margin-bottom: 1rem; }
-      .name { font-size: 16px; font-weight: 700; color: #2563eb; margin-bottom: 0.5rem; }
-      .contact-info { display: flex; flex-wrap: wrap; gap: 12px; font-size: 11px; color: #64748b; }
+      .name { font-size: 18px; font-weight: 700; color: #2563eb; margin-bottom: 0.5rem; }
+      .contact-info { display: flex; flex-wrap: wrap; gap: 12px; font-size: 13px; color: #64748b; }
       .contact-item { display: flex; align-items: center; }
       .contact-item a { color: #64748b; text-decoration: none; }
       .contact-item a:hover { text-decoration: underline; }
       
       section { margin-top: 1rem; }
-      h3 { font-size: 16px; font-weight: 600; color: #2563eb; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 2px solid #e5e7eb; }
+      h3 { font-size: 18px; font-weight: 600; color: #2563eb; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 2px solid #e5e7eb; }
       
       .job-item, .edu-item, .project-item, .cert-item { margin-bottom: 0.5rem; }
       .job-header, .edu-header { margin-bottom: 0.25rem; }
-      .job-title, .edu-degree, .project-name, .cert-name { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
-      .job-meta, .edu-meta, .cert-meta { display: flex; gap: 8px; font-size: 11px; color: #64748b; margin-bottom: 0.25rem; }
+      .job-title, .edu-degree, .project-name, .cert-name { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
+      .job-meta, .edu-meta, .cert-meta { display: flex; gap: 8px; font-size: 13px; color: #64748b; margin-bottom: 0.25rem; }
       .job-dates, .edu-dates, .project-dates, .cert-dates { font-size: 10px; color: #64748b; font-style: italic; }
       .job-description, .edu-description, .project-description { margin-bottom: 0.25rem; color: #374151; line-height: 1; }
       
@@ -243,10 +243,10 @@ module.exports = [
       
       .sidebar { background: #f8fafc; padding: 16px; border-radius: 6px; }
       @media print { .sidebar { background: white; border: 1px solid #e5e7eb; } }
-      .sidebar h3 { font-size: 14px; color: #1f2937; border-bottom: 1px solid #e5e7eb; }
+      .sidebar h3 { font-size: 15px; color: #1f2937; border-bottom: 1px solid #e5e7eb; }
       
       .skill-category { margin-bottom: 0.5rem; }
-      .skill-category-title { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
+      .skill-category-title { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
       .skill-items { display: flex; flex-wrap: wrap; gap: 4px; }
       .skill-item { background: #2563eb; color: white; padding: 3px 6px; border-radius: 3px; font-size: 10px; }
       .skill-item[data-level="expert"] { background: #059669; }
@@ -262,8 +262,8 @@ module.exports = [
       .project-links a:hover { text-decoration: underline; }
       
       .achievement-item { margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid #e5e7eb; }
-      .achievement-title { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
-      .achievement-description { font-size: 12px; color: #4b5563; margin-bottom: 0.25rem; line-height: 1; }
+      .achievement-title { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
+      .achievement-description { font-size: 15px; color: #4b5563; margin-bottom: 0.25rem; line-height: 1; }
       .achievement-date { font-size: 9px; color: #6b7280; font-style: italic; }
       .achievement-issuer { font-size: 9px; color: #6b7280; }
       
@@ -272,12 +272,12 @@ module.exports = [
       .cert-link a:hover { text-decoration: underline; }
       
       .language-item { display: flex; justify-content: space-between; margin-bottom: 0.25rem; }
-      .language-name { font-size: 11px; color: #1f2937; }
+      .language-name { font-size: 13px; color: #1f2937; }
       .language-level { font-size: 10px; color: #6b7280; text-transform: capitalize; }
       
       .custom-field { margin-bottom: 0.5rem; }
-      .custom-field-title { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
-      .custom-content { font-size: 12px; color: #4b5563; line-height: 1; }`
+      .custom-field-title { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
+      .custom-content { font-size: 15px; color: #4b5563; line-height: 1; }`
     },
     creator: null,
     tags: ['professional', 'modern', 'clean', 'two-column', 'blue']
@@ -404,7 +404,7 @@ module.exports = [
             {{#if description}}<div class="project-description secondaryFont">{{{description}}}</div>{{/if}}
             {{#if technologies}}
             <div class="technologies secondaryFont">
-              <strong>Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
+              <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
             </div>
             {{/if}}
             {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
@@ -492,20 +492,20 @@ module.exports = [
         </section>
         {{/if}}
       </article>`,
-      css: `.resume.modern-executive { font-family: 'Calibri', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #374151; font-size: 12px; line-height: 1; }
+      css: `.resume.modern-executive { font-family: 'Calibri', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #374151; font-size: 15px; line-height: 1; }
       .header { text-align: center; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e5e7eb; }
-      .name { font-size: 16px; font-weight: 700; color: #1f2937; margin-bottom: 0.5rem; letter-spacing: 0.5px; }
+      .name { font-size: 18px; font-weight: 700; color: #1f2937; margin-bottom: 0.5rem; letter-spacing: 0.5px; }
       .title-line { width: 40px; height: 2px; background: #f59e0b; margin: 0 auto 0.5rem; }
-      .contact-info { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; font-size: 11px; color: #6b7280; }
+      .contact-info { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: #6b7280; }
       .contact-info a { color: #6b7280; text-decoration: none; }
       section { margin-top: 1rem; }
-      h3 { font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem; position: relative; padding-bottom: 0.25rem; }
+      h3 { font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem; position: relative; padding-bottom: 0.25rem; }
       h3::after { content: ''; position: absolute; bottom: 0; left: 0; width: 30px; height: 2px; background: #f59e0b; }
-      .executive-summary .summary-text { font-size: 12px; line-height: 1; color: #4b5563; font-style: italic; text-align: justify; }
+      .executive-summary .summary-text { font-size: 15px; line-height: 1; color: #4b5563; font-style: italic; text-align: justify; }
       .position, .edu-entry, .project-item, .achievement-item { margin-bottom: 0.5rem; }
       .position-header, .edu-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.25rem; }
-      .position-title, .edu-degree, .project-name, .achievement-title { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
-      .company-info, .edu-meta { display: flex; gap: 8px; font-size: 11px; color: #6b7280; }
+      .position-title, .edu-degree, .project-name, .achievement-title { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
+      .company-info, .edu-meta { display: flex; gap: 8px; font-size: 13px; color: #6b7280; }
       .dates { font-size: 10px; color: #9ca3af; font-weight: 500; }
       .description { margin-bottom: 0.25rem; color: #4b5563; line-height: 1; }
       .achievements { margin-bottom: 0.25rem; }
@@ -518,7 +518,7 @@ module.exports = [
       ol { list-style-type: decimal; }
       .gpa { font-size: 10px; color: #6b7280; margin-bottom: 0.25rem; }
       .skill-category { margin-bottom: 0.5rem; }
-      .skill-category-title { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
+      .skill-category-title { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
       .skill-items { display: flex; flex-wrap: wrap; gap: 3px; }
       .skill-item { background: #f59e0b; color: white; padding: 2px 4px; border-radius: 2px; font-size: 9px; }
       .skill-item[data-level="expert"] { background: #059669; }
@@ -536,11 +536,11 @@ module.exports = [
       .cert-expiry, .cert-id { font-size: 9px; color: #6b7280; margin-bottom: 0.125rem; }
       .cert-link a { color: #f59e0b; text-decoration: none; font-size: 8px; }
       .language-item { display: flex; justify-content: space-between; margin-bottom: 0.25rem; }
-      .language-name { font-size: 11px; color: #1f2937; }
+      .language-name { font-size: 13px; color: #1f2937; }
       .language-level { font-size: 10px; color: #6b7280; text-transform: capitalize; }
       .custom-field { margin-bottom: 0.5rem; }
-      .custom-field-title { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
-      .custom-content { font-size: 12px; color: #4b5563; line-height: 1; }`
+      .custom-field-title { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
+      .custom-content { font-size: 15px; color: #4b5563; line-height: 1; }`
     },
     creator: null,
     tags: ['executive', 'modern', 'sophisticated', 'single-column', 'gold']
@@ -664,7 +664,7 @@ module.exports = [
             {{#if description}}<div class="project-description secondaryFont">{{{description}}}</div>{{/if}}
             {{#if technologies}}
             <div class="technologies">
-              <strong>Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
+              <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
             </div>
             {{/if}}
             {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
@@ -753,15 +753,15 @@ module.exports = [
       </article>`,
       css: `.resume.modern-tech { font-family: 'Roboto', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; line-height: 1; }
       .tech-header { display: grid; grid-template-columns: 2fr 1fr; gap: 1.2rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #06b6d4; }
-      .name { font-size: 16px; font-weight: 700; color: #06b6d4; margin-bottom: 0.5rem; }
+      .name { font-size: 18px; font-weight: 700; color: #06b6d4; margin-bottom: 0.5rem; }
       .contact-info { display: flex; flex-wrap: wrap; gap: 0.6rem; }
-      .contact-item { font-size: 11px; color: #64748b; padding: 0.2rem 0.4rem; background: #f1f5f9; border-radius: 3px; }
+      .contact-item { font-size: 13px; color: #64748b; padding: 0.2rem 0.4rem; background: #f1f5f9; border-radius: 3px; }
       .contact-item a { color: #64748b; text-decoration: none; }
       section { margin-top: 1rem; }
-      h3 { font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 2px solid #06b6d4; }
-      .summary-section p { font-size: 12px; line-height: 1; color: #4b5563; }
+      h3 { font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 2px solid #06b6d4; }
+      .summary-section p { font-size: 15px; line-height: 1; color: #4b5563; }
       .skill-category { margin-bottom: 0.5rem; }
-      .skill-category-title { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
+      .skill-category-title { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
       .skill-items { display: flex; flex-wrap: wrap; gap: 0.3rem; }
       .skill-item { background: #06b6d4; color: white; padding: 0.2rem 0.4rem; border-radius: 3px; font-size: 9px; }
       .skill-item[data-level="expert"] { background: #059669; }
@@ -770,14 +770,14 @@ module.exports = [
       .skill-item[data-level="beginner"] { background: #6b7280; }
       .job-item, .project-item, .edu-item, .achievement-item, .cert-item { margin-bottom: 0.5rem; padding: 0.6rem; background: #f8fafc; border-radius: 6px; border-left: 3px solid #06b6d4; }
       .job-header, .edu-header { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.6rem; margin-bottom: 0.25rem; }
-      .job-title, .edu-degree, .project-name, .achievement-title, .cert-name { font-size: 12px; font-weight: 600; color: #1f2937; }
-      .job-company, .edu-institution { font-size: 11px; color: #06b6d4; font-weight: 500; }
+      .job-title, .edu-degree, .project-name, .achievement-title, .cert-name { font-size: 15px; font-weight: 600; color: #1f2937; }
+      .job-company, .edu-institution { font-size: 13px; color: #06b6d4; font-weight: 500; }
       .job-duration, .edu-duration { font-size: 10px; color: #64748b; text-align: right; }
       .job-location, .edu-location { font-size: 10px; color: #6b7280; margin-bottom: 0.25rem; }
-      .job-description, .edu-description { font-size: 12px; color: #4b5563; margin-bottom: 0.25rem; }
+      .job-description, .edu-description { font-size: 15px; color: #4b5563; margin-bottom: 0.25rem; }
       .achievements { margin-bottom: 0.25rem;}
       .achievements li { margin-bottom: 0.125rem; color: #4b5563; font-size: 10px; }
-      .achievement-description { font-size: 12px; color: #4b5563; margin-bottom: 0.25rem; line-height: 1.3; }
+      .achievement-description { font-size: 15px; color: #4b5563; margin-bottom: 0.25rem; line-height: 1.3; }
       
       /* General list styling for HTML content in descriptions */
       ul, ol { margin: 0.25rem 0; padding-left: 1rem; }
@@ -796,11 +796,11 @@ module.exports = [
       .cert-expiry, .cert-id { font-size: 9px; color: #6b7280; margin-bottom: 0.25rem; }
       .cert-link a { color: #06b6d4; text-decoration: none; font-size: 8px; }
       .language-item { display: flex; justify-content: space-between; margin-bottom: 0.25rem; }
-      .language-name { font-size: 11px; color: #1f2937; }
+      .language-name { font-size: 13px; color: #1f2937; }
       .language-level { font-size: 10px; color: #6b7280; text-transform: capitalize; }
       .custom-field { margin-bottom: 0.5rem; }
-      .custom-field-title { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
-      .custom-content { font-size: 12px; color: #4b5563; line-height: 1; }`
+      .custom-field-title { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
+      .custom-content { font-size: 15px; color: #4b5563; line-height: 1; }`
     },
     creator: null,
     tags: ['modern', 'tech', 'developer', 'clean']
@@ -860,95 +860,660 @@ module.exports = [
           <div class="profile-section">
             <h1 class="name primaryFont">{{personalInfo.fullName}}</h1>
             <div class="contact-info secondaryFont">
-              <div class="contact-item"><span class="icon">📧</span><span>{{personalInfo.email}}</span></div>
-              {{#if personalInfo.phone}}<div class="contact-item"><span class="icon">📱</span><span>{{personalInfo.phone}}</span></div>{{/if}}
-              {{#if personalInfo.address}}<div class="contact-item"><span class="icon">📍</span><span>{{personalInfo.address}}</span></div>{{/if}}
-              {{#if personalInfo.website}}<div class="contact-item"><span class="icon">🌐</span><span><a href="{{personalInfo.website}}" target="_blank" itemprop="url">{{personalInfo.website}}</a></span></div>{{/if}}
-              {{#if personalInfo.linkedin}}<div class="contact-item"><span class="icon">💼</span><span><a href="{{personalInfo.linkedin}}" target="_blank">{{personalInfo.linkedin}}</a></span></div>{{/if}}
-              {{#if personalInfo.github}}<div class="contact-item"><span class="icon">🐱</span><span><a href="{{personalInfo.github}}" target="_blank">{{personalInfo.github}}</a></span></div>{{/if}}
+              <div class="contact-item">
+                <span class="icon">📧</span>
+                <span>{{personalInfo.email}}</span>
+              </div>
+              {{#if personalInfo.phone}}
+                <div class="contact-item">
+                  <span class="icon">📱</span>
+                  <span>{{personalInfo.phone}}</span>
+                </div>
+              {{/if}}
+              {{#if personalInfo.address}}
+                <div class="contact-item">
+                  <span class="icon">📍</span>
+                  <span>{{personalInfo.address}}</span>
+                </div>
+              {{/if}}
+              {{#if personalInfo.website}}
+                <div class="contact-item">
+                  <span class="icon">🌐</span>
+                  <span>
+                    <a href="{{personalInfo.website}}" target="_blank" itemprop="url">{{personalInfo.website}}</a>
+                  </span>
+                </div>
+              {{/if}}
+              {{#if personalInfo.linkedin}}
+                <div class="contact-item">
+                  <span class="icon">💼</span>
+                  <span>
+                    <a href="{{personalInfo.linkedin}}" target="_blank">{{personalInfo.linkedin}}</a>
+                  </span>
+                </div>
+              {{/if}}
+              {{#if personalInfo.github}}
+                <div class="contact-item">
+                  <span class="icon">🐱</span>
+                  <span>
+                    <a href="{{personalInfo.github}}" target="_blank">{{personalInfo.github}}</a>
+                  </span>
+                </div>
+              {{/if}}
             </div>
           </div>
-          {{#if skills}}<section class="skills"><h2 class="primaryFont">Skills</h2>{{#each skills}}<div class="skill-category"><div class="skill-category-title primaryFont">{{category}}</div><div class="skill-bars">{{#each items}}<div class="skill-item"><span class="skill-name secondaryFont">{{name}}</span><div class="skill-bar"><div class="skill-progress" data-level="{{level}}"></div></div></div>{{/each}}</div></div>{{/each}}</section>{{/if}}
-          {{#if languages}}<section class="languages"><h2 class="primaryFont">Languages</h2>{{#each languages}}<div class="language-item"><span class="language-name secondaryFont">{{name}}</span><span class="language-level">{{proficiency}}</span></div>{{/each}}</section>{{/if}}
-          {{#if certifications}}<section class="certifications"><h2 class="primaryFont">Certifications</h2>{{#each certifications}}<div class="cert-item"><div class="cert-title secondaryFont">{{name}}</div><div class="cert-meta"><span class="issuer">{{issuer}}</span>{{#if date}}<span class="date">{{formatDate date}}</span>{{/if}}</div>{{#if expiryDate}}<div class="cert-expiry">Expires: {{formatDate expiryDate}}</div>{{/if}}{{#if credentialId}}<div class="cert-id">ID: {{credentialId}}</div>{{/if}}{{#if url}}<div class="cert-link"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}</div>{{/each}}</section>{{/if}}
+          
+          {{#if skills}}
+            <section class="skills">
+              <h2 class="primaryFont">Skills</h2>
+              {{#each skills}}
+                <div class="skill-category">
+                  <div class="skill-category-title primaryFont">{{category}}</div>
+                  <div class="skill-bars">
+                    {{#each items}}
+                      <div class="skill-item">
+                        <span class="skill-name secondaryFont">{{name}}</span>
+                        <div class="skill-bar">
+                          <div class="skill-progress" data-level="{{level}}"></div>
+                        </div>
+                      </div>
+                    {{/each}}
+                  </div>
+                </div>
+              {{/each}}
+            </section>
+          {{/if}}
+          
+          {{#if languages}}
+            <section class="languages">
+              <h2 class="primaryFont">Languages</h2>
+              {{#each languages}}
+                <div class="language-item">
+                  <span class="language-name secondaryFont">{{name}}</span>
+                  <span class="language-level">{{proficiency}}</span>
+                </div>
+              {{/each}}
+            </section>
+          {{/if}}
+          
+          {{#if certifications}}
+            <section class="certifications">
+              <h2 class="primaryFont">Certifications</h2>
+              {{#each certifications}}
+                <div class="cert-item">
+                  <div class="cert-title secondaryFont">{{name}}</div>
+                  <div class="cert-meta">
+                    <span class="issuer">{{issuer}}</span>
+                    {{#if date}}
+                      <span class="date">{{formatDate date}}</span>
+                    {{/if}}
+                  </div>
+                  {{#if expiryDate}}
+                    <div class="cert-expiry">Expires: {{formatDate expiryDate}}</div>
+                  {{/if}}
+                  {{#if credentialId}}
+                    <div class="cert-id">ID: {{credentialId}}</div>
+                  {{/if}}
+                  {{#if url}}
+                    <div class="cert-link">
+                      <a href="{{url}}" target="_blank">Verify</a>
+                    </div>
+                  {{/if}}
+                </div>
+              {{/each}}
+            </section>
+          {{/if}}
         </div>
+        
         <div class="main-content">
-          {{#if summary}}<section class="about"><h2 class="primaryFont">About Me</h2><div class="about-text secondaryFont">{{{summary}}}</div></section>{{/if}}
-          {{#if workExperience}}<section class="experience"><h2 class="primaryFont">Experience</h2><div class="timeline">{{#each workExperience}}<div class="timeline-item"><div class="timeline-marker"></div><div class="timeline-content"><h3 class="primaryFont">{{jobTitle}}</h3><div class="job-meta"><span class="company">{{company}}</span>{{#if location}}<span class="location">{{location}}</span>{{/if}}</div><div class="dates">{{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{formatDate endDate}}{{/if}}</div>{{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}{{#if achievements}}<ul class="achievements secondaryFont">{{#each achievements}}<li>{{this}}</li>{{/each}}</ul>{{/if}}</div></div>{{/each}}</div></section>{{/if}}
-                          {{#if education}}<section class="education"><h2 class="primaryFont">Education</h2>{{#each education}}<div class="edu-item"><h3 class="primaryFont">{{degree}}</h3><div class="edu-meta"><span class="institution">{{institution}}</span>{{#if location}}<span class="location">{{location}}</span>{{/if}}</div><div class="edu-dates">{{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{formatDate endDate}}{{/if}}</div>{{#if gpa}}<div class="gpa">GPA: {{gpa}}</div>{{/if}}{{#if description}}<div class="edu-description secondaryFont">{{{description}}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
-                          {{#if projects}}<section class="projects"><h2 class="primaryFont">Projects</h2>{{#each projects}}<div class="project-item"><h3 class="primaryFont">{{name}}</h3>{{#if description}}<div class="secondaryFont">{{{description}}}</div>{{/if}}{{#if technologies}}<div class="technologies">{{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}</div>{{/if}}{{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}{{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}{{#if startDate}}<div class="project-dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
-                          {{#if achievements}}<section class="achievements-section"><h2 class="primaryFont">Achievements</h2>{{#each achievements}}<div class="achievement-item">{{#if title}}<div class="achievement-title primaryFont">{{title}}</div>{{/if}}{{#if description}}<div class="secondaryFont">{{{description}}}</div>{{/if}}{{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}{{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
-          {{#if customFields}}<section class="custom-fields">{{#each customFields}}<div class="custom-field"><h3 class="primaryFont">{{title}}</h3><div class="custom-content secondaryFont">{{content}}</div></div>{{/each}}</section>{{/if}}
+          {{#if summary}}
+            <section class="about">
+              <h2 class="primaryFont">About Me</h2>
+              <div class="about-text secondaryFont">{{{summary}}}</div>
+            </section>
+          {{/if}}
+          
+          {{#if workExperience}}
+            <section class="experience">
+              <h2 class="primaryFont">Experience</h2>
+              <div class="timeline">
+                {{#each workExperience}}
+                  <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                      <h3 class="primaryFont">{{jobTitle}}</h3>
+                      <div class="job-meta">
+                        <span class="company">{{company}}</span>
+                        {{#if location}}
+                          <span class="location">{{location}}</span>
+                        {{/if}}
+                      </div>
+                      <div class="dates">
+                        {{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{formatDate endDate}}{{/if}}
+                      </div>
+                      {{#if description}}
+                        <div class="description secondaryFont">{{{description}}}</div>
+                      {{/if}}
+                      {{#if achievements}}
+                        <ul class="achievements secondaryFont">
+                          {{#each achievements}}
+                            <li>{{this}}</li>
+                          {{/each}}
+                        </ul>
+                      {{/if}}
+                    </div>
+                  </div>
+                {{/each}}
+              </div>
+            </section>
+          {{/if}}
+          
+          {{#if education}}
+            <section class="education">
+              <h2 class="primaryFont">Education</h2>
+              {{#each education}}
+                <div class="edu-item">
+                  <h3 class="primaryFont">{{degree}}</h3>
+                  <div class="edu-meta">
+                    <span class="institution">{{institution}}</span>
+                    {{#if location}}
+                      <span class="location">{{location}}</span>
+                    {{/if}}
+                  </div>
+                  <div class="edu-dates">
+                    {{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{formatDate endDate}}{{/if}}
+                  </div>
+                  {{#if gpa}}
+                    <div class="gpa">GPA: {{gpa}}</div>
+                  {{/if}}
+                  {{#if description}}
+                    <div class="edu-description secondaryFont">{{{description}}}</div>
+                  {{/if}}
+                </div>
+              {{/each}}
+            </section>
+          {{/if}}
+          
+          {{#if projects}}
+            <section class="projects">
+              <h2 class="primaryFont">Projects</h2>
+              {{#each projects}}
+                <div class="project-item">
+                  <h3 class="primaryFont">{{name}}</h3>
+                  {{#if description}}
+                    <p class="secondaryFont">{{{description}}}</p>
+                  {{/if}}
+                  {{#if technologies}}
+                    <div class="technologies">
+                      {{#each technologies}}
+                        <span class="tech-tag secondaryFont">{{this}}</span>
+                      {{/each}}
+                    </div>
+                  {{/if}}
+                  {{#if url}}
+                    <div class="project-links">
+                      <a href="{{url}}" target="_blank">{{url}}</a>
+                    </div>
+                  {{/if}}
+                  {{#if githubUrl}}
+                    <div class="project-links">
+                      <a href="{{githubUrl}}" target="_blank">{{githubUrl}}</a>
+                    </div>
+                  {{/if}}
+                  {{#if startDate}}
+                    <div class="project-dates">
+                      {{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}
+                    </div>
+                  {{/if}}
+                </div>
+              {{/each}}
+            </section>
+          {{/if}}
+          
+          {{#if achievements}}
+            <section class="achievements-section">
+              <h2 class="primaryFont">Achievements</h2>
+              {{#each achievements}}
+                <div class="achievement-item">
+                  {{#if title}}
+                    <div class="achievement-title primaryFont">{{title}}</div>
+                  {{/if}}
+                  {{#if description}}
+                    <div class="secondaryFont">{{{description}}}</div>
+                  {{/if}}
+                  {{#if date}}
+                    <div class="achievement-date">{{formatDate date}}</div>
+                  {{/if}}
+                  {{#if issuer}}
+                    <div class="achievement-issuer">{{issuer}}</div>
+                  {{/if}}
+                </div>
+              {{/each}}
+            </section>
+          {{/if}}
+          
+          {{#if customFields}}
+            <section class="custom-fields">
+              {{#each customFields}}
+                <div class="custom-field">
+                  <h3 class="primaryFont">{{title}}</h3>
+                  <div class="custom-content secondaryFont">{{content}}</div>
+                </div>
+              {{/each}}
+            </section>
+          {{/if}}
         </div>
       </div>`,
-      css: `.resume.creative-designer { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; background: white; color: #1f2937; display: grid; grid-template-columns: 280px 1fr; font-size: 12px; line-height: 1; }
-      .sidebar { background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color: white; padding: 24px 20px; }
-      .profile-section { margin-bottom: 6px; }
-      .name { font-size: 16px; font-weight: 700; margin-bottom: 8px; line-height: 1; }
-      .contact-info { margin-bottom: 6px; }
-      .contact-item { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; font-size: 12px; }
-      .icon { font-size: 12px; width: 16px; text-align: center; }
-      .sidebar h2 { font-size: 16px; font-weight: 600; margin: 0 0 6px 0; position: relative; padding-bottom: 8px; }
-      .sidebar h2::after { content: ''; position: absolute; bottom: 0; left: 0; width: 25px; height: 2px; background: rgba(255,255,255,0.7); }
-      .skill-category { margin-bottom: 2px; }
-      .skill-category-title { font-size: 12px; font-weight: 600; margin-bottom: 2px; color: rgba(255,255,255,0.9); }
-      .skill-item { margin-bottom: 2px; }
-      .skill-name { font-size: 12px; display: block; margin-bottom: 2px; }
-      .skill-bar { height: 3px; background: rgba(255,255,255,0.2); border-radius: 2px; overflow: hidden; }
-      .skill-progress { height: 100%; background: rgba(255,255,255,0.8); border-radius: 2px; width: 75%; }
-      .skill-progress[data-level="expert"] { width: 95%; }
-      .skill-progress[data-level="advanced"] { width: 80%; }
-      .skill-progress[data-level="intermediate"] { width: 65%; }
-      .skill-progress[data-level="beginner"] { width: 40%; }
-      .language-item { display: flex; justify-content: space-between; margin-bottom: 2px; }
-      .language-name { font-size: 12px; color: rgba(255,255,255,0.9); }
-      .language-level { font-size: 12px; color: rgba(255,255,255,0.7); text-transform: capitalize; }
-      .cert-item { margin-bottom: 2px; }
-      .cert-title { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); margin-bottom: 2px; }
-      .cert-meta { display: flex; gap: 8px; font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 2px; }
-      .cert-expiry, .cert-id { font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 1px; }
-      .cert-link a { color: rgba(255,255,255,0.9); text-decoration: none; font-size: 12px; }
-      .main-content { padding: 24px; }
-      .main-content h2 { font-size: 16px; font-weight: 600; color: #ec4899; margin: 0 0 6px 0; position: relative; padding-bottom: 8px; }
-      .main-content h2::after { content: ''; position: absolute; bottom: 0; left: 0; width: 30px; height: 2px; background: linear-gradient(90deg, #ec4899, #8b5cf6); }
-      .about { margin-bottom: 6px; }
-      .about-text { font-size: 12px; line-height: 1; color: #4b5563; text-align: justify; }
-      .timeline { position: relative; padding-left: 16px; }
-      .timeline::before { content: ''; position: absolute; left: 6px; top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, #ec4899, #8b5cf6); }
-      .timeline-item { position: relative; margin-bottom: 2px; }
-      .timeline-marker { position: absolute; left: -10px; top: 4px; width: 6px; height: 6px; background: #ec4899; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 2px #ec4899; }
-      .timeline-content h3 { font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
-      .job-meta, .edu-meta { display: flex; gap: 8px; font-size: 12px; color: #6b7280; margin-bottom: 2px; }
-      .dates, .edu-dates { font-size: 12px; color: #9ca3af; font-style: italic; margin-bottom: 2px; }
-      .description, .edu-description { font-size: 12px; color: #4b5563; line-height: 1; }
-      .achievements { margin: 2px 0; }
-      .achievements li { margin-bottom: 2px; color: #4b5563; font-size: 12px; }
+      css: `.resume.creative-designer {
+        font-family: 'Arial', sans-serif;
+        max-width: 8.5in;
+        margin: 0 auto;
+        background: white;
+        color: #1f2937;
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        font-size: 15px;
+        line-height: 1;
+      }
+      
+      .sidebar {
+        background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+        color: white;
+        padding: 24px 20px;
+      }
+      
+      .profile-section {
+        margin-bottom: 6px;
+      }
+      
+      .name {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        line-height: 1;
+      }
+      
+      .contact-info {
+        margin-bottom: 6px;
+      }
+      
+      .contact-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 2px;
+        font-size: 15px;
+      }
+      
+      .icon {
+        font-size: 15px;
+        width: 16px;
+        text-align: center;
+      }
+      
+      .sidebar h2 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0 0 6px 0;
+        position: relative;
+        padding-bottom: 8px;
+      }
+      
+      .sidebar h2::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 25px;
+        height: 2px;
+        background: rgba(255,255,255,0.7);
+      }
+      
+      .skill-category {
+        margin-bottom: 2px;
+      }
+      
+      .skill-category-title {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 2px;
+        color: rgba(255,255,255,0.9);
+      }
+      
+      .skill-item {
+        margin-bottom: 2px;
+      }
+      
+      .skill-name {
+        font-size: 15px;
+        display: block;
+        margin-bottom: 2px;
+      }
+      
+      .skill-bar {
+        height: 3px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      
+      .skill-progress {
+        height: 100%;
+        background: rgba(255,255,255,0.8);
+        border-radius: 2px;
+        width: 75%;
+      }
+      
+      .skill-progress[data-level="expert"] {
+        width: 95%;
+      }
+      
+      .skill-progress[data-level="advanced"] {
+        width: 80%;
+      }
+      
+      .skill-progress[data-level="intermediate"] {
+        width: 65%;
+      }
+      
+      .skill-progress[data-level="beginner"] {
+        width: 40%;
+      }
+      
+      .language-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2px;
+      }
+      
+      .language-name {
+        font-size: 15px;
+        color: rgba(255,255,255,0.9);
+      }
+      
+      .language-level {
+        font-size: 15px;
+        color: rgba(255,255,255,0.7);
+        text-transform: capitalize;
+      }
+      
+      .cert-item {
+        margin-bottom: 2px;
+      }
+      
+      .cert-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: rgba(255,255,255,0.9);
+        margin-bottom: 2px;
+      }
+      
+      .cert-meta {
+        display: flex;
+        gap: 8px;
+        font-size: 15px;
+        color: rgba(255,255,255,0.7);
+        margin-bottom: 2px;
+      }
+      
+      .cert-expiry,
+      .cert-id {
+        font-size: 15px;
+        color: rgba(255,255,255,0.6);
+        margin-bottom: 1px;
+      }
+      
+      .cert-link a {
+        color: rgba(255,255,255,0.9);
+        text-decoration: none;
+        font-size: 15px;
+      }
+      
+      .main-content {
+        padding: 24px;
+      }
+      
+      .main-content h2 {
+        font-size: 18px;
+        font-weight: 600;
+        color: #ec4899;
+        margin: 0 0 6px 0;
+        position: relative;
+        padding-bottom: 8px;
+      }
+      
+      .main-content h2::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 30px;
+        height: 2px;
+        background: linear-gradient(90deg, #ec4899, #8b5cf6);
+      }
+      
+      .about {
+        margin-bottom: 6px;
+      }
+      
+      .about-text {
+        font-size: 15px;
+        line-height: 1;
+        color: #4b5563;
+        text-align: justify;
+      }
+      
+      .timeline {
+        position: relative;
+        padding-left: 16px;
+      }
+      
+      .timeline::before {
+        content: '';
+        position: absolute;
+        left: 6px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(180deg, #ec4899, #8b5cf6);
+      }
+      
+      .timeline-item {
+        position: relative;
+        margin-bottom: 2px;
+      }
+      
+      .timeline-marker {
+        position: absolute;
+        left: -10px;
+        top: 4px;
+        width: 6px;
+        height: 6px;
+        background: #ec4899;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 0 0 2px #ec4899;
+      }
+      
+      .timeline-content h3 {
+        font-size: 15px;
+        font-weight: 600;
+        color: #1f2937;
+      }
+      
+      .job-meta,
+      .edu-meta {
+        display: flex;
+        gap: 8px;
+        font-size: 15px;
+        color: #6b7280;
+        margin-bottom: 2px;
+      }
+      
+      .dates,
+      .edu-dates {
+        font-size: 15px;
+        color: #9ca3af;
+        font-style: italic;
+        margin-bottom: 2px;
+      }
+      
+      .description,
+      .edu-description {
+        font-size: 15px;
+        color: #4b5563;
+        line-height: 1;
+      }
+      
+      .achievements {
+        margin: 2px 0;
+      }
+      
+      .achievements li {
+        margin-bottom: 2px;
+        color: #4b5563;
+        font-size: 15px;
+      }
       
       /* General list styling for HTML content in descriptions */
-      ul, ol { margin: 2px 0; padding-left: 1rem; }
-      ul li, ol li { margin-bottom: 2px; color: #4b5563; line-height: 1.3; font-size: 12px; }
-      ul { list-style-type: disc; }
-      ol { list-style-type: decimal; }
-      .gpa { font-size: 12px; color: #6b7280; margin-bottom: 2px; }
-      .edu-item { margin-bottom: 2px; }
-      .edu-item h3 { font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
-      .project-item { margin-bottom: 2px; }
-      .project-item h3 { font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
-      .project-item p { font-size: 12px; color: #4b5563; line-height: 1; margin-bottom: 2px; }
-      .technologies { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 2px; }
-      .tech-tag { background: #8b5cf6; color: white; padding: 2px 5px; border-radius: 2px; font-size: 12px; }
-      .project-links { margin-bottom: 2px; }
-      .project-links a { color: #ec4899; text-decoration: none; font-size: 12px; margin-right: 12px; }
-      .project-dates { font-size: 12px; color: #9ca3af; font-style: italic; }
-      .achievement-item { margin-bottom: 2px; }
-      .achievement-item .achievement-title { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
-      .achievement-item p { font-size: 12px; color: #4b5563; line-height: 1; margin-bottom: 2px; }
-      .achievement-date { font-size: 12px; color: #9ca3af; font-style: italic; margin-bottom: 2px; }
-      .achievement-issuer { font-size: 12px; color: #6b7280; }
-      .custom-field { margin-bottom: 2px; }
-      .custom-field h3 { font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
-      .custom-content { font-size: 12px; color: #4b5563; line-height: 1; }
-      .contact-item a { color: rgba(255,255,255,0.9); text-decoration: none; }`
+      ul,
+      ol {
+        margin: 2px 0;
+        padding-left: 1rem;
+      }
+      
+      ul li,
+      ol li {
+        margin-bottom: 2px;
+        color: #4b5563;
+        line-height: 1.3;
+        font-size: 15px;
+      }
+      
+      ul {
+        list-style-type: disc;
+      }
+      
+      ol {
+        list-style-type: decimal;
+      }
+      
+      .gpa {
+        font-size: 15px;
+        color: #6b7280;
+        margin-bottom: 2px;
+      }
+      
+      .edu-item {
+        margin-bottom: 2px;
+      }
+      
+      .edu-item h3 {
+        font-size: 15px;
+        font-weight: 600;
+        color: #1f2937;
+      }
+      
+      .project-item {
+        margin-bottom: 2px;
+      }
+      
+      .project-item h3 {
+        font-size: 15px;
+        font-weight: 600;
+        color: #1f2937;
+      }
+      
+      .project-item p {
+        font-size: 13px;
+        color: #4b5563;
+        line-height: 1;
+        margin-bottom: 2px;
+      }
+      
+      .technologies {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-bottom: 2px;
+      }
+      
+      .tech-tag {
+        background: #8b5cf6;
+        color: white;
+        padding: 2px 5px;
+        border-radius: 2px;
+        font-size: 15px;
+      }
+      
+      .project-links {
+        margin-bottom: 2px;
+      }
+      
+      .project-links a {
+        color: #ec4899;
+        text-decoration: none;
+        font-size: 15px;
+        margin-right: 12px;
+      }
+      
+      .project-dates {
+        font-size: 15px;
+        color: #9ca3af;
+        font-style: italic;
+      }
+      
+      .achievement-item {
+        margin-bottom: 2px;
+      }
+      
+      .achievement-item .achievement-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 2px;
+      }
+      
+      .achievement-item p {
+        font-size: 15px;
+        color: #4b5563;
+        line-height: 1;
+        margin-bottom: 2px;
+      }
+      
+      .achievement-date {
+        font-size: 15px;
+        color: #9ca3af;
+        font-style: italic;
+        margin-bottom: 2px;
+      }
+      
+      .achievement-issuer {
+        font-size: 15px;
+        color: #6b7280;
+      }
+      
+      .custom-field {
+        margin-bottom: 2px;
+      }
+      
+      .custom-field h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 2px;
+      }
+      
+      .custom-content {
+        font-size: 15px;
+        color: #4b5563;
+        line-height: 1;
+      }
+      
+      .contact-item a {
+        color: rgba(255,255,255,0.9);
+        text-decoration: none;
+      }`
     },
     creator: null,
     tags: ['creative', 'designer', 'portfolio', 'sidebar', 'colorful', 'gradient']
@@ -1093,7 +1658,7 @@ module.exports = [
               {{#if startDate}}<span class="dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</span>{{/if}}
             </div>
             {{#if description}}<div class="project-description secondaryFont">{{{description}}}</div>{{/if}}
-            {{#if technologies}}<div class="technologies"><div class="tech-label">Technologies:</div> {{#each technologies}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/if}}
+            {{#if technologies}}<div class="technologies secondaryFont"><div class="tech-label primaryFont">Technologies:</div> {{#each technologies}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/if}}
             {{#if url}}<div class="project-url"><div class="url-label">URL:</div> <a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
             {{#if githubUrl}}<div class="github-url"><div class="github-label">GitHub:</div> <a href="{{githubUrl}}" target="_blank">{{githubUrl}}</a></div>{{/if}}
           </div>
@@ -1150,26 +1715,26 @@ module.exports = [
         </section>
         {{/if}}
       </article>`,
-      css: `.resume.classic-traditional { font-family: 'Times New Roman', 'Georgia', serif; max-width: 8.5in; margin: 0 auto; background: white; color: black; font-size: 12px; line-height: 1; }
+      css: `.resume.classic-traditional { font-family: 'Times New Roman', 'Georgia', serif; max-width: 8.5in; margin: 0 auto; background: white; color: black; font-size: 15px; line-height: 1; }
       @media print { .resume.classic-traditional { max-width: none; margin: 0; padding: 0.5in; } }
-      @media (max-width: 768px) { .resume.classic-traditional { padding: 0.5in; font-size: 11px; } }
+      @media (max-width: 768px) { .resume.classic-traditional { padding: 0.5in; font-size: 13px; } }
       
       .header { text-align: center; margin-bottom: 6px; padding-bottom: 8px; border-bottom: 1px solid black; }
-      .name { font-size: 16px; font-weight: bold; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-      .contact-info { font-size: 12px; line-height: 1; }
+      .name { font-size: 18px; font-weight: bold; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+      .contact-info { font-size: 15px; line-height: 1; }
       .contact-info a { color: black; text-decoration: none; }
       .contact-info a:hover { text-decoration: underline; }
       
       section { margin-bottom: 6px; }
-      h2 { font-size: 16px; font-weight: bold; text-transform: uppercase; margin-bottom: 6px; padding-bottom: 8px; border-bottom: 1px solid black; letter-spacing: 0.5px; }
+      h2 { font-size: 18px; font-weight: bold; text-transform: uppercase; margin-bottom: 6px; padding-bottom: 8px; border-bottom: 1px solid black; letter-spacing: 0.5px; }
       .objective p { text-align: justify; margin-bottom: 0; }
       
       .job-entry, .edu-entry, .project-entry, .achievement-entry, .cert-entry { margin-bottom: 2px; }
       .job-header, .edu-header, .project-header, .achievement-header, .cert-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
-      .job-header h3, .edu-header h3, .project-header h3, .achievement-header h3, .cert-header h3 { font-size: 16px; font-weight: bold; margin: 0; }
-      .dates { font-size: 12px; font-style: italic; }
+      .job-header h3, .edu-header h3, .project-header h3, .achievement-header h3, .cert-header h3 { font-size: 15px; font-weight: bold; margin-bottom: 2px; }
+      .dates { font-size: 15px; font-style: italic; }
       
-      .company-info, .institution-info, .cert-issuer, .issuer-info { font-size: 12px; margin-bottom: 2px; }
+      .company-info, .institution-info, .cert-issuer, .issuer-info { font-size: 15px; margin-bottom: 2px; }
       .job-description, .edu-description, .project-description, .achievement-description { margin: 2px 0; text-align: justify; }
       
       .achievements { margin: 2px 0; }
@@ -1180,23 +1745,23 @@ module.exports = [
       ul li, ol li { margin-bottom: 2px; line-height: 1.3; }
       ul { list-style-type: disc; }
       ol { list-style-type: decimal; }
-      .gpa { font-size: 12px; margin-bottom: 2px; }
+      .gpa { font-size: 15px; margin-bottom: 2px; }
       
       .skill-category { margin-bottom: 2px; }
-      .skill-category-title { font-size: 12px; font-weight: bold; margin-bottom: 2px; }
-      .skill-items { font-size: 12px; }
+      .skill-category-title { font-size: 15px; font-weight: bold; margin-bottom: 2px; }
+      .skill-items { font-size: 15px; }
       
-      .technologies, .project-url, .github-url, .cert-expiry, .cert-id, .cert-url { font-size: 12px; margin-bottom: 2px; }
-      .tech-label, .url-label, .github-label, .expiry-label, .id-label { font-size: 12px; font-weight: bold; display: inline; }
+      .technologies, .project-url, .github-url, .cert-expiry, .cert-id, .cert-url { font-size: 15px; margin-bottom: 2px; }
+      .tech-label, .url-label, .github-label, .expiry-label, .id-label { font-size: 15px; font-weight: bold; display: inline; }
       .project-url a, .github-url a, .cert-url a { color: black; text-decoration: none; }
       .project-url a:hover, .github-url a:hover, .cert-url a:hover { text-decoration: underline; }
       
-      .language-entry { margin-bottom: 2px; font-size: 12px; display: flex; gap: 8px; }
-      .language-name { font-size: 12px; font-weight: bold; }
+      .language-entry { margin-bottom: 2px; font-size: 15px; display: flex; gap: 8px; }
+      .language-name { font-size: 15px; font-weight: bold; }
       
       .custom-field-entry { margin-bottom: 2px; }
-      .custom-field-entry h2 { font-size: 16px; margin-bottom: 2px; }
-      .custom-field-content { font-size: 12px; line-height: 1; text-align: justify; }`
+      .custom-field-entry h2 { font-size: 18px; margin-bottom: 2px; }
+      .custom-field-content { font-size: 15px; line-height: 1; text-align: justify; }`
     },
     creator: null,
     tags: ['classic', 'traditional', 'formal', 'conservative', 'single-column', 'black']
@@ -1258,56 +1823,187 @@ module.exports = [
             {{#if personalInfo.phone}}{{#if personalInfo.address}} | {{/if}}{{personalInfo.phone}}{{/if}}
             {{#if personalInfo.email}}{{#if personalInfo.phone}} | {{/if}}{{personalInfo.email}}{{/if}}
           </div>
-          {{#if personalInfo.linkedin}}<div class="linkedin secondaryFont">LinkedIn: <a href="{{personalInfo.linkedin}}" target="_blank">{{personalInfo.linkedin}}</a></div>{{/if}}
-          {{#if personalInfo.github}}<div class="github secondaryFont">GitHub: <a href="{{personalInfo.github}}" target="_blank" itemprop="url">{{personalInfo.github}}</a></div>{{/if}}
-          {{#if personalInfo.website}}<div class="website secondaryFont">Website: <a href="{{personalInfo.website}}" target="_blank" itemprop="url">{{personalInfo.website}}</a></div>{{/if}}
+          {{#if personalInfo.linkedin}}
+            <div class="linkedin secondaryFont">
+              LinkedIn: <a href="{{personalInfo.linkedin}}" target="_blank">{{personalInfo.linkedin}}</a>
+            </div>
+          {{/if}}
+          {{#if personalInfo.github}}
+            <div class="github secondaryFont">
+              GitHub: <a href="{{personalInfo.github}}" target="_blank" itemprop="url">{{personalInfo.github}}</a>
+            </div>
+          {{/if}}
+          {{#if personalInfo.website}}
+            <div class="website secondaryFont">
+              Website: <a href="{{personalInfo.website}}" target="_blank" itemprop="url">{{personalInfo.website}}</a>
+            </div>
+          {{/if}}
         </header>
-        {{#if summary}}<section class="summary-section"><h2 class="primaryFont">PROFESSIONAL SUMMARY</h2><div class="secondaryFont">{{{summary}}}</div></section>{{/if}}
-        {{#if workExperience}}<section class="experience-section"><h2 class="primaryFont">PROFESSIONAL EXPERIENCE</h2>{{#each workExperience}}<div class="job-entry"><div class="job-title-line"><h3 class="primaryFont">{{jobTitle}}</h3><span class="job-dates secondaryFont">{{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div><div class="company-line secondaryFont">{{company}}{{#if location}}, {{location}}{{/if}}</div>{{#if description}}<div class="job-description secondaryFont">{{{description}}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
-        {{#if education}}<section class="education-section"><h2 class="primaryFont">EDUCATION</h2>{{#each education}}<div class="education-entry"><div class="education-line"><h3 class="primaryFont">{{degree}}</h3><span class="education-dates secondaryFont">{{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div><div class="school-line secondaryFont">{{institution}}{{#if location}}, {{location}}{{/if}}</div>{{#if gpa}}<div class="gpa secondaryFont">GPA: {{gpa}}</div>{{/if}}{{#if description}}<div class="education-description secondaryFont">{{{description}}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
-        {{#if projects}}<section class="projects-section"><h2 class="primaryFont">KEY PROJECTS</h2>{{#each projects}}<div class="project-entry"><div class="project-line"><h3 class="primaryFont">{{name}}</h3>{{#if startDate}}<span class="project-dates secondaryFont">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</span>{{/if}}</div>{{#if description}}<div class="project-description secondaryFont">{{{description}}}</div>{{/if}}{{#if technologies}}<div class="project-technologies secondaryFont">Technologies: {{#each technologies}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/if}}{{#if url}}<div class="project-links secondaryFont"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}{{#if githubUrl}}<div class="project-links secondaryFont"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}</div>{{/each}}</section>{{/if}}
-        {{#if skills}}<section class="skills-section"><h2 class="primaryFont">CORE COMPETENCIES</h2><div class="skills-grid">{{#each skills}}<div class="skill-category"><div class="skill-category-title primaryFont">{{category}}</div><div class="skill-items secondaryFont">{{#each items}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}</div></div>{{/each}}</div>{{/if}}
-        {{#if certifications}}<section class="certifications-section"><h2 class="primaryFont">CERTIFICATIONS</h2>{{#each certifications}}<div class="cert-entry"><div class="cert-line"><h3 class="primaryFont">{{name}}</h3>{{#if date}}<span class="cert-date secondaryFont">{{formatDate date}}</span>{{/if}}</div>{{#if issuer}}<div class="cert-issuer secondaryFont">{{issuer}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
+        
+        {{#if summary}}
+          <section class="summary-section">
+            <h2 class="primaryFont">PROFESSIONAL SUMMARY</h2>
+            <div class="secondaryFont">{{{summary}}}</div>
+          </section>
+        {{/if}}
+        
+        {{#if workExperience}}
+          <section class="experience-section">
+            <h2 class="primaryFont">PROFESSIONAL EXPERIENCE</h2>
+            {{#each workExperience}}
+              <div class="job-entry">
+                <div class="job-title-line">
+                  <h3 class="primaryFont">{{jobTitle}}</h3>
+                  <span class="job-dates secondaryFont">
+                    {{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}
+                  </span>
+                </div>
+                <div class="company-line secondaryFont">
+                  {{company}}{{#if location}}, {{location}}{{/if}}
+                </div>
+                {{#if description}}
+                  <div class="job-description secondaryFont">{{{description}}}</div>
+                {{/if}}
+              </div>
+            {{/each}}
+          </section>
+        {{/if}}
+        
+        {{#if education}}
+          <section class="education-section">
+            <h2 class="primaryFont">EDUCATION</h2>
+            {{#each education}}
+              <div class="education-entry">
+                <div class="education-line">
+                  <h3 class="primaryFont">{{degree}}</h3>
+                  <span class="education-dates secondaryFont">
+                    {{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}
+                  </span>
+                </div>
+                <div class="school-line secondaryFont">
+                  {{institution}}{{#if location}}, {{location}}{{/if}}
+                </div>
+                {{#if gpa}}
+                  <div class="gpa secondaryFont">GPA: {{gpa}}</div>
+                {{/if}}
+                {{#if description}}
+                  <div class="education-description secondaryFont">{{{description}}}</div>
+                {{/if}}
+              </div>
+            {{/each}}
+          </section>
+        {{/if}}
+        
+        {{#if projects}}
+          <section class="projects-section">
+            <h2 class="primaryFont">KEY PROJECTS</h2>
+            {{#each projects}}
+              <div class="project-entry">
+                <div class="project-line">
+                  <h3 class="primaryFont">{{name}}</h3>
+                  {{#if startDate}}
+                    <span class="project-dates secondaryFont">
+                      {{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}
+                    </span>
+                  {{/if}}
+                </div>
+                {{#if description}}
+                  <div class="project-description secondaryFont">{{{description}}}</div>
+                {{/if}}
+                {{#if technologies}}
+                  <div class="project-technologies primaryFont">
+                    Technologies: <span class="secondaryFont">{{#each technologies}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</span>
+                  </div>
+                {{/if}}
+                {{#if url}}
+                  <div class="project-links secondaryFont">
+                    <a href="{{url}}" target="_blank">View Project</a>
+                  </div>
+                {{/if}}
+                {{#if githubUrl}}
+                  <div class="project-links secondaryFont">
+                    <a href="{{githubUrl}}" target="_blank">GitHub</a>
+                  </div>
+                {{/if}}
+              </div>
+            {{/each}}
+          </section>
+        {{/if}}
+        
+        {{#if skills}}
+          <section class="skills-section">
+            <h2 class="primaryFont">CORE COMPETENCIES</h2>
+            <div class="skills-grid">
+              {{#each skills}}
+                <div class="skill-category">
+                  <div class="skill-category-title primaryFont">{{category}}</div>
+                  <div class="skill-items secondaryFont">
+                    {{#each items}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}
+                  </div>
+                </div>
+              {{/each}}
+            </div>
+          </section>
+        {{/if}}
+        
+        {{#if certifications}}
+          <section class="certifications-section">
+            <h2 class="primaryFont">CERTIFICATIONS</h2>
+            {{#each certifications}}
+              <div class="cert-entry">
+                <div class="cert-line">
+                  <h3 class="primaryFont">{{name}}</h3>
+                  {{#if date}}
+                    <span class="cert-date secondaryFont">{{formatDate date}}</span>
+                  {{/if}}
+                </div>
+                {{#if issuer}}
+                  <div class="cert-issuer secondaryFont">{{issuer}}</div>
+                {{/if}}
+              </div>
+            {{/each}}
+          </section>
+        {{/if}}
       </div>`,
       css: `.resume.classic-professional { font-family: 'Georgia', serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: black; line-height: 1; }
       .classic-header { text-align: center; margin-bottom: 6px; padding-bottom: 8px; border-bottom: 2px solid #1f2937; }
-      .name { font-size: 16px; font-weight: bold; color: #1f2937; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-      .contact-details { font-size: 12px; color: #4b5563; margin-bottom: 2px; }
-      .linkedin { font-size: 12px; color: #6b7280;} .linkedin a { font-size: 12px; color: #6b7280; text-decoration: none; }
-      .github { font-size: 12px; color: #6b7280;} .github a { font-size: 12px; color: #6b7280;text-decoration: none; }
-      .website { font-size: 12px; color: #6b7280;} .website a { font-size: 12px; color: #6b7280; text-decoration: none; }
+      .name { font-size: 18px; font-weight: bold; color: #1f2937; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+      .contact-details { font-size: 15px; color: #4b5563; margin-bottom: 2px; }
+      .linkedin { font-size: 15px; color: #6b7280;} .linkedin a { font-size: 15px; color: #6b7280; text-decoration: none; }
+      .github { font-size: 15px; color: #6b7280;} .github a { font-size: 15px; color: #6b7280;text-decoration: none; }
+      .website { font-size: 15px; color: #6b7280;} .website a { font-size: 15px; color: #6b7280; text-decoration: none; }
       section { margin-bottom: 6px; }
-      section h2 { font-size: 16px; font-weight: bold; color: #1f2937; text-transform: uppercase; margin-bottom: 6px; border-bottom: 1px solid #1f2937; padding-bottom: 8px; letter-spacing: 0.5px; }
-      .summary-section p { font-size: 12px; line-height: 1; color: #1f2937; text-align: justify; }
-      .job-entry { margin-bottom: 2px; padding-bottom: 2px; border-bottom: 1px dotted #6b7280; }
+      section h2 { font-size: 18px; font-weight: bold; color: #1f2937; text-transform: uppercase; margin-bottom: 6px; border-bottom: 1px solid #1f2937; padding-bottom: 2px; letter-spacing: 0.5px; }
+      .summary-section p { font-size: 15px; line-height: 1; color: #1f2937; text-align: justify; }
+      .job-entry { margin-top: 2px; margin-bottom: 2px; padding-bottom: 2px; border-bottom: 1px dotted #6b7280; }
       .job-title-line { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
-      .job-title-line h3 { font-size: 16px; color: #1f2937; font-weight: bold; margin: 0; }
-      .job-dates { font-size: 12px; color: #6b7280; font-style: italic; }
-      .company-line { font-size: 12px; color: #4b5563; margin-bottom: 2px; font-weight: 500; }
-      .job-description { font-size: 12px; color: #1f2937; margin: 2px 0; line-height: 1; }
+      .job-title-line h3 { font-size: 18px; color: #1f2937; font-weight: bold; margin: 0; }
+      .job-dates { font-size: 15px; color: #6b7280; font-style: italic; }
+      .company-line { font-size: 15px; color: #4b5563; margin-bottom: 2px; font-weight: 500; }
+      .job-description { font-size: 15px; color: #1f2937; margin: 2px 0; line-height: 1; }
       .education-entry { margin-bottom: 2px; }
       .education-line { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
-      .education-line h3 { font-size: 16px; color: #1f2937; font-weight: bold; margin: 0; }
-      .education-dates { font-size: 12px; color: #6b7280; font-style: italic; }
-      .school-line { font-size: 12px; color: #4b5563; margin-bottom: 2px; font-weight: 500; }
-      .gpa { font-size: 12px; color: #6b7280; margin-bottom: 2px; }
-      .education-description { font-size: 12px; color: #1f2937; line-height: 1; }
-      .project-entry { margin-bottom: 2px; padding-bottom: 2px; border-bottom: 1px dotted #6b7280; }
+      .education-line h3 { font-size: 18px; color: #1f2937; font-weight: bold; margin: 0; }
+      .education-dates { font-size: 15px; color: #6b7280; font-style: italic; }
+      .school-line { font-size: 15px; color: #4b5563; margin-bottom: 2px; font-weight: 500; }
+      .gpa { font-size: 15px; color: #6b7280; margin-bottom: 2px; }
+      .education-description { font-size: 15px; color: #1f2937; line-height: 1; }
+      .project-entry { margin-top: 2px; margin-bottom: 2px; padding-bottom: 2px; border-bottom: 1px dotted #6b7280; }
       .project-line { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
-      .project-line h3 { font-size: 16px; color: #1f2937; font-weight: bold; margin: 0; }
-      .project-dates { font-size: 12px; color: #6b7280; font-style: italic; }
-      .project-description { font-size: 12px; color: #1f2937; margin: 2px 0; line-height: 1; }
-      .project-technologies { font-size: 12px; color: #4b5563; margin-bottom: 2px; font-weight: 500; }
-      .project-links { font-size: 12px; color: #6b7280; margin-bottom: 2px; }
+      .project-line h3 { font-size: 18px; color: #1f2937; font-weight: bold; margin: 0; }
+      .project-dates { font-size: 15px; color: #6b7280; font-style: italic; }
+      .project-description { font-size: 15px; color: #1f2937; margin: 2px 0; line-height: 1; }
+      .project-technologies { font-size: 15px; color: #4b5563; margin-bottom: 2px; font-weight: 500; }
+      .project-links { font-size: 15px; color: #6b7280; margin-bottom: 2px; }
       .project-links a { color: #1f2937; text-decoration: none; }
       .skills-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-      .skill-category-title { font-size: 12px; font-weight: bold; color: #1f2937; margin-bottom: 2px; }
-      .skill-items { font-size: 12px; color: #4b5563; line-height: 1; }
+      .skill-category-title { font-size: 15px; font-weight: bold; color: #1f2937; margin-bottom: 2px; }
+      .skill-items { font-size: 15px; color: #4b5563; line-height: 1; }
       .cert-entry { margin-bottom: 2px; }
       .cert-line { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
-      .cert-line h3 { font-size: 16px; color: #1f2937; font-weight: bold; margin: 0; }
-      .cert-date { font-size: 12px; color: #6b7280; font-style: italic; }
-      .cert-issuer { font-size: 12px; color: #4b5563; font-style: italic;
+      .cert-line h3 { font-size: 18px; color: #1f2937; font-weight: bold; margin: 0; }
+      .cert-date { font-size: 15px; color: #6b7280; font-style: italic; }
+      .cert-issuer { font-size: 15px; color: #4b5563; font-style: italic;
       /* General list styling for HTML content in descriptions */
       ul, ol { margin: 0.25rem 0; padding-left: 1rem; }
       ul li, ol li { margin-bottom: 0.125rem; color: #4b5563; line-height: 1.3; font-size: 10px; }
@@ -1445,7 +2141,7 @@ module.exports = [
             {{#if description}}<div class="item-description secondaryFont">{{{description}}}</div>{{/if}}
             {{#if technologies}}
             <div class="technologies secondaryFont">
-              <div class="tech-label">Technologies:</div> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
+              <div class="tech-label primaryFont">Technologies:</div> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
             </div>
             {{/if}}
             {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
@@ -1538,21 +2234,21 @@ module.exports = [
         </section>
         {{/if}}
       </article>`,
-      css: `.resume.minimalist-clean { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #374151; font-size: 12px; line-height: 1; }
+      css: `.resume.minimalist-clean { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #374151; font-size: 15px; line-height: 1; }
       .header { margin-bottom: 6px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; }
-      .name { font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 6px; letter-spacing: -0.5px; }
-      .contact-info { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: #6b7280; }
+      .name { font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 6px; letter-spacing: -0.5px; }
+      .contact-info { display: flex; flex-wrap: wrap; gap: 10px; font-size: 15px; color: #6b7280; }
       .contact-item { display: flex; align-items: center; }
       .contact-item a { color: #6b7280; text-decoration: none; }
       .summary { margin-bottom: 6px; }
-      .summary-text { font-size: 12px; color: #4b5563; line-height: 1; text-align: justify; }
+      .summary-text { font-size: 15px; color: #4b5563; line-height: 1; text-align: justify; }
       section { margin-bottom: 6px; }
-      h2 { font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 6px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; }
+      h2 { font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 4px; padding-bottom: 2px; border-bottom: 1px solid #e5e7eb; }
       .experience-item, .education-item, .project-item, .achievement-item, .cert-item { margin-bottom: 2px; padding-bottom: 2px; }
       .item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px; }
-      .item-title h3, .achievement-item .achievement-title, .custom-field h3 { font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
-      .company, .institution, .location, .cert-issuer { font-size: 12px; color: #6b7280; }
-      .dates { font-size: 12px; color: #9ca3af; font-weight: 500; }
+      .item-title h3, .achievement-item .achievement-title, .custom-field h3 { font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+      .company, .institution, .location, .cert-issuer { font-size: 15px; color: #6b7280; }
+      .dates { font-size: 15px; color: #9ca3af; font-weight: 500; }
       .item-description, .custom-content { margin: 2px 0; color: #4b5563; line-height: 1; }
       .achievements { margin: 2px 0; }
       .achievements li { margin-bottom: 2px; color: #4b5563; }
@@ -1562,27 +2258,27 @@ module.exports = [
       ul li, ol li { margin-bottom: 2px; color: #4b5563; line-height: 1.3; }
       ul { list-style-type: disc; }
       ol { list-style-type: decimal; }
-      .gpa { font-size: 12px; color: #6b7280; margin-bottom: 2px; }
+      .gpa { font-size: 15px; color: #6b7280; margin-bottom: 2px; }
       .skills-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 6px; }
-      .skill-category-title { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+      .skill-category-title { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
       .skill-items { display: flex; flex-wrap: wrap; gap: 3px; }
-      .skill-item { background: #f3f4f6; color: #374151; padding: 2px 4px; border-radius: 2px; font-size: 12px; font-weight: 500; }
+      .skill-item { background: #f3f4f6; color: #374151; padding: 2px 4px; border-radius: 2px; font-size: 15px; font-weight: 500; }
       .skill-item[data-level="expert"] { background: #059669; color: white; }
       .skill-item[data-level="advanced"] { background: #0ea5e9; color: white; }
       .skill-item[data-level="intermediate"] { background: #6b7280; color: white; }
       .skill-item[data-level="beginner"] { background: #d1d5db; color: #374151; }
       .technologies { display: flex; flex-wrap: wrap; gap: 3px; margin: 2px 0; }
-      .tech-label { font-size: 12px; font-weight: bold; display: inline; }
-      .tech-tag { background: #1f2937; color: white; padding: 1px 3px; border-radius: 2px; font-size: 12px; }
+      .tech-label { font-size: 15px; font-weight: bold; display: inline; }
+      .tech-tag { background: #1f2937; color: white; padding: 1px 3px; border-radius: 2px; font-size: 15px; }
       .project-links, .cert-link { margin: 2px 0; }
-      .project-links a, .cert-link a { color: #1f2937; text-decoration: none; font-size: 12px; margin-right: 8px; }
-      .achievement-date { font-size: 12px; color: #9ca3af; margin: 2px 0; font-style: italic; }
-      .achievement-issuer { font-size: 12px; color: #6b7280; }
-      .cert-expiry, .cert-id { font-size: 12px; color: #6b7280; margin: 1px 0; }
+      .project-links a, .cert-link a { color: #1f2937; text-decoration: none; font-size: 15px; margin-right: 8px; }
+      .achievement-date { font-size: 15px; color: #9ca3af; margin: 2px 0; font-style: italic; }
+      .achievement-issuer { font-size: 15px; color: #6b7280; }
+      .cert-expiry, .cert-id { font-size: 15px; color: #6b7280; margin: 1px 0; }
       .languages-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 6px; }
       .language-item { display: flex; justify-content: space-between; margin-bottom: 2px; }
-      .language-name { font-size: 12px; color: #1f2937; }
-      .language-level { font-size: 12px; color: #6b7280; text-transform: capitalize; }
+      .language-name { font-size: 15px; color: #1f2937; }
+      .language-level { font-size: 15px; color: #6b7280; text-transform: capitalize; }
       .custom-field { margin-bottom: 2px; }`
     },
     creator: null,
@@ -1735,7 +2431,7 @@ module.exports = [
                 {{#if description}}<div class="project-description secondaryFont">{{{description}}}</div>{{/if}}
                 {{#if technologies}}
                 <div class="technologies secondaryFont">
-                  <div class="tech-label">Technologies:</div> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
+                  <div class="tech-label primaryFont">Technologies:</div> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
                 </div>
                 {{/if}}
                 {{#if url}}<div class="project-links secondaryFont"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
@@ -1828,31 +2524,31 @@ module.exports = [
           </div>
         </div>
       </article>`,
-      css: `.resume.professional-corporate { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; background: white; color: #1f2937; font-size: 12px; line-height: 1; }
+      css: `.resume.professional-corporate { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; background: white; color: #1f2937; font-size: 15px; line-height: 1; }
       @media print { .resume.professional-corporate { max-width: none; margin: 0; padding: 0; } }
       @media (max-width: 768px) { .resume.professional-corporate .content-grid { grid-template-columns: 1fr; gap: 12px; } }
       
       .header { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 16px 20px 10px; margin-bottom: 6px; border-radius: 0 0 6px 6px; box-shadow: 0 2px 6px rgba(30, 64, 175, 0.2); }
       @media print { .header { background: #1e40af !important; border-radius: 0; box-shadow: none; } }
       .header-content { max-width: 100%; }
-      .name { font-size: 16px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.5px; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+      .name { font-size: 18px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.5px; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
       .contact-info { display: flex; flex-direction: column; gap: 2px; }
       .contact-row { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
-      .contact-item { font-size: 12px; opacity: 0.95; }
+      .contact-item { font-size: 15px; opacity: 0.95; }
       .contact-item a { color: white; text-decoration: none; }
       .contact-item a:hover { text-decoration: underline; }
       
       .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 6px; padding: 0 20px 6px; }
       section { margin-bottom: 6px; }
-      h2 { font-size: 16px; font-weight: 600; color: #1e40af; margin-bottom: 6px; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb; position: relative; }
+      h2 { font-size: 18px; font-weight: 600; color: #1e40af; margin-bottom: 6px; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb; position: relative; }
       h2::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 18px; height: 2px; background: #1e40af; }
-      .summary-text { font-size: 12px; line-height: 1; color: #4b5563; text-align: justify; }
+      .summary-text { font-size: 15px; line-height: 1; color: #4b5563; text-align: justify; }
       
       .job-entry, .edu-entry, .project-entry, .achievement-entry { margin-bottom: 2px; padding-bottom: 2px; border-bottom: 1px solid #f3f4f6; }
       .job-header, .edu-header, .project-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px; }
-      .job-title-company h3, .edu-title-institution h3, .project-header h3, .achievement-entry .achievement-title { font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
-      .company-location, .institution-location { display: flex; gap: 4px; font-size: 12px; color: #6b7280; }
-      .dates { font-size: 12px; color: #9ca3af; font-weight: 500; text-align: right; }
+      .job-title-company h3, .edu-title-institution h3, .project-header h3, .achievement-entry .achievement-title { font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+      .company-location, .institution-location { display: flex; gap: 4px; font-size: 15px; color: #6b7280; }
+      .dates { font-size: 15px; color: #9ca3af; font-weight: 500; text-align: right; }
       .description { margin-bottom: 0.25rem; color: #4b5563; line-height: 1; }
       .achievements { margin: 2px 0; }
       .achievements li { margin-bottom: 1px; color: #4b5563; }
@@ -1862,47 +2558,47 @@ module.exports = [
       ul li, ol li { margin-bottom: 1px; color: #4b5563; line-height: 1.3; }
       ul { list-style-type: disc; }
       ol { list-style-type: decimal; }
-      .gpa { font-size: 12px; color: #6b7280; margin: 2px 0; }
+      .gpa { font-size: 15px; color: #6b7280; margin: 2px 0; }
       
       .technologies { display: flex; flex-wrap: wrap; gap: 2px; margin: 2px 0; }
-      .tech-label { font-size: 12px; font-weight: bold; display: inline; }
-      .tech-tag { background: #1e40af; color: white; padding: 1px 4px; border-radius: 2px; font-size: 12px; }
+      .tech-label { font-size: 15px; font-weight: bold; display: inline; }
+      .tech-tag { background: #1e40af; color: white; padding: 1px 4px; border-radius: 2px; font-size: 15px; }
       
       .project-links { margin: 2px 0; }
-      .project-links a { color: #1e40af; text-decoration: none; font-size: 12px; margin-right: 8px; }
+      .project-links a { color: #1e40af; text-decoration: none; font-size: 15px; margin-right: 8px; }
       .project-links a:hover { text-decoration: underline; }
-      .achievement-date { font-size: 12px; color: #9ca3af; margin: 2px 0; font-style: italic; }
-      .achievement-issuer { font-size: 12px; color: #6b7280; }
+      .achievement-date { font-size: 15px; color: #9ca3af; margin: 2px 0; font-style: italic; }
+      .achievement-issuer { font-size: 15px; color: #6b7280; }
       
       .custom-field { margin-bottom: 2px; }
-      .custom-field h3 { font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
-      .custom-content { font-size: 12px; color: #4b5563; line-height: 1; }
+      .custom-field h3 { font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+      .custom-content { font-size: 15px; color: #4b5563; line-height: 1; }
       
       .sidebar { background: #f8fafc; padding: 10px; border-radius: 4px; height: fit-content; border: 1px solid #e5e7eb; }
       @media print { .sidebar { background: white; border: 1px solid #e5e7eb; } }
-      .sidebar h2 { font-size: 16px; color: #1f2937; border-bottom: 1px solid #e5e7eb; margin-bottom: 6px; }
+      .sidebar h2 { font-size: 18px; color: #1f2937; border-bottom: 1px solid #e5e7eb; margin-bottom: 6px; }
       .sidebar h2::after { background: #1f2937; }
       .sidebar section { margin-bottom: 6px; }
       
       .skill-category { margin-bottom: 2px; }
-      .skill-category-title { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+      .skill-category-title { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
       .skill-items { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 2px; }
-      .skill-item { background: #1e40af; color: white; padding: 1px 4px; border-radius: 2px; font-size: 12px; }
+      .skill-item { background: #1e40af; color: white; padding: 1px 4px; border-radius: 2px; font-size: 15px; }
       .skill-item[data-level="expert"] { background: #059669; }
       .skill-item[data-level="advanced"] { background: #0ea5e9; }
       .skill-item[data-level="intermediate"] { background: #1e40af; }
       .skill-item[data-level="beginner"] { background: #6b7280; }
       
       .cert-item { margin-bottom: 2px; padding-bottom: 2px; border-bottom: 1px solid #f3f4f6; }
-      .cert-item h3 { font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
-      .cert-details { display: flex; justify-content: space-between; font-size: 12px; color: #6b7280; }
-      .cert-expiry, .cert-id { font-size: 12px; color: #6b7280; margin: 1px 0; }
-      .cert-link a { color: #1e40af; text-decoration: none; font-size: 12px; }
+      .cert-item h3 { font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+      .cert-details { display: flex; justify-content: space-between; font-size: 15px; color: #6b7280; }
+      .cert-expiry, .cert-id { font-size: 15px; color: #6b7280; margin: 1px 0; }
+      .cert-link a { color: #1e40af; text-decoration: none; font-size: 15px; }
       .cert-link a:hover { text-decoration: underline; }
       
       .language-item { display: flex; justify-content: space-between; margin-bottom: 2px; }
-      .language-name { font-size: 12px; color: #1f2937; }
-      .language-level { font-size: 12px; color: #6b7280; text-transform: capitalize; }`
+      .language-name { font-size: 15px; color: #1f2937; }
+      .language-level { font-size: 15px; color: #6b7280; text-transform: capitalize; }`
     },
     creator: null,
     tags: ['professional', 'corporate', 'business', 'two-column', 'blue', 'executive']
@@ -1982,51 +2678,51 @@ module.exports = [
       </div>`,
       css: `.resume.professional-executive { font-family: 'Calibri', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; line-height: 1; }
       .executive-header { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); color: white; padding: 1.5rem; margin: 0 0 6px 0; text-align: center; }
-      .name { font-size: 16px; font-weight: 700; margin-bottom: 6px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); letter-spacing: 0.5px; }
+      .name { font-size: 18px; font-weight: 700; margin-bottom: 6px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); letter-spacing: 0.5px; }
       .contact-bar { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; align-items: center; }
-      .contact-item { font-size: 11px; padding: 0.3rem 0.6rem; background: rgba(255,255,255,0.2); border-radius: 12px; backdrop-filter: blur(10px); white-space: nowrap; min-width: fit-content; max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+      .contact-item { font-size: 13px; padding: 0.3rem 0.6rem; background: rgba(255,255,255,0.2); border-radius: 12px; backdrop-filter: blur(10px); white-space: nowrap; min-width: fit-content; max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
       .contact-item a { color: white; text-decoration: none; }
       section { margin-bottom: 6px; }
-      section h2 { font-size: 16px; font-weight: 700; color: #1e3a8a; text-transform: uppercase; margin-bottom: 6px; padding-bottom: 8px; border-bottom: 2px solid #1e3a8a; letter-spacing: 0.5px; }
+      section h2 { font-size: 18px; font-weight: 700; color: #1e3a8a; text-transform: uppercase; margin-bottom: 6px; padding-bottom: 8px; border-bottom: 2px solid #1e3a8a; letter-spacing: 0.5px; }
       .executive-summary { background: #f8fafc; padding: 1.25rem; border-radius: 6px; border-left: 3px solid #1e3a8a; }
-      .executive-summary p, .executive-summary div { font-size: 12px; line-height: 1.3; color: #374151; margin: 0; }
+      .executive-summary p, .executive-summary div { font-size: 15px; line-height: 1.3; color: #374151; margin: 0; }
       .executive-role { margin-bottom: 2px; padding: 1.25rem; background: #f9fafb; border-radius: 6px; border-top: 2px solid #dc2626; }
       .role-header { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem; margin-bottom: 2px; }
-      .role-title { font-size: 16px; font-weight: 600; color: #1f2937; }
-      .role-company { font-size: 12px; color: #1e3a8a; font-weight: 500; }
-      .role-duration { font-size: 12px; color: #64748b; text-align: right; font-style: italic; }
-      .role-location { font-size: 12px; color: #64748b; margin-bottom: 2px; }
-      .role-description { font-size: 12px; line-height: 1; color: #374151; margin-bottom: 2px; }
+      .role-title { font-size: 18px; font-weight: 600; color: #1f2937; }
+      .role-company { font-size: 15px; color: #1e3a8a; font-weight: 500; }
+      .role-duration { font-size: 15px; color: #64748b; text-align: right; font-style: italic; }
+      .role-location { font-size: 15px; color: #64748b; margin-bottom: 2px; }
+      .role-description { font-size: 15px; line-height: 1; color: #374151; margin-bottom: 2px; }
       .executive-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 6px; }
       .education-item { margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #f3f4f6; }
-      .degree { font-size: 12px; font-weight: 500; color: #1f2937; margin-bottom: 2px; }
-      .institution { font-size: 11px; color: #1e3a8a; font-weight: 400; margin-bottom: 2px; }
+      .degree { font-size: 15px; font-weight: 500; color: #1f2937; margin-bottom: 2px; }
+      .institution { font-size: 13px; color: #1e3a8a; font-weight: 400; margin-bottom: 2px; }
       .education-year { font-size: 10px; color: #64748b; font-style: italic; }
-      .gpa { font-size: 12px; color: #64748b; margin-top: 2px; font-weight: 400;}
-      .education-description { font-size: 12px; line-height: 1.3; color: #374151; margin: 2px 0; }
+      .gpa { font-size: 15px; color: #64748b; margin-top: 2px; font-weight: 400;}
+      .education-description { font-size: 15px; line-height: 1.3; color: #374151; margin: 2px 0; }
       .competencies-grid { display: flex; flex-direction: column; gap: 2px; }
-      .competency-title { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
-      .competency-items { font-size: 12px; color: #374151; line-height: 1; }
+      .competency-title { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+      .competency-items { font-size: 15px; color: #374151; line-height: 1; }
       .certifications-grid { display: flex; flex-direction: column; gap: 2px; }
       .certification-item { padding: 0.6rem; background: #f1f5f9; border-radius: 4px; border-left: 2px solid #1e3a8a; margin-bottom: 6px; }
-      .cert-name { font-size: 12px; font-weight: 500; color: #1f2937; margin-bottom: 2px; }
-      .cert-issuer { font-size: 12px; color: #1e3a8a; font-weight: 500; }
-      .cert-date { font-size: 12px; color: #64748b; margin-top: 2px; }
-      .tech-label { font-size: 12px; font-weight: bold; display: inline; }
-      .project-links a { color: #64748b; text-decoration: none; font-size: 12px; margin-right: 8px; }
-      .cert-link a { color: #64748b; text-decoration: none; font-size: 12px; }
-      .achievement-title { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
-      .achievement-item div:not(.achievement-title):not(.achievement-date):not(.achievement-issuer) { font-size: 12px; line-height: 1.3; color: #374151; margin: 2px 0; }
-      .achievement-date { font-size: 12px; color: #64748b; margin: 2px 0; font-style: italic; }
-      .achievement-issuer { font-size: 12px; color: #64748b; }
-      .project-item .description { font-size: 12px; line-height: 1.3; color: #374151; margin: 2px 0; }
-      .cert-expiry, .cert-id { font-size: 12px; color: #64748b; margin: 1px 0; }
+      .cert-name { font-size: 15px; font-weight: 500; color: #1f2937; margin-bottom: 2px; }
+      .cert-issuer { font-size: 15px; color: #1e3a8a; font-weight: 500; }
+      .cert-date { font-size: 15px; color: #64748b; margin-top: 2px; }
+      .tech-label { font-size: 15px; font-weight: bold; display: inline; }
+      .project-links a { color: #64748b; text-decoration: none; font-size: 15px; margin-right: 8px; }
+      .cert-link a { color: #64748b; text-decoration: none; font-size: 15px; }
+      .achievement-title { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+      .achievement-item div:not(.achievement-title):not(.achievement-date):not(.achievement-issuer) { font-size: 15px; line-height: 1.3; color: #374151; margin: 2px 0; }
+      .achievement-date { font-size: 15px; color: #64748b; margin: 2px 0; font-style: italic; }
+      .achievement-issuer { font-size: 15px; color: #64748b; }
+      .project-item .description { font-size: 15px; line-height: 1.3; color: #374151; margin: 2px 0; }
+      .cert-expiry, .cert-id { font-size: 15px; color: #64748b; margin: 1px 0; }
       .languages-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 6px; }
       .language-item { display: flex; justify-content: flex-start; gap: 8px; margin-bottom: 2px; }
-      .language-name { font-size: 12px; color: #1f2937; }
-      .language-level { font-size: 12px; color: #64748b; text-transform: capitalize; }
+      .language-name { font-size: 15px; color: #1f2937; }
+      .language-level { font-size: 15px; color: #64748b; text-transform: capitalize; }
       .custom-field { margin-bottom: 2px; }
-      .custom-content { font-size: 12px; color: #374151; line-height: 1; 
+      .custom-content { font-size: 15px; color: #374151; line-height: 1; 
       /* General list styling for HTML content in descriptions */
       ul, ol { margin: 0.25rem 0; padding-left: 1rem; }
       ul li, ol li { margin-bottom: 0.125rem; color: #4b5563; line-height: 1.3; font-size: 10px; }
@@ -2229,20 +2925,20 @@ module.exports = [
         </section>
         {{/if}}
       </article>`,
-      css: `.resume.academic-research { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; font-size: 12px; line-height: 1.4; }
+      css: `.resume.academic-research { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; font-size: 15px; line-height: 1.4; }
       .header { text-align: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #059669; }
-      .name { font-family: 'Georgia', serif; font-size: 18px; font-weight: 600; color: #059669; margin-bottom: 6px; letter-spacing: 0.5px; }
+      .name { font-family: 'Georgia', serif; font-size: 20px; font-weight: 600; color: #059669; margin-bottom: 6px; letter-spacing: 0.5px; }
       .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 4px; max-width: 500px; margin: 0 auto; }
       .contact-item { display: flex; align-items: flex-start; font-size: 10px; gap: 2px; margin-bottom: 2px; }
       .contact-item .label { font-weight: 600; color: #6b7280; white-space: nowrap; flex-shrink: 0; }
       .contact-item .value { color: #1f2937; text-align: left; word-wrap: break-word; line-height: 1.2; }
       .contact-item a { color: #1f2937; text-decoration: none; }
       section { margin-bottom: 10px; }
-      h2 { font-family: 'Georgia', serif; font-size: 14px; font-weight: 600; color: #059669; margin-bottom: 6px; padding-bottom: 2px; border-bottom: 1px solid #e5e7eb; text-transform: uppercase; letter-spacing: 0.5px; }
-      .interests-text { font-size: 11px; line-height: 1.4; color: #4b5563; text-align: justify; font-style: italic; }
+      h2 { font-family: 'Georgia', serif; font-size: 15px; font-weight: 600; color: #059669; padding-bottom: 2px; border-bottom: 1px solid #e5e7eb; text-transform: uppercase; letter-spacing: 0.5px; }
+      .interests-text { font-size: 13px; line-height: 1.4; color: #4b5563; text-align: justify; font-style: italic; }
       .edu-entry, .position-entry, .publication-entry, .cert-entry, .achievement-entry { margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #f3f4f6; }
       .edu-header, .position-header, .cert-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px; }
-      .edu-entry h3, .position-entry h3, .publication-entry h3, .cert-entry h3, .achievement-title { font-size: 12px; font-weight: 400; color: #1f2937; margin-bottom: 1px; }
+      .edu-entry h3, .position-entry h3, .publication-entry h3, .cert-entry h3, .achievement-title { font-size: 15px; font-weight: 400; color: #1f2937; margin-bottom: 1px; }
       .institution-info { font-size: 10px; color: #6b7280; font-style: italic; }
       .edu-dates, .position-dates, .cert-date, .achievement-date { font-size: 9px; color: #9ca3af; font-weight: 500; }
       .gpa { font-size: 9px; color: #6b7280; margin-bottom: 2px; }
@@ -2251,13 +2947,13 @@ module.exports = [
       .methodologies .label { font-weight: 400; color: #6b7280; }
       .publication-entry { border-left: 3px solid #10b981; padding-left: 8px; }
       .skill-category { margin-bottom: 6px; }
-      .skill-category h3 { font-size: 11px; font-weight: 400; color: #1f2937; margin-bottom: 2px; }
+      .skill-category h3 { font-size: 13px; font-weight: 400; color: #1f2937; margin-bottom: 2px; }
       .skill-items { color: #4b5563; line-height: 1.4; }
       .cert-issuer, .achievement-issuer { color: #6b7280; font-style: italic; }
       .achievement-date { font-style: italic; }
       .languages-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 4px; }
       .language-entry { display: flex; justify-content: space-between; margin-bottom: 2px; }
-      .language-name { font-size: 11px; color: #1f2937; font-weight: 500; }
+      .language-name { font-size: 13px; color: #1f2937; font-weight: 500; }
       .language-proficiency { font-size: 10px; color: #6b7280; text-transform: capitalize; }
       /* General list styling for HTML content in descriptions */
       ul, ol { margin: 0.15rem 0; padding-left: 0.8rem; }
@@ -2389,7 +3085,7 @@ module.exports = [
               {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
               {{#if technologies}}
               <div class="technologies">
-                <strong class="secondaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
+                <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
               </div>
               {{/if}}
               {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
@@ -2481,18 +3177,18 @@ module.exports = [
           {{/if}}
         </div>
       </article>`,
-      css: `.resume.sleek-professional { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1e293b; font-size: 12px; line-height: 1.4; display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+      css: `.resume.sleek-professional { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1e293b; font-size: 15px; line-height: 1.4; display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
       .header { grid-column: 1 / -1; text-align: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #2563eb; }
-      .name { font-size: 18px; font-weight: 600; color: #0f172a; margin-bottom: 8px; }
+      .name { font-size: 20px; font-weight: 600; color: #0f172a; margin-bottom: 8px; }
       .contact-info { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; font-size: 10px; color: #475569; }
       .contact-item { color: #1e293b; }
       .contact-item a { color: #475569; text-decoration: none; }
       .contact-item a:hover { text-decoration: underline; }
       section { margin-bottom: 15px; }
-      h3 { font-size: 14px; font-weight: 600; color: #0f172a; margin-bottom: 8px; padding-bottom: 3px; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.5px; }
+      h3 { font-size: 15px; font-weight: 600; color: #0f172a; margin-bottom: 8px; padding-bottom: 3px; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.5px; }
       .job-item, .edu-item, .project-item, .cert-item, .achievement-item { margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9; }
       .job-header, .edu-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
-      .job-title, .edu-degree { font-size: 12px; font-weight: 600; color: #1e293b; margin-bottom: 2px; }
+      .job-title, .edu-degree { font-size: 15px; font-weight: 600; color: #1e293b; margin-bottom: 2px; }
       .job-meta, .edu-meta { font-size: 10px; color: #475569; }
       .job-dates, .edu-dates { font-size: 9px; color: #64748b; font-weight: 500; }
       .job-description, .edu-description, .project-description, .achievement-description { margin: 4px 0; color: #4b5563; line-height: 1.4; }
@@ -2505,22 +3201,22 @@ module.exports = [
       ul { list-style-type: disc; }
       ol { list-style-type: decimal; }
       .skill-category { margin-bottom: 8px; }
-      .skill-category-title { font-size: 11px; font-weight: 600; color: #1e293b; margin-bottom: 3px; }
+      .skill-category-title { font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 3px; }
       .skill-items { color: #4b5563; line-height: 1.4; }
       .skill-item { display: inline-block; margin-right: 8px; margin-bottom: 2px; }
-      .project-name { font-size: 11px; font-weight: 600; color: #1e293b; margin-bottom: 3px; }
+      .project-name { font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 3px; }
       .technologies { margin: 4px 0; font-size: 9px; color: #6b7280; }
       .tech-tag { background: #f1f5f9; padding: 1px 4px; border-radius: 2px; margin-right: 4px; }
       .project-links { margin: 3px 0; font-size: 9px; }
       .project-links a { color: #4b5563; text-decoration: none; }
       .project-links a:hover { text-decoration: underline; }
       .project-dates { font-size: 9px; color: #64748b; margin-top: 2px; }
-      .cert-name { font-size: 11px; font-weight: 600; color: #1e293b; margin-bottom: 2px; }
+      .cert-name { font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 2px; }
       .cert-meta { font-size: 9px; color: #475569; margin-bottom: 2px; }
       .cert-expiry, .cert-id { font-size: 8px; color: #64748b; margin: 1px 0; }
       .cert-link a { color: #64748b; text-decoration: none; font-size: 9px; }
       .cert-link a:hover { text-decoration: underline; }
-      .achievement-title { font-size: 11px; font-weight: 600; color: #1e293b; margin-bottom: 2px; }
+      .achievement-title { font-size: 13px; font-weight: 600; color: #1e293b; margin-bottom: 2px; }
       .achievement-date, .achievement-issuer { font-size: 9px; color: #64748b; margin: 1px 0; }
       .language-item { display: flex; justify-content: space-between; margin-bottom: 3px; }
       .language-name { font-size: 10px; color: #1e293b; }
@@ -2612,7 +3308,7 @@ module.exports = [
             {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
             {{#if technologies}}
             <div class="technologies secondaryFont">
-              <strong>Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
+              <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
             </div>
             {{/if}}
             {{#if url}}<div class="project-links secondaryFont"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
@@ -2741,18 +3437,18 @@ module.exports = [
         </section>
         {{/if}}
       </article>`,
-      css: `.resume.creative-portfolio { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #111827; font-size: 12px; line-height: 1.4; }
+      css: `.resume.creative-portfolio { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #111827; font-size: 15px; line-height: 1.4; }
       .header { text-align: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 3px solid #9333ea; }
-      .name { font-size: 18px; font-weight: 600; color: #9333ea; margin-bottom: 10px; letter-spacing: 0.5px; }
+      .name { font-size: 20px; font-weight: 600; color: #9333ea; margin-bottom: 10px; letter-spacing: 0.5px; }
       .contact-info { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; font-size: 10px; color: #f472b6; }
       .contact-item { color: #111827; }
       .contact-item a { color: #9333ea; text-decoration: none; }
       .contact-item a:hover { text-decoration: underline; }
       section { margin-bottom: 15px; }
-      h2 { font-size: 14px; font-weight: 600; color: #9333ea; margin-bottom: 10px; padding-bottom: 3px; border-bottom: 1px solid #f3e8ff; text-transform: uppercase; letter-spacing: 0.5px; }
+      h2 { font-size: 15px; font-weight: 600; color: #9333ea; margin-bottom: 2px; padding-bottom: 3px; border-bottom: 1px solid #f3e8ff; text-transform: uppercase; letter-spacing: 0.5px; }
       .project-item { border-left: 4px solid #f472b6; padding-left: 12px; margin-bottom: 12px; }
       .project-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
-      .project-name { font-size: 12px; font-weight: 600; color: #111827; margin-bottom: 2px; }
+      .project-name { font-size: 15px; font-weight: 600; color: #111827; margin-bottom: 2px; }
       .project-dates { font-size: 9px; color: #64748b; font-weight: 500; }
       .project-description { margin: 4px 0; color: #4b5563; line-height: 1.4; }
       .technologies { margin: 4px 0; font-size: 9px; color: #6b7280; }
@@ -2762,7 +3458,7 @@ module.exports = [
       .project-links a:hover { text-decoration: underline; }
       .job-item, .edu-item, .cert-item, .achievement-item { margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #f3f4f6; }
       .job-header, .edu-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
-      .job-title, .edu-degree { font-size: 12px; font-weight: 600; color: #111827; margin-bottom: 2px; }
+      .job-title, .edu-degree { font-size: 15px; font-weight: 600; color: #111827; margin-bottom: 2px; }
       .job-meta, .edu-meta { font-size: 10px; color: #6b7280; }
       .job-dates, .edu-dates { font-size: 9px; color: #9ca3af; font-weight: 500; }
       .job-description, .edu-description, .achievement-description { margin: 4px 0; color: #4b5563; line-height: 1.4; }
@@ -2775,15 +3471,15 @@ module.exports = [
       ul { list-style-type: disc; }
       ol { list-style-type: decimal; }
       .skill-category { margin-bottom: 8px; }
-      .skill-category-title { font-size: 11px; font-weight: 600; color: #111827; margin-bottom: 3px; }
+      .skill-category-title { font-size: 13px; font-weight: 600; color: #111827; margin-bottom: 3px; }
       .skill-items { color: #4b5563; line-height: 1.4; }
       .skill-item { display: inline-block; margin-right: 8px; margin-bottom: 2px; background: #f3e8ff; color: #7c3aed; padding: 1px 4px; border-radius: 2px; }
-      .cert-name { font-size: 11px; font-weight: 600; color: #111827; margin-bottom: 2px; }
+      .cert-name { font-size: 13px; font-weight: 600; color: #111827; margin-bottom: 2px; }
       .cert-meta { font-size: 9px; color: #6b7280; margin-bottom: 2px; }
       .cert-expiry, .cert-id { font-size: 8px; color: #9ca3af; margin: 1px 0; }
       .cert-link a { color: #9333ea; text-decoration: none; font-size: 9px; }
       .cert-link a:hover { text-decoration: underline; }
-      .achievement-title { font-size: 11px; font-weight: 600; color: #111827; margin-bottom: 2px; }
+      .achievement-title { font-size: 13px; font-weight: 600; color: #111827; margin-bottom: 2px; }
       .achievement-date, .achievement-issuer { font-size: 9px; color: #9ca3af; margin: 1px 0; }
       .language-item { display: flex; justify-content: space-between; margin-bottom: 3px; }
       .language-name { font-size: 10px; color: #111827; }
@@ -2915,7 +3611,7 @@ module.exports = [
               {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
               {{#if technologies}}
               <div class="technologies">
-                <strong class="secondaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
+                <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
               </div>
               {{/if}}
               {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
@@ -3007,18 +3703,18 @@ module.exports = [
           {{/if}}
         </div>
       </article>`,
-      css: `.resume.dark-mode-dev { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; font-size: 12px; line-height: 1.4; display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+      css: `.resume.dark-mode-dev { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; font-size: 15px; line-height: 1.4; display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
       .header { grid-column: 1 / -1; text-align: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #38bdf8; }
-      .name { font-size: 18px; font-weight: 600; color: #38bdf8; margin-bottom: 8px; text-shadow: 0 0 10px rgba(56, 189, 248, 0.3); }
+      .name { font-size: 20px; font-weight: 600; color: #38bdf8; margin-bottom: 8px; text-shadow: 0 0 10px rgba(56, 189, 248, 0.3); }
       .contact-info { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; font-size: 10px; color: #a855f7; }
       .contact-item { color: #1f2937; }
       .contact-item a { color: #38bdf8; text-decoration: none; }
       .contact-item a:hover { text-decoration: underline; text-shadow: 0 0 5px rgba(56, 189, 248, 0.5); }
       section { margin-bottom: 15px; }
-      h3 { font-size: 14px; font-weight: 600; color: #38bdf8; margin-bottom: 8px; padding-bottom: 3px; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.5px; }
+      h3 { font-size: 15px; font-weight: 600; color: #38bdf8; margin-bottom: 2px; padding-bottom: 3px; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.5px; }
       .job-item, .edu-item, .project-item, .cert-item, .achievement-item { margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9; }
       .job-header, .edu-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
-      .job-title, .edu-degree { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+      .job-title, .edu-degree { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
       .job-meta, .edu-meta { font-size: 10px; color: #6b7280; }
       .job-dates, .edu-dates { font-size: 9px; color: #64748b; font-weight: 500; }
       .job-description, .edu-description, .project-description, .achievement-description { margin: 4px 0; color: #4b5563; line-height: 1.4; }
@@ -3032,22 +3728,22 @@ module.exports = [
       ol { list-style-type: decimal; }
       
       .skill-category { margin-bottom: 8px; }
-      .skill-category-title { font-size: 11px; font-weight: 600; color: #1f2937; margin-bottom: 3px; }
+      .skill-category-title { font-size: 13px; font-weight: 600; color: #1f2937; margin-bottom: 3px; }
       .skill-items { color: #4b5563; line-height: 1.4; }
       .skill-item { display: inline-block; margin-right: 8px; margin-bottom: 2px; background: #0ea5e9; color: white; padding: 1px 4px; border-radius: 2px; }
-      .project-name { font-size: 11px; font-weight: 600; color: #1f2937; margin-bottom: 3px; }
+      .project-name { font-size: 13px; font-weight: 600; color: #1f2937; margin-bottom: 3px; }
       .technologies { margin: 4px 0; font-size: 9px; color: #6b7280; }
       .tech-tag { background: #a855f7; color: white; padding: 1px 4px; border-radius: 2px; margin-right: 4px; }
       .project-links { margin: 3px 0; font-size: 9px; }
       .project-links a { color: #38bdf8; text-decoration: none; }
       .project-links a:hover { text-decoration: underline; }
       .project-dates { font-size: 9px; color: #64748b; margin-top: 2px; }
-      .cert-name { font-size: 11px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+      .cert-name { font-size: 13px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
       .cert-meta { font-size: 9px; color: #6b7280; margin-bottom: 2px; }
       .cert-expiry, .cert-id { font-size: 8px; color: #64748b; margin: 1px 0; }
       .cert-link a { color: #38bdf8; text-decoration: none; font-size: 9px; }
       .cert-link a:hover { text-decoration: underline; }
-      .achievement-title { font-size: 11px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+      .achievement-title { font-size: 13px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
       .achievement-date, .achievement-issuer { font-size: 9px; color: #64748b; margin: 1px 0; }
       .language-item { display: flex; justify-content: space-between; margin-bottom: 3px; }
       .language-name { font-size: 10px; color: #1f2937; }
@@ -3180,7 +3876,7 @@ module.exports = [
             {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
             {{#if technologies}}
             <div class="technologies">
-              <strong>Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
+              <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
             </div>
             {{/if}}
             {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
@@ -3268,18 +3964,18 @@ module.exports = [
         </section>
         {{/if}}
       </article>`,
-      css: `.resume.elegant-minimal { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #111827; font-size: 12px; line-height: 1.4; }
+      css: `.resume.elegant-minimal { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #111827; font-size: 15px; line-height: 1.4; }
       .header { text-align: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb; }
-      .name { font-size: 18px; font-weight: 600; color: #374151; margin-bottom: 8px; }
-      .contact-info { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; font-size: 10px; color: #9ca3af; }
+      .name { font-size: 20px; font-weight: 600; color: #374151; margin-bottom: 8px; }
+      .contact-info { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; font-size: 13px; color: #9ca3af; }
       .contact-item { color: #111827; }
       .contact-item a { color: #10b981; text-decoration: none; }
       .contact-item a:hover { text-decoration: underline; }
       section { margin-bottom: 15px; }
-      h2 { font-size: 14px; font-weight: 600; color: #10b981; margin-bottom: 8px; padding-bottom: 3px; border-bottom: 1px solid #e5e7eb; text-transform: uppercase; letter-spacing: 0.4px; }
-      .job-item, .edu-item, .project-item, .cert-item, .achievement-item { margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #f3f4f6; }
+      h2 { font-size: 18px; font-weight: 600; color: #10b981; margin-bottom: 8px; padding-bottom: 3px; border-bottom: 1px solid #e5e7eb; text-transform: uppercase; letter-spacing: 0.4px; }
+      .job-item, .edu-item, .project-item, .cert-item, .achievement-item { margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #f3f4f6; }
       .job-header, .edu-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
-      .job-title, .edu-degree { font-size: 12px; font-weight: 600; color: #111827; margin-bottom: 2px; }
+      .job-title, .edu-degree { font-size: 15px; font-weight: 600; color: #111827; margin-bottom: 2px; }
       .job-meta, .edu-meta { font-size: 10px; color: #6b7280; }
       .job-dates, .edu-dates { font-size: 9px; color: #9ca3af; font-weight: 500; }
       .job-description, .edu-description, .project-description, .achievement-description { margin: 4px 0; color: #4b5563; line-height: 1.4; }
@@ -3293,30 +3989,30 @@ module.exports = [
       ol { list-style-type: decimal; }
       
       .skill-category { margin-bottom: 8px; }
-      .skill-category-title { font-size: 11px; font-weight: 600; color: #111827; margin-bottom: 3px; }
+      .skill-category-title { font-size: 15px; font-weight: 600; color: #111827; margin-bottom: 3px; }
       .skill-items { color: #4b5563; line-height: 1.4; }
       .skill-item { display: inline-block; margin-right: 8px; margin-bottom: 2px; }
       .project-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
-      .project-name { font-size: 11px; font-weight: 600; color: #111827; margin-bottom: 2px; }
+      .project-name { font-size: 13px; font-weight: 600; color: #111827; margin-bottom: 2px; }
       .project-dates { font-size: 9px; color: #9ca3af; font-weight: 500; }
-      .technologies { margin: 4px 0; font-size: 9px; color: #6b7280; }
+      .technologies { margin: 4px 0; font-size: 13px; color: #6b7280; }
       .tech-tag { background: #f3f4f6; padding: 1px 4px; border-radius: 2px; margin-right: 4px; }
       .project-links { margin: 3px 0; font-size: 9px; }
       .project-links a { color: #10b981; text-decoration: none; }
       .project-links a:hover { text-decoration: underline; }
-      .cert-name { font-size: 11px; font-weight: 600; color: #111827; margin-bottom: 2px; }
+      .cert-name { font-size: 13px; font-weight: 600; color: #111827; margin-bottom: 2px; }
       .cert-meta { font-size: 9px; color: #6b7280; margin-bottom: 2px; }
       .cert-expiry, .cert-id { font-size: 8px; color: #9ca3af; margin: 1px 0; }
       .cert-link a { color: #10b981; text-decoration: none; font-size: 9px; }
       .cert-link a:hover { text-decoration: underline; }
-      .achievement-title { font-size: 11px; font-weight: 600; color: #111827; margin-bottom: 2px; }
+      .achievement-title { font-size: 13px; font-weight: 600; color: #111827; margin-bottom: 2px; }
       .achievement-date, .achievement-issuer { font-size: 9px; color: #9ca3af; margin: 1px 0; }
       .language-item { display: flex; justify-content: space-between; margin-bottom: 3px; }
-      .language-name { font-size: 10px; color: #111827; }
+      .language-name { font-size: 13px; color: #111827; }
       .language-proficiency { font-size: 9px; color: #9ca3af; }
       .custom-field-item { margin-bottom: 10px; }
       .custom-field-content { font-size: 10px; color: #4b5563; line-height: 1.4; }
-      .gpa { font-size: 9px; color: #6b7280; margin: 2px 0; }`
+      .gpa { font-size: 13px; color: #6b7280; margin: 2px 0; }`
     },
     creator: null,
     tags: ['minimal', 'modern', 'clean', 'professional', 'single-column', 'green']
@@ -3442,7 +4138,7 @@ module.exports = [
             {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
             {{#if technologies}}
             <div class="technologies">
-              <strong>Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
+              <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
             </div>
             {{/if}}
             {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
@@ -3530,19 +4226,19 @@ module.exports = [
         </section>
         {{/if}}
       </article>`,
-      css: `.resume.bold-accent { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; background: white; color: #1f2937; font-size: 12px; line-height: 1.4; padding: 0; }
+      css: `.resume.bold-accent { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; background: white; color: #1f2937; font-size: 15px; line-height: 1.4; padding: 0; }
       .header { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 16px 20px; margin-bottom: 12px; }
-      .name { font-size: 18px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.5px; color: white; }
-      .contact-info { display: flex; flex-wrap: wrap; gap: 12px; font-size: 10px; color: rgba(255, 255, 255, 0.9); line-height: 1.4; }
+      .name { font-size: 20px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.5px; color: white; }
+      .contact-info { display: flex; flex-wrap: wrap; gap: 12px; font-size: 13px; color: rgba(255, 255, 255, 0.9); line-height: 1.4; }
       .contact-item { color: rgba(255, 255, 255, 0.9); }
       .contact-item a { color: white; text-decoration: none; }
       .contact-item a:hover { text-decoration: underline; }
       section { margin-bottom: 12px; padding: 0 20px; }
-      h2 { font-size: 14px; font-weight: 600; color: #2563eb; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 2px solid #e5e7eb; position: relative; }
+      h2 { font-size: 15px; font-weight: 600; color: #2563eb; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 2px solid #e5e7eb; position: relative; }
       h2::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 20px; height: 2px; background: #2563eb; }
       .job-item, .edu-item, .project-item, .cert-item, .achievement-item { margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f3f4f6; }
       .job-header, .edu-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
-      .job-title, .edu-degree { font-size: 12px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+      .job-title, .edu-degree { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
       .job-meta, .edu-meta { font-size: 10px; color: #6b7280; font-weight: 500; margin-bottom: 2px; }
       .job-dates, .edu-dates { font-size: 9px; color: #9ca3af; font-weight: 500; text-align: right; }
       .job-description, .edu-description, .project-description, .achievement-description { margin: 4px 0; color: #4b5563; line-height: 1.4; }
@@ -3556,23 +4252,23 @@ module.exports = [
       ol { list-style-type: decimal; }
       
       .skill-category { margin-bottom: 8px; }
-      .skill-category-title { font-size: 11px; font-weight: 600; color: #1f2937; margin-bottom: 3px; }
+      .skill-category-title { font-size: 13px; font-weight: 600; color: #1f2937; margin-bottom: 3px; }
       .skill-items { color: #4b5563; line-height: 1.4; }
       .skill-item { display: inline-block; margin-right: 8px; margin-bottom: 2px; }
       .project-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
-      .project-name { font-size: 11px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+      .project-name { font-size: 13px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
       .project-dates { font-size: 9px; color: #9ca3af; font-weight: 500; }
       .technologies { margin: 4px 0; font-size: 9px; color: #6b7280; }
       .tech-tag { background: #f3f4f6; padding: 1px 4px; border-radius: 2px; margin-right: 4px; }
       .project-links { margin: 3px 0; font-size: 9px; }
       .project-links a { color: #4b5563; text-decoration: none; }
       .project-links a:hover { text-decoration: underline; }
-      .cert-name { font-size: 11px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+      .cert-name { font-size: 13px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
       .cert-meta { font-size: 9px; color: #6b7280; margin-bottom: 2px; }
       .cert-expiry, .cert-id { font-size: 8px; color: #6b7280; margin: 2px 0; }
       .cert-link a { color: #6b7280; text-decoration: none; font-size: 9px; }
       .cert-link a:hover { text-decoration: underline; }
-      .achievement-title { font-size: 11px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+      .achievement-title { font-size: 13px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
       .achievement-date, .achievement-issuer { font-size: 9px; color: #9ca3af; margin: 1px 0; }
       .language-item { display: flex; justify-content: space-between; margin-bottom: 3px; }
       .language-name { font-size: 10px; color: #1f2937; }
@@ -3724,7 +4420,7 @@ module.exports = [
             {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
             {{#if technologies}}
             <div class="technologies">
-              <strong>Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
+              <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
             </div>
             {{/if}}
             {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
@@ -3790,7 +4486,228 @@ module.exports = [
         </section>
         {{/if}}
       </article>`,
-      "css": ".resume.classic-serif { font-family: 'Times New Roman', serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #111827; font-size: 12px; line-height: 1.4; } .header { text-align: left !important; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #d1d5db; } .name { font-size: 18px; line-height: 1.2; letter-spacing: 0.5px; margin: 0 0 3px; font-variant: small-caps; text-align: left !important; font-weight: bold; } .contact-item { font-size: 11px; color: #4b5563; line-height: 1.3; } .contact-item a { color: #4b5563; text-decoration: none; } section { margin-top: 8px; } h2 { text-transform: uppercase; font-size: 14px; margin: 6px 0 3px; letter-spacing: 0.5px; color: #1f2937; border-left: 3px solid #4b5563; padding-left: 4px; font-weight: bold; } h3 { font-size: 12px; font-weight: bold; margin: 3px 0 2px; color: #374151; } .job-header, .edu-header, .project-header, .achievement-header, .cert-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; } .dates { font-size: 10px; color: #6b7280; } .gpa { font-size: 10px; color: #374151; margin: 2px 0; } .company, .institution, .issuer { font-size: 10px; color: #4b5563; margin: 2px 0; } .job-description, .project-description, .edu-description { margin: 3px 0; color: #374151; line-height: 1.4; } .achievements { margin: 3px 0; } .achievements li { margin-bottom: 2px; color: #374151; } .skill-category { margin-bottom: 4px; } .skill-items { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; } .skill-item { background: #f3f4f6; padding: 2px 4px; border-radius: 2px; font-size: 9px; color: #374151; } .technologies { margin: 3px 0; } .tech-tag { background: #e5e7eb; padding: 1px 3px; border-radius: 2px; font-size: 8px; margin-right: 3px; } .project-links { margin: 2px 0; } .project-links a { color: #374151; text-decoration: none; font-size: 9px; } .project-links a:hover { text-decoration: underline; } .cert-link a { color: #374151; text-decoration: none; font-size: 9px; } .cert-link a:hover { text-decoration: underline; } .cert-expiry, .cert-id { font-size: 9px; color: #6b7280; margin: 1px 0; } .issuer-info { font-size: 9px; color: #6b7280; margin: 2px 0; } .language-item { margin: 2px 0; font-size: 10px; } .custom-field { margin-bottom: 4px; } .custom-content { margin: 2px 0; } p { margin: 2px 0; } .job, .edu, .project, .cert, .achievement { margin-bottom: 6px; } ul, ol { margin: 0.25rem 0; padding-left: 1rem; } ul li, ol li { margin-bottom: 0.125rem; color: #4b5563; line-height: 1.3; font-size: 10px; } ul { list-style-type: disc; } ol { list-style-type: decimal; }"
+      "css": `.resume.classic-serif {
+        font-family: 'Times New Roman', serif;
+        max-width: 8.5in;
+        margin: 0 auto;
+        padding: 0.5in 0.35in;
+        background: white;
+        color: #111827;
+        font-size: 15px;
+        line-height: 1.4;
+      }
+      
+      .header {
+        text-align: left !important;
+        margin-bottom: 8px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #d1d5db;
+      }
+      
+      .name {
+        font-size: 20px;
+        line-height: 1.2;
+        letter-spacing: 0.5px;
+        margin: 0 0 3px;
+        font-variant: small-caps;
+        text-align: left !important;
+        font-weight: bold;
+      }
+      
+      .contact-item {
+        font-size: 13px;
+        color: #4b5563;
+        line-height: 1.3;
+      }
+      
+      .contact-item a {
+        color: #4b5563;
+        text-decoration: none;
+      }
+      
+      section {
+        margin-top: 8px;
+      }
+      
+      h2 {
+        text-transform: uppercase;
+        font-size: 15px;
+        margin: 6px 0 3px;
+        letter-spacing: 0.5px;
+        color: #1f2937;
+        border-left: 3px solid #4b5563;
+        padding-left: 4px;
+        font-weight: bold;
+      }
+      
+      h3 {
+        font-size: 15px;
+        font-weight: bold;
+        margin: 3px 0 2px;
+        color: #374151;
+      }
+      
+      .job-header,
+      .edu-header,
+      .project-header,
+      .achievement-header,
+      .cert-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 2px;
+      }
+      
+      .dates {
+        font-size: 10px;
+        color: #6b7280;
+      }
+      
+      .gpa {
+        font-size: 10px;
+        color: #374151;
+        margin: 2px 0;
+      }
+      
+      .company,
+      .institution,
+      .issuer {
+        font-size: 10px;
+        color: #4b5563;
+        margin: 2px 0;
+      }
+      
+      .job-description,
+      .project-description,
+      .edu-description {
+        margin: 3px 0;
+        color: #374151;
+        line-height: 1.4;
+      }
+      
+      .achievements {
+        margin: 3px 0;
+      }
+      
+      .achievements li {
+        margin-bottom: 2px;
+        color: #374151;
+      }
+      
+      .skill-category {
+        margin-bottom: 4px;
+      }
+      
+      .skill-items {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 2px;
+      }
+      
+      .skill-item {
+        background: #f3f4f6;
+        padding: 2px 4px;
+        border-radius: 2px;
+        font-size: 9px;
+        color: #374151;
+      }
+      
+      .technologies {
+        margin: 3px 0;
+      }
+      
+      .tech-tag {
+        background: #e5e7eb;
+        padding: 1px 3px;
+        border-radius: 2px;
+        font-size: 8px;
+        margin-right: 3px;
+      }
+      
+      .project-links {
+        margin: 2px 0;
+      }
+      
+      .project-links a {
+        color: #374151;
+        text-decoration: none;
+        font-size: 9px;
+      }
+      
+      .project-links a:hover {
+        text-decoration: underline;
+      }
+      
+      .cert-link a {
+        color: #374151;
+        text-decoration: none;
+        font-size: 9px;
+      }
+      
+      .cert-link a:hover {
+        text-decoration: underline;
+      }
+      
+      .cert-expiry,
+      .cert-id {
+        font-size: 9px;
+        color: #6b7280;
+        margin: 1px 0;
+      }
+      
+      .issuer-info {
+        font-size: 9px;
+        color: #6b7280;
+        margin: 2px 0;
+      }
+      
+      .language-item {
+        margin: 2px 0;
+        font-size: 10px;
+      }
+      
+      .custom-field {
+        margin-bottom: 4px;
+      }
+      
+      .custom-content {
+        margin: 2px 0;
+      }
+      
+      p {
+        margin: 2px 0;
+      }
+      
+      .job,
+      .edu,
+      .project,
+      .cert,
+      .achievement {
+        margin-bottom: 6px;
+      }
+      
+      ul,
+      ol {
+        margin: 0.25rem 0;
+        padding-left: 1rem;
+      }
+      
+      ul li,
+      ol li {
+        margin-bottom: 0.125rem;
+        color: #4b5563;
+        line-height: 1.3;
+        font-size: 10px;
+      }
+      
+      ul {
+        list-style-type: disc;
+      }
+      
+      ol {
+        list-style-type: decimal;
+      }`
     },
     creator: null,
     "tags": ["classic", "serif", "traditional", "academic", "single-column", "gray"]
@@ -3938,7 +4855,7 @@ module.exports = [
           {{/if}}
         </div>
       `,
-      "css": ".resume.fresh-gradient { font-family: 'Arial', sans-serif; background: #ffffff; color: #111827; padding: 0.5in 0.35in; line-height: 1.4; font-size: 12px; } .header { margin-bottom: 8px; } .name { font-size: 18px; margin: 0 0 6px; color: #3b82f6; } .contact { display: flex; gap: 10px; color: #3b82f6; font-size: 11px; } .contact-item a { color: #111827; text-decoration: none; } section { margin-top: 10px; background: transparent; } .job, .edu, .project { background: transparent; } h2 { color: #3b82f6; font-size: 14px; margin: 10px 0 6px; } .section-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; } .project-header { display: flex; justify-content: space-between; font-size: 11px; } .tag { background: linear-gradient(90deg, #3b82f6, #9333ea); color: white; padding: 2px 5px; border-radius: 6px; margin-right: 3px; font-size: 9px; } ul, ol { margin: 4px 0; padding-left: 1rem; } ul li, ol li { margin-bottom: 2px; color: #4b5563; line-height: 1.3; } ul { list-style-type: disc; } ol { list-style-type: decimal; }"
+      "css": ".resume.fresh-gradient { font-family: 'Arial', sans-serif; background: #ffffff; color: #111827; padding: 0.5in 0.35in; line-height: 1.4; font-size: 15px; } .header { margin-bottom: 8px; } .name { font-size: 20px; margin: 0 0 6px; color: #3b82f6; } .contact-info { display: flex; gap: 10px; color: #3b82f6; font-size: 13px; } .contact-item a { color: #111827; text-decoration: none; } section { margin-top: 10px; background: transparent; } .job, .edu, .project { background: transparent; } h2 { color: #3b82f6; font-size: 15px; margin: 0 0 6px; } .section-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; } .project-header { display: flex; justify-content: space-between; font-size: 13px; } .tag { background: linear-gradient(90deg, #3b82f6, #9333ea); color: white; padding: 2px 5px; border-radius: 6px; margin-right: 3px; font-size: 9px; } ul, ol { margin: 4px 0; padding-left: 1rem; } ul li, ol li { margin-bottom: 2px; color: #4b5563; line-height: 1.3; } ul { list-style-type: disc; } ol { list-style-type: decimal; }"
     },
     creator: null,
     "tags": ["modern", "gradient", "colorful", "rounded"]

@@ -206,16 +206,39 @@ export const resumeAPI = {
     return response.data;
   },
 
+  // NEW: Update resume colors
+  updateColors: async (resumeId, colors) => {
+    const config = createApiConfig('/resumes/colors');
+    const response = await api.put(`/resumes/${resumeId}/colors`, { colors }, config);
+    return response.data;
+  },
+
+  // NEW: Get color presets
+  getColorPresets: async () => {
+    const config = createApiConfig('/resumes/color-presets');
+    const response = await api.get('/resumes/color-presets', config);
+    return response.data;
+  },
+
 
 
   // NEW: Download resume as PDF
-  downloadPDF: async (resumeId) => {
+  downloadPDF: async (resumeId, timestamp = null) => {
     const config = createApiConfig('/resumes/download/pdf', {
-      responseType: 'blob'
+      responseType: 'blob',
+      params: timestamp ? { t: timestamp } : {}
     });
     const response = await api.get(`/resumes/${resumeId}/download/pdf`, config);
     return response;
   },
+
+  // NEW: Get preview PDF images
+  getPreviewPdfImages: async (resumeId) => {
+    const config = createApiConfig('/resumes/preview/pdf-images');
+    const response = await api.get(`/resumes/${resumeId}/preview/pdf-images`, config);
+    return response.data;
+  },
+
 
   // NEW: Download resume as DOCX
   downloadDOCX: async (resumeId) => {

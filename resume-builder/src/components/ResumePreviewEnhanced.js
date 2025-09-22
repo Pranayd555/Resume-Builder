@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { resumeAPI, analyticsAPI } from '../services/api';
 import TemplateStylingControls from './TemplateStylingControls';
@@ -13,6 +13,7 @@ import ATSSummary from './ATSSummary';
 function ResumePreviewEnhanced() {
   const { resumeId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [resume, setResume] = useState(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
@@ -36,7 +37,9 @@ function ResumePreviewEnhanced() {
   const loadPDFPreview = useCallback(async () => {
     try {
       setPdfLoading(true);
-      const response = await resumeAPI.downloadPDF(resumeId);
+      // Add cache-busting parameter to force fresh PDF generation
+      const timestamp = Date.now();
+      const response = await resumeAPI.downloadPDF(resumeId, timestamp);
       const blob = new Blob([response.data], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       setPdfData({ blob, url });
@@ -168,17 +171,29 @@ function ResumePreviewEnhanced() {
     const fetchResumePreview = async () => {
       try {
         setLoading(true);
-        const resumeResp = await resumeAPI.getResumeById(resumeId);
+        
+        // Check if we have resume data from navigation state (template change)
+        const state = location.state;
+        
+        let resumeData;
+        if (state?.resume && state?.templateChanged) {
+          // Use resume data from template selection
+          resumeData = state.resume;
+          setResume(resumeData);
+          setHasTemplate(!!resumeData?.template);
+        } else {
+          // Fetch resume data from API
+          const resumeResp = await resumeAPI.getResumeById(resumeId);
+          if (resumeResp?.success !== false && resumeResp?.data) {
+            resumeData = resumeResp.data.resume || resumeResp.data;
+            setResume(resumeData);
+            setHasTemplate(!!resumeData?.template);
+          }
+        }
 
-        if (resumeResp?.success !== false && resumeResp?.data) {
-          const r = resumeResp.data.resume || resumeResp.data;
-          setResume(r);
-          setHasTemplate(!!r?.template);
-          
+        if (resumeData) {
           // Store default template styling data if available
-          if (resumeResp.data.defaultTemplateStyling) {
-            setDefaultTemplateStyling(resumeResp.data.defaultTemplateStyling);
-          } else {
+          if (resumeData.template?.styling) {
             setDefaultTemplateStyling({
               headerLevel: 'h3',
               headerFontSize: 18,
@@ -211,7 +226,7 @@ function ResumePreviewEnhanced() {
     if (resumeId) {
       fetchResumePreview();
     }
-  }, [resumeId, navigate, loadPDFPreview]);
+  }, [resumeId, navigate, loadPDFPreview, location.state]);
 
   // Cleanup PDF URL on unmount
   useEffect(() => {
