@@ -262,8 +262,15 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
               resumeId={resumeId}
               currentColors={currentColors}
               onColorsUpdate={handleColorsUpdate}
-              onClose={() => setShowColorCustomization(false)}
+              onClose={() => {
+                setShowColorCustomization(false);
+                // If this is in a mobile modal, close the entire modal after applying colors
+                if (onClose) {
+                  onClose();
+                }
+              }}
               disabled={updating}
+              templateDefaultColors={defaultStyling?.colors}
             />
           </div>
         )}

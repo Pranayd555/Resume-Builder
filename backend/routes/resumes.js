@@ -2625,10 +2625,21 @@ router.put('/:id/toggle-active', protect, async (req, res) => {
 // @access  Private
 router.put('/:id/colors', [
   protect,
-  body('colors.primary').optional().matches(/^#[0-9A-Fa-f]{6}$/).withMessage('Primary color must be a valid hex color'),
-  body('colors.secondary').optional().matches(/^#[0-9A-Fa-f]{6}$/).withMessage('Secondary color must be a valid hex color'),
-  body('colors.accent').optional().matches(/^#[0-9A-Fa-f]{6}$/).withMessage('Accent color must be a valid hex color'),
-  body('colors.text').optional().matches(/^#[0-9A-Fa-f]{6}$/).withMessage('Text color must be a valid hex color')
+  body('colors').custom((value) => {
+    // Allow null for reset functionality
+    if (value === null) return true;
+    
+    // If colors object is provided, validate each color
+    if (value && typeof value === 'object') {
+      const colorFields = ['primary', 'secondary', 'accent', 'text'];
+      for (const field of colorFields) {
+        if (value[field] && !/^#[0-9A-Fa-f]{6}$/.test(value[field])) {
+          throw new Error(`${field} color must be a valid hex color`);
+        }
+      }
+    }
+    return true;
+  })
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -2663,10 +2674,17 @@ router.put('/:id/colors', [
       resume.styling.template = {};
     }
     
-    resume.styling.template.colors = {
-      ...resume.styling.template.colors,
-      ...req.body.colors
-    };
+    // Handle color reset (null values) or color updates
+    if (req.body.colors === null) {
+      // Reset colors to null to use template defaults
+      resume.styling.template.colors = null;
+    } else {
+      // Update colors with provided values
+      resume.styling.template.colors = {
+        ...resume.styling.template.colors,
+        ...req.body.colors
+      };
+    }
 
     await resume.save();
 

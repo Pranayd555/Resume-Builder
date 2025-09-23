@@ -2,14 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { resumeAPI } from '../services/api';
 import ColorPicker from './ColorPicker';
-import { CheckIcon } from '@heroicons/react/24/outline';
+import { CheckIcon, ArrowPathIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 const ColorCustomization = ({ 
   resumeId, 
   currentColors, 
   onColorsUpdate, 
   onClose,
-  disabled = false 
+  disabled = false,
+  templateDefaultColors = null
 }) => {
   const [colors, setColors] = useState({
     primary: '#3b82f6',
@@ -79,6 +80,53 @@ const ColorCustomization = ({
     }
   };
 
+  // Reset colors to template defaults
+  const handleReset = async () => {
+    try {
+      setUpdating(true);
+      
+      // Call API to reset colors (set to null to use template defaults)
+      const response = await resumeAPI.updateColors(resumeId, null);
+      
+      if (response.success) {
+        // Update local state to template defaults
+        if (templateDefaultColors) {
+          setColors(templateDefaultColors);
+          setOriginalColors(templateDefaultColors);
+        } else {
+          // Fallback to default colors if template colors not available
+          const defaultColors = {
+            primary: '#3b82f6',
+            secondary: '#6b7280',
+            accent: '#0ea5e9',
+            text: '#1f2937'
+          };
+          setColors(defaultColors);
+          setOriginalColors(defaultColors);
+        }
+        
+        // Call the parent callback to update the preview
+        if (onColorsUpdate) {
+          onColorsUpdate(response.data.resume);
+        }
+        
+        toast.success('Colors reset to template defaults!');
+        
+        // Close popup if it's open
+        if (onClose) {
+          onClose();
+        }
+      } else {
+        throw new Error(response.error || 'Failed to reset colors');
+      }
+    } catch (error) {
+      console.error('Error resetting colors:', error);
+      toast.error('Failed to reset colors');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
 
   return (
     <div className="space-y-4">
@@ -123,31 +171,56 @@ const ColorCustomization = ({
       </div>
 
       {/* Action Buttons - Always visible */}
-      <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-        <button
-          onClick={handleCancel}
-          disabled={updating}
-          className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800 disabled:opacity-50"
-        >
-          Cancel
-        </button>
+      <div className="space-y-3 pt-4 border-t border-gray-200">
         <button
           onClick={handleApply}
           disabled={updating}
-          className="flex items-center space-x-1 px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`w-full px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md transform hover:scale-[1.02] ${
+            !updating
+              ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700'
+              : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+          }`}
         >
           {updating ? (
             <>
-              <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               <span>Applying...</span>
             </>
           ) : (
             <>
-              <CheckIcon className="w-3 h-3" />
-              <span>Apply</span>
+              <CheckIcon className="w-4 h-4" />
+              <span>Apply Colors</span>
             </>
           )}
         </button>
+
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={handleCancel}
+            disabled={updating}
+            className={`px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 border-2 shadow-sm hover:shadow-md transform hover:scale-[1.02] ${
+              !updating
+                ? 'border-gray-300 bg-white text-gray-700 hover:border-gray-400 hover:bg-gray-50'
+                : 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            <XMarkIcon className="w-4 h-4" />
+            <span>Cancel</span>
+          </button>
+          <button
+            onClick={handleReset}
+            disabled={updating}
+            className={`px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md transform hover:scale-[1.02] ${
+              !updating
+                ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
+            title="Reset to template default colors"
+          >
+            <ArrowPathIcon className="w-4 h-4" />
+            <span>Reset</span>
+          </button>
+        </div>
       </div>
     </div>
   );
