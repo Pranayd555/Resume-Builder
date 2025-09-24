@@ -173,15 +173,16 @@ function ResumePreviewEnhanced() {
         setLoading(true);
         
         // Check if we have resume data from navigation state (template change)
-        const state = location.state;
+        // const state = location.state;
         
         let resumeData;
-        if (state?.resume && state?.templateChanged) {
-          // Use resume data from template selection
-          resumeData = state.resume;
-          setResume(resumeData);
-          setHasTemplate(!!resumeData?.template);
-        } else {
+        // if (state?.resume && state?.templateChanged) {
+        //   // Use resume data from template selection
+        //   resumeData = state.resume;
+        //   setResume(resumeData);
+        //   setHasTemplate(!!resumeData?.template);
+        //   console.log('resumeData', resumeData);
+        // } else {
           // Fetch resume data from API
           const resumeResp = await resumeAPI.getResumeById(resumeId);
           if (resumeResp?.success !== false && resumeResp?.data) {
@@ -189,7 +190,7 @@ function ResumePreviewEnhanced() {
             setResume(resumeData);
             setHasTemplate(!!resumeData?.template);
           }
-        }
+        // }
 
         if (resumeData) {
           // Store default template styling data if available

@@ -657,7 +657,7 @@ router.get('/:id/preview/pdf-images', protect, async (req, res) => {
       }
     }
 
-    const renderer = new TemplateRenderer();
+    const renderer = new OptimizedTemplateRenderer();
     const resumeData = {
       title: resume.title,
       personalInfo: resume.personalInfo,

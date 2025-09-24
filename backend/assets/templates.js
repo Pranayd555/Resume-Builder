@@ -217,7 +217,7 @@ module.exports = [
       
       .header { margin-bottom: 1rem; }
       .name { font-size: 18px; font-weight: 700; color: #2563eb; margin-bottom: 0.5rem; }
-      .contact-info { display: flex; flex-wrap: wrap; gap: 12px; font-size: 13px; color: #64748b; }
+      .contact-info { display: flex; flex-wrap: wrap; gap: 12px; font-size: 15px; color: #64748b; }
       .contact-item { display: flex; align-items: center; }
       .contact-item a { color: #64748b; text-decoration: none; }
       .contact-item a:hover { text-decoration: underline; }
@@ -496,7 +496,7 @@ module.exports = [
       .header { text-align: center; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e5e7eb; }
       .name { font-size: 18px; font-weight: 700; color: #1f2937; margin-bottom: 0.5rem; letter-spacing: 0.5px; }
       .title-line { width: 40px; height: 2px; background: #f59e0b; margin: 0 auto 0.5rem; }
-      .contact-info { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: #6b7280; }
+      .contact-info { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; font-size: 15px; color: #6b7280; }
       .contact-info a { color: #6b7280; text-decoration: none; }
       section { margin-top: 1rem; }
       h3 { font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem; position: relative; padding-bottom: 0.25rem; }
@@ -754,8 +754,8 @@ module.exports = [
       css: `.resume.modern-tech { font-family: 'Roboto', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; line-height: 1; }
       .tech-header { display: grid; grid-template-columns: 2fr 1fr; gap: 1.2rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #06b6d4; }
       .name { font-size: 18px; font-weight: 700; color: #06b6d4; margin-bottom: 0.5rem; }
-      .contact-info { display: flex; flex-wrap: wrap; gap: 0.6rem; }
-      .contact-item { font-size: 13px; color: #64748b; padding: 0.2rem 0.4rem; background: #f1f5f9; border-radius: 3px; }
+      .contact-info { display: flex; flex-wrap: wrap; gap: 0.6rem; font-size: 15px; }
+      .contact-item { font-size: 15px; color: #64748b; padding: 0.2rem 0.4rem; background: #f1f5f9; border-radius: 3px; }
       .contact-item a { color: #64748b; text-decoration: none; }
       section { margin-top: 1rem; }
       h3 { font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 2px solid #06b6d4; }
@@ -3180,7 +3180,7 @@ module.exports = [
       css: `.resume.sleek-professional { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1e293b; font-size: 15px; line-height: 1.4; display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
       .header { grid-column: 1 / -1; text-align: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #2563eb; }
       .name { font-size: 20px; font-weight: 600; color: #0f172a; margin-bottom: 8px; }
-      .contact-info { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; font-size: 10px; color: #475569; }
+      .contact-info { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; font-size: 15px; color: #475569; }
       .contact-item { color: #1e293b; }
       .contact-item a { color: #475569; text-decoration: none; }
       .contact-item a:hover { text-decoration: underline; }
@@ -3440,7 +3440,7 @@ module.exports = [
       css: `.resume.creative-portfolio { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #111827; font-size: 15px; line-height: 1.4; }
       .header { text-align: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 3px solid #9333ea; }
       .name { font-size: 20px; font-weight: 600; color: #9333ea; margin-bottom: 10px; letter-spacing: 0.5px; }
-      .contact-info { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; font-size: 10px; color: #f472b6; }
+      .contact-info { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; font-size: 15px; color: #f472b6; }
       .contact-item { color: #111827; }
       .contact-item a { color: #9333ea; text-decoration: none; }
       .contact-item a:hover { text-decoration: underline; }
@@ -3706,7 +3706,7 @@ module.exports = [
       css: `.resume.dark-mode-dev { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; font-size: 15px; line-height: 1.4; display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
       .header { grid-column: 1 / -1; text-align: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #38bdf8; }
       .name { font-size: 20px; font-weight: 600; color: #38bdf8; margin-bottom: 8px; text-shadow: 0 0 10px rgba(56, 189, 248, 0.3); }
-      .contact-info { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; font-size: 10px; color: #a855f7; }
+      .contact-info { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; font-size: 15px; color: #a855f7; }
       .contact-item { color: #1f2937; }
       .contact-item a { color: #38bdf8; text-decoration: none; }
       .contact-item a:hover { text-decoration: underline; text-shadow: 0 0 5px rgba(56, 189, 248, 0.5); }
@@ -3967,7 +3967,7 @@ module.exports = [
       css: `.resume.elegant-minimal { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #111827; font-size: 15px; line-height: 1.4; }
       .header { text-align: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb; }
       .name { font-size: 20px; font-weight: 600; color: #374151; margin-bottom: 8px; }
-      .contact-info { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; font-size: 13px; color: #9ca3af; }
+      .contact-info { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; font-size: 15px; color: #9ca3af; }
       .contact-item { color: #111827; }
       .contact-item a { color: #10b981; text-decoration: none; }
       .contact-item a:hover { text-decoration: underline; }
@@ -4229,7 +4229,7 @@ module.exports = [
       css: `.resume.bold-accent { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; background: white; color: #1f2937; font-size: 15px; line-height: 1.4; padding: 0; }
       .header { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 16px 20px; margin-bottom: 12px; }
       .name { font-size: 20px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.5px; color: white; }
-      .contact-info { display: flex; flex-wrap: wrap; gap: 12px; font-size: 13px; color: rgba(255, 255, 255, 0.9); line-height: 1.4; }
+      .contact-info { display: flex; flex-wrap: wrap; gap: 12px; font-size: 15px; color: rgba(255, 255, 255, 0.9); line-height: 1.4; }
       .contact-item { color: rgba(255, 255, 255, 0.9); }
       .contact-item a { color: white; text-decoration: none; }
       .contact-item a:hover { text-decoration: underline; }
@@ -4455,8 +4455,8 @@ module.exports = [
           <div class="achievement-item">
             {{#if title}}<div class="achievement-title primaryFont">{{title}}</div>{{/if}}
             {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
-            {{#if date}}<div class="achievement-date">{{formatDate date}}</div>{{/if}}
-            {{#if issuer}}<div class="achievement-issuer">{{issuer}}</div>{{/if}}
+            {{#if date}}<div class="achievement-date secondaryFont">{{formatDate date}}</div>{{/if}}
+            {{#if issuer}}<div class="achievement-issuer secondaryFont">{{issuer}}</div>{{/if}}
           </div>
           {{/each}}
         </section>
@@ -4467,8 +4467,8 @@ module.exports = [
           <h2 class="primaryFont">Languages</h2>
           {{#each languages}}
           <div class="language-item">
-            <span class="language-name">{{name}}</span>
-            <span class="language-proficiency">{{proficiency}}</span>
+            <span class="language-name secondaryFont">{{name}}</span>
+            <span class="language-proficiency secondaryFont">{{proficiency}}</span>
           </div>
           {{/each}}
         </section>
@@ -4763,99 +4763,99 @@ module.exports = [
               <div class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</div>
               {{#if personalInfo.phone}}<div class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
               {{#if personalInfo.address}}<div class="contact-item secondaryFont" itemprop="address">{{personalInfo.address}}</div>{{/if}}
-              {{#if personalInfo.website}}<div class="contact-item"><a href="{{personalInfo.website}}" target="_blank" itemprop="url">{{personalInfo.website}}</a></div>{{/if}}
-              {{#if personalInfo.linkedin}}<div class="contact-item"><a href="{{personalInfo.linkedin}}" target="_blank">{{personalInfo.linkedin}}</a></div>{{/if}}
-              {{#if personalInfo.github}}<div class="contact-item"><a href="{{personalInfo.github}}" target="_blank">{{personalInfo.github}}</a></div>{{/if}}
+              {{#if personalInfo.website}}<div class="contact-item secondaryFont"><a href="{{personalInfo.website}}" target="_blank" itemprop="url">{{personalInfo.website}}</a></div>{{/if}}
+              {{#if personalInfo.linkedin}}<div class="contact-item secondaryFont"><a href="{{personalInfo.linkedin}}" target="_blank">{{personalInfo.linkedin}}</a></div>{{/if}}
+              {{#if personalInfo.github}}<div class="contact-item secondaryFont"><a href="{{personalInfo.github}}" target="_blank">{{personalInfo.github}}</a></div>{{/if}}
             </div>
           </header>
           
           {{#if summary}}
             <section>
-              <h2>SUMMARY</h2>
-              <div>{{{summary}}}</div>
+              <h2 class="primaryFont">SUMMARY</h2>
+              <div class="secondaryFont">{{{summary}}}</div>
             </section>
           {{/if}}
           {{#if skills}}
             <section>
-              <h2>SKILLS</h2>
-              {{#each skills}}<div><strong>{{category}}:</strong> {{#each items}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/each}}
+              <h2 class="primaryFont">SKILLS</h2>
+              {{#each skills}}<div class="secondaryFont"><strong>{{category}}:</strong> {{#each items}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/each}}
             </section>
           {{/if}}
           {{#if workExperience}}
             <section>
-              <h2>EXPERIENCE</h2>
+              <h2 class="primaryFont">EXPERIENCE</h2>
               {{#each workExperience}}
                 <div class="job">
-                  <div class="job-header"><strong>{{jobTitle}}</strong><span class="dates">{{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div>
-                  <div class="company">{{company}}{{#if location}}, {{location}}{{/if}}</div>
-                  {{#if description}}<div>{{{description}}}</div>{{/if}}
-                  {{#if achievements}}<ul>{{#each achievements}}<li>{{this}}</li>{{/each}}</ul>{{/if}}
+                  <div class="job-header"><strong class="primaryFont">{{jobTitle}}</strong><span class="dates secondaryFont">{{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div>
+                  <div class="company secondaryFont">{{company}}{{#if location}}, {{location}}{{/if}}</div>
+                  {{#if description}}<div class="secondaryFont">{{{description}}}</div>{{/if}}
+                  {{#if achievements}}<ul class="secondaryFont">{{#each achievements}}<li>{{this}}</li>{{/each}}</ul>{{/if}}
                 </div>
               {{/each}}
             </section>
           {{/if}}
           {{#if projects}}
             <section>
-              <h2>PROJECTS</h2>
+              <h2 class="primaryFont">PROJECTS</h2>
               {{#each projects}}
                 <div class="project">
-                  <div class="project-header"><strong>{{name}}</strong>{{#if startDate}}<span class="dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</span>{{/if}}</div>
+                  <div class="project-header"><strong class="primaryFont">{{name}}</strong>{{#if startDate}}<span class="dates secondaryFont">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</span>{{/if}}</div>
                   {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
-                  {{#if technologies}}<div class="tech">{{#each technologies}}<span class="tag">{{this}}</span>{{/each}}</div>{{/if}}
-                  {{#if url}}<div class="project-url"><strong>URL:</strong> {{url}}</div>{{/if}}
-                  {{#if githubUrl}}<div class="github-url"><strong>GitHub:</strong> {{githubUrl}}</div>{{/if}}
+                  {{#if technologies}}<div class="tech secondaryFont">{{#each technologies}}<span class="tag secondaryFont">{{this}}</span>{{/each}}</div>{{/if}}
+                  {{#if url}}<div class="project-url secondaryFont"><strong class="primaryFont">URL:</strong> {{url}}</div>{{/if}}
+                  {{#if githubUrl}}<div class="github-url secondaryFont"><strong class="primaryFont">GitHub:</strong> {{githubUrl}}</div>{{/if}}
                 </div>
               {{/each}}
             </section>
           {{/if}}
           {{#if education}}
             <section>
-              <h2>EDUCATION</h2>
+              <h2 class="primaryFont">EDUCATION</h2>
               {{#each education}}
                 <div class="edu">
-                  <div class="edu-header"><strong>{{degree}}</strong><span class="dates">{{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div>
-                  <div class="institution">{{institution}}{{#if location}}, {{location}}{{/if}}</div>
-                  {{#if gpa}}<div class="gpa">GPA: {{gpa}}</div>{{/if}}
-                  {{#if description}}<div>{{{description}}}</div>{{/if}}
+                  <div class="edu-header"><strong class="primaryFont">{{degree}}</strong><span class="dates secondaryFont">{{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</span></div>
+                  <div class="institution secondaryFont">{{institution}}{{#if location}}, {{location}}{{/if}}</div>
+                  {{#if gpa}}<div class="gpa secondaryFont">GPA: {{gpa}}</div>{{/if}}
+                  {{#if description}}<div class="secondaryFont">{{{description}}}</div>{{/if}}
                 </div>
               {{/each}}
             </section>
           {{/if}}
           {{#if certifications}}
             <section>
-              <h2>CERTIFICATIONS</h2>
+              <h2 class="primaryFont">CERTIFICATIONS</h2>
               {{#each certifications}}
                 <div class="cert">
-                  <div class="cert-header"><strong>{{name}}</strong>{{#if date}}<span class="dates">{{formatDate date}}</span>{{/if}}</div>
-                  {{#if issuer}}<div class="cert-issuer"><em>{{issuer}}</em></div>{{/if}}
-                  {{#if expiryDate}}<div class="cert-expiry"><strong>Expires:</strong> {{formatDate expiryDate}}</div>{{/if}}
-                  {{#if credentialId}}<div class="cert-id"><strong>ID:</strong> {{credentialId}}</div>{{/if}}
-                  {{#if url}}<div class="cert-url"><strong>URL:</strong> {{url}}</div>{{/if}}
+                  <div class="cert-header"><strong class="primaryFont">{{name}}</strong>{{#if date}}<span class="dates secondaryFont">{{formatDate date}}</span>{{/if}}</div>
+                  {{#if issuer}}<div class="cert-issuer"><em class="secondaryFont">{{issuer}}</em></div>{{/if}}
+                  {{#if expiryDate}}<div class="cert-expiry"><strong class="primaryFont">Expires:</strong> {{formatDate expiryDate}}</div>{{/if}}
+                  {{#if credentialId}}<div class="cert-id"><strong class="primaryFont">ID:</strong> {{credentialId}}</div>{{/if}}
+                  {{#if url}}<div class="cert-url"><strong class="primaryFont">URL:</strong> {{url}}</div>{{/if}}
                 </div>
               {{/each}}
             </section>
           {{/if}}
           {{#if achievements}}
             <section>
-              <h2>ACHIEVEMENTS</h2>
+              <h2 class="primaryFont">ACHIEVEMENTS</h2>
               {{#each achievements}}
                 <div>
-                  {{#if title}}<div class="achievement-header"><strong>{{title}}</strong>{{#if date}}<span class="dates">{{formatDate date}}</span>{{/if}}</div>{{/if}}
-                  {{#if description}}<div>{{{description}}}</div>{{/if}}
-                  {{#if issuer}}<div class="issuer-info"><em>{{issuer}}</em></div>{{/if}}
+                  {{#if title}}<div class="achievement-header"><strong class="primaryFont">{{title}}</strong>{{#if date}}<span class="dates secondaryFont">{{formatDate date}}</span>{{/if}}</div>{{/if}}
+                  {{#if description}}<div class="secondaryFont">{{{description}}}</div>{{/if}}
+                  {{#if issuer}}<div class="issuer-info"><em class="secondaryFont">{{issuer}}</em></div>{{/if}}
                 </div>
               {{/each}}
             </section>
           {{/if}}
           {{#if languages}}
             <section>
-              <h2>LANGUAGES</h2>
-              {{#each languages}}<div>{{name}} - {{proficiency}}</div>{{/each}}
+              <h2 class="primaryFont">LANGUAGES</h2>
+              {{#each languages}}<div class="secondaryFont">{{name}} - {{proficiency}}</div>{{/each}}
             </section>
           {{/if}}
         </div>
       `,
-      "css": ".resume.fresh-gradient { font-family: 'Arial', sans-serif; background: #ffffff; color: #111827; padding: 0.5in 0.35in; line-height: 1.4; font-size: 15px; } .header { margin-bottom: 8px; } .name { font-size: 20px; margin: 0 0 6px; color: #3b82f6; } .contact-info { display: flex; gap: 10px; color: #3b82f6; font-size: 13px; } .contact-item a { color: #111827; text-decoration: none; } section { margin-top: 10px; background: transparent; } .job, .edu, .project { background: transparent; } h2 { color: #3b82f6; font-size: 15px; margin: 0 0 6px; } .section-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; } .project-header { display: flex; justify-content: space-between; font-size: 13px; } .tag { background: linear-gradient(90deg, #3b82f6, #9333ea); color: white; padding: 2px 5px; border-radius: 6px; margin-right: 3px; font-size: 9px; } ul, ol { margin: 4px 0; padding-left: 1rem; } ul li, ol li { margin-bottom: 2px; color: #4b5563; line-height: 1.3; } ul { list-style-type: disc; } ol { list-style-type: decimal; }"
+      "css": ".resume.fresh-gradient { font-family: 'Arial', sans-serif; background: #ffffff; color: #111827; padding: 0.5in 0.35in; line-height: 1.4; font-size: 15px; } .header { margin-bottom: 8px; } .name { font-size: 20px; margin: 0 0 6px; color: #3b82f6; } .contact-info { display: flex; gap: 10px; color: #3b82f6; font-size: 15px; } .contact-item a { color: #111827; text-decoration: none; } section { margin-top: 10px; background: transparent; } .job, .edu, .project { background: transparent; } h2 { color: #3b82f6; font-size: 15px; margin: 0 0 6px; } .section-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; } .project-header { display: flex; justify-content: space-between; font-size: 13px; } .tag { background: linear-gradient(90deg, #3b82f6, #9333ea); color: white; padding: 2px 5px; border-radius: 6px; margin-right: 3px; font-size: 9px; } ul, ol { margin: 4px 0; padding-left: 1rem; } ul li, ol li { margin-bottom: 2px; color: #4b5563; line-height: 1.3; } ul { list-style-type: disc; } ol { list-style-type: decimal; }"
     },
     creator: null,
     "tags": ["modern", "gradient", "colorful", "rounded"]
