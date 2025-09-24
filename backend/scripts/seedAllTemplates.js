@@ -4,7 +4,7 @@ const User = require('../models/User');
 const Resume = require('../models/Resume');
 const PuppeteerThumbnailGenerator = require('../utils/puppeteerThumbnailGenerator');
 require('dotenv').config();
-const templatesList = require('../assets/templates');
+const templatesList = require('../assets/newTemplates');
 
 class ThumbnailGenerationManager {
   constructor() {
