@@ -198,7 +198,6 @@ class OptimizedTemplateRenderer {
     // Apply header font size
     if (templateStyling.headerFontSize) {
       css += `
-        .${uniqueId} .name,
         .${uniqueId} h1,
         .${uniqueId} h2,
         .${uniqueId} h3,
@@ -207,6 +206,23 @@ class OptimizedTemplateRenderer {
           font-size: ${templateStyling.headerFontSize}px !important; 
           font-weight: 600 !important; 
           margin-bottom: 0.75rem !important; 
+        }
+        .${uniqueId} .name {
+          font-size: ${templateStyling.headerFontSize + 2}px !important;  
+          font-weight: 600 !important; 
+        }
+          
+        
+        /* Medium text elements */
+        .${uniqueId} .language-name,
+        .${uniqueId} .skill-category-title,
+        .${uniqueId} .job-title,
+        .${uniqueId} .edu-degree,
+        .${uniqueId} .project-name,
+        .${uniqueId} .achievement-title,
+        .${uniqueId} .cert-name,
+        .${uniqueId} .custom-field-title { 
+          font-size: ${templateStyling.headerFontSize - 2}px !important; 
         }
       `;
     }
@@ -227,9 +243,22 @@ class OptimizedTemplateRenderer {
       `;
     }
 
-    // Apply content font size
+    // Apply content font size with unified logic
     if (templateStyling.fontSize) {
+      const baseSize = templateStyling.fontSize;
+      let smallSize, mediumSize, largeSize;
+      
+      // Unified font size logic: <14 = 10px, 14-18 = 12px, >18 = 13px
+      if (baseSize <= 14) {
+        smallSize = 10;
+      } else if (baseSize > 14 && baseSize <= 18) {
+        smallSize = 12;
+      } else {
+        smallSize = 14;
+      }
+      
       css += `
+        /* Main content font size */
         .${uniqueId} p,
         .${uniqueId} .secondaryFont,
         .${uniqueId} .contact-info,
@@ -239,18 +268,38 @@ class OptimizedTemplateRenderer {
         .${uniqueId} .skill-items,
         .${uniqueId} .technologies,
         .${uniqueId} .project-links,
+        .${uniqueId} .custom-content,
+        .${uniqueId} .summary-text,
+        .${uniqueId} .project-description,
+        .${uniqueId} .achievement-description,
+        .${uniqueId} .edu-description { 
+          font-size: ${baseSize}px !important; 
+        }
+        
+        /* Small text elements (dates, meta info, etc.) */
+        .${uniqueId} .job-dates,
+        .${uniqueId} .edu-dates,
+        .${uniqueId} .project-dates,
+        .${uniqueId} .achievement-date,
+        .${uniqueId} .cert-dates,
         .${uniqueId} .cert-expiry,
         .${uniqueId} .cert-id,
         .${uniqueId} .language-level,
-        .${uniqueId} .language-name,
         .${uniqueId} .language-proficiency,
-        .${uniqueId} .cert-issuer,
-        .${uniqueId} .cert-expiry,
-        .${uniqueId} .cert-id,
-        .${uniqueId} .cert-url,
         .${uniqueId} .achievement-issuer,
-        .${uniqueId} .custom-content { 
-          font-size: ${templateStyling.fontSize}px !important; 
+        .${uniqueId} .cert-issuer,
+        .${uniqueId} .gpa,
+        .${uniqueId} .company,
+        .${uniqueId} .institution,
+        .${uniqueId} .location,
+        .${uniqueId} .issuer,
+        .${uniqueId} .dates,
+        .${uniqueId} .tech-tag,
+        .${uniqueId} .skill-item,
+        .${uniqueId} .project-links a,
+        .${uniqueId} .cert-link a,
+        .${uniqueId} .contact-item a { 
+          font-size: ${smallSize}px !important; 
         }
       `;
     }
@@ -412,8 +461,14 @@ class OptimizedTemplateRenderer {
         .${uniqueId} .cert-expiry,
         .${uniqueId} .cert-id,
         .${uniqueId} .language-level,
+        .${uniqueId} .language-proficiency,
         .${uniqueId} .tech-tag,
-        .${uniqueId} .custom-content {
+        .${uniqueId} .custom-content,
+        .${uniqueId} .summary-text,
+        .${uniqueId} .project-description,
+        .${uniqueId} .achievement-description,
+        .${uniqueId} .secondaryFont,
+        .${uniqueId} .skill-item {
           color: ${userColors.secondary} !important;
         }
       `;
@@ -431,7 +486,12 @@ class OptimizedTemplateRenderer {
         .${uniqueId} .edu-dates,
         .${uniqueId} .project-dates,
         .${uniqueId} .achievement-date,
-        .${uniqueId} .cert-date {
+        .${uniqueId} .cert-dates,
+        .${uniqueId} .cert-expiry,
+        .${uniqueId} .cert-id,
+        .${uniqueId} .achievement-issuer,
+        .${uniqueId} .cert-issuer,
+        .${uniqueId} .gpa {
           color: ${userColors.accent} !important;
         }
         .${uniqueId} .project-links a,
