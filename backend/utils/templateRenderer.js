@@ -231,6 +231,7 @@ class OptimizedTemplateRenderer {
     if (templateStyling.fontSize) {
       css += `
         .${uniqueId} p,
+        .${uniqueId} .secondaryFont,
         .${uniqueId} .contact-info,
         .${uniqueId} .job-description,
         .${uniqueId} .edu-description,
@@ -241,6 +242,13 @@ class OptimizedTemplateRenderer {
         .${uniqueId} .cert-expiry,
         .${uniqueId} .cert-id,
         .${uniqueId} .language-level,
+        .${uniqueId} .language-name,
+        .${uniqueId} .language-proficiency,
+        .${uniqueId} .cert-issuer,
+        .${uniqueId} .cert-expiry,
+        .${uniqueId} .cert-id,
+        .${uniqueId} .cert-url,
+        .${uniqueId} .achievement-issuer,
         .${uniqueId} .custom-content { 
           font-size: ${templateStyling.fontSize}px !important; 
         }
@@ -336,8 +344,7 @@ class OptimizedTemplateRenderer {
       /* Small text for secondaryFont */
       .${uniqueId} .secondaryFont small,
       .${uniqueId} small.secondaryFont,
-      .${uniqueId} .secondaryFont .dates,
-      .${uniqueId} .secondaryFont .contact-item {
+      .${uniqueId} .secondaryFont .dates {
         font-size: ${smallSize}px !important;
       }
       
