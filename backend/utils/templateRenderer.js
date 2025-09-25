@@ -188,11 +188,11 @@ class OptimizedTemplateRenderer {
 
     // Header level mapping
     const headerLevels = {
-      'h1': { fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem' },
-      'h2': { fontSize: '2rem', fontWeight: '600', marginBottom: '0.875rem' },
-      'h3': { fontSize: '1.5rem', fontWeight: '600', marginBottom: '0.75rem' },
-      'h4': { fontSize: '1.25rem', fontWeight: '500', marginBottom: '0.625rem' },
-      'h5': { fontSize: '1.125rem', fontWeight: '500', marginBottom: '0.5rem' }
+      'h1': { fontSize: '2.5rem', fontWeight: '700', marginBottom: '0.25rem' },
+      'h2': { fontSize: '2rem', fontWeight: '600', marginBottom: '0.125rem' },
+      'h3': { fontSize: '1.5rem', fontWeight: '600', marginBottom: '0.125rem' },
+      'h4': { fontSize: '1.25rem', fontWeight: '500', marginBottom: '0.125rem' },
+      'h5': { fontSize: '1.125rem', fontWeight: '500', marginBottom: '0.125rem' }
     };
 
     // Apply header font size
@@ -205,7 +205,7 @@ class OptimizedTemplateRenderer {
         .${uniqueId} h5 { 
           font-size: ${templateStyling.headerFontSize}px !important; 
           font-weight: 600 !important; 
-          margin-bottom: 0.75rem !important; 
+          margin-bottom: 0.125rem !important; 
         }
         .${uniqueId} .name {
           font-size: ${templateStyling.headerFontSize + 2}px !important;  
@@ -238,7 +238,6 @@ class OptimizedTemplateRenderer {
         .${uniqueId} h5 { 
           font-size: ${level.fontSize} !important; 
           font-weight: ${level.fontWeight} !important; 
-          margin-bottom: ${level.marginBottom} !important; 
         }
       `;
     }
@@ -246,15 +245,18 @@ class OptimizedTemplateRenderer {
     // Apply content font size with unified logic
     if (templateStyling.fontSize) {
       const baseSize = templateStyling.fontSize;
-      let smallSize, mediumSize, largeSize;
+      let smallSize, mediumSize;
       
       // Unified font size logic: <14 = 10px, 14-18 = 12px, >18 = 13px
       if (baseSize <= 14) {
         smallSize = 10;
+        mediumSize = baseSize + 1;
       } else if (baseSize > 14 && baseSize <= 18) {
         smallSize = 12;
+        mediumSize = baseSize + 1;
       } else {
         smallSize = 14;
+        mediumSize = baseSize + 1;
       }
       
       css += `
@@ -301,6 +303,10 @@ class OptimizedTemplateRenderer {
         .${uniqueId} .contact-item a { 
           font-size: ${smallSize}px !important; 
         }
+
+        .${uniqueId} .primaryFont strong {
+          font-size: ${smallSize}px !important; 
+        }
       `;
     }
 
@@ -331,8 +337,8 @@ class OptimizedTemplateRenderer {
         .${uniqueId} .certifications,
         .${uniqueId} .languages,
         .${uniqueId} .summary { 
-          margin-bottom: ${templateStyling.sectionSpacing * 0.5}rem !important; 
-          padding-bottom: ${templateStyling.sectionSpacing * 0.25}rem !important; 
+          margin-bottom: ${templateStyling.sectionSpacing * 0.25}rem !important; 
+          padding-bottom: ${templateStyling.sectionSpacing * 0.125}rem !important; 
         }
         .${uniqueId} .job-item,
         .${uniqueId} .edu-item,
@@ -529,6 +535,27 @@ class OptimizedTemplateRenderer {
    */
   generateSpacingRules(uniqueId) {
     return `
+      /* Add more bottom spacing for main section titles */
+      .${uniqueId} h2,
+      .${uniqueId} .section-title,
+      .${uniqueId} .sidebar-title {
+        margin-bottom: 0.5rem !important;
+        padding-bottom: 0.25rem !important;
+      }
+      
+      /* Specific spacing for work experience and projects sections */
+      .${uniqueId} .work-experience h2,
+      .${uniqueId} .projects h2,
+      .${uniqueId} .education h2,
+      .${uniqueId} .skills h2,
+      .${uniqueId} .achievements h2,
+      .${uniqueId} .certifications h2,
+      .${uniqueId} .languages h2,
+      .${uniqueId} .summary h2 {
+        margin-bottom: 0.75rem !important;
+        padding-bottom: 0.375rem !important;
+      }
+      
       /* Remove bottom spacing from the last element */
       .${uniqueId} > *:last-child,
       .${uniqueId} section:last-child,
@@ -565,7 +592,7 @@ class OptimizedTemplateRenderer {
         list-style-type: decimal; 
       }
       
-      /* Also remove bottom spacing from last items within sections */
+      /* Also remove bottom spacing from last items within sections 
       .${uniqueId} .job-item:last-child,
       .${uniqueId} .edu-item:last-child,
       .${uniqueId} .project-item:last-child,
@@ -574,9 +601,9 @@ class OptimizedTemplateRenderer {
       .${uniqueId} .skill-category:last-child,
       .${uniqueId} .language-item:last-child,
       .${uniqueId} .custom-field:last-child {
-        margin-bottom: 0 !important;
+        margin-bottom: 2px !important;
         padding-bottom: 0 !important;
-      }
+      } */
     `;
   }
 

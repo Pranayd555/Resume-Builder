@@ -121,11 +121,15 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/resumebui
   useUnifiedTopology: true,
 });
 
-const seedAllTemplates = async () => {
+const seedAllTemplates = async (templateName = null) => {
   let thumbnailManager = null;
   
   try {
-    console.log('🚀 Starting comprehensive template seeding with thumbnail generation...');
+    if (templateName) {
+      console.log(`🚀 Starting template seeding for specific template: "${templateName}"...`);
+    } else {
+      console.log('🚀 Starting comprehensive template seeding with thumbnail generation...');
+    }
     
     // Find an admin user or create one
     let adminUser = await User.findOne({ role: 'admin' });
@@ -149,7 +153,25 @@ const seedAllTemplates = async () => {
     });
     console.log(`📊 Found ${existingTemplates.length} existing templates with usage data`);
 
-    const templates = templatesList.map(t => ({ ...t, creator: adminUser._id }));
+    // Filter templates based on templateName parameter
+    let templatesToProcess = templatesList;
+    if (templateName) {
+      templatesToProcess = templatesList.filter(t => 
+        t.name.toLowerCase().includes(templateName.toLowerCase())
+      );
+      
+      if (templatesToProcess.length === 0) {
+        console.log(`❌ No templates found matching "${templateName}"`);
+        console.log('Available templates:');
+        templatesList.forEach(t => console.log(`   - ${t.name}`));
+        return;
+      }
+      
+      console.log(`🎯 Found ${templatesToProcess.length} template(s) matching "${templateName}"`);
+      templatesToProcess.forEach(t => console.log(`   - ${t.name}`));
+    }
+
+    const templates = templatesToProcess.map(t => ({ ...t, creator: adminUser._id }));
 
     console.log('📝 Processing templates with data preservation...');
     
@@ -296,7 +318,20 @@ const seedAllTemplates = async () => {
 
 // Run the seeder
 if (require.main === module) {
-  seedAllTemplates()
+  // Get template name from command line arguments
+  const templateName = process.argv[2];
+  
+  if (templateName && (templateName === '--help' || templateName === '-h')) {
+    console.log('📖 Usage:');
+    console.log('  node seedAllTemplates.js                    # Seed all templates');
+    console.log('  node seedAllTemplates.js "Template Name"   # Seed specific template');
+    console.log('  node seedAllTemplates.js --help             # Show this help');
+    console.log('\n📋 Available templates:');
+    templatesList.forEach(t => console.log(`   - ${t.name}`));
+    process.exit(0);
+  }
+  
+  seedAllTemplates(templateName)
     .then(() => {
       console.log('🎉 Seeding process completed successfully!');
       process.exit(0);

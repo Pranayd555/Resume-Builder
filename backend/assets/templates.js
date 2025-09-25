@@ -122,8 +122,8 @@ module.exports = [
                 <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
               </div>
               {{/if}}
-              {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
-              {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
+              {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
+              {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">{{githubUrl}}</a></div>{{/if}}
               {{#if startDate}}<div class="project-dates secondaryFont">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
             </div>
             {{/each}}
@@ -407,8 +407,8 @@ module.exports = [
               <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
             </div>
             {{/if}}
-            {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
-            {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
+            {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
+            {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">{{githubUrl}}</a></div>{{/if}}
           </div>
           {{/each}}
         </section>
@@ -667,8 +667,8 @@ module.exports = [
               <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
             </div>
             {{/if}}
-            {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
-            {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
+            {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
+            {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">{{githubUrl}}</a></div>{{/if}}
             {{#if startDate}}<div class="project-dates">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
           </div>
           {{/each}}
@@ -1917,12 +1917,12 @@ module.exports = [
                 {{/if}}
                 {{#if url}}
                   <div class="project-links secondaryFont">
-                    <a href="{{url}}" target="_blank">View Project</a>
+                    <a href="{{url}}" target="_blank">{{url}}</a>
                   </div>
                 {{/if}}
                 {{#if githubUrl}}
                   <div class="project-links secondaryFont">
-                    <a href="{{githubUrl}}" target="_blank">GitHub</a>
+                    <a href="{{githubUrl}}" target="_blank">{{githubUrl}}</a>
                   </div>
                 {{/if}}
               </div>
@@ -2144,8 +2144,8 @@ module.exports = [
               <div class="tech-label primaryFont">Technologies:</div> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
             </div>
             {{/if}}
-            {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
-            {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
+            {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
+            {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">{{githubUrl}}</a></div>{{/if}}
           </div>
           {{/each}}
         </section>
@@ -2434,8 +2434,8 @@ module.exports = [
                   <div class="tech-label primaryFont">Technologies:</div> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
                 </div>
                 {{/if}}
-                {{#if url}}<div class="project-links secondaryFont"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
-                {{#if githubUrl}}<div class="project-links secondaryFont"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
+                {{#if url}}<div class="project-links secondaryFont"><a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
+                {{#if githubUrl}}<div class="project-links secondaryFont"><a href="{{githubUrl}}" target="_blank">{{githubUrl}}</a></div>{{/if}}
               </div>
               {{/each}}
             </section>
@@ -2666,7 +2666,7 @@ module.exports = [
         </header>
         {{#if summary}}<section class="executive-summary"><h2 class="primaryFont">EXECUTIVE SUMMARY</h2><div class="secondaryFont">{{{summary}}}</div></section>{{/if}}
         {{#if workExperience}}<section class="leadership-experience"><h2 class="primaryFont">LEADERSHIP EXPERIENCE</h2>{{#each workExperience}}<div class="executive-role"><div class="role-header"><h3 class="role-title primaryFont">{{jobTitle}}</h3><div class="role-company secondaryFont">{{company}}</div><div class="role-duration secondaryFont">{{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</div></div>{{#if location}}<div class="role-location secondaryFont">{{location}}</div>{{/if}}{{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}{{#if achievements}}<ul class="role-achievements secondaryFont">{{#each achievements}}<li>{{this}}</li>{{/each}}</ul>{{/if}}</div>{{/each}}</section>{{/if}}
-        {{#if projects}}<section class="executive-projects"><h2 class="primaryFont">KEY INITIATIVES & PROJECTS</h2>{{#each projects}}<div class="project-item"><h3 class="primaryFont">{{name}}</h3>{{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}{{#if technologies}}<div class="project-technologies secondaryFont"><div class="tech-label">Technologies/Methods:</div> {{#each technologies}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/if}}{{#if url}}<div class="project-links secondaryFont"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}{{#if githubUrl}}<div class="project-links secondaryFont"><a href="{{githubUrl}}" target="_blank">Repository</a></div>{{/if}}</div>{{/each}}</section>{{/if}}
+        {{#if projects}}<section class="executive-projects"><h2 class="primaryFont">KEY INITIATIVES & PROJECTS</h2>{{#each projects}}<div class="project-item"><h3 class="primaryFont">{{name}}</h3>{{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}{{#if technologies}}<div class="project-technologies secondaryFont"><div class="tech-label">Technologies/Methods:</div> {{#each technologies}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</div>{{/if}}{{#if url}}<div class="project-links secondaryFont"><a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}{{#if githubUrl}}<div class="project-links secondaryFont"><a href="{{githubUrl}}" target="_blank">{{githubUrl}}</a></div>{{/if}}</div>{{/each}}</section>{{/if}}
         {{#if education}}<section class="education-section"><h2 class="primaryFont">EDUCATION</h2>{{#each education}}<div class="education-item"><h3 class="degree primaryFont">{{degree}}</h3><div class="institution secondaryFont">{{institution}}</div><div class="education-year secondaryFont">{{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}</div>{{#if gpa}}<div class="gpa secondaryFont">GPA: {{gpa}}</div>{{/if}}{{#if description}}<div class="education-description secondaryFont">{{{description}}}</div>{{/if}}</div>{{/each}}</section>{{/if}}
         {{#if skills}}<section class="executive-skills"><h2 class="primaryFont">CORE COMPETENCIES</h2><div class="competencies-grid">{{#each skills}}<div class="competency-area"><div class="competency-title primaryFont">{{category}}</div><div class="competency-items secondaryFont">{{#each items}}{{name}}{{#unless @last}} • {{/unless}}{{/each}}</div></div>{{/each}}</div></section>{{/if}}
         <div class="executive-bottom">
@@ -3088,8 +3088,8 @@ module.exports = [
                 <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
               </div>
               {{/if}}
-              {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
-              {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
+              {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
+              {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">{{githubUrl}}</a></div>{{/if}}
               {{#if startDate}}<div class="project-dates secondaryFont">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
             </div>
             {{/each}}
@@ -3311,8 +3311,8 @@ module.exports = [
               <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
             </div>
             {{/if}}
-            {{#if url}}<div class="project-links secondaryFont"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
-            {{#if githubUrl}}<div class="project-links secondaryFont"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
+            {{#if url}}<div class="project-links secondaryFont"><a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
+            {{#if githubUrl}}<div class="project-links secondaryFont"><a href="{{githubUrl}}" target="_blank">{{githubUrl}}</a></div>{{/if}}
           </div>
           {{/each}}
         </section>
@@ -3614,8 +3614,8 @@ module.exports = [
                 <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
               </div>
               {{/if}}
-              {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
-              {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
+              {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
+              {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">{{githubUrl}}</a></div>{{/if}}
               {{#if startDate}}<div class="project-dates secondaryFont">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
             </div>
             {{/each}}
@@ -3879,8 +3879,8 @@ module.exports = [
               <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
             </div>
             {{/if}}
-            {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
-            {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
+            {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
+            {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">{{githubUrl}}</a></div>{{/if}}
           </div>
           {{/each}}
         </section>
@@ -4141,8 +4141,8 @@ module.exports = [
               <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
             </div>
             {{/if}}
-            {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
-            {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
+            {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
+            {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">{{githubUrl}}</a></div>{{/if}}
           </div>
           {{/each}}
         </section>
@@ -4423,8 +4423,8 @@ module.exports = [
               <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
             </div>
             {{/if}}
-            {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">View Project</a></div>{{/if}}
-            {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">GitHub</a></div>{{/if}}
+            {{#if url}}<div class="project-links"><a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
+            {{#if githubUrl}}<div class="project-links"><a href="{{githubUrl}}" target="_blank">{{githubUrl}}</a></div>{{/if}}
           </div>
           {{/each}}
         </section>
