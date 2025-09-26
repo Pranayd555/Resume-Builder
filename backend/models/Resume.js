@@ -390,23 +390,43 @@ const resumeSchema = new mongoose.Schema({
       colors: {
         primary: {
           type: String,
-          default: '#3b82f6',
-          match: [/^#[0-9A-Fa-f]{6}$/, 'Primary color must be a valid hex color']
+          default: null,
+          validate: {
+            validator: function(v) {
+              return v === null || /^#[0-9A-Fa-f]{6}$/.test(v);
+            },
+            message: 'Primary color must be null or a valid hex color'
+          }
         },
         secondary: {
           type: String,
-          default: '#6b7280',
-          match: [/^#[0-9A-Fa-f]{6}$/, 'Secondary color must be a valid hex color']
+          default: null,
+          validate: {
+            validator: function(v) {
+              return v === null || /^#[0-9A-Fa-f]{6}$/.test(v);
+            },
+            message: 'Secondary color must be null or a valid hex color'
+          }
         },
         accent: {
           type: String,
-          default: '#0ea5e9',
-          match: [/^#[0-9A-Fa-f]{6}$/, 'Accent color must be a valid hex color']
+          default: null,
+          validate: {
+            validator: function(v) {
+              return v === null || /^#[0-9A-Fa-f]{6}$/.test(v);
+            },
+            message: 'Accent color must be null or a valid hex color'
+          }
         },
         text: {
           type: String,
-          default: '#1f2937',
-          match: [/^#[0-9A-Fa-f]{6}$/, 'Text color must be a valid hex color']
+          default: null,
+          validate: {
+            validator: function(v) {
+              return v === null || /^#[0-9A-Fa-f]{6}$/.test(v);
+            },
+            message: 'Text color must be null or a valid hex color'
+          }
         }
       }
     },

@@ -255,11 +255,18 @@ function ResumeForm() {
               customFields: parsedData.customFields || prev.customFields
             }));
             
+            // Always load profile data to ensure name, email, phone are populated
+            loadProfileData();
+            
             toast.success('Resume parsed and auto-filled successfully!');
           } else {
+            // Even if no parsed data, still load profile data
+            loadProfileData();
             toast.success('Resume text extracted successfully!');
           }
         } else {
+          // Even if no extracted text, still load profile data
+          loadProfileData();
           toast.info('Resume processed successfully! Please fill in your resume details.');
         }
       } else {

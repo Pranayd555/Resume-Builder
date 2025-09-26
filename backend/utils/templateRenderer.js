@@ -418,6 +418,28 @@ class OptimizedTemplateRenderer {
   }
 
   /**
+   * Get effective colors - only apply colors that user has explicitly set
+   * @param {Object} resumeColors - Colors from resume styling
+   * @param {Object} templateColors - Colors from template styling
+   * @returns {Object} - Effective colors (only user-selected colors)
+   */
+  getEffectiveColors(resumeColors, templateColors) {
+    const effectiveColors = {};
+
+    // Only apply colors that the user has explicitly set in their resume
+    if (resumeColors) {
+      Object.keys(resumeColors).forEach(key => {
+        if (resumeColors[key] && resumeColors[key] !== null) {
+          effectiveColors[key] = resumeColors[key];
+        }
+      });
+    }
+
+    // If no user colors, return empty object (no colors applied)
+    return effectiveColors;
+  }
+
+  /**
    * Generate color override CSS for user-selected colors
    * @param {Object} userColors - User-selected color configuration
    * @param {string} uniqueId - Unique CSS identifier
@@ -729,7 +751,7 @@ class OptimizedTemplateRenderer {
       },
       // Add template-specific settings
       template: {
-        colors: plainData.styling?.template?.colors || template.styling?.colors || {},
+        colors: this.getEffectiveColors(plainData.styling?.template?.colors, template.styling?.colors),
         fonts: template.styling?.fonts || {},
         layout: template.layout?.type || 'single-column',
         category: template.category || 'modern'

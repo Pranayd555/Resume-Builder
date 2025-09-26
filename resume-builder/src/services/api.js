@@ -213,6 +213,16 @@ export const resumeAPI = {
     return response.data;
   },
 
+  // NEW: Update individual color
+  updateIndividualColor: async (resumeId, colorType, colorValue) => {
+    const config = createApiConfig('/resumes/colors/individual');
+    const response = await api.put(`/resumes/${resumeId}/colors/individual`, { 
+      colorType, 
+      colorValue 
+    }, config);
+    return response.data;
+  },
+
   // NEW: Get color presets
   getColorPresets: async () => {
     const config = createApiConfig('/resumes/color-presets');
