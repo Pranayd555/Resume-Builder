@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { resumeAPI } from '../services/api';
 import ColorPicker from './ColorPicker';
-import { CheckIcon, ArrowPathIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ArrowPathIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 const ColorCustomization = ({ 
   resumeId, 
@@ -13,10 +13,10 @@ const ColorCustomization = ({
   templateDefaultColors = null
 }) => {
   const [colors, setColors] = useState({
-    primary: '#3b82f6',
-    secondary: '#6b7280', 
-    accent: '#0ea5e9',
-    text: '#1f2937'
+    primary: null,
+    secondary: null, 
+    accent: null,
+    text: null
   });
   const [originalColors, setOriginalColors] = useState(null);
   const [updating, setUpdating] = useState(false);
@@ -26,45 +26,53 @@ const ColorCustomization = ({
     if (currentColors) {
       setColors(currentColors);
       setOriginalColors(currentColors);
+    } else {
+      // No colors set - keep as null
+      const noColors = {
+        primary: null,
+        secondary: null,
+        accent: null,
+        text: null
+      };
+      setColors(noColors);
+      setOriginalColors(noColors);
     }
   }, [currentColors]);
 
  
 
-  // Handle color changes
-  const handleColorChange = (colorType, value) => {
-    setColors(prev => ({
-      ...prev,
-      [colorType]: value
-    }));
-  };
 
-  // Apply color changes
-  const handleApply = async () => {
+  // Apply individual color changes when Apply is clicked
+  const handleColorChange = async (colorType, value) => {
+    const newColors = {
+      ...colors,
+      [colorType]: value
+    };
+    
+    setColors(newColors);
+    
     try {
       setUpdating(true);
-      const response = await resumeAPI.updateColors(resumeId, colors);
+      const response = await resumeAPI.updateIndividualColor(resumeId, colorType, value);
       
       if (response.success) {
-        setOriginalColors(colors);
+        setOriginalColors(newColors);
         
         // Call the parent callback to update the preview
         if (onColorsUpdate) {
           onColorsUpdate(response.data.resume);
         }
         
-        toast.success('Colors updated successfully!');
-        
-        // Close popup if it's open
-        if (onClose) {
-          onClose();
-        }
+        toast.success(`${colorType.charAt(0).toUpperCase() + colorType.slice(1)} color updated!`);
       } else {
-        throw new Error(response.error || 'Failed to update colors');
+        throw new Error(response.error || 'Failed to update color');
       }
     } catch (error) {
-      console.error('Error updating colors:', error);
-      toast.error('Failed to update colors');
+      console.error('Error updating color:', error);
+      toast.error('Failed to update color');
+      
+      // Revert the color change on error
+      setColors(colors);
     } finally {
       setUpdating(false);
     }
@@ -170,30 +178,8 @@ const ColorCustomization = ({
 
       </div>
 
-      {/* Action Buttons - Always visible */}
+      {/* Action Buttons - Only Reset and Cancel */}
       <div className="space-y-3 pt-4 border-t border-gray-200">
-        <button
-          onClick={handleApply}
-          disabled={updating}
-          className={`w-full px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-md transform hover:scale-[1.02] ${
-            !updating
-              ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700'
-              : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-          }`}
-        >
-          {updating ? (
-            <>
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              <span>Applying...</span>
-            </>
-          ) : (
-            <>
-              <CheckIcon className="w-4 h-4" />
-              <span>Apply Colors</span>
-            </>
-          )}
-        </button>
-
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={handleCancel}

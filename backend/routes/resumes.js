@@ -2712,6 +2712,79 @@ router.put('/:id/colors', [
 });
 
 
+// @desc    Update individual resume color
+// @route   PUT /api/resumes/:id/colors/individual
+// @access  Private
+router.put('/:id/colors/individual', [
+  protect,
+  body('colorType').isIn(['primary', 'secondary', 'accent', 'text']).withMessage('Color type must be one of: primary, secondary, accent, text'),
+  body('colorValue').matches(/^#[0-9A-Fa-f]{6}$/).withMessage('Color value must be a valid hex color')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
+    }
+
+    const resume = await Resume.findById(req.params.id);
+    if (!resume) {
+      return res.status(404).json({
+        success: false,
+        error: 'Resume not found'
+      });
+    }
+
+    // Check if user owns the resume
+    if (resume.user.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        error: 'Not authorized to update this resume'
+      });
+    }
+
+    // Update individual color in styling
+    if (!resume.styling) {
+      resume.styling = {};
+    }
+    if (!resume.styling.template) {
+      resume.styling.template = {};
+    }
+    if (!resume.styling.template.colors) {
+      resume.styling.template.colors = {};
+    }
+    
+    // Update the specific color
+    resume.styling.template.colors[req.body.colorType] = req.body.colorValue;
+
+    await resume.save();
+
+    logger.info('Individual resume color updated:', {
+      resumeId: resume._id, 
+      userId: req.user.id, 
+      colorType: req.body.colorType,
+      colorValue: req.body.colorValue
+    });
+
+    res.json({
+      success: true,
+      message: 'Color updated successfully',
+      data: {
+        resume: resume
+      }
+    });
+
+  } catch (error) {
+    logger.error('Error updating individual resume color:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+});
+
 // @desc    Get available color presets
 // @route   GET /api/resumes/color-presets
 // @access  Private

@@ -150,4 +150,59 @@
   }
 }
 
+/* Dark mode styles for SketchPicker - Comprehensive targeting */
+.dark .sketch-picker-dark input,
+.dark .sketch-picker-dark input[type="text"],
+.dark .sketch-picker-dark input[type="number"],
+.dark .sketch-picker-dark .sketch-picker input,
+.dark .sketch-picker-dark .flexbox-fix input,
+.dark .sketch-picker-dark .sketch-picker .flexbox-fix input,
+.dark .sketch-picker-dark .sketch-picker .flexbox-fix input[type="text"],
+.dark .sketch-picker-dark .sketch-picker .flexbox-fix input[type="number"] {
+  background-color: #374151 !important;
+  color: #f9fafb !important;
+  border-color: #4b5563 !important;
+}
+
+.dark .sketch-picker-dark input:focus,
+.dark .sketch-picker-dark input[type="text"]:focus,
+.dark .sketch-picker-dark input[type="number"]:focus,
+.dark .sketch-picker-dark .sketch-picker input:focus,
+.dark .sketch-picker-dark .flexbox-fix input:focus,
+.dark .sketch-picker-dark .sketch-picker .flexbox-fix input:focus {
+  background-color: #4b5563 !important;
+  border-color: #6b7280 !important;
+}
+
+/* Target all inputs within the sketch picker */
+.dark .sketch-picker-dark .sketch-picker input[type="text"],
+.dark .sketch-picker-dark .sketch-picker input[type="number"] {
+  background-color: #374151 !important;
+  color: #f9fafb !important;
+  border: 1px solid #4b5563 !important;
+}
+
+/* Target the hex input specifically */
+.dark .sketch-picker-dark .sketch-picker .flexbox-fix input[type="text"] {
+  background-color: #374151 !important;
+  color: #f9fafb !important;
+  border: 1px solid #4b5563 !important;
+}
+
+/* Global dark mode targeting for all SketchPicker inputs */
+.dark .sketch-picker input,
+.dark .sketch-picker input[type="text"],
+.dark .sketch-picker input[type="number"] {
+  background-color: #374151 !important;
+  color: #f9fafb !important;
+  border: 1px solid #4b5563 !important;
+}
+
+.dark .sketch-picker input:focus,
+.dark .sketch-picker input[type="text"]:focus,
+.dark .sketch-picker input[type="number"]:focus {
+  background-color: #4b5563 !important;
+  border-color: #6b7280 !important;
+}
+
 
