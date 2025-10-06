@@ -123,4 +123,10 @@ public/uploads/
 
 # Database dumps
 *.sql
-*.dump 
+*.dump
+
+# Large zip files - excluded from git completely
+*.zip
+node_modules.zip
+# Allow render-deployment.zip for automated deployments
+!render-deployment.zip 

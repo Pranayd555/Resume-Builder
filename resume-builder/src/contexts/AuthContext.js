@@ -198,7 +198,7 @@ export const AuthProvider = ({ children }) => {
       const response = await authAPI.register(userData);
       
       if (response.success) {
-        const { user, token } = response.data;
+        const { user, token, requiresEmailVerification } = response.data;
         
         // Store auth data
         apiHelpers.setAuthToken(token);
@@ -206,9 +206,18 @@ export const AuthProvider = ({ children }) => {
         apiHelpers.setCurrentUserData(userModel);
         
         dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: userModel });
-        toast.success('Registration successful!');
         
-        return { success: true, user: userModel };
+        if (requiresEmailVerification) {
+          toast.info('Registration successful! Please check your email for verification code.');
+          return { 
+            success: true, 
+            user: userModel, 
+            requiresEmailVerification: true 
+          };
+        } else {
+          toast.success('Registration successful!');
+          return { success: true, user: userModel };
+        }
       } else {
         throw new Error(response.error || 'Registration failed');
       }
@@ -255,9 +264,18 @@ export const AuthProvider = ({ children }) => {
         const userData = createUserModel(response.data.user);
         apiHelpers.setCurrentUserData(userData);
         dispatch({ type: AUTH_ACTIONS.UPDATE_USER, payload: userData });
-        toast.success('Profile updated successfully!');
         
-        return { success: true, user: userData };
+        if (response.data.requiresEmailVerification) {
+          toast.info('Profile updated! Please check your new email for verification code.');
+          return { 
+            success: true, 
+            user: userData, 
+            requiresEmailVerification: true 
+          };
+        } else {
+          toast.success('Profile updated successfully!');
+          return { success: true, user: userData };
+        }
       } else {
         throw new Error(response.error || 'Profile update failed');
       }
@@ -378,6 +396,78 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Verify email with OTP
+  const verifyEmail = async (otp) => {
+    try {
+      dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: true });
+      dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
+
+      const response = await authAPI.verifyEmail(otp);
+      
+      if (response.success) {
+        // Update user data to reflect verified status
+        const updatedUser = { ...state.user, isEmailVerified: true };
+        apiHelpers.setCurrentUserData(updatedUser);
+        dispatch({ type: AUTH_ACTIONS.UPDATE_USER, payload: updatedUser });
+        
+        toast.success('Email verified successfully!');
+        return { success: true };
+      } else {
+        throw new Error(response.error || 'Email verification failed');
+      }
+    } catch (error) {
+      const errorMessage = apiHelpers.formatError(error);
+      dispatch({ type: AUTH_ACTIONS.SET_ERROR, payload: errorMessage });
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
+    }
+  };
+
+  // Resend OTP
+  const resendOtp = async () => {
+    try {
+      dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: true });
+      dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
+
+      const response = await authAPI.resendOtp();
+      
+      if (response.success) {
+        toast.success('Verification code sent to your email!');
+        return { success: true };
+      } else {
+        throw new Error(response.error || 'Failed to resend verification code');
+      }
+    } catch (error) {
+      const errorMessage = apiHelpers.formatError(error);
+      dispatch({ type: AUTH_ACTIONS.SET_ERROR, payload: errorMessage });
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
+    }
+  };
+
+  // Get email verification status
+  const getEmailStatus = async () => {
+    try {
+      const response = await authAPI.getEmailStatus();
+      
+      if (response.success) {
+        return { 
+          success: true, 
+          data: response.data 
+        };
+      } else {
+        throw new Error(response.error || 'Failed to get email status');
+      }
+    } catch (error) {
+      const errorMessage = apiHelpers.formatError(error);
+      return { success: false, error: errorMessage };
+    }
+  };
+
   // Clear error
   const clearError = () => {
     dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
@@ -429,6 +519,9 @@ export const AuthProvider = ({ children }) => {
     changePassword,
     forgotPassword,
     resetPassword,
+    verifyEmail,
+    resendOtp,
+    getEmailStatus,
     clearError,
     
     // Utilities

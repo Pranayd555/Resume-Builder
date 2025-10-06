@@ -18,6 +18,9 @@ const subscriptionRoutes = require('./routes/subscriptions');
 const uploadRoutes = require('./routes/uploads');
 const emailTestRoutes = require('./routes/email-test');
 const feedbackRoutes = require('./routes/feedback');
+const contactRoutes = require('./routes/contact');
+const analyticsRoutes = require('./routes/analytics');
+const aiRoutes = require('./routes/ai');
 
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./utils/logger');
@@ -29,6 +32,19 @@ const app = express();
 
 // Trust proxy for deployment
 app.set('trust proxy', 1);
+
+// Set server timeout for long-running requests (like AI model initialization)
+app.use((req, res, next) => {
+  // Set timeout to 5 minutes for AI-related endpoints
+  if (req.path.includes('/parse-resume') || req.path.includes('/ai/')) {
+    req.setTimeout(300000); // 5 minutes
+    res.setTimeout(300000); // 5 minutes
+  } else {
+    req.setTimeout(30000); // 30 seconds for other requests
+    res.setTimeout(30000); // 30 seconds for other requests
+  }
+  next();
+});
 
 // Security middleware
 app.use(helmet({
@@ -188,6 +204,9 @@ app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/email-test', emailTestRoutes);
 app.use('/api/feedback', feedbackRoutes);
+app.use('/api/contact', contactRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/ai', aiRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

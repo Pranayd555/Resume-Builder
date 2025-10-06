@@ -254,10 +254,10 @@ const templateSchema = new mongoose.Schema({
       type: Number,
       default: 0
     },
-    uniqueUsers: {
-      type: Number,
-      default: 0
-    },
+    uniqueUsers: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
     rating: {
       average: {
         type: Number,

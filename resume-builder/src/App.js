@@ -5,6 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 // Context
 import { AuthProvider } from './contexts/AuthContext';
+import { DarkModeProvider, useDarkMode } from './contexts/DarkModeContext';
 
 // Components
 import AnimatedBackground from './components/AnimatedBackground';
@@ -12,30 +13,39 @@ import Layout from './components/Layout';
 import Login from './components/login';
 import Register from './components/Register';
 import ResumeList from './components/resume-list';
-import ResumeEditor from './components/resume-editor';
 import ResumeTemplates from './components/resume-templates';
 import ResumeForm from './components/ResumeForm';
 import TemplateSelection from './components/TemplateSelection';
-import ResumePreview from './components/ResumePreview';
 import Feedback from './components/feedback';
 import Subscription from './components/subscription';
 import Profile from './components/Profile';
-import PrivacyPolicy from './components/PrivacyPolicy';
+import PrivacyPolicy from './components/public/PrivacyPolicy';
+import AnalyticsDashboard from './components/AnalyticsDashboard';
+
+// Public Pages
+import HomePage from './components/public/HomePage';
+import CancellationRefunds from './components/public/CancellationRefunds';
+import TermsConditions from './components/public/TermsConditions';
+import Shipping from './components/public/Shipping';
+import ContactUs from './components/public/ContactUs';
 
 import ProtectedRoute, { UnauthorizedPage } from './components/ProtectedRoute';
 import AuthCallback from './components/AuthCallback';
+import ResumePreviewEnhanced from './components/ResumePreviewEnhanced';
+import ErrorPage from './components/ErrorPage';
 
-function App() {
+function AppContent() {
+  const { isDarkMode } = useDarkMode();
+  
   return (
-    <AuthProvider>
-      <Router>
-        <div className="App relative">
-          <AnimatedBackground />
-          <div className="relative z-10">
-            <Layout>
+    <Router>
+      <div className="App relative">
+        <AnimatedBackground />
+        <div className="relative z-10">
+          <Layout>
               <Routes>
               {/* Public Routes */}
-              <Route path="/" element={<Navigate to="/login" replace />} />
+              <Route path="/" element={<HomePage />} />
               <Route 
                 path="/login" 
                 element={
@@ -53,12 +63,18 @@ function App() {
                 } 
               />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-conditions" element={<TermsConditions />} />
+              <Route path="/cancellation-refunds" element={<CancellationRefunds />} />
+              <Route path="/shipping" element={<Shipping />} />
+              <Route path="/contact-us" element={<ContactUs />} />
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/error" element={<ErrorPage />} />
+              <Route path="/network-timeout" element={<ErrorPage errorCode="Network Timeout" />} />
               
               {/* Protected Routes */}
               <Route 
-                path="/resume-list" 
+                path="/dashboard" 
                 element={
                   <ProtectedRoute>
                     <ResumeList />
@@ -93,26 +109,12 @@ function App() {
                 path="/resume-preview/:resumeId" 
                 element={
                   <ProtectedRoute>
-                    <ResumePreview />
+                    <ResumePreviewEnhanced />
                   </ProtectedRoute>
                 } 
               />
-              <Route 
-                path="/resume-editor" 
-                element={
-                  <ProtectedRoute>
-                    <ResumeEditor />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/resume-editor/:id" 
-                element={
-                  <ProtectedRoute>
-                    <ResumeEditor />
-                  </ProtectedRoute>
-                } 
-              />
+
+
               <Route 
                 path="/resume-templates" 
                 element={
@@ -123,11 +125,7 @@ function App() {
               />
               <Route 
                 path="/feedback" 
-                element={
-                  <ProtectedRoute>
-                    <Feedback />
-                  </ProtectedRoute>
-                } 
+                element={<Feedback />} 
               />
               <Route 
                 path="/subscription" 
@@ -145,15 +143,21 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
-              
-
+              <Route 
+                path="/analytics" 
+                element={
+                  <ProtectedRoute>
+                    <AnalyticsDashboard />
+                  </ProtectedRoute>
+                } 
+              />
               
               {/* 404 Route */}
-              <Route path="*" element={<Navigate to="/login" replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
-            </Layout>
-          </div>
-          
+              </Layout>
+            </div>
+            
           {/* Toast Notifications */}
           <ToastContainer
             position="top-right"
@@ -165,11 +169,20 @@ function App() {
             pauseOnFocusLoss
             draggable
             pauseOnHover
-            theme="light"
+            theme={isDarkMode ? "dark" : "light"}
           />
         </div>
       </Router>
-    </AuthProvider>
+    );
+  }
+
+function App() {
+  return (
+    <DarkModeProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </DarkModeProvider>
   );
 }
 

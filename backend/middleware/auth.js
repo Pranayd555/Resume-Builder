@@ -118,13 +118,18 @@ const checkResumeLimit = async (req, res, next) => {
       subscription = await Subscription.findOne({ user: req.user.id });
     }
 
-    if (!subscription.canCreateResume()) {
-      const limit = subscription.isTrialActive() ? 50 : subscription.features.resumeLimit;
-      const planType = subscription.isTrialActive() ? 'trial' : subscription.plan;
-      
+    const canCreate = await subscription.canCreateResume();
+    if (!canCreate) {
+      const currentUsage = subscription.usage.resumesCreated || 0;
+      const limit = subscription.features?.resumeLimit || 2;
+      const planName = subscription.plan === 'free' ? 'Free' : 'Pro';
       return res.status(403).json({
         success: false,
-        error: `Resume creation limit reached (${limit}). ${subscription.isTrialActive() ? 'Upgrade to Pro plan to continue creating resumes.' : 'Please upgrade to Pro plan for unlimited resumes.'}`
+        error: `Resume creation limit reached. You have created ${currentUsage}/${limit} resumes on your ${planName} plan. Please upgrade to create more resumes.`,
+        limitReached: true,
+        currentUsage,
+        limit,
+        plan: subscription.plan
       });
     }
 
@@ -160,12 +165,18 @@ const checkAIActionLimit = async (req, res, next) => {
     }
 
     if (!subscription.canUseAIAction()) {
-      const limit = subscription.isTrialActive() ? 100 : subscription.features.aiActionsLimit;
-      const planType = subscription.isTrialActive() ? 'trial' : subscription.plan;
-      
+      const currentUsage = subscription.usage.aiActionsThisCycle || 0;
+      const limit = subscription.features?.aiActionsLimit || 10;
+      const planName = subscription.plan === 'free' ? 'Free' : 'Pro';
+      const cycleType = subscription.plan === 'free' ? 'month' : (subscription.billing?.cycle || 'month');
       return res.status(403).json({
         success: false,
-        error: `AI action limit reached (${limit}/month). ${subscription.isTrialActive() ? 'Upgrade to Pro plan to continue using AI features.' : 'Please upgrade to Pro plan for more AI actions.'}`
+        error: `${cycleType.charAt(0).toUpperCase() + cycleType.slice(1)}ly AI action limit reached. You have used ${currentUsage}/${limit} AI actions this ${cycleType} on your ${planName} plan. Please upgrade to use more AI actions.`,
+        limitReached: true,
+        currentUsage,
+        limit,
+        plan: subscription.plan,
+        cycleType
       });
     }
 

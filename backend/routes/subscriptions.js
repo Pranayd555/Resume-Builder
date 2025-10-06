@@ -25,17 +25,17 @@ router.get('/plans', async (req, res) => {
         name: 'Free',
         price: { monthly: 0, yearly: 0 },
         features: [
-          '1 resume template',
-          'Basic editing tools',
+          '2 resume projects total',
+          'Basic templates only',
           'PDF export (with watermark)',
           'Email support',
-          '1-2 AI suggestions per month'
+          '10 AI actions per month'
         ],
         limits: {
-          resumes: 1,
+          resumes: 2,
           templates: ['free'],
           exports: ['pdf'],
-          aiActions: 2
+          aiActions: 10
         },
         popular: false
       },
@@ -44,9 +44,9 @@ router.get('/plans', async (req, res) => {
         name: 'Pro',
         price: { monthly: 9.99, yearly: 79 },
         features: [
-          'Unlimited resume projects',
+          '5 resume projects total',
           'Full access to all premium templates',
-          '100 AI actions/month (rewrite, summarize, keyword-enhance, tone adjust)',
+          '200 AI actions per month',
           'Resume feedback analysis (ATS score, grammar)',
           'Export in DOCX + PDF',
           'No watermark, unlimited exports',
@@ -54,10 +54,10 @@ router.get('/plans', async (req, res) => {
           'Priority support'
         ],
         limits: {
-          resumes: 50,
+          resumes: 5,
           templates: ['free', 'pro'],
           exports: ['pdf', 'docx'],
-          aiActions: 100
+          aiActions: 200
         },
         popular: true,
         trial: {
@@ -155,10 +155,22 @@ router.get('/current', protect, async (req, res) => {
       await subscription.recalculateResumeCount();
     }
 
+    // Compute current weekly window and limits
+    const usage = subscription.usage || {};
     res.json({
       success: true,
       data: {
-        subscription
+        subscription,
+        usage: {
+          resumes: {
+            used: usage.resumesCreated || 0,
+            limit: subscription.features?.resumeLimit || 2
+          },
+          aiActions: {
+            used: usage.aiActionsThisMonth || 0,
+            limit: subscription.features?.aiActionsLimit || 10
+          }
+        }
       }
     });
   } catch (error) {
@@ -226,9 +238,8 @@ router.post('/start-trial', [
       // Reset usage for trial
       subscription.usage = {
         resumesCreated: 0,
-        exportsThisMonth: 0,
         aiActionsThisMonth: 0,
-        lastResetDate: new Date()
+        monthStartAtUtc: new Date()
       };
       
       // Clear any existing Stripe data for trial

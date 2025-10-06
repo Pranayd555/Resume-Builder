@@ -31,7 +31,4 @@ const getEnvironment = () => {
   // return API_CONFIG[env]?.baseURL || API_CONFIG.development.baseURL;
 };
 
-export const API_BASE_URL = getEnvironment();
-
-// Log the API URL being used (for debugging)
-console.log('🔗 API Base URL:', API_BASE_URL); 
+export const API_BASE_URL = getEnvironment(); 

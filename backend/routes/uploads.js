@@ -3,9 +3,11 @@ const multer = require('multer');
 const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs').promises;
-const { protect } = require('../middleware/auth');
+const { protect, checkAIActionLimit, trackUsage } = require('../middleware/auth');
 const User = require('../models/User');
 const logger = require('../utils/logger');
+const DocumentParser = require('../utils/documentParser');
+const { parseResumeText } = require('../services/geminiservice');
 
 const router = express.Router();
 
@@ -14,14 +16,14 @@ const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 10 * 1024 * 1024, // 10MB limit for PDFs
   },
   fileFilter: (req, file, cb) => {
-    // Allow images only
-    if (file.mimetype.startsWith('image/')) {
+    // Allow images and PDFs
+    if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf' || file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
       cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed!'), false);
+      cb(new Error('Only image, PDF, and Word files are allowed!'), false);
     }
   },
 });
@@ -29,8 +31,10 @@ const upload = multer({
 // Ensure uploads directory exists
 const ensureUploadDirs = async () => {
   const uploadDir = path.join(__dirname, '..', 'uploads', 'profile-pictures');
+  const resumeDir = path.join(__dirname, '..', 'uploads', 'resumes');
   try {
     await fs.mkdir(uploadDir, { recursive: true });
+    await fs.mkdir(resumeDir, { recursive: true });
   } catch (error) {
     logger.error('Failed to create upload directories:', error);
   }
@@ -45,7 +49,7 @@ const handleMulterError = (error, req, res, next) => {
     if (error.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({
         success: false,
-        error: 'File too large. Maximum size is 5MB.'
+        error: 'File too large. Maximum size is 10MB.'
       });
     }
     if (error.code === 'UNEXPECTED_FIELD') {
@@ -60,15 +64,94 @@ const handleMulterError = (error, req, res, next) => {
     });
   }
   
-  if (error.message === 'Only image files are allowed!') {
+  if (error.message === 'Only image, PDF, and Word files are allowed!') {
     return res.status(400).json({
       success: false,
-      error: 'Only image files are allowed'
+      error: 'Only image, PDF, and Word files are allowed'
     });
   }
 
   next(error);
 };
+
+// @desc    Upload and parse resume (PDF/Word)
+// @route   POST /api/uploads/parse-resume
+// @access  Private
+router.post('/parse-resume', [
+  protect,
+  checkAIActionLimit,
+  (req, res, next) => {
+    upload.single('file')(req, res, (err) => {
+      if (err) {
+        return handleMulterError(err, req, res, next);
+      }
+      next();
+    });
+  }
+], trackUsage, async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'No file uploaded'
+      });
+    }
+
+    const { originalname, mimetype, buffer } = req.file;
+    logger.info(`Resume upload request: ${originalname} (${mimetype}) by user ${req.user.email}`);
+
+    // Validate file type using DocumentParser
+    if (!DocumentParser.isValidDocumentType(mimetype)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Unsupported file type. Please upload a PDF or Word document.'
+      });
+    }
+
+    // Extract text using DocumentParser service
+    let extractedText = '';
+    try {
+      extractedText = await DocumentParser.parseDocument(buffer, mimetype, originalname);
+    } catch (parseError) {
+      return res.status(400).json({
+        success: false,
+        error: parseError.message
+      });
+    }
+
+    // Parse the extracted text using Gemini AI service
+    let parsedData = null;
+    try {
+      logger.info('Calling Gemini AI service to parse resume text');
+      parsedData = await parseResumeText(extractedText);
+      logger.info('Resume text parsed successfully with AI');
+      
+      // Set usage type for tracking AI action usage
+      req.usageType = 'aiAction';
+    } catch (aiError) {
+      logger.error('AI parsing failed, returning original text only:', aiError);
+      // Continue with original text if AI parsing fails
+      // Don't set usageType since AI parsing failed
+    }
+
+    res.json({
+      success: true,
+      data: {
+        originalText: extractedText,
+        parsedData: parsedData,
+        fileName: originalname,
+        message: parsedData ? 'Resume text extracted and parsed successfully' : 'Resume text extracted successfully (AI parsing failed)'
+      }
+    });
+
+  } catch (error) {
+    logger.error('Resume parsing error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error during resume parsing'
+    });
+  }
+});
 
 // @desc    Upload profile picture
 // @route   POST /api/uploads/profile-picture

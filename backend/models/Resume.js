@@ -68,17 +68,27 @@ const resumeSchema = new mongoose.Schema({
     maxlength: [1000, 'Summary cannot exceed 1000 characters']
   },
   
+  // Fresher status
+  isFresher: {
+    type: Boolean,
+    default: false
+  },
+
   // Work Experience
   workExperience: [{
     jobTitle: {
       type: String,
-      required: [true, 'Job title is required'],
+      required: function() {
+        return !this.parent().isFresher;
+      },
       trim: true,
       maxlength: [100, 'Job title cannot exceed 100 characters']
     },
     company: {
       type: String,
-      required: [true, 'Company name is required'],
+      required: function() {
+        return !this.parent().isFresher;
+      },
       trim: true,
       maxlength: [100, 'Company name cannot exceed 100 characters']
     },
@@ -89,7 +99,9 @@ const resumeSchema = new mongoose.Schema({
     },
     startDate: {
       type: Date,
-      required: [true, 'Start date is required']
+      required: function() {
+        return !this.parent().isFresher;
+      }
     },
     endDate: {
       type: Date,
@@ -155,7 +167,7 @@ const resumeSchema = new mongoose.Schema({
     gpa: {
       type: Number,
       min: [0, 'GPA cannot be negative'],
-      max: [10.0, 'GPA cannot exceed 10.0']
+      max: [100.0, 'GPA cannot exceed 100.0']
     },
     description: {
       type: String,
@@ -182,7 +194,13 @@ const resumeSchema = new mongoose.Schema({
       level: {
         type: String,
         enum: ['beginner', 'intermediate', 'advanced', 'expert'],
-        default: 'intermediate'
+        default: 'intermediate',
+        validate: {
+          validator: function(value) {
+            return value === null || value === undefined || ['beginner', 'intermediate', 'advanced', 'expert'].includes(value);
+          },
+          message: 'Level must be one of: beginner, intermediate, advanced, expert'
+        }
       }
     }]
   }],
@@ -225,7 +243,7 @@ const resumeSchema = new mongoose.Schema({
       type: String,
       required: [true, 'Achievement title is required'],
       trim: true,
-      maxlength: [100, 'Title cannot exceed 100 characters']
+      maxlength: [200, 'Title cannot exceed 200 characters']
     },
     description: {
       type: String,
@@ -279,7 +297,7 @@ const resumeSchema = new mongoose.Schema({
     proficiency: {
       type: String,
       enum: ['basic', 'conversational', 'fluent', 'native'],
-      required: [true, 'Proficiency level is required']
+      default: 'basic'
     }
   }],
   
@@ -333,25 +351,83 @@ const resumeSchema = new mongoose.Schema({
       headerLevel: {
         type: String,
         enum: ['h1', 'h2', 'h3', 'h4', 'h5'],
-        default: 'h1'
+        default: 'h3'
+      },
+      headerFontSize: {
+        type: Number,
+        min: 12,
+        max: 24,
+        default: 18
       },
       fontSize: {
         type: Number,
-        min: 1,
-        max: 30,
-        default: 16
+        min: 12,
+        max: 18,
+        default: 14
       },
       lineSpacing: {
         type: Number,
         min: 1,
-        max: 10,
+        max: 3,
         default: 1.5
       },
       sectionSpacing: {
         type: Number,
         min: 1,
-        max: 10,
-        default: 5
+        max: 5,
+        default: 3
+      },
+      primaryFont: {
+        type: String,
+        enum: ['Arial', 'Calibri', 'Times New Roman', 'Verdana', 'Helvetica', 'Georgia', 'Cambria', 'Garamond', 'Trebuchet MS', 'Book Antiqua'],
+        default: 'Arial'
+      },
+      secondaryFont: {
+        type: String,
+        enum: ['Arial', 'Calibri', 'Times New Roman', 'Verdana', 'Helvetica', 'Georgia', 'Cambria', 'Garamond', 'Trebuchet MS', 'Book Antiqua'],
+        default: 'Arial'
+      },
+      colors: {
+        primary: {
+          type: String,
+          default: null,
+          validate: {
+            validator: function(v) {
+              return v === null || /^#[0-9A-Fa-f]{6}$/.test(v);
+            },
+            message: 'Primary color must be null or a valid hex color'
+          }
+        },
+        secondary: {
+          type: String,
+          default: null,
+          validate: {
+            validator: function(v) {
+              return v === null || /^#[0-9A-Fa-f]{6}$/.test(v);
+            },
+            message: 'Secondary color must be null or a valid hex color'
+          }
+        },
+        accent: {
+          type: String,
+          default: null,
+          validate: {
+            validator: function(v) {
+              return v === null || /^#[0-9A-Fa-f]{6}$/.test(v);
+            },
+            message: 'Accent color must be null or a valid hex color'
+          }
+        },
+        text: {
+          type: String,
+          default: null,
+          validate: {
+            validator: function(v) {
+              return v === null || /^#[0-9A-Fa-f]{6}$/.test(v);
+            },
+            message: 'Text color must be null or a valid hex color'
+          }
+        }
       }
     },
     // Header styling options (keeping for backward compatibility)
@@ -394,22 +470,7 @@ const resumeSchema = new mongoose.Schema({
     default: false
   },
   
-  // Export History
-  exports: [{
-    format: {
-      type: String,
-      enum: ['pdf', 'docx', 'html'],
-      required: true
-    },
-    exportedAt: {
-      type: Date,
-      default: Date.now
-    },
-    downloadCount: {
-      type: Number,
-      default: 0
-    }
-  }],
+
   
   // Analytics
   analytics: {
@@ -426,6 +487,75 @@ const resumeSchema = new mongoose.Schema({
     shares: {
       type: Number,
       default: 0
+    }
+  },
+
+  // ATS Analysis
+  atsAnalysis: {
+    overall_score: {
+      type: Number,
+      min: 0,
+      max: 100
+    },
+    category_scores: {
+      keyword_skill_match: {
+        type: Number,
+        min: 0,
+        max: 40
+      },
+      experience_alignment: {
+        type: Number,
+        min: 0,
+        max: 20
+      },
+      section_completeness: {
+        type: Number,
+        min: 0,
+        max: 15
+      },
+      project_impact: {
+        type: Number,
+        min: 0,
+        max: 10
+      },
+      formatting: {
+        type: Number,
+        min: 0,
+        max: 10
+      },
+      bonus_skills: {
+        type: Number,
+        min: 0,
+        max: 5
+      }
+    },
+    missing_keywords: [{
+      type: String,
+      trim: true
+    }],
+    strengths: [{
+      type: String,
+      trim: true
+    }],
+    weaknesses: [{
+      type: String,
+      trim: true
+    }],
+    ats_warnings: [{
+      type: String,
+      trim: true
+    }],
+    recommendations: [{
+      type: String,
+      trim: true
+    }],
+    job_description_hash: {
+      type: String,
+      trim: true
+    },
+    analyzed_at: {
+      type: Date,
+      default: Date.now
     }
   }
 }, {
@@ -510,11 +640,70 @@ resumeSchema.index({ user: 1, updatedAt: -1 });
 resumeSchema.index({ template: 1 });
 resumeSchema.index({ status: 1, isPublic: 1 });
 
-// Pre-save middleware to update analytics
+// Pre-save middleware to clean and validate data
 resumeSchema.pre('save', function(next) {
+  // Clean skills data - remove null levels and set default
+  if (this.skills && this.skills.length > 0) {
+    this.skills.forEach(skill => {
+      if (skill.items && skill.items.length > 0) {
+        skill.items.forEach(item => {
+          if (item.level === null || item.level === undefined) {
+            item.level = 'intermediate';
+          }
+        });
+      }
+    });
+  }
+
+  // Clean languages data - set default proficiency if missing
+  if (this.languages && this.languages.length > 0) {
+    this.languages.forEach(lang => {
+      if (!lang.proficiency) {
+        lang.proficiency = 'basic';
+      }
+    });
+  }
+
+  // Clean work experience for freshers
+  if (this.isFresher) {
+    this.workExperience = [];
+  }
+
+  // Reset ATS analysis if resume content is modified
+  const contentFields = [
+    'personalInfo', 'summary', 'workExperience', 'education', 
+    'skills', 'projects', 'achievements', 'certifications', 
+    'languages', 'customFields', 'isFresher'
+  ];
+  
+  const isContentModified = contentFields.some(field => this.isModified(field));
+  if (isContentModified && this.atsAnalysis) {
+    // Reset ATS analysis data
+    this.atsAnalysis = {
+      overall_score: null,
+      category_scores: {
+        keyword_skill_match: null,
+        experience_alignment: null,
+        section_completeness: null,
+        project_impact: null,
+        formatting: null,
+        bonus_skills: null
+      },
+      missing_keywords: [],
+      strengths: [],
+      weaknesses: [],
+      ats_warnings: [],
+      recommendations: [],
+      job_description_hash: null,
+      analyzed_at: null
+    };
+  }
+
+  // Update analytics
   if (this.isModified('analytics.views')) {
     this.analytics.lastViewed = new Date();
   }
+  
   next();
 });
 

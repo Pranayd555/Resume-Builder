@@ -5,10 +5,27 @@ on:
     branches: [ main, dev ]
     paths-ignore:
       - 'backend/render-deployment.zip'
-      - '**/*.zip'
+      - 'backend/deploy/'
+      - '**/node_modules/**'
+      - '**/.git/**'
+      - '**/*.log'
   workflow_dispatch:
-
-
+    inputs:
+      force_deploy:
+        description: 'Force deploy both frontend and backend'
+        required: false
+        default: false
+        type: boolean
+      deploy_frontend:
+        description: 'Deploy only frontend'
+        required: false
+        default: false
+        type: boolean
+      deploy_backend:
+        description: 'Deploy only backend'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   detect-changes:
@@ -20,13 +37,72 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
+      
+      - name: 🔍 Verify workflow trigger
+        run: |
+          echo "🚀 GitHub Actions Workflow Triggered!"
+          echo "====================================="
+          echo "Event: ${{ github.event_name }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Author: ${{ github.actor }}"
+          echo "Repository: ${{ github.repository }}"
+          echo "Workflow: ${{ github.workflow }}"
+          echo "Run ID: ${{ github.run_id }}"
+          echo "Run Number: ${{ github.run_number }}"
+          echo ""
+          echo "📊 Push Event Details:"
+          echo "Before commit: ${{ github.event.before }}"
+          echo "After commit: ${{ github.event.after }}"
+          echo "Ref: ${{ github.event.ref }}"
+          echo "Head commit: ${{ github.event.head_commit.message }}"
+          echo ""
+          echo "📁 Repository contents:"
+          ls -la
+          echo ""
+          echo "📁 Frontend directory contents:"
+          ls -la resume-builder/ || echo "resume-builder directory not found"
+          echo ""
+          echo "📁 Backend directory contents:"
+          ls -la backend/ || echo "backend directory not found"
+          echo ""
       
       - name: 🔍 Detect changes
         id: changes
         run: |
+          echo "🔍 Checking for changes in this push..."
+          echo "Current branch: ${{ github.ref_name }}"
+          echo "Event: ${{ github.event_name }}"
+          
+          # Determine the base commit for comparison
+          if [ "${{ github.event_name }}" = "push" ]; then
+            # For push events, compare against the previous state of the branch
+            # Use the before commit SHA if available, otherwise use HEAD~1
+            if [ -n "${{ github.event.before }}" ] && [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
+              BASE_COMMIT="${{ github.event.before }}"
+              echo "📊 Comparing against previous push: $BASE_COMMIT"
+            else
+              # Fallback: compare against the previous commit
+              BASE_COMMIT="HEAD~1"
+              echo "📊 Comparing against previous commit: $BASE_COMMIT"
+            fi
+          else
+            # For workflow_dispatch or other events, compare against HEAD~1
+            BASE_COMMIT="HEAD~1"
+            echo "📊 Comparing against previous commit: $BASE_COMMIT"
+          fi
+          
+          echo "Commit range: $BASE_COMMIT..HEAD"
+          
+          # Get all changed files in this push
+          ALL_CHANGES=$(git diff --name-only $BASE_COMMIT HEAD 2>/dev/null || echo "")
+          echo "📝 All changed files in this push:"
+          echo "$ALL_CHANGES"
+          echo ""
+          
           # Check for backend changes (excluding deployment files)
-          BACKEND_CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -E '^backend/' | grep -v 'render-deployment.zip' || echo "")
+          BACKEND_CHANGED=$(git diff --name-only $BASE_COMMIT HEAD 2>/dev/null | grep -E '^backend/' | grep -v 'render-deployment.zip' | grep -v 'deploy/' || echo "")
           if [ -n "$BACKEND_CHANGED" ]; then
             echo "backend=true" >> $GITHUB_OUTPUT
             echo "🔍 Backend files changed:"
@@ -35,9 +111,10 @@ jobs:
             echo "backend=false" >> $GITHUB_OUTPUT
             echo "🔍 No backend changes detected"
           fi
+          echo ""
           
           # Check for frontend changes
-          FRONTEND_CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -E '^resume-builder/' || echo "")
+          FRONTEND_CHANGED=$(git diff --name-only $BASE_COMMIT HEAD 2>/dev/null | grep -E '^resume-builder/' || echo "")
           if [ -n "$FRONTEND_CHANGED" ]; then
             echo "frontend=true" >> $GITHUB_OUTPUT
             echo "🔍 Frontend files changed:"
@@ -46,6 +123,19 @@ jobs:
             echo "frontend=false" >> $GITHUB_OUTPUT
             echo "🔍 No frontend changes detected"
           fi
+          
+          # Check for workflow changes (optional - uncomment if you want workflow changes to trigger deployments)
+          # WORKFLOW_CHANGED=$(git diff --name-only $BASE_COMMIT HEAD 2>/dev/null | grep -E '^\.github/workflows/' || echo "")
+          # if [ -n "$WORKFLOW_CHANGED" ]; then
+          #   echo "🔧 Workflow files changed - forcing deployment of both frontend and backend"
+          #   echo "backend=true" >> $GITHUB_OUTPUT
+          #   echo "frontend=true" >> $GITHUB_OUTPUT
+          # fi
+          echo ""
+          
+          echo "📊 Summary:"
+          echo "Backend changed: ${{ steps.changes.outputs.backend }}"
+          echo "Frontend changed: ${{ steps.changes.outputs.frontend }}"
 
   deploy-backend:
     runs-on: ubuntu-latest
@@ -56,6 +146,8 @@ jobs:
     steps:
     - name: 📥 Checkout code
       uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
       
     - name: 🟢 Setup Node.js
       uses: actions/setup-node@v4
@@ -69,15 +161,39 @@ jobs:
         cd backend
         npm ci
         
-    - name: 🏗️ Build deployment package
+    - name: 🏗️ Build optimized deployment package
       run: |
         cd backend
         npm run build:render
+        echo "📊 Zip file size: $(ls -lh render-deployment.zip | awk '{print $5}')"
         
     - name: 🧪 Test build package
       run: |
         cd backend
         npm run test:build
+        
+    - name: 🔧 Configure Git
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+    - name: 📦 Commit and push deployment zip
+      run: |
+        # Add the zip file to git
+        git add backend/render-deployment.zip
+        
+        # Check if there are changes to commit
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          # Commit with timestamp and skip CI to prevent pipeline loops
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          git commit -m "🤖 Auto-deploy: Update render-deployment.zip [$TIMESTAMP] [skip ci]"
+          
+          # Push to the same branch
+          git push origin ${{ github.ref }}
+          echo "✅ Pushed render-deployment.zip to repository with [skip ci] flag"
+        fi
         
     - name: 🚀 Deploy to Render
       env:
@@ -85,11 +201,16 @@ jobs:
         RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
       run: |
         echo "📦 Deploying backend to Render..."
+        echo "🔗 Using render-deployment.zip from repository"
+        
+        # Trigger Render deployment
         curl -X POST "https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys" \
           -H "Authorization: Bearer $RENDER_TOKEN" \
           -H "Content-Type: application/json" \
           -d '{"clearCache": "do_not_clear"}'
+        
         echo "✅ Backend deployment to Render triggered"
+        echo "📋 Render will now pull the latest render-deployment.zip from the repository"
 
   deploy-frontend:
     runs-on: ubuntu-latest
@@ -142,25 +263,25 @@ jobs:
         echo "===================="
         echo "Branch: ${{ github.ref_name }}"
         echo "Environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}"
-        echo "Backend changes: ${{ needs.detect-changes.outputs.backend-changed }}"
-        echo "Frontend changes: ${{ needs.detect-changes.outputs.frontend-changed }}"
+        echo "Backend changes: ${{ needs.detect-changes.outputs.backend }}"
+        echo "Frontend changes: ${{ needs.detect-changes.outputs.frontend }}"
         echo ""
         echo "Backend deployment: ${{ needs.deploy-backend.result || 'skipped' }}"
         echo "Frontend deployment: ${{ needs.deploy-frontend.result || 'skipped' }}"
         echo ""
         
-        if [[ "${{ needs.detect-changes.outputs.backend-changed }}" == "true" && "${{ needs.deploy-backend.result }}" == "success" ]]; then
+        if [[ "${{ needs.detect-changes.outputs.backend }}" == "true" && "${{ needs.deploy-backend.result }}" == "success" ]]; then
           echo "✅ Backend deployed to Render successfully"
-        elif [[ "${{ needs.detect-changes.outputs.backend-changed }}" == "true" && "${{ needs.deploy-backend.result }}" != "success" ]]; then
+        elif [[ "${{ needs.detect-changes.outputs.backend }}" == "true" && "${{ needs.deploy-backend.result }}" != "success" ]]; then
           echo "❌ Backend deployment failed"
         fi
         
-        if [[ "${{ needs.detect-changes.outputs.frontend-changed }}" == "true" && "${{ needs.deploy-frontend.result }}" == "success" ]]; then
+        if [[ "${{ needs.detect-changes.outputs.frontend }}" == "true" && "${{ needs.deploy-frontend.result }}" == "success" ]]; then
           echo "✅ Frontend deployed to Vercel successfully"
-        elif [[ "${{ needs.detect-changes.outputs.frontend-changed }}" == "true" && "${{ needs.deploy-frontend.result }}" != "success" ]]; then
+        elif [[ "${{ needs.detect-changes.outputs.frontend }}" == "true" && "${{ needs.deploy-frontend.result }}" != "success" ]]; then
           echo "❌ Frontend deployment failed"
         fi
         
-        if [[ "${{ needs.detect-changes.outputs.backend-changed }}" == "false" && "${{ needs.detect-changes.outputs.frontend-changed }}" == "false" ]]; then
+        if [[ "${{ needs.detect-changes.outputs.backend }}" == "false" && "${{ needs.detect-changes.outputs.frontend }}" == "false" ]]; then
           echo "ℹ️ No changes detected - no deployment needed"
         fi 

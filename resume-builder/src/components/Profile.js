@@ -1,14 +1,27 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { authAPI, userAPI, uploadAPI, apiHelpers } from '../services/api';
+import { authAPI, uploadAPI, apiHelpers } from '../services/api';
 import { toast } from 'react-toastify';
-import Tooltip from './Tooltip';
 import { useAutoScroll, useScrollToTop } from '../hooks/useAutoScroll';
+import EmailVerification from './EmailVerification';
+import { 
+  UserCircleIcon,
+  PencilIcon,
+  CheckIcon,
+  XMarkIcon,
+  CameraIcon,
+  PhotoIcon,
+  EyeIcon,
+  ExclamationTriangleIcon,
+  TrashIcon,
+  InformationCircleIcon,
+  LockClosedIcon
+} from '@heroicons/react/24/outline';
 
 function Profile() {
   const navigate = useNavigate();
-  const { user, updateUser: updateAuthUser, logout } = useAuth();
+  const { user, updateUser: updateAuthUser, logout, getEmailStatus } = useAuth();
   const fileInputRef = useRef(null);
   
   const [profile, setProfile] = useState({
@@ -24,21 +37,78 @@ function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [savingAvatar, setSavingAvatar] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [emailVerificationStatus, setEmailVerificationStatus] = useState(null);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
   
+  // Validation state
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
+  
   // State for scroll functionality
   const [justSaved, setJustSaved] = useState(false);
   
+  // Validation functions
+  const validateField = (name, value) => {
+    switch (name) {
+      case 'firstName':
+        if (!value.trim()) return 'First name is required';
+        if (value.trim().length < 2) return 'First name must be at least 2 characters';
+        if (value.trim().length > 50) return 'First name must be less than 50 characters';
+        if (!/^[a-zA-Z\s'-]+$/.test(value.trim())) return 'First name can only contain letters, spaces, hyphens, and apostrophes';
+        return '';
+      
+      case 'lastName':
+        if (!value.trim()) return 'Last name is required';
+        if (value.trim().length < 2) return 'Last name must be at least 2 characters';
+        if (value.trim().length > 50) return 'Last name must be less than 50 characters';
+        if (!/^[a-zA-Z\s'-]+$/.test(value.trim())) return 'Last name can only contain letters, spaces, hyphens, and apostrophes';
+        return '';
+      
+      case 'email':
+        if (!value.trim()) return 'Email is required';
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value.trim())) return 'Please enter a valid email address';
+        return '';
+      
+                           case 'phone':
+          if (!value.trim()) return 'Phone number is required';
+          const phoneRegex = /^[+]?[1-9][\d]{0,15}$/;
+          const cleanPhone = value.replace(/[\s\-().]/g, '');
+          if (!phoneRegex.test(cleanPhone)) return 'Please enter a valid phone number';
+          return '';
+      
+      
+      
+      default:
+        return '';
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    Object.keys(profile).forEach(key => {
+      if (key !== 'profilePicture' && key !== 'profilePictureOriginal' && key !== 'profilePictureAvatar') {
+        const error = validateField(key, profile[key]);
+        if (error) newErrors[key] = error;
+      }
+    });
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   // Auto-scroll hooks (declared after all state variables)
-  const { ref: profilePhotoRef } = useAutoScroll(isEditing, { 
+  const { ref: profilePhotoRef } = useAutoScroll(false, { 
     block: 'center', 
     delay: 100,
     offset: -50 // Scroll slightly above the profile photo
@@ -47,6 +117,20 @@ function Profile() {
   const { ref: profileFormRef } = useAutoScroll(false); // Can be triggered manually
   const { scrollToTop } = useScrollToTop(justSaved);
   
+  // Scroll to top when edit mode is activated
+  useEffect(() => {
+    if (isEditing) {
+      const timer = setTimeout(() => {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isEditing]);
+
   // Manual scroll for avatar selector (targets the same profile photo section)
   useEffect(() => {
     if (showAvatarSelector && profilePhotoRef.current) {
@@ -127,7 +211,19 @@ function Profile() {
     }
   ];
 
-  // Load user data on component mount
+  // Check email verification status
+  const checkEmailVerificationStatus = useCallback(async () => {
+    try {
+      const response = await getEmailStatus();
+      if (response.success) {
+        setEmailVerificationStatus(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to check email verification status:', error);
+    }
+  }, [getEmailStatus]);
+
+  // Load user data on component mount and when user data changes
   useEffect(() => {
     if (user) {
       // Handle the new profile picture structure
@@ -170,17 +266,52 @@ function Profile() {
         bio: user.bio || '',
         profilePicture: profilePictureUrl,
         profilePictureOriginal: profilePictureOriginalUrl,
-        profilePictureAvatar: profilePictureAvatarUrl
+        profilePictureAvatar: profilePictureAvatarUrl,
+        
       };
-      setProfile(userProfile);
-      setOriginalProfile(userProfile);
+      
+      // Only update if the profile data has actually changed to avoid unnecessary re-renders
+      setProfile(prevProfile => {
+        const hasChanged = JSON.stringify(prevProfile) !== JSON.stringify(userProfile);
+        return hasChanged ? userProfile : prevProfile;
+      });
+      
+      setOriginalProfile(prevOriginal => {
+        const hasChanged = JSON.stringify(prevOriginal) !== JSON.stringify(userProfile);
+        return hasChanged ? userProfile : prevOriginal;
+      });
+
+      // Check email verification status
+      checkEmailVerificationStatus();
     }
-  }, [user]);
+  }, [user, user?.profilePicture, checkEmailVerificationStatus]);
 
   const handleInputChange = (field, value) => {
     setProfile(prev => ({
       ...prev,
       [field]: value
+    }));
+    
+    // Validate field on change if it has been touched
+    if (touched[field]) {
+      const error = validateField(field, value);
+      setErrors(prev => ({
+        ...prev,
+        [field]: error
+      }));
+    }
+  };
+
+  const handleFieldBlur = (field) => {
+    setTouched(prev => ({
+      ...prev,
+      [field]: true
+    }));
+    
+    const error = validateField(field, profile[field]);
+    setErrors(prev => ({
+      ...prev,
+      [field]: error
     }));
   };
 
@@ -192,6 +323,21 @@ function Profile() {
   };
 
   const handleSave = async () => {
+    // Mark all fields as touched and validate
+    const allTouched = {};
+    Object.keys(profile).forEach(key => {
+      if (key !== 'profilePicture' && key !== 'profilePictureOriginal' && key !== 'profilePictureAvatar') {
+        allTouched[key] = true;
+      }
+    });
+    setTouched(allTouched);
+    
+    // Validate form
+    if (!validateForm()) {
+      toast.error('Please fill in all the required fields');
+      return;
+    }
+    
     try {
       setLoading(true);
       const response = await authAPI.updateProfile(profile);
@@ -201,11 +347,21 @@ function Profile() {
         setOriginalProfile(profile);
         setIsEditing(false);
         
+        // Clear errors and touched state
+        setErrors({});
+        setTouched({});
+        
         // Trigger scroll to top after successful save
         setJustSaved(true);
         setTimeout(() => setJustSaved(false), 500); // Reset after animation
         
-        toast.success('Profile updated successfully!');
+        if (response.data.requiresEmailVerification) {
+          setNewEmail(profile.email);
+          setShowEmailVerification(true);
+          toast.info('Profile updated! Please check your new email for verification code.');
+        } else {
+          toast.success('Profile updated successfully!');
+        }
       } else {
         throw new Error(response.error || 'Failed to update profile');
       }
@@ -221,6 +377,10 @@ function Profile() {
     setProfile(originalProfile);
     setIsEditing(false);
     
+    // Clear validation state
+    setErrors({});
+    setTouched({});
+    
     // Scroll to top when canceling edit
     setTimeout(() => {
       scrollToTop();
@@ -228,7 +388,7 @@ function Profile() {
   };
 
   const handleBack = () => {
-    navigate('/resume-list');
+    navigate('/dashboard');
   };
 
   const validateAndProcessFile = (file) => {
@@ -255,14 +415,6 @@ function Profile() {
       const response = await uploadAPI.uploadProfilePicture(file);
       
       if (response.success) {
-        const updatedProfile = {
-          ...profile,
-          profilePicture: response.data.thumbnailUrl || response.data.url,
-          profilePictureOriginal: response.data.url,
-          profilePictureAvatar: response.data.avatarUrl || ''
-        };
-        setProfile(updatedProfile);
-        
         // The upload API already updates the user profile in the database,
         // so we just need to fetch the updated user data
         const userResponse = await authAPI.getCurrentUser();
@@ -270,6 +422,17 @@ function Profile() {
         if (userResponse.success) {
           // Update the AuthContext with the updated user data
           updateAuthUser(userResponse.data.user);
+          
+          // Update local profile state with the new profile picture data
+          const updatedProfile = {
+            ...profile,
+            profilePicture: response.data.thumbnailUrl || response.data.url,
+            profilePictureOriginal: response.data.url,
+            profilePictureAvatar: response.data.avatarUrl || ''
+          };
+          setProfile(updatedProfile);
+          setOriginalProfile(updatedProfile);
+          
           toast.success('Profile picture updated successfully!');
         } else {
           throw new Error(userResponse.error || 'Failed to fetch updated profile');
@@ -316,15 +479,6 @@ function Profile() {
     try {
       setUploading(true);
       
-      // Clear profile picture from local state first
-      const updatedProfile = { 
-        ...profile, 
-        profilePicture: '', 
-        profilePictureOriginal: '', 
-        profilePictureAvatar: ''
-      };
-      setProfile(updatedProfile);
-      
       // Clear the profile picture from the backend
       const profileData = {
         firstName: profile.firstName,
@@ -334,7 +488,7 @@ function Profile() {
         location: profile.location,
         bio: profile.bio,
         profilePicture: '',
-        profilePictureType: null
+        profilePictureType: 'uploaded' // Default type when removing
       };
       
       const profileResponse = await authAPI.updateProfile(profileData);
@@ -342,10 +496,19 @@ function Profile() {
       if (profileResponse.success) {
         // Update the AuthContext to remove the profile picture
         updateAuthUser(profileResponse.data.user);
+        
+        // Clear profile picture from local state
+        const updatedProfile = { 
+          ...profile, 
+          profilePicture: '', 
+          profilePictureOriginal: '', 
+          profilePictureAvatar: ''
+        };
+        setProfile(updatedProfile);
+        setOriginalProfile(updatedProfile);
+        
         toast.success('Profile picture removed successfully!');
       } else {
-        // Revert local state if backend save fails
-        setProfile(profile);
         throw new Error(profileResponse.error || 'Failed to remove profile picture');
       }
     } catch (error) {
@@ -358,15 +521,7 @@ function Profile() {
 
   const handleAvatarSelection = async (avatarUrl) => {
     try {
-      setUploading(true);
-      
-      const updatedProfile = {
-        ...profile,
-        profilePicture: avatarUrl,
-        profilePictureOriginal: avatarUrl,
-        profilePictureAvatar: avatarUrl
-      };
-      setProfile(updatedProfile);
+      setSavingAvatar(true);
       
       // Save the avatar to the backend with the new structure
       const profileData = {
@@ -383,8 +538,18 @@ function Profile() {
       const response = await authAPI.updateProfile(profileData);
       
       if (response.success) {
-        // Update the AuthContext with the new avatar (using updateUser to avoid double API call)
+        // Update the AuthContext with the new avatar
         updateAuthUser(response.data.user);
+        
+        // Update local profile state with the new avatar data
+        const updatedProfile = {
+          ...profile,
+          profilePicture: avatarUrl,
+          profilePictureOriginal: avatarUrl,
+          profilePictureAvatar: avatarUrl
+        };
+        setProfile(updatedProfile);
+        setOriginalProfile(updatedProfile);
         
         setShowAvatarSelector(false);
         toast.success('Avatar selected successfully!');
@@ -394,11 +559,8 @@ function Profile() {
     } catch (error) {
       const errorMessage = apiHelpers.formatError(error);
       toast.error(errorMessage);
-      
-      // Revert the local state on error
-      setProfile(profile);
     } finally {
-      setUploading(false);
+      setSavingAvatar(false);
     }
   };
 
@@ -439,12 +601,12 @@ function Profile() {
   const handleDeleteAccount = async () => {
     try {
       setLoading(true);
-      const response = await userAPI.deleteAccount();
+      const response = await authAPI.deleteAccount();
       
       if (response.success) {
         await logout();
         toast.success('Account deleted successfully');
-        navigate('/login');
+        navigate('/');
       } else {
         throw new Error(response.error || 'Failed to delete account');
       }
@@ -456,6 +618,44 @@ function Profile() {
     }
   };
 
+  const handleEmailVerificationSuccess = () => {
+    setShowEmailVerification(false);
+    setNewEmail('');
+    toast.success('Email verified successfully!');
+    
+    // Update user data in localStorage and AuthContext
+    const updatedUser = { ...user, isEmailVerified: true };
+    updateAuthUser(updatedUser);
+    apiHelpers.setCurrentUserData(updatedUser);
+    
+    // Refresh email verification status
+    checkEmailVerificationStatus();
+  };
+
+  const handleSkipEmailVerification = () => {
+    setShowEmailVerification(false);
+    setNewEmail('');
+    toast.info('Email verification skipped. You can verify it later from your profile.');
+  };
+
+
+  // Handle verify email button click
+  const handleVerifyEmail = async () => {
+    try {
+      // Show the modal immediately since user already has the email
+      setNewEmail(user.email);
+      setShowEmailVerification(true);
+      
+      // Optionally send a new OTP if needed
+      // const response = await resendOtp();
+      // if (response.success) {
+      //   toast.success('New verification code sent to your email!');
+      // }
+    } catch (error) {
+      console.error('Failed to show email verification modal:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen pt-16">
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -464,18 +664,18 @@ function Profile() {
           <div className="flex items-center">
             <button
               onClick={handleBack}
-              className="mr-4 text-gray-600 hover:text-gray-900 transition-colors"
+              className="mr-4 text-gray-600 dark:text-gray-200 hover:text-gray-900 dark:hover:text-gray-100 transition-colors group"
             >
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Profile</h1>
           </div>
         </div>
 
         {/* Profile Content */}
-        <div className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-8">
+        <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/80 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Profile Picture */}
             <div ref={profilePhotoRef} className="flex flex-col items-center">
@@ -488,11 +688,11 @@ function Profile() {
                 onDrop={handleDrop}
                 onClick={() => (isEditing || !profile.profilePicture) && fileInputRef.current?.click()}
               >
-                <div className={`w-40 h-40 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center mb-4 shadow-lg overflow-hidden border-4 transition-all duration-300 ${
+                <div className={`w-40 h-40 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg overflow-hidden border-4 transition-all duration-300 ${
                   dragOver ? 'border-blue-400 shadow-blue-400/50' : 'border-white/20'
                 } backdrop-blur-sm`}>
                   {profile.profilePicture ? (
-                    <div className="w-full h-full flex items-center justify-center bg-white rounded-full">
+                    <div className="w-full h-full flex items-center justify-center bg-white dark:bg-orange-50/90 rounded-full">
                       <img 
                         src={profile.profilePicture} 
                         alt="Profile" 
@@ -509,9 +709,7 @@ function Profile() {
                     </div>
                   ) : (
                     <div className="flex flex-col items-center">
-                      <svg className="w-20 h-20 text-white mb-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                      </svg>
+                      <UserCircleIcon className="w-20 h-20 text-white mb-2" />
                       {(isEditing || !profile.profilePicture) && (
                         <div className="text-white text-center">
                           <p className="text-xs font-medium">Click to upload</p>
@@ -523,19 +721,14 @@ function Profile() {
                   {profile.profilePicture && (
                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
                       <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
+                        <EyeIcon className="w-8 h-8 text-white" />
                       </div>
                     </div>
                   )}
                   {dragOver && (
                     <div className="absolute inset-0 bg-blue-500 bg-opacity-20 rounded-full flex items-center justify-center">
                       <div className="text-white text-center">
-                        <svg className="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                        </svg>
+                        <PhotoIcon className="w-8 h-8 mx-auto mb-2" />
                         <p className="text-sm font-medium">Drop photo here</p>
                       </div>
                     </div>
@@ -564,12 +757,10 @@ function Profile() {
                 {(isEditing || !profile.profilePicture) && (
                   <button 
                     onClick={() => fileInputRef.current?.click()}
-                    disabled={uploading}
+                    disabled={uploading || savingAvatar}
                     className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
+                    <CameraIcon className="w-4 h-4" />
                     <span>{uploading ? 'Uploading...' : profile.profilePicture ? 'Change Photo' : 'Upload Photo'}</span>
                   </button>
                 )}
@@ -579,13 +770,11 @@ function Profile() {
                   <div className="flex flex-col space-y-2">
                     <button 
                       onClick={() => setShowAvatarSelector(true)}
-                      disabled={uploading}
+                      disabled={uploading || savingAvatar}
                       className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                      <span>{uploading ? 'Saving...' : 'Choose Avatar'}</span>
+                      <UserCircleIcon className="w-4 h-4" />
+                      <span>{savingAvatar ? 'Saving...' : 'Choose Avatar'}</span>
                     </button>
                     
                     {/* Personalized Avatar Button */}
@@ -598,88 +787,36 @@ function Profile() {
                           const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=${randomColor}&color=ffffff&size=400&rounded=true&font-size=0.4`;
                           handleAvatarSelection(avatarUrl);
                         }}
-                        disabled={uploading}
+                        disabled={uploading || savingAvatar}
                         className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                        </svg>
-                        <span>{uploading ? 'Saving...' : 'Use My Initials'}</span>
+                        <UserCircleIcon className="w-4 h-4" />
+                        <span>{savingAvatar ? 'Saving...' : 'Use My Initials'}</span>
                       </button>
                     )}
                   </div>
                 )}
                 
-                {profile.profilePicture && isEditing && (
-                  <button 
-                    onClick={handleRemoveProfilePicture}
-                    disabled={uploading}
-                    className="text-red-600 hover:text-red-700 text-sm font-medium transition-colors flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    <span>Remove Photo</span>
-                  </button>
-                )}
-                
-                {/* Upload Instructions with Tooltip - Only show when editing */}
-                {isEditing && (
-                  <Tooltip 
-                    content={
-                      <div className="max-w-xs sm:max-w-sm">
-                        <div className="mb-3 pb-3 border-b border-blue-200">
-                          <div className="flex items-center space-x-2">
-                            <svg className="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span className="font-semibold text-blue-800">Upload Guidelines</span>
-                          </div>
-                        </div>
-                        <div className="space-y-3">
-                          <div className="flex items-start space-x-3">
-                            <svg className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                            <div>
-                              <p className="font-medium text-gray-800">Size & Quality</p>
-                              <p className="text-sm text-gray-600">Best: 400×400px+, Max: 5MB</p>
-                            </div>
-                          </div>
-                          <div className="flex items-start space-x-3">
-                            <svg className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                            <div>
-                              <p className="font-medium text-gray-800">Formats</p>
-                              <p className="text-sm text-gray-600">JPG, PNG, GIF</p>
-                            </div>
-                          </div>
-                          <div className="flex items-start space-x-3">
-                            <svg className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                            </svg>
-                            <div>
-                              <p className="font-medium text-gray-800">Upload Method</p>
-                              <p className="text-sm text-gray-600">Drag & drop or click to browse</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    }
-                    position="top"
-                    delay={300}
-                  >
-                    <div className="text-center text-sm text-gray-500">
-                      <div className="inline-flex items-center space-x-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 hover:bg-blue-100 transition-colors cursor-help">
-                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span className="font-medium text-blue-700">Upload Requirements</span>
-                      </div>
-                    </div>
-                  </Tooltip>
-                )}
+                                 {profile.profilePicture && isEditing && (
+                   <button
+                     onClick={handleRemoveProfilePicture}
+                     disabled={uploading || savingAvatar}
+                     className="text-red-600 hover:text-red-700 text-sm font-medium transition-colors flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                   >
+                     <TrashIcon className="w-4 h-4" />
+                     <span>Remove Photo</span>
+                   </button>
+                 )}
+                 
+                 {/* Upload Requirements - Only show when editing */}
+                 {isEditing && (
+                   <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                     <div className="text-center">
+                       <p className="text-xs text-gray-600 font-medium">Upload Requirements</p>
+                       <p className="text-xs text-gray-500 mt-1">Maximum size: 5MB • Supported formats: JPG, PNG, JPEG</p>
+                     </div>
+                   </div>
+                 )}
               </div>
             </div>
 
@@ -687,31 +824,49 @@ function Profile() {
             <div ref={profileFormRef} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    First Name
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-900 mb-2">
+                    First Name <span className="text-red-500">*</span>
                   </label>
                   {isEditing ? (
-                    <input
-                      type="text"
-                      value={profile.firstName}
-                      onChange={(e) => handleInputChange('firstName', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm"
-                    />
+                    <div>
+                      <input
+                        type="text"
+                        value={profile.firstName}
+                        onChange={(e) => handleInputChange('firstName', e.target.value)}
+                        onBlur={() => handleFieldBlur('firstName')}
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900 ${
+                          errors.firstName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+                        }`}
+                        placeholder="Enter your first name"
+                      />
+                      {errors.firstName && (
+                        <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
+                      )}
+                    </div>
                   ) : (
                     <p className="text-gray-900 font-medium">{profile.firstName}</p>
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Last Name
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-900 mb-2">
+                    Last Name <span className="text-red-500">*</span>
                   </label>
                   {isEditing ? (
-                    <input
-                      type="text"
-                      value={profile.lastName}
-                      onChange={(e) => handleInputChange('lastName', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm"
-                    />
+                    <div>
+                      <input
+                        type="text"
+                        value={profile.lastName}
+                        onChange={(e) => handleInputChange('lastName', e.target.value)}
+                        onBlur={() => handleFieldBlur('lastName')}
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900 ${
+                          errors.lastName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+                        }`}
+                        placeholder="Enter your last name"
+                      />
+                      {errors.lastName && (
+                        <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
+                      )}
+                    </div>
                   ) : (
                     <p className="text-gray-900 font-medium">{profile.lastName}</p>
                   )}
@@ -720,31 +875,74 @@ function Profile() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email
+                  Email <span className="text-red-500">*</span>
                 </label>
                 {isEditing ? (
-                  <input
-                    type="email"
-                    value={profile.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm"
-                  />
+                  <div>
+                    <input
+                      type="email"
+                      value={profile.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      onBlur={() => handleFieldBlur('email')}
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500 ${
+                        errors.email ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="Enter your email address"
+                    />
+                    {errors.email && (
+                      <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                    )}
+                  </div>
                 ) : (
-                  <p className="text-gray-900 font-medium">{profile.email}</p>
+                  <div className="space-y-1">
+                    <p className="text-gray-900 font-medium">{profile.email}</p>
+                    {emailVerificationStatus && (
+                      <div className="flex items-center justify-between">
+                        {emailVerificationStatus.isEmailVerified ? (
+                          <div className="flex items-center space-x-1 text-green-600">
+                            <CheckIcon className="w-3 h-3" />
+                            <span className="text-xs font-medium">Verified</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center space-x-2">
+                            <div className="flex items-center space-x-1 text-orange-600">
+                              <ExclamationTriangleIcon className="w-3 h-3" />
+                              <span className="text-xs font-medium">Unverified</span>
+                            </div>
+                            <button
+                              onClick={handleVerifyEmail}
+                              className="text-orange-600 hover:text-orange-700 text-xs underline transition-colors duration-200"
+                            >
+                              Verify
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Phone
-                </label>
+                             <div>
+                 <label className="block text-sm font-medium text-gray-700 mb-2">
+                   Phone <span className="text-red-500">*</span>
+                 </label>
                 {isEditing ? (
-                  <input
-                    type="tel"
-                    value={profile.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm"
-                  />
+                  <div>
+                    <input
+                      type="tel"
+                      value={profile.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      onBlur={() => handleFieldBlur('phone')}
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500 ${
+                        errors.phone ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+                      }`}
+                                             placeholder="Enter your phone number"
+                    />
+                    {errors.phone && (
+                      <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
+                    )}
+                  </div>
                 ) : (
                   <p className="text-gray-900 font-medium">{profile.phone}</p>
                 )}
@@ -759,12 +957,15 @@ function Profile() {
                     type="text"
                     value={profile.location}
                     onChange={(e) => handleInputChange('location', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900"
+                    placeholder="Enter your location (optional)"
                   />
                 ) : (
                   <p className="text-gray-900 font-medium">{profile.location}</p>
                 )}
               </div>
+
+              
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -775,10 +976,11 @@ function Profile() {
                     value={profile.bio}
                     onChange={(e) => handleInputChange('bio', e.target.value)}
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm resize-none"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm resize-none text-gray-900 dark:text-gray-900"
+                    placeholder="Tell us about yourself (optional)"
                   />
                 ) : (
-                  <p className="text-gray-900 leading-relaxed">{profile.bio}</p>
+                  <p className="text-gray-900 leading-relaxed">{profile.bio || <span className="text-gray-500 italic">No bio provided</span>}</p>
                 )}
               </div>
             </div>
@@ -792,27 +994,21 @@ function Profile() {
                   onClick={() => setIsEditing(true)}
                   className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 min-w-[140px]"
                 >
-                  <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
+                  <PencilIcon className="w-5 h-5 flex-shrink-0" />
                   <span className="whitespace-nowrap">Edit Profile</span>
                 </button>
                 <button
                   onClick={() => setShowPasswordModal(true)}
                   className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 min-w-[160px]"
                 >
-                  <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
+                  <LockClosedIcon className="w-5 h-5 flex-shrink-0" />
                   <span className="whitespace-nowrap">Change Password</span>
                 </button>
                 <button
                   onClick={() => setShowDeleteModal(true)}
                   className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 min-w-[150px]"
                 >
-                  <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
+                  <TrashIcon className="w-5 h-5 flex-shrink-0" />
                   <span className="whitespace-nowrap">Delete Account</span>
                 </button>
               </div>
@@ -823,9 +1019,7 @@ function Profile() {
                   disabled={loading}
                   className="bg-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-400 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 min-w-[120px]"
                 >
-                  <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <XMarkIcon className="w-5 h-5 flex-shrink-0" />
                   <span className="whitespace-nowrap">Cancel</span>
                 </button>
                 <button
@@ -836,9 +1030,7 @@ function Profile() {
                   {loading ? (
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
                   ) : (
-                    <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
+                    <CheckIcon className="w-5 h-5 flex-shrink-0" />
                   )}
                   <span className="whitespace-nowrap">{loading ? 'Saving...' : 'Save'}</span>
                 </button>
@@ -854,38 +1046,38 @@ function Profile() {
               <h3 className="text-lg font-semibold mb-4">Change Password</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-900 mb-1">
                     Current Password
                   </label>
                   <input
                     type="password"
                     value={passwordData.currentPassword}
                     onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
                     placeholder="Enter current password"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-900 mb-1">
                     New Password
                   </label>
                   <input
                     type="password"
                     value={passwordData.newPassword}
                     onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
                     placeholder="Enter new password"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-900 mb-1">
                     Confirm New Password
                   </label>
                   <input
                     type="password"
                     value={passwordData.confirmPassword}
                     onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
                     placeholder="Confirm new password"
                   />
                 </div>
@@ -909,9 +1101,7 @@ function Profile() {
                   {loading ? (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   ) : (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
+                    <CheckIcon className="w-4 h-4" />
                   )}
                   <span>{loading ? 'Changing...' : 'Change Password'}</span>
                 </button>
@@ -926,9 +1116,7 @@ function Profile() {
             <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
               <div className="flex items-center mb-4">
                 <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-4">
-                  <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
+                  <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900">Delete Account</h3>
               </div>
@@ -959,9 +1147,7 @@ function Profile() {
                   {loading ? (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   ) : (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
+                    <TrashIcon className="w-4 h-4" />
                   )}
                   <span>{loading ? 'Deleting...' : 'Delete Account'}</span>
                 </button>
@@ -977,9 +1163,7 @@ function Profile() {
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
+                    <UserCircleIcon className="w-6 h-6 text-purple-600" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900">Choose Professional Avatar</h3>
                 </div>
@@ -987,9 +1171,7 @@ function Profile() {
                   onClick={() => setShowAvatarSelector(false)}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <XMarkIcon className="w-6 h-6" />
                 </button>
               </div>
               
@@ -1004,7 +1186,7 @@ function Profile() {
                   <div key={avatar.id} className="group relative">
                     <button
                       onClick={() => handleAvatarSelection(avatar.url)}
-                      disabled={uploading}
+                      disabled={savingAvatar}
                       className="w-full aspect-square bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border-2 border-gray-200 hover:border-purple-400 transition-all duration-300 overflow-hidden group-hover:scale-105 group-hover:shadow-xl p-4 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <div className="w-full h-full flex items-center justify-center">
@@ -1029,13 +1211,11 @@ function Profile() {
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300 rounded-xl flex items-center justify-center">
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                           <div className="bg-white rounded-full p-2 shadow-lg">
-                            <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
+                            <CheckIcon className="w-6 h-6 text-purple-600" />
                           </div>
                         </div>
                       </div>
-                      {uploading && (
+                      {savingAvatar && (
                         <div className="absolute inset-0 bg-white bg-opacity-80 rounded-xl flex items-center justify-center">
                           <div className="flex flex-col items-center space-y-2">
                             <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
@@ -1052,9 +1232,7 @@ function Profile() {
               <div className="mt-6 pt-4 border-t border-gray-200">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2 text-sm text-gray-500">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <InformationCircleIcon className="w-4 h-4" />
                     <span>Professional avatars from Flaticon</span>
                   </div>
                   <button
@@ -1068,6 +1246,17 @@ function Profile() {
             </div>
           </div>
         )}
+
+        {/* Email Verification Modal */}
+        <EmailVerification
+          isOpen={showEmailVerification}
+          onClose={handleSkipEmailVerification}
+          email={newEmail}
+          onVerificationSuccess={handleEmailVerificationSuccess}
+          onSkip={handleSkipEmailVerification}
+          type={newEmail === user?.email ? "profile-verification" : "email-change"}
+          showSkip={true}
+        />
       </div>
     </div>
   );

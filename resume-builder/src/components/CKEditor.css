@@ -1,0 +1,170 @@
+/* CKEditor Container Styles */
+.ckeditor-container {
+  width: 100%;
+}
+
+.ckeditor-container .ck-editor__editable {
+  min-height: 120px;
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  background-color: white;
+  color: #111827;
+}
+
+/* Dark mode styles for CKEditor */
+.dark .ckeditor-container .ck-editor__editable {
+  background-color: white;
+  color: #111827;
+  border-color: #d1d5db;
+}
+
+.ckeditor-container .ck-editor__editable:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Fix for lists going out of screen */
+.ckeditor-container .ck-editor__editable ul,
+.ckeditor-container .ck-editor__editable ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+  list-style-position: outside;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+.ckeditor-container .ck-editor__editable li {
+  margin: 0.25rem 0;
+  padding-left: 0.25rem;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+/* Ensure list markers stay within bounds */
+.ckeditor-container .ck-editor__editable ul {
+  list-style-type: disc;
+}
+
+.ckeditor-container .ck-editor__editable ol {
+  list-style-type: decimal;
+}
+
+/* Fix for CKEditor's internal list styling */
+.ckeditor-container .ck-editor__editable .ck-list-bogus-paragraph {
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+/* Ensure content doesn't overflow */
+.ckeditor-container .ck-editor__editable * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Toolbar styling - Smaller and project-themed */
+.ckeditor-container .ck-toolbar {
+  border: 1px solid #d1d5db;
+  border-bottom: none;
+  border-radius: 0.5rem 0.5rem 0 0;
+  background-color: #f9fafb;
+  padding: 0.25rem;
+}
+
+/* Dark mode toolbar styles */
+.dark .ckeditor-container .ck-toolbar {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.ckeditor-container .ck-toolbar__items {
+  gap: 0.125rem;
+}
+
+/* Smaller button styling */
+.ckeditor-container .ck-button {
+  padding: 0.25rem 0.5rem !important;
+  font-size: 0.75rem !important;
+  border-radius: 0.375rem !important;
+  transition: all 0.15s ease-in-out !important;
+  min-width: auto !important;
+  height: auto !important;
+  line-height: 1 !important;
+  border: 1px solid #d1d5db !important;
+  background-color: white !important;
+  color: #374151 !important;
+  font-weight: 500 !important;
+}
+
+.ckeditor-container .ck-button:hover {
+  background-color: #f3f4f6 !important;
+  border-color: #9ca3af !important;
+  color: #111827 !important;
+}
+
+/* Active/selected button styling */
+.ckeditor-container .ck-button.ck-on,
+.ckeditor-container .ck-button.ck-button_with-text.ck-on {
+  background-color: #3b82f6 !important;
+  color: white !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+.ckeditor-container .ck-button.ck-on:hover,
+.ckeditor-container .ck-button.ck-button_with-text.ck-on:hover {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+}
+
+/* Icon styling */
+.ckeditor-container .ck-button .ck-button__icon {
+  width: 1rem !important;
+  height: 1rem !important;
+}
+
+/* Remove default CKEditor button styling */
+.ckeditor-container .ck-button:not(.ck-disabled):hover {
+  background-color: #f3f4f6 !important;
+}
+
+.ckeditor-container .ck-button:not(.ck-disabled):active {
+  background-color: #e5e7eb !important;
+}
+
+/* Override any conflicting styles */
+.ckeditor-container .ck.ck-toolbar .ck-toolbar__items .ck.ck-button {
+  padding: 0.25rem 0.5rem !important;
+  font-size: 0.75rem !important;
+  border-radius: 0.375rem !important;
+  min-width: auto !important;
+  height: auto !important;
+  line-height: 1 !important;
+  border: 1px solid #d1d5db !important;
+  background-color: white !important;
+  color: #374151 !important;
+  font-weight: 500 !important;
+}
+
+.ckeditor-container .ck.ck-toolbar .ck-toolbar__items .ck.ck-button.ck-on {
+  background-color: #3b82f6 !important;
+  color: white !important;
+  border-color: #3b82f6 !important;
+}
+
+.ckeditor-container .ck.ck-toolbar .ck-toolbar__items .ck.ck-button:hover {
+  background-color: #f3f4f6 !important;
+  border-color: #9ca3af !important;
+  color: #111827 !important;
+}
+
+.ckeditor-container .ck.ck-toolbar .ck-toolbar__items .ck.ck-button.ck-on:hover {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+}

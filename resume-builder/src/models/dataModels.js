@@ -26,45 +26,23 @@ export const createUserModel = (data = {}) => ({
 export const createSubscriptionModel = (data = {}) => ({
   plan: data.plan || 'free',
   status: data.status || 'active',
-  startDate: data.startDate || new Date().toISOString(),
-  endDate: data.endDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-  billing: data.billing || {
-    cycle: 'monthly',
-    amount: 0,
-    currency: 'USD',
-    nextBillingDate: null,
-    trialEnd: null,
-    trialType: null
+  features: {
+    resumeLimit: data.features?.resumeLimit || 2,
+    templateAccess: data.features?.templateAccess || ['free'],
+    exportFormats: data.features?.exportFormats || ['pdf'],
+    aiActionsLimit: data.features?.aiActionsLimit || 10,
+    aiReview: data.features?.aiReview || false,
+    prioritySupport: data.features?.prioritySupport || false,
+    customBranding: data.features?.customBranding || false,
+    watermark: data.features?.watermark || true,
+    unlimitedExports: data.features?.unlimitedExports || false
   },
-  features: data.features || {
-    resumeLimit: 1,
-    templateAccess: ['free'],
-    exportFormats: ['pdf'],
-    aiActionsLimit: 2,
-    aiReview: false,
-    prioritySupport: false,
-    customBranding: false,
-    watermark: true,
-    unlimitedExports: false
+  usage: {
+    resumesCreated: data.usage?.resumesCreated || 0,
+    aiActionsThisMonth: data.usage?.aiActionsThisMonth || 0
   },
-  usage: data.usage || {
-    resumesCreated: 0,
-    exportsThisMonth: 0,
-    aiActionsThisMonth: 0,
-    lastResetDate: new Date().toISOString()
-  },
-  stripe: data.stripe || {
-    customerId: '',
-    subscriptionId: '',
-    priceId: '',
-    paymentMethodId: ''
-  },
-  isTrial: data.isTrial || false,
-  trialRemainingDays: data.trialRemainingDays || 0,
-  remainingDays: data.remainingDays || 0,
-  monthlyValue: data.monthlyValue || 0,
-  isExpired: data.isExpired || false,
-  hasHadTrial: data.hasHadTrial || false
+  billing: data.billing || {},
+  ...data
 });
 
 // Usage model
@@ -91,6 +69,7 @@ export const createResumeModel = (data = {}) => ({
   template: data.template || null,
   personalInfo: data.personalInfo || createPersonalInfoModel(),
   summary: data.summary || '',
+  isFresher: data.isFresher || false,
   workExperience: data.workExperience || [createWorkExperienceModel()],
   education: data.education || [createEducationModel()],
   skills: data.skills || [createSkillCategoryModel()],
@@ -104,6 +83,8 @@ export const createResumeModel = (data = {}) => ({
   isPublic: data.isPublic || false,
   isActive: data.isActive || false,
   analytics: data.analytics || createAnalyticsModel(),
+  atsAnalysis: data.atsAnalysis ? createATSAnalysisModel(data.atsAnalysis) : null, // ATS analysis data
+  extractedText: data.extractedText || '', // Store extracted text from uploaded resume
   createdAt: data.createdAt || new Date().toISOString(),
   updatedAt: data.updatedAt || new Date().toISOString(),
 });
@@ -204,12 +185,32 @@ export const createStylingModel = (data = {}) => ({
   sectionSpacing: data.sectionSpacing || 'normal',
 });
 
-// Analytics model
+// Analytics model (simplified)
 export const createAnalyticsModel = (data = {}) => ({
   views: data.views || 0,
   downloads: data.downloads || 0,
   lastViewed: data.lastViewed || null,
-  lastDownloaded: data.lastDownloaded || null,
+  lastDownloaded: data.lastDownloaded || null
+});
+
+// ATS Analysis model
+export const createATSAnalysisModel = (data = {}) => ({
+  overall_score: data.overall_score || null,
+  category_scores: data.category_scores || {
+    keyword_skill_match: 0,
+    experience_alignment: 0,
+    section_completeness: 0,
+    project_impact: 0,
+    formatting: 0,
+    bonus_skills: 0
+  },
+  strengths: data.strengths || [],
+  weaknesses: data.weaknesses || [],
+  recommendations: data.recommendations || [],
+  missing_keywords: data.missing_keywords || [],
+  ats_warnings: data.ats_warnings || [],
+  job_description_hash: data.job_description_hash || null,
+  analyzed_at: data.analyzed_at || null
 });
 
 // Template model
@@ -327,29 +328,31 @@ export const validators = {
       errors.email = 'Please enter a valid email';
     }
     
-    // Validate work experience
-    resume.workExperience.forEach((exp, index) => {
-      // Check if this is a filled work experience entry
-      if (exp.jobTitle || exp.company || exp.startDate || exp.endDate || exp.description) {
-        // If any field is filled, required fields must be present
-        if (!validators.required(exp.jobTitle)) {
-          errors[`workExperience_${index}_jobTitle`] = 'Job title is required';
-        }
-        if (!validators.required(exp.company)) {
-          errors[`workExperience_${index}_company`] = 'Company name is required';
-        }
-        if (!validators.required(exp.startDate)) {
-          errors[`workExperience_${index}_startDate`] = 'Start date is required';
-        }
-        
-        // Validate date range if both dates are provided
-        if (exp.startDate && exp.endDate && !exp.isCurrentJob) {
-          if (!validators.dateRange(exp.startDate, exp.endDate)) {
-            errors[`workExperience_${index}_dateRange`] = 'End date must be after start date';
+    // Validate work experience (skip if user is a fresher)
+    if (!resume.isFresher) {
+      resume.workExperience.forEach((exp, index) => {
+        // Check if this is a filled work experience entry
+        if (exp.jobTitle || exp.company || exp.startDate || exp.endDate || exp.description) {
+          // If any field is filled, required fields must be present
+          if (!validators.required(exp.jobTitle)) {
+            errors[`workExperience_${index}_jobTitle`] = 'Job title is required';
+          }
+          if (!validators.required(exp.company)) {
+            errors[`workExperience_${index}_company`] = 'Company name is required';
+          }
+          if (!validators.required(exp.startDate)) {
+            errors[`workExperience_${index}_startDate`] = 'Start date is required';
+          }
+          
+          // Validate date range if both dates are provided
+          if (exp.startDate && exp.endDate && !exp.isCurrentJob) {
+            if (!validators.dateRange(exp.startDate, exp.endDate)) {
+              errors[`workExperience_${index}_dateRange`] = 'End date must be after start date';
+            }
           }
         }
-      }
-    });
+      });
+    }
     
     // Validate education
     resume.education.forEach((edu, index) => {
