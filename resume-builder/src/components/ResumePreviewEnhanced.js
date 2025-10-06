@@ -1,0 +1,487 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { resumeAPI, analyticsAPI } from '../services/api';
+import TemplateStylingControls from './TemplateStylingControls';
+import PDFViewer from './PDFViewer';
+import ResumePreviewLoader from './ResumePreviewLoader';
+import { ArrowsRightLeftIcon, DocumentArrowDownIcon, DocumentTextIcon, PencilSquareIcon, PrinterIcon, ChartBarIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import ATSScoreModal from './ATSScoreModal';
+import ATSSummary from './ATSSummary';
+
+
+function ResumePreviewEnhanced() {
+  const { resumeId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [resume, setResume] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadFormat, setDownloadFormat] = useState('');
+  const [showStylingControls, setShowStylingControls] = useState(false);
+  const [showMobileStylingPopup, setShowMobileStylingPopup] = useState(false);
+  const [hasTemplate, setHasTemplate] = useState(false);
+  
+  // ATS Score modal state
+  const [showATSModal, setShowATSModal] = useState(false);
+  const [isNewATSAnalysis, setIsNewATSAnalysis] = useState(false);
+  
+  // Template styling state
+  const [defaultTemplateStyling, setDefaultTemplateStyling] = useState(null);
+  
+  // PDF preview state
+  const [pdfData, setPdfData] = useState(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
+
+  // Load PDF preview
+  const loadPDFPreview = useCallback(async () => {
+    try {
+      setPdfLoading(true);
+      // Add cache-busting parameter to force fresh PDF generation
+      const timestamp = Date.now();
+      const response = await resumeAPI.downloadPDF(resumeId, timestamp);
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      setPdfData({ blob, url });
+    } catch (error) {
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to load PDF preview';
+      toast.error(errorMessage);
+    } finally {
+      setPdfLoading(false);
+    }
+  }, [resumeId]);
+
+  // Download PDF using cached data
+  const handleDownloadPDF = useCallback(async () => {
+    try {
+      setDownloading(true);
+      setDownloadFormat('pdf');
+      
+      // Track download analytics
+      try {
+        await analyticsAPI.trackResumeDownload(resumeId, 'pdf');
+      } catch (analyticsError) {
+        console.warn('Failed to track download:', analyticsError);
+      }
+      
+      if (pdfData) {
+        // Use cached PDF data
+        const link = document.createElement('a');
+        link.href = pdfData.url;
+        link.download = `${resume?.title || 'resume'}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        // Fallback to API call if no cached data
+        const response = await resumeAPI.downloadPDF(resumeId);
+        const blob = new Blob([response.data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${resume?.title || 'resume'}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }
+      
+      toast.success('PDF downloaded successfully!');
+    } catch (error) {
+      const errorMessage = error.response?.data?.error || error.message || 'Download failed';
+      toast.error(errorMessage);
+    } finally {
+      setDownloading(false);
+      setDownloadFormat('');
+    }
+  }, [resumeId, resume?.title, pdfData]);
+
+  // Edit function
+  const handleEdit = useCallback(() => {
+    navigate('/resume-form', { state: { resumeId, editMode: true } });
+  }, [resumeId, navigate]);
+
+  // Back to list function
+  const handleBackToList = useCallback(() => {
+    navigate('/dashboard');
+  }, [navigate]);
+
+  // Styling update function with debounced PDF reload
+  const handleStylingUpdate = useCallback(async (updatedResume) => {
+    try {
+      setResume(updatedResume);
+      
+      // Reload PDF preview with updated styling
+      await loadPDFPreview();
+    } catch (error) {
+      console.error('Error updating preview after styling change:', error);
+      toast.error('Failed to update preview after styling change');
+    }
+  }, [loadPDFPreview]);
+
+  // Select new template function
+  const handleSelectNewTemplate = useCallback(() => {
+    navigate(`/template-selection/${resumeId}`);
+  }, [resumeId, navigate]);
+
+  // Handle design settings button click
+  const handleDesignSettingsClick = useCallback(() => {
+    // Check if we're on mobile/small (screen width < 768px)
+    if (window.innerWidth < 768) {
+      setShowMobileStylingPopup(true);
+    } else {
+      setShowStylingControls(!showStylingControls);
+    }
+  }, [showStylingControls]);
+
+  // Handle window resize to switch between modal and sidebar
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        // On medium+ screens, close modal and show sidebar if it was open
+        if (showMobileStylingPopup) {
+          setShowMobileStylingPopup(false);
+          setShowStylingControls(true);
+        }
+      } else {
+        // On small screens, close sidebar
+        setShowStylingControls(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [showMobileStylingPopup]);
+
+  // Close mobile styling popup
+  const handleCloseMobileStylingPopup = useCallback(() => {
+    setShowMobileStylingPopup(false);
+    // Reset the settings button state when modal closes
+    setShowStylingControls(false);
+  }, []);
+
+  // Memoized error handler for PDFViewer to prevent re-renders
+  const handlePDFError = useCallback((error) => {
+    console.error('PDF Viewer error:', error);
+    toast.error('Failed to load PDF preview');
+  }, []);
+
+  // Fetch resume data and load PDF preview
+  useEffect(() => {
+    const fetchResumePreview = async () => {
+      try {
+        setLoading(true);
+        
+        // Check if we have resume data from navigation state (template change)
+        // const state = location.state;
+        
+        let resumeData;
+        // if (state?.resume && state?.templateChanged) {
+        //   // Use resume data from template selection
+        //   resumeData = state.resume;
+        //   setResume(resumeData);
+        //   setHasTemplate(!!resumeData?.template);
+        //   console.log('resumeData', resumeData);
+        // } else {
+          // Fetch resume data from API
+          const resumeResp = await resumeAPI.getResumeById(resumeId);
+          if (resumeResp?.success !== false && resumeResp?.data) {
+            resumeData = resumeResp.data.resume || resumeResp.data;
+            setResume(resumeData);
+            setHasTemplate(!!resumeData?.template);
+          }
+        // }
+
+        if (resumeData) {
+          // Store default template styling data if available
+          if (resumeData.template?.styling) {
+            setDefaultTemplateStyling({
+              headerLevel: 'h3',
+              headerFontSize: 18,
+              fontSize:  14,
+              lineSpacing: 1.3,
+              sectionSpacing: 1
+            });
+          }
+        }
+        
+        // Load PDF preview
+        await loadPDFPreview();
+        
+        // Track resume view
+        try {
+          await analyticsAPI.trackResumeView(resumeId);
+        } catch (analyticsError) {
+          console.warn('Failed to track resume view:', analyticsError);
+        }
+        
+      } catch (error) {
+        console.error('Failed to load resume data:', error);
+        toast.error('Failed to load preview');
+        setTimeout(() => navigate('/dashboard'), 0);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (resumeId) {
+      fetchResumePreview();
+    }
+  }, [resumeId, navigate, loadPDFPreview, location.state]);
+
+  // Cleanup PDF URL on unmount
+  useEffect(() => {
+    return () => {
+      if (pdfData?.url) {
+        URL.revokeObjectURL(pdfData.url);
+      }
+    };
+  }, [pdfData]);
+
+
+  if (loading) {
+    return(<div className="min-h-screen pt-16"> <ResumePreviewLoader /></div>);
+  }
+
+
+  return (
+    <div className="min-h-screen pt-16">
+      <div className="max-w-7xl mx-auto py-4 px-3 sm:py-6 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6 sm:mb-8">
+          {/* Left Section - Back Button and Title */}
+          <div className="flex-1 min-w-0">
+            {/* Back Button - Icon only on mobile, full text on desktop */}
+            <div className="flex items-center gap-3 mb-3 sm:mb-4">
+              <button
+                onClick={handleBackToList}
+                className="flex items-center gap-2 text-gray-600 dark:text-gray-200 hover:text-gray-800 dark:hover:text-gray-100 transition-colors font-medium group"
+              >
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                <span className="text-sm sm:text-base">Back to Resume List</span>
+              </button>
+            </div>
+            
+            {/* Title and Description */}
+            <div>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                {resume?.title}
+              </h1>
+              <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-gray-400">
+                {resume?.template?.category ? `Category: ${resume.template.category.charAt(0).toUpperCase() + resume.template.category.slice(1)} • ` : ''}
+                {resume?.template?.name ? `Template: ${resume.template.name}` : 'Full template preview with all your data'}
+              </p>
+            </div>
+          </div>
+         
+          {/* Right Section - Action Buttons Only */}
+          <div className="flex flex-wrap gap-2 sm:gap-3">
+            <button
+              onClick={handleEdit}
+              className="px-2 py-1.5 sm:px-3 sm:py-2 bg-gray-100 dark:bg-gray-100 text-gray-700 dark:text-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-200 transition-colors flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm whitespace-nowrap"
+            >
+              <PencilSquareIcon className="h-4 w-4" />
+              <span className="hidden sm:inline">Edit Details</span>
+              <span className="sm:hidden">Edit</span>
+            </button>
+            
+            {hasTemplate && (
+              <button
+                onClick={handleSelectNewTemplate}
+                className="px-2 py-1.5 sm:px-3 sm:py-2 bg-blue-100 dark:bg-blue-100 text-blue-700 dark:text-blue-700 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-200 transition-colors flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm whitespace-nowrap"
+              >
+                <ArrowsRightLeftIcon className="h-4 w-4" />
+                <span className="hidden sm:inline">Change Template</span>
+                <span className="sm:hidden">Template</span>
+              </button>
+            )}
+            
+            <button
+              onClick={handleDownloadPDF}
+              disabled={downloading}
+              className={`px-2 py-1.5 sm:px-3 sm:py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm whitespace-nowrap ${
+                downloading && downloadFormat === 'pdf' ? 'animate-pulse' : ''
+              }`}
+            >
+              {downloading && downloadFormat === 'pdf' ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <DocumentArrowDownIcon className="h-4 w-4" />
+              )}
+              <span className="hidden sm:inline">Download PDF</span>
+              <span className="sm:hidden">PDF</span>
+            </button>
+            
+            <button
+              onClick={() => setShowATSModal(true)}
+              className="px-2 py-1.5 sm:px-3 sm:py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 transition-colors flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm whitespace-nowrap"
+            >
+              <ChartBarIcon className="h-4 w-4" />
+              <span className="hidden sm:inline">ATS Score</span>
+              <span className="sm:hidden">ATS</span>
+              <SparklesIcon className="h-3 w-3 text-yellow-300" />
+            </button>
+          </div>
+        </div>
+
+        {/* ATS Summary */}
+        {resume && resume.atsAnalysis && (
+          <div className="mb-6 sm:mb-8">
+            <ATSSummary 
+              atsAnalysis={resume.atsAnalysis} 
+              isNewAnalysis={isNewATSAnalysis}
+              resume={resume}
+              resumeId={resumeId}
+            />
+          </div>
+        )}
+
+        {/* PDF Preview Status */}
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-6 sm:mb-8">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-green-500 rounded-md">
+              <DocumentTextIcon className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <span className="text-green-800 font-medium text-sm">Document Preview: </span>
+              <span className="text-green-700 text-sm">
+                Preview your resume exactly as it will appear in the final document. All formatting, styling, and content are preserved.
+              </span>
+            </div>
+          </div>
+        </div>
+
+                 {/* Main Content */}
+         
+
+           {/* Resume Preview */}
+                        <div className="md:col-span-6">
+              <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-xl sm:rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-3 sm:p-6 lg:p-8 relative">
+             <div className="grid grid-cols-1 md:grid-cols-6 gap-4 sm:gap-6">
+                       {/* Styling Controls Sidebar - Visible on medium+ screens (768px+) */}
+                      {showStylingControls && (
+                        <div className="md:col-span-2 hidden md:block">
+                          <div className="sticky top-4 sm:top-6">
+                            <TemplateStylingControls
+                              resumeId={resumeId}
+                              currentStyling={resume?.styling}
+                              onStylingUpdate={handleStylingUpdate}
+                              defaultStyling={defaultTemplateStyling}
+                            />
+                          </div>
+                        </div>
+                      )}
+               <div className={`${showStylingControls ? 'md:col-span-4' : 'md:col-span-6'} max-w-5xl mx-auto ${pdfLoading ? 'flex items-center justify-center min-h-[60vh]' : ''}`}>
+                {/* PDF Preview */}
+                {pdfLoading ? (
+                  <div className="text-center py-8 sm:py-12">
+                    <ResumePreviewLoader 
+                      title="Generating PDF Preview..."
+                      subtitle="Our team is carefully crafting your professional resume with attention to every detail"
+                    />
+                  </div>
+                                 ) : pdfData ? (
+                   <div className="mx-auto w-full animate-fade-in">
+                     {/* PDF Viewer using PDF.js - Responsive */}
+                     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-lg transform transition-all duration-500 ease-out relative">
+                       <PDFViewer 
+                         pdfUrl={pdfData.url}
+                         showLoader={false}
+                         onError={handlePDFError}
+                         settingsButton={
+                           <button
+                             onClick={handleDesignSettingsClick}
+                             className="px-3 py-2 bg-purple-100 dark:bg-purple-100 text-purple-700 dark:text-purple-700 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-200 transition-all duration-200 flex items-center gap-2 text-sm font-medium shadow-sm hover:shadow-md transform hover:scale-105"
+                           >
+                             <PrinterIcon className="h-4 w-4" />
+                             <span className="hidden sm:inline">
+                               {showStylingControls || showMobileStylingPopup ? 'Hide Settings' : 'Design Settings'}
+                             </span>
+                           </button>
+                         }
+                       />
+                       
+                       {/* Download PDF Button - Positioned on bottom-right of PDF card */}
+                       <div className="absolute bottom-4 right-4 z-10">
+                         <button
+                           onClick={handleDownloadPDF}
+                           disabled={downloading}
+                           className={`p-3 sm:p-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full hover:from-red-600 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-110 ${
+                             downloading && downloadFormat === 'pdf' ? 'animate-pulse' : ''
+                           }`}
+                           title="Download PDF"
+                         >
+                           {downloading && downloadFormat === 'pdf' ? (
+                             <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                           ) : (
+                             <DocumentArrowDownIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+                           )}
+                         </button>
+                       </div>
+                     </div>
+                   </div>
+                ) : (
+                  <div className="text-center py-8 sm:py-12">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">No PDF Preview Available</h3>
+                    <p className="text-sm sm:text-base text-gray-600 mb-4">Unable to load PDF preview. Please try refreshing the page.</p>
+                  </div>
+                )}
+                             </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+                    {/* Mobile Styling Controls Popup */}
+        {showMobileStylingPopup && (
+         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg h-fit max-h-[90vh] flex flex-col border border-gray-200">
+             {/* Scrollable Content Container */}
+             <div className="overflow-y-auto scrollbar-hide flex-1 p-4 sm:p-6">
+               <TemplateStylingControls
+                 resumeId={resumeId}
+                 currentStyling={resume?.styling}
+                 onStylingUpdate={handleStylingUpdate}
+                 defaultStyling={defaultTemplateStyling}
+                 onClose={handleCloseMobileStylingPopup}
+               />
+             </div>
+           </div>
+         </div>
+       )}
+
+       {/* ATS Score Modal */}
+       <ATSScoreModal
+         isOpen={showATSModal}
+         onClose={() => setShowATSModal(false)}
+         resumeId={resumeId}
+        onSuccess={async () => {
+          console.log('ATS Score generation completed successfully');
+          // Set flag to indicate new analysis
+          setIsNewATSAnalysis(true);
+          // Refresh resume data to show updated ATS analysis
+          try {
+            const resumeResp = await resumeAPI.getResumeById(resumeId);
+            if (resumeResp?.success !== false && resumeResp?.data) {
+              const updatedResume = resumeResp.data.resume || resumeResp.data;
+              setResume(updatedResume);
+            }
+          } catch (error) {
+            console.error('Failed to refresh resume data:', error);
+          }
+          // Reset the flag after a short delay
+          setTimeout(() => setIsNewATSAnalysis(false), 1000);
+        }}
+       />
+    </div>
+  );
+}
+
+export default ResumePreviewEnhanced;

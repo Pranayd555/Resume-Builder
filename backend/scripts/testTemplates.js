@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const Template = require('../models/Template');
-const TemplateRenderer = require('../utils/templateRenderer');
+const OptimizedTemplateRenderer = require('../utils/templateRenderer');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
@@ -16,7 +16,7 @@ const testTemplates = async () => {
     console.log('🧪 Testing Template Rendering System\n');
     
     // Initialize template renderer
-    const renderer = new TemplateRenderer();
+    const renderer = new OptimizedTemplateRenderer();
     
     // Generate sample data
     const sampleData = renderer.generateSampleData();
@@ -46,7 +46,7 @@ const testTemplates = async () => {
       const result = renderer.render(template, sampleData);
       
       if (result.success) {
-        // Create complete HTML file
+        // Create complete HTML file with simplified styling
         const fullHtml = `
 <!DOCTYPE html>
 <html lang="en">
@@ -55,7 +55,101 @@ const testTemplates = async () => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${sampleData.personalInfo.fullName} - Resume</title>
     <style>
+        /* Basic reset and page setup */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root { 
+            --template-bg: ${template.styling?.colors?.background || '#ffffff'}; 
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--template-bg);
+        }
+        
+        /* Template CSS from renderer */
         ${result.css}
+        
+        /* Resume container styling */
+        .resume {
+            margin: 0 auto;
+            max-width: 8.5in;
+            min-height: 100vh;
+            background: var(--template-bg);
+        }
+        
+        /* Default padding for templates without color block headers */
+        .resume:not(.professional-corporate):not(.professional-executive):not(.bold-accent) {
+            padding: 0.5in 0.35in;
+        }
+        
+        /* No padding for color block header templates - they handle their own padding */
+        .resume.professional-corporate,
+        .resume.professional-executive,
+        .resume.bold-accent {
+            padding: 0;
+        }
+        
+        /* Unified header spacing for all templates */
+        .resume .header {
+            margin-top: 0;
+            padding-top: 0;
+        }
+        
+        /* Ensure consistent top spacing for all templates */
+        .resume > *:first-child {
+            margin-top: 0;
+            padding-top: 0;
+        }
+        
+        /* Conditional page margins for multi-page PDFs with background color */
+        @page :first {
+            margin: 0in 0in 0.5in 0in; /* No top margin on first page */
+            background-color: var(--template-bg);
+        }
+        
+        @page {
+            margin: 0.5in 0in 0.5in 0in; /* Top margin on subsequent pages */
+            background-color: var(--template-bg);
+        }
+        
+        /* Remove bottom spacing from the last element */
+        .resume > *:last-child,
+        .resume section:last-child,
+        .resume .section:last-child,
+        .resume .work-experience:last-child,
+        .resume .education:last-child,
+        .resume .skills:last-child,
+        .resume .projects:last-child,
+        .resume .achievements:last-child,
+        .resume .certifications:last-child,
+        .resume .languages:last-child,
+        .resume .summary:last-child,
+        .resume .custom-fields:last-child,
+        .resume .main-content > *:last-child,
+        .resume .sidebar > *:last-child,
+        .resume .content-grid > *:last-child {
+          margin-bottom: 0 !important;
+          padding-bottom: 0 !important;
+        }
+        
+        /* Also remove bottom spacing from last items within sections */
+        .resume .job-item:last-child,
+        .resume .edu-item:last-child,
+        .resume .project-item:last-child,
+        .resume .cert-item:last-child,
+        .resume .achievement-item:last-child,
+        .resume .skill-category:last-child,
+        .resume .language-item:last-child,
+        .resume .custom-field:last-child {
+          margin-bottom: 0 !important;
+          padding-bottom: 0 !important;
+        }
     </style>
 </head>
 <body>

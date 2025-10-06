@@ -3,8 +3,8 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 
-// Set to false to disable StrictMode in development (if you want to avoid double API calls)
-const ENABLE_STRICT_MODE = true;
+// Set to false to disable StrictMode in development (prevents useEffect double-invoke)
+const ENABLE_STRICT_MODE = false;
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 

@@ -62,14 +62,17 @@ router.post('/register', [
       });
     }
 
-    // Create user
+    // Create user (unverified by default)
     const user = new User({
       firstName,
       lastName,
       email,
-      password
+      password,
+      isEmailVerified: false
     });
 
+    // Generate OTP for email verification
+    const otp = user.generateEmailOtp();
     await user.save();
 
     // Create default subscription
@@ -80,28 +83,33 @@ router.post('/register', [
 
     await subscription.save();
 
-    // Send welcome email (non-blocking)
+    // Send OTP email (non-blocking)
     try {
-      await emailService.sendWelcomeEmail(email, `${firstName} ${lastName}`);
+      const OtpService = require('../services/otpService');
+      await OtpService.sendOtpEmail(email, otp, 'registration', `${firstName} ${lastName}`);
     } catch (emailError) {
-      logger.error('Failed to send welcome email:', emailError);
+      logger.error('Failed to send OTP email:', emailError);
       // Don't block registration if email fails
     }
 
     // Generate JWT token
     const token = user.getSignedJwtToken();
 
-    // Remove password from response
+    // Remove password and sensitive data from response
     const userResponse = user.toObject();
     delete userResponse.password;
+    delete userResponse.emailOtp;
+    delete userResponse.emailOtpExpire;
 
-    logger.info(`New user registered: ${email}`);
+    logger.info(`New user registered: ${email} (unverified)`);
 
     res.status(201).json({
       success: true,
+      message: 'Registration successful! Please check your email for verification code.',
       data: {
         user: userResponse,
-        token
+        token,
+        requiresEmailVerification: true
       }
     });
   } catch (error) {
@@ -142,11 +150,19 @@ router.post('/login', [
       });
     }
 
+    // If user has no local password (e.g., registered via OAuth), always fail local auth
+    if (!user.password) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid credentials'
+      });
+    }
+
     // Check if account is locked
     if (user.isLocked) {
       return res.status(423).json({
         success: false,
-        error: 'Account temporarily locked due to too many failed login attempts'
+        error: 'Account temporarily locked due to too many failed login attempts. Please try again in 10 minutes.'
       });
     }
 
@@ -202,6 +218,173 @@ router.post('/login', [
   }
 });
 
+// @desc    Verify email with OTP
+// @route   POST /api/auth/verify-email
+// @access  Private
+router.post('/verify-email', [
+  protect,
+  body('otp').isLength({ min: 6, max: 6 }).withMessage('OTP must be exactly 6 digits')
+    .isNumeric().withMessage('OTP must contain only numbers')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
+    }
+
+    const { otp } = req.body;
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    if (user.isEmailVerified) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email is already verified'
+      });
+    }
+
+    // Verify OTP
+    const isValidOtp = user.verifyEmailOtp(otp);
+    
+    if (!isValidOtp) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid or expired OTP. Please request a new one.'
+      });
+    }
+
+    await user.save();
+
+    // Send welcome email after successful verification
+    try {
+      await emailService.sendWelcomeEmail(user.email, user.fullName);
+    } catch (emailError) {
+      logger.error('Failed to send welcome email:', emailError);
+      // Don't block verification if welcome email fails
+    }
+
+    logger.info(`Email verified for user: ${user.email}`);
+
+    res.json({
+      success: true,
+      message: 'Email verified successfully!',
+      data: {
+        user: {
+          id: user._id,
+          email: user.email,
+          isEmailVerified: user.isEmailVerified
+        }
+      }
+    });
+  } catch (error) {
+    logger.error('Email verification error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error during email verification'
+    });
+  }
+});
+
+// @desc    Resend OTP for email verification
+// @route   POST /api/auth/resend-otp
+// @access  Private
+router.post('/resend-otp', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    if (user.isEmailVerified) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email is already verified'
+      });
+    }
+
+    // Check if OTP was sent recently (prevent spam)
+    if (user.emailOtpExpire && Date.now() < user.emailOtpExpire.getTime() - 1 * 60 * 1000) {
+      return res.status(429).json({
+        success: false,
+        error: 'Please wait before requesting a new OTP. You can request a new one in 1 minute.'
+      });
+    }
+
+    // Generate new OTP
+    const otp = user.generateEmailOtp();
+    await user.save();
+
+    // Send OTP email
+    try {
+      const OtpService = require('../services/otpService');
+      await OtpService.sendOtpEmail(user.email, otp, 'registration', user.fullName);
+    } catch (emailError) {
+      logger.error('Failed to send OTP email:', emailError);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to send verification email. Please try again.'
+      });
+    }
+
+    logger.info(`OTP resent for user: ${user.email}`);
+
+    res.json({
+      success: true,
+      message: 'Verification code sent to your email address.'
+    });
+  } catch (error) {
+    logger.error('Resend OTP error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error while resending verification code'
+    });
+  }
+});
+
+// @desc    Check email verification status
+// @route   GET /api/auth/email-status
+// @access  Private
+router.get('/email-status', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('email isEmailVerified emailOtpExpire');
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        email: user.email,
+        isEmailVerified: user.isEmailVerified,
+        hasPendingOtp: !!(user.emailOtpExpire && user.emailOtpExpire > new Date())
+      }
+    });
+  } catch (error) {
+    logger.error('Email status check error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error while checking email status'
+    });
+  }
+});
+
 // @desc    Get current user
 // @route   GET /api/auth/me
 // @access  Private
@@ -231,6 +414,7 @@ router.put('/profile', [
   protect,
   body('firstName').optional().trim().isLength({ min: 2, max: 50 }).withMessage('First name must be between 2 and 50 characters'),
   body('lastName').optional().trim().isLength({ min: 2, max: 50 }).withMessage('Last name must be between 2 and 50 characters'),
+  body('email').optional().isEmail().normalizeEmail().withMessage('Please provide a valid email'),
   body('phone').optional().trim().isLength({ max: 20 }).withMessage('Phone number cannot exceed 20 characters'),
   body('location').optional().trim().isLength({ max: 100 }).withMessage('Location cannot exceed 100 characters'),
   body('bio').optional().trim().isLength({ max: 500 }).withMessage('Bio cannot exceed 500 characters'),
@@ -238,6 +422,19 @@ router.put('/profile', [
     if (value === '' || value === null || value === undefined) {
       return true; // Allow empty values for clearing profile picture
     }
+    
+    // Check if it's a localhost URL
+    if (value.includes('localhost') || value.includes('127.0.0.1')) {
+      // For localhost URLs, just check if it has a valid URL structure
+      try {
+        const url = new URL(value);
+        return url.protocol === 'http:' || url.protocol === 'https:';
+      } catch (error) {
+        return false;
+      }
+    }
+    
+    // For non-localhost URLs, use the validator
     return validator.isURL(value);
   }).withMessage('Profile picture must be a valid URL or empty to clear'),
   body('profilePictureType').optional().isIn(['uploaded', 'avatar']).withMessage('Profile picture type must be either "uploaded" or "avatar"')
@@ -251,7 +448,7 @@ router.put('/profile', [
       });
     }
 
-    const { firstName, lastName, phone, location, bio, profilePicture, profilePictureType } = req.body;
+    const { firstName, lastName, email, phone, location, bio, profilePicture, profilePictureType } = req.body;
 
     const user = await User.findById(req.user.id);
 
@@ -261,6 +458,33 @@ router.put('/profile', [
     if (phone !== undefined) user.phone = phone;
     if (location !== undefined) user.location = location;
     if (bio !== undefined) user.bio = bio;
+    
+    // Handle email update with validation
+    if (email !== undefined) {
+      // Check if email is different from current email
+      if (email !== user.email) {
+        // Check if new email already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+          return res.status(400).json({
+            success: false,
+            error: 'Email already exists. Please use a different email address.'
+          });
+        }
+        
+        // Update email and require re-verification
+        user.email = email;
+        user.isEmailVerified = false;
+        
+        // Clear any existing email verification tokens and OTP
+        user.emailVerificationToken = undefined;
+        user.emailVerificationExpire = undefined;
+        user.emailOtp = undefined;
+        user.emailOtpExpire = undefined;
+        
+        logger.info(`Email changed for user ${user._id}: ${user.email} -> ${email} (unverified)`);
+      }
+    }
 
     // Handle profile picture updates
     if (profilePicture !== undefined) {
@@ -331,10 +555,20 @@ router.put('/profile', [
 
     await user.save();
 
+    // Remove sensitive data from response
+    const userResponse = user.toObject();
+    delete userResponse.password;
+    delete userResponse.emailOtp;
+    delete userResponse.emailOtpExpire;
+
     res.json({
       success: true,
+      message: email !== undefined && email !== user.email ? 
+        'Profile updated! Please verify your new email address.' : 
+        'Profile updated successfully!',
       data: {
-        user
+        user: userResponse,
+        requiresEmailVerification: email !== undefined && email !== user.email
       }
     });
   } catch (error) {
@@ -643,11 +877,6 @@ router.get('/google/callback',
       // Redirect to frontend with token
       // Handle multiple CLIENT_URLs if needed
       let clientUrl = process.env.CLIENT_URL;
-      
-      // If CLIENT_URL contains multiple URLs, use the first one
-      if (clientUrl && clientUrl.includes(',')) {
-        clientUrl = clientUrl.split(',')[0].trim();
-      }
       
       // Fallback to production URL if CLIENT_URL is not set
       if (!clientUrl) {

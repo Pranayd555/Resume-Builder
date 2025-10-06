@@ -51,13 +51,13 @@ function ResumeTemplates() {
   };
 
   const handleBack = () => {
-    navigate('/resume-list');
+    navigate('/dashboard');
   };
 
   const handleApplyTemplate = () => {
     if (selectedTemplate) {
       console.log('Applying template:', selectedTemplate);
-      navigate('/resume-editor', { state: { template: selectedTemplate } });
+      navigate('/resume-form', { state: { template: selectedTemplate } });
     }
   };
 
@@ -66,90 +66,110 @@ function ResumeTemplates() {
   };
 
   return (
-    <div className="relative flex size-full min-h-screen flex-col bg-white justify-between group/design-root overflow-x-hidden" style={{ fontFamily: 'Manrope, "Noto Sans", sans-serif' }}>
-      <div>
-        <div className="flex items-center bg-white p-4 pb-2 justify-between">
-          <div 
-            className="text-[#111818] flex size-12 shrink-0 items-center cursor-pointer"
-            onClick={handleBack}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
-              <path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"></path>
-            </svg>
-          </div>
-          <h2 className="text-[#111818] text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Resume Templates</h2>
-        </div>
-        <div className="pb-3">
-          <div className="flex border-b border-[#dbe6e6] px-4 gap-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Header */}
+      <div className="bg-white dark:bg-orange-50/90 shadow-sm border-b border-gray-200 dark:border-orange-200/40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between py-4">
             <button 
-              className={`flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-4 ${
-                activeCategory === 'modern' 
-                  ? 'border-b-[#111818] text-[#111818]' 
-                  : 'border-b-transparent text-[#608a8a]'
-              }`}
-              onClick={() => setActiveCategory('modern')}
+              onClick={handleBack}
+              className="flex items-center text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
             >
-              <p className={`text-sm font-bold leading-normal tracking-[0.015em] ${
-                activeCategory === 'modern' ? 'text-[#111818]' : 'text-[#608a8a]'
-              }`}>Modern</p>
+              <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back
             </button>
-            <button 
-              className={`flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-4 ${
-                activeCategory === 'classic' 
-                  ? 'border-b-[#111818] text-[#111818]' 
-                  : 'border-b-transparent text-[#608a8a]'
-              }`}
-              onClick={() => setActiveCategory('classic')}
-            >
-              <p className={`text-sm font-bold leading-normal tracking-[0.015em] ${
-                activeCategory === 'classic' ? 'text-[#111818]' : 'text-[#608a8a]'
-              }`}>Classic</p>
-            </button>
-            <button 
-              className={`flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-4 ${
-                activeCategory === 'creative' 
-                  ? 'border-b-[#111818] text-[#111818]' 
-                  : 'border-b-transparent text-[#608a8a]'
-              }`}
-              onClick={() => setActiveCategory('creative')}
-            >
-              <p className={`text-sm font-bold leading-normal tracking-[0.015em] ${
-                activeCategory === 'creative' ? 'text-[#111818]' : 'text-[#608a8a]'
-              }`}>Creative</p>
-            </button>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Resume Templates</h1>
+            <div className="w-20"></div> {/* Spacer for centering */}
           </div>
         </div>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(158px,1fr))] gap-3 p-4">
+      </div>
+
+      {/* Category Tabs */}
+      <div className="bg-white dark:bg-orange-50/90 border-b border-gray-200 dark:border-orange-200/40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex space-x-8 overflow-x-auto scrollbar-hide">
+            {Object.keys(templates).map((category) => (
+              <button 
+                key={category}
+                className={`flex-shrink-0 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeCategory === category 
+                    ? 'border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400' 
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                }`}
+                onClick={() => setActiveCategory(category)}
+              >
+                {category.charAt(0).toUpperCase() + category.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Templates Grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {templates[activeCategory].map((template) => (
             <div 
               key={template.id}
-              className={`flex flex-col gap-3 pb-3 cursor-pointer ${
-                selectedTemplate?.id === template.id ? 'ring-2 ring-[#0cf2f2] rounded-xl' : ''
+              className={`template-card cursor-pointer group ${
+                selectedTemplate?.id === template.id ? 'ring-2 ring-blue-500' : ''
               }`}
               onClick={() => handleTemplateSelect(template)}
             >
-              <div
-                className="w-full bg-center bg-no-repeat aspect-[3/4] bg-cover rounded-xl"
-                style={{ backgroundImage: `url("${template.image}")` }}
-              ></div>
-              <p className="text-[#111818] text-base font-medium leading-normal">{template.name}</p>
+              {/* Template Preview - A4 Aspect Ratio */}
+              <div className="relative">
+                <div className="template-image-container">
+                  <img
+                    src={template.image}
+                    alt={template.name}
+                    className="template-image"
+                    loading="lazy"
+                  />
+                </div>
+                
+                {/* Selection Indicator */}
+                {selectedTemplate?.id === template.id && (
+                  <div className="absolute top-3 right-3">
+                    <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Template Info */}
+              <div className="p-4">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  {template.name}
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Professional resume template
+                </p>
+              </div>
             </div>
           ))}
         </div>
       </div>
-      <div>
-        <div className="flex px-4 py-3">
+
+      {/* Apply Button */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-orange-50/90 border-t border-gray-200 dark:border-orange-200/40 p-4">
+        <div className="max-w-7xl mx-auto">
           <button
             onClick={handleApplyTemplate}
             disabled={!selectedTemplate}
-            className={`flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-5 flex-1 text-[#111818] text-base font-bold leading-normal tracking-[0.015em] ${
-              selectedTemplate ? 'bg-[#0cf2f2]' : 'bg-gray-300 cursor-not-allowed'
+            className={`w-full py-3 px-6 rounded-lg font-medium transition-colors ${
+              selectedTemplate 
+                ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
             }`}
           >
-            <span className="truncate">Apply Template</span>
+            {selectedTemplate ? 'Apply Template' : 'Select a Template'}
           </button>
         </div>
-        <div className="h-5 bg-white"></div>
       </div>
     </div>
   );

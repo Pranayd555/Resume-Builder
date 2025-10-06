@@ -1,89 +1,35 @@
 const handlebars = require('handlebars');
 const moment = require('moment');
+const crypto = require('crypto');
 
 // Register Handlebars helpers
 handlebars.registerHelper('formatDate', function(date) {
-  if (!date) return '';
-  try {
-    return moment(date).format('MMM YYYY');
-  } catch (error) {
-    return '';
-  }
+  return moment(date).format('MMM YYYY');
 });
 
-handlebars.registerHelper('formatDateFull', function(date) {
-  if (!date) return '';
-  try {
-    return moment(date).format('MMMM D, YYYY');
-  } catch (error) {
-    return '';
-  }
+handlebars.registerHelper('formatDateRange', function(startDate, endDate, isCurrent) {
+  const start = moment(startDate).format('MMM YYYY');
+  const end = isCurrent ? 'Present' : moment(endDate).format('MMM YYYY');
+  return `${start} - ${end}`;
 });
 
-// Helper for date ranges with proper formatting
-handlebars.registerHelper('formatDateRange', function(startDate, endDate, isCurrentJob, isCurrentlyStudying) {
-  if (!startDate) return '';
+handlebars.registerHelper('calculateDuration', function(startDate, endDate, isCurrent) {
+  const start = moment(startDate);
+  const end = isCurrent ? moment() : moment(endDate);
+  const years = end.diff(start, 'years');
+  const months = end.diff(start, 'months') % 12;
   
-  try {
-    const start = moment(startDate).format('MMM YYYY');
-    const isCurrent = isCurrentJob || isCurrentlyStudying;
-    
-    if (isCurrent) {
-      return `${start} - Present`;
-    } else if (endDate) {
-      const end = moment(endDate).format('MMM YYYY');
-      return `${start} - ${end}`;
-    } else {
-      return start;
-    }
-  } catch (error) {
-    return '';
+  if (years > 0 && months > 0) {
+    return `${years} yr${years > 1 ? 's' : ''} ${months} mo${months > 1 ? 's' : ''}`;
+  } else if (years > 0) {
+    return `${years} yr${years > 1 ? 's' : ''}`;
+  } else {
+    return `${months} mo${months > 1 ? 's' : ''}`;
   }
 });
 
-handlebars.registerHelper('eq', function(a, b) {
-  return a === b;
-});
-
-handlebars.registerHelper('ne', function(a, b) {
-  return a !== b;
-});
-
-handlebars.registerHelper('gt', function(a, b) {
-  return a > b;
-});
-
-handlebars.registerHelper('lt', function(a, b) {
-  return a < b;
-});
-
-handlebars.registerHelper('or', function(a, b) {
-  return a || b;
-});
-
-handlebars.registerHelper('and', function(a, b) {
-  return a && b;
-});
-
-handlebars.registerHelper('capitalize', function(str) {
-  if (!str) return '';
-  return str.charAt(0).toUpperCase() + str.slice(1);
-});
-
-handlebars.registerHelper('uppercase', function(str) {
-  if (!str) return '';
-  return str.toUpperCase();
-});
-
-handlebars.registerHelper('lowercase', function(str) {
-  if (!str) return '';
-  return str.toLowerCase();
-});
-
-handlebars.registerHelper('truncate', function(str, length) {
-  if (!str) return '';
-  if (str.length <= length) return str;
-  return str.substring(0, length) + '...';
+handlebars.registerHelper('isCurrentlyStudying', function(education) {
+  return education && education.some(edu => edu.isCurrentlyStudying);
 });
 
 handlebars.registerHelper('join', function(array, separator) {
@@ -91,119 +37,649 @@ handlebars.registerHelper('join', function(array, separator) {
   return array.join(separator || ', ');
 });
 
-handlebars.registerHelper('length', function(array) {
-  if (!array || !Array.isArray(array)) return 0;
-  return array.length;
-});
-
-handlebars.registerHelper('getSkillLevel', function(level) {
-  const levels = {
-    'beginner': 25,
-    'intermediate': 50,
-    'advanced': 75,
-    'expert': 100
-  };
-  return levels[level] || 50;
-});
-
-handlebars.registerHelper('getProficiencyLevel', function(proficiency) {
-  const levels = {
-    'basic': 25,
-    'conversational': 50,
-    'fluent': 75,
-    'native': 100
-  };
-  return levels[proficiency] || 50;
-});
-
-handlebars.registerHelper('formatPhoneNumber', function(phone) {
-  if (!phone) return '';
-  // Simple phone number formatting - can be enhanced
-  const cleaned = phone.replace(/\D/g, '');
-  if (cleaned.length === 10) {
-    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
-  }
-  return phone;
-});
-
-handlebars.registerHelper('formatUrl', function(url) {
-  if (!url) return '';
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
-    return `https://${url}`;
-  }
-  return url;
-});
-
-handlebars.registerHelper('getInitials', function(name) {
-  if (!name) return '';
-  return name.split(' ').map(word => word.charAt(0).toUpperCase()).join('');
-});
-
-handlebars.registerHelper('yearsOfExperience', function(workExperience) {
-  if (!workExperience || !Array.isArray(workExperience)) return 0;
-  
-  let totalMonths = 0;
-  workExperience.forEach(job => {
-    if (job.startDate) {
-      const startDate = moment(job.startDate);
-      const endDate = job.isCurrentJob ? moment() : moment(job.endDate);
-      totalMonths += endDate.diff(startDate, 'months');
-    }
-  });
-  
-  return Math.floor(totalMonths / 12);
-});
-
-handlebars.registerHelper('getEducationLevel', function(education) {
-  if (!education || !Array.isArray(education)) return '';
-  
-  const levels = {
-    'high school': 1,
-    'diploma': 2,
-    'associate': 3,
-    'bachelor': 4,
-    'master': 5,
-    'doctorate': 6,
-    'phd': 6
-  };
-  
-  let highestLevel = 0;
-  let highestDegree = '';
-  
-  education.forEach(edu => {
-    if (edu.degree) {
-      const degree = edu.degree.toLowerCase();
-      for (const [key, level] of Object.entries(levels)) {
-        if (degree.includes(key) && level > highestLevel) {
-          highestLevel = level;
-          highestDegree = edu.degree;
-        }
-      }
-    }
-  });
-  
-  return highestDegree;
-});
-
-handlebars.registerHelper('hasContent', function(obj) {
-  if (!obj) return false;
-  if (Array.isArray(obj)) return obj.length > 0;
-  if (typeof obj === 'string') return obj.trim().length > 0;
-  if (typeof obj === 'object') return Object.keys(obj).length > 0;
-  return Boolean(obj);
-});
-
-handlebars.registerHelper('isCurrentPosition', function(workExperience) {
-  return workExperience && workExperience.some(job => job.isCurrentJob);
-});
-
-handlebars.registerHelper('isCurrentlyStudying', function(education) {
-  return education && education.some(edu => edu.isCurrentlyStudying);
-});
-
-class TemplateRenderer {
+/**
+ * Optimized Template Renderer with CSS Caching
+ * Replaces inefficient string concatenation with template-based CSS generation
+ */
+class OptimizedTemplateRenderer {
   constructor() {
     this.handlebars = handlebars;
+    this.cssTemplates = new Map();
+    this.styleCache = new Map();
+    this.cssTemplateCache = new Map();
+    this.maxCacheSize = 1000; // Prevent memory leaks
+  }
+
+  /**
+   * Generate a hash for styling configuration to enable caching
+   * @param {Object} styling - Template styling object
+   * @param {Object} dataStyling - User data styling object
+   * @returns {string} - Hash string for caching
+   */
+  generateStylingHash(styling, dataStyling) {
+    const hashData = {
+      colors: styling?.colors || {},
+      fonts: styling?.fonts || {},
+      template: dataStyling?.template || {}
+    };
+    return crypto.createHash('md5').update(JSON.stringify(hashData)).digest('hex');
+  }
+
+  /**
+   * Get cached CSS if available
+   * @param {string} stylingHash - Hash of styling configuration
+   * @param {string} templateId - Template identifier
+   * @returns {string|null} - Cached CSS or null if not found
+   */
+  getCachedStyles(stylingHash, templateId) {
+    const cacheKey = `${templateId}-${stylingHash}`;
+    return this.styleCache.get(cacheKey);
+  }
+
+  /**
+   * Set cached CSS
+   * @param {string} stylingHash - Hash of styling configuration
+   * @param {string} templateId - Template identifier
+   * @param {string} css - Generated CSS
+   */
+  setCachedStyles(stylingHash, templateId, css) {
+    const cacheKey = `${templateId}-${stylingHash}`;
+    
+    // Implement LRU-like cache eviction
+    if (this.styleCache.size >= this.maxCacheSize) {
+      const firstKey = this.styleCache.keys().next().value;
+      this.styleCache.delete(firstKey);
+    }
+    
+    this.styleCache.set(cacheKey, css);
+  }
+
+  /**
+   * Get or compile CSS template for a template type
+   * @param {Object} template - Template object
+   * @returns {Function} - Compiled CSS template function
+   */
+  getCssTemplate(template) {
+    const templateKey = template._id?.toString() || template.name || 'default';
+    
+    if (!this.cssTemplates.has(templateKey)) {
+      this.cssTemplates.set(templateKey, this.compileCssTemplate(template));
+    }
+    
+    return this.cssTemplates.get(templateKey);
+  }
+
+  /**
+   * Compile CSS template for efficient rendering
+   * @param {Object} template - Template object
+   * @returns {Function} - Compiled CSS template function
+   */
+  compileCssTemplate(template) {
+    const baseCss = template.templateCode.css;
+    
+    return (styling, dataStyling, uniqueId) => {
+      let css = baseCss;
+      const colors = styling?.colors || {};
+      const fonts = styling?.fonts || {};
+
+      // Pre-compile regex patterns for better performance
+      const colorPatterns = Object.keys(colors).map(key => ({
+        pattern: new RegExp(`var\\(--color-${key}\\)`, 'g'),
+        replacement: colors[key]
+      }));
+
+      const fontPatterns = Object.keys(fonts)
+        .filter(key => key !== 'sizes')
+        .map(key => ({
+          pattern: new RegExp(`var\\(--font-${key}\\)`, 'g'),
+          replacement: fonts[key]
+        }));
+
+      const fontSizePatterns = fonts.sizes ? 
+        Object.keys(fonts.sizes).map(size => ({
+          pattern: new RegExp(`var\\(--font-size-${size}\\)`, 'g'),
+          replacement: `${fonts.sizes[size]}px`
+        })) : [];
+
+      // Apply all replacements efficiently
+      [...colorPatterns, ...fontPatterns, ...fontSizePatterns].forEach(({ pattern, replacement }) => {
+        css = css.replace(pattern, replacement);
+      });
+
+      // Apply template styling options if available
+      if (dataStyling?.template) {
+        css += this.generateTemplateStyling(dataStyling.template, uniqueId, styling);
+      }
+
+      // Apply user color overrides if available
+      if (dataStyling?.template?.colors) {
+        css += this.generateColorOverrides(dataStyling.template.colors, uniqueId);
+      }
+
+      // Add final spacing rules
+      css += this.generateSpacingRules(uniqueId);
+
+      return css;
+    };
+  }
+
+  /**
+   * Generate template-specific styling CSS
+   * @param {Object} templateStyling - Template styling configuration
+   * @param {string} uniqueId - Unique CSS identifier
+   * @param {Object} styling - Template styling object
+   * @returns {string} - Generated CSS
+   */
+  generateTemplateStyling(templateStyling, uniqueId, styling) {
+    let css = '';
+
+    // Add CSS variables for user-selected colors
+    if (templateStyling?.colors) {
+      css += `
+        .${uniqueId} {
+          --user-color-primary: ${templateStyling.colors.primary || 'var(--color-primary)'};
+          --user-color-secondary: ${templateStyling.colors.secondary || 'var(--color-secondary)'};
+          --user-color-accent: ${templateStyling.colors.accent || 'var(--color-accent)'};
+          --user-color-text: ${templateStyling.colors.text || 'var(--color-text)'};
+          --user-color-background: ${templateStyling.colors.background || 'var(--color-background)'};
+        }
+      `;
+    }
+
+    // Header level mapping
+    const headerLevels = {
+      'h1': { fontSize: '2.5rem', fontWeight: '700', marginBottom: '0.25rem' },
+      'h2': { fontSize: '2rem', fontWeight: '600', marginBottom: '0.125rem' },
+      'h3': { fontSize: '1.5rem', fontWeight: '600', marginBottom: '0.125rem' },
+      'h4': { fontSize: '1.25rem', fontWeight: '500', marginBottom: '0.125rem' },
+      'h5': { fontSize: '1.125rem', fontWeight: '500', marginBottom: '0.125rem' }
+    };
+
+    // Apply header font size
+    if (templateStyling.headerFontSize) {
+      css += `
+        .${uniqueId} h1,
+        .${uniqueId} h2,
+        .${uniqueId} h3,
+        .${uniqueId} h4,
+        .${uniqueId} h5 { 
+          font-size: ${templateStyling.headerFontSize}px !important; 
+          font-weight: 600 !important; 
+          margin-bottom: 0.125rem !important; 
+        }
+        .${uniqueId} .name {
+          font-size: ${templateStyling.headerFontSize + 2}px !important;  
+          font-weight: 600 !important; 
+        }
+          
+        
+        /* Medium text elements */
+        .${uniqueId} .language-name,
+        .${uniqueId} .skill-category-title,
+        .${uniqueId} .job-title,
+        .${uniqueId} .edu-degree,
+        .${uniqueId} .project-name,
+        .${uniqueId} .achievement-title,
+        .${uniqueId} .cert-name,
+        .${uniqueId} .custom-field-title { 
+          font-size: ${templateStyling.headerFontSize - 2}px !important; 
+        }
+      `;
+    }
+    // Apply header level (fallback if headerFontSize not set)
+    else if (templateStyling.headerLevel && headerLevels[templateStyling.headerLevel]) {
+      const level = headerLevels[templateStyling.headerLevel];
+      css += `
+        .${uniqueId} .name,
+        .${uniqueId} h1,
+        .${uniqueId} h2,
+        .${uniqueId} h3,
+        .${uniqueId} h4,
+        .${uniqueId} h5 { 
+          font-size: ${level.fontSize} !important; 
+          font-weight: ${level.fontWeight} !important; 
+        }
+      `;
+    }
+
+    // Apply content font size with unified logic
+    if (templateStyling.fontSize) {
+      const baseSize = templateStyling.fontSize;
+      let smallSize, mediumSize;
+      
+      // Unified font size logic: <14 = 10px, 14-18 = 12px, >18 = 13px
+      if (baseSize <= 14) {
+        smallSize = 10;
+        mediumSize = baseSize + 1;
+      } else if (baseSize > 14 && baseSize <= 18) {
+        smallSize = 12;
+        mediumSize = baseSize + 1;
+      } else {
+        smallSize = 14;
+        mediumSize = baseSize + 1;
+      }
+      
+      css += `
+        /* Main content font size */
+        .${uniqueId} p,
+        .${uniqueId} .secondaryFont,
+        .${uniqueId} .contact-info,
+        .${uniqueId} .job-description,
+        .${uniqueId} .edu-description,
+        .${uniqueId} .achievements li,
+        .${uniqueId} .skill-items,
+        .${uniqueId} .technologies,
+        .${uniqueId} .project-links,
+        .${uniqueId} .custom-content,
+        .${uniqueId} .summary-text,
+        .${uniqueId} .project-description,
+        .${uniqueId} .achievement-description,
+        .${uniqueId} .edu-description { 
+          font-size: ${baseSize}px !important; 
+        }
+        
+        /* Small text elements (dates, meta info, etc.) */
+        .${uniqueId} .job-dates,
+        .${uniqueId} .edu-dates,
+        .${uniqueId} .project-dates,
+        .${uniqueId} .achievement-date,
+        .${uniqueId} .cert-dates,
+        .${uniqueId} .cert-expiry,
+        .${uniqueId} .cert-id,
+        .${uniqueId} .language-level,
+        .${uniqueId} .language-proficiency,
+        .${uniqueId} .achievement-issuer,
+        .${uniqueId} .cert-issuer,
+        .${uniqueId} .gpa,
+        .${uniqueId} .company,
+        .${uniqueId} .institution,
+        .${uniqueId} .location,
+        .${uniqueId} .issuer,
+        .${uniqueId} .dates,
+        .${uniqueId} .tech-tag,
+        .${uniqueId} .skill-item,
+        .${uniqueId} .project-links a,
+        .${uniqueId} .cert-link a,
+        .${uniqueId} .contact-item a { 
+          font-size: ${smallSize}px !important; 
+        }
+
+        .${uniqueId} .primaryFont strong {
+          font-size: ${smallSize}px !important; 
+        }
+      `;
+    }
+
+    // Apply line spacing
+    if (templateStyling.lineSpacing) {
+      css += `
+        .${uniqueId} p,
+        .${uniqueId} .job-description,
+        .${uniqueId} .edu-description,
+        .${uniqueId} .achievements li,
+        .${uniqueId} .summary,
+        .${uniqueId} .custom-content { 
+          line-height: ${templateStyling.lineSpacing} !important; 
+        }
+      `;
+    }
+
+    // Apply section spacing
+    if (templateStyling.sectionSpacing) {
+      css += `
+        .${uniqueId} section,
+        .${uniqueId} .section,
+        .${uniqueId} .work-experience,
+        .${uniqueId} .education,
+        .${uniqueId} .skills,
+        .${uniqueId} .projects,
+        .${uniqueId} .achievements,
+        .${uniqueId} .certifications,
+        .${uniqueId} .languages,
+        .${uniqueId} .summary { 
+          margin-bottom: ${templateStyling.sectionSpacing * 0.25}rem !important; 
+          padding-bottom: ${templateStyling.sectionSpacing * 0.125}rem !important; 
+        }
+        .${uniqueId} .job-item,
+        .${uniqueId} .edu-item,
+        .${uniqueId} .project-item,
+        .${uniqueId} .cert-item,
+        .${uniqueId} .achievement-item,
+        .${uniqueId} .skill-category { 
+          margin-bottom: ${templateStyling.sectionSpacing * 0.25}rem !important; 
+          padding-bottom: ${templateStyling.sectionSpacing * 0.125}rem !important; 
+        }
+      `;
+    }
+
+    // Apply primary and secondary font classes with appropriate sizes
+    // Use user-selected fonts if available, otherwise use template defaults
+    const primaryFont = templateStyling?.primaryFont || styling?.fonts?.primary || 'Arial';
+    const secondaryFont = templateStyling?.secondaryFont || styling?.fonts?.secondary || 'Arial';
+    
+    // Get font sizes from template styling (prioritize user settings over template defaults)
+    const headingSize = templateStyling?.headerFontSize || styling?.fonts?.sizes?.heading || 18;
+    const subheadingSize = templateStyling?.headerFontSize || styling?.fonts?.sizes?.subheading || 16;
+    const bodySize = templateStyling?.fontSize || styling?.fonts?.sizes?.body || 12;
+    const smallSize = styling?.fonts?.sizes?.small || 10;
+    
+    css += `
+      /* Primary and Secondary Font Classes - High Specificity */
+      .${uniqueId} .primaryFont,
+      .${uniqueId} .primaryFont * {
+        font-family: '${primaryFont}', sans-serif !important;
+        font-size: ${headingSize}px !important;
+        font-weight: 600 !important;
+      }
+      .${uniqueId} .secondaryFont,
+      .${uniqueId} .secondaryFont * {
+        font-family: '${secondaryFont}', sans-serif !important;
+        font-size: ${bodySize}px !important;
+        font-weight: 400 !important;
+      }
+      
+      /* Specific heading sizes for primaryFont */
+      .${uniqueId} .primaryFont h1,
+      .${uniqueId} h1.primaryFont,
+      .${uniqueId} .name.primaryFont {
+        font-size: ${headingSize + 2}px !important;
+        font-weight: 700 !important;
+      }
+      .${uniqueId} .primaryFont h2,
+      .${uniqueId} h2.primaryFont {
+        font-size: ${headingSize}px !important;
+        font-weight: 600 !important;
+      }
+      .${uniqueId} .primaryFont h3,
+      .${uniqueId} h3.primaryFont {
+        font-size: ${subheadingSize}px !important;
+        font-weight: 600 !important;
+      }
+      
+      /* Small text for secondaryFont */
+      .${uniqueId} .secondaryFont small,
+      .${uniqueId} small.secondaryFont,
+      .${uniqueId} .secondaryFont .dates {
+        font-size: ${smallSize}px !important;
+      }
+      
+      /* Override any existing font rules for these classes */
+      .${uniqueId} .primaryFont,
+      .${uniqueId} .primaryFont * {
+        font-family: '${primaryFont}', sans-serif !important;
+      }
+      .${uniqueId} .secondaryFont,
+      .${uniqueId} .secondaryFont * {
+        font-family: '${secondaryFont}', sans-serif !important;
+      }
+    `;
+
+    return css;
+  }
+
+  /**
+   * Get effective colors - only apply colors that user has explicitly set
+   * @param {Object} resumeColors - Colors from resume styling
+   * @param {Object} templateColors - Colors from template styling
+   * @returns {Object} - Effective colors (only user-selected colors)
+   */
+  getEffectiveColors(resumeColors, templateColors) {
+    const effectiveColors = {};
+
+    // Only apply colors that the user has explicitly set in their resume
+    if (resumeColors) {
+      Object.keys(resumeColors).forEach(key => {
+        if (resumeColors[key] && resumeColors[key] !== null) {
+          effectiveColors[key] = resumeColors[key];
+        }
+      });
+    }
+
+    // If no user colors, return empty object (no colors applied)
+    return effectiveColors;
+  }
+
+  /**
+   * Generate color override CSS for user-selected colors
+   * @param {Object} userColors - User-selected color configuration
+   * @param {string} uniqueId - Unique CSS identifier
+   * @returns {string} - Generated CSS
+   */
+  generateColorOverrides(userColors, uniqueId) {
+    if (!userColors) return '';
+
+    let css = '';
+    
+    // Override primary colors
+    if (userColors.primary) {
+      css += `
+        .${uniqueId} .name,
+        .${uniqueId} h1,
+        .${uniqueId} h2,
+        .${uniqueId} h3,
+        .${uniqueId} h4,
+        .${uniqueId} h5,
+        .${uniqueId} .primaryFont,
+        .${uniqueId} .contact-info,
+        .${uniqueId} .skill-category-title,
+        .${uniqueId} .job-title,
+        .${uniqueId} .edu-degree,
+        .${uniqueId} .project-name,
+        .${uniqueId} .achievement-title,
+        .${uniqueId} .cert-name {
+          color: ${userColors.primary} !important;
+        }
+        .${uniqueId} .skill-item,
+        .${uniqueId} .tech-tag,
+        .${uniqueId} h2,
+        .${uniqueId} h3 {
+          border-bottom-color: ${userColors.primary} !important;
+        }
+      `;
+    }
+
+    // Override secondary colors
+    if (userColors.secondary) {
+      css += `
+        .${uniqueId} .job-description,
+        .${uniqueId} .edu-description,
+        .${uniqueId} .achievements li,
+        .${uniqueId} .skill-items,
+        .${uniqueId} .project-links,
+        .${uniqueId} .cert-expiry,
+        .${uniqueId} .cert-id,
+        .${uniqueId} .language-level,
+        .${uniqueId} .language-proficiency,
+        .${uniqueId} .tech-tag,
+        .${uniqueId} .custom-content,
+        .${uniqueId} .summary-text,
+        .${uniqueId} .project-description,
+        .${uniqueId} .achievement-description,
+        .${uniqueId} .secondaryFont,
+        .${uniqueId} .skill-item {
+          color: ${userColors.secondary} !important;
+        }
+      `;
+    }
+
+    // Override accent colors
+    if (userColors.accent) {
+      css += `
+        .${uniqueId} .company,
+        .${uniqueId} .institution,
+        .${uniqueId} .issuer,
+        .${uniqueId} .location,
+        .${uniqueId} .dates,
+        .${uniqueId} .job-dates,
+        .${uniqueId} .edu-dates,
+        .${uniqueId} .project-dates,
+        .${uniqueId} .achievement-date,
+        .${uniqueId} .cert-dates,
+        .${uniqueId} .cert-expiry,
+        .${uniqueId} .cert-id,
+        .${uniqueId} .achievement-issuer,
+        .${uniqueId} .cert-issuer,
+        .${uniqueId} .gpa {
+          color: ${userColors.accent} !important;
+        }
+        .${uniqueId} .project-links a,
+        .${uniqueId} .cert-link a,
+        .${uniqueId} .contact-item a {
+          color: ${userColors.accent} !important;
+        }
+      `;
+    }
+
+    // Override text colors
+    if (userColors.text) {
+      css += `
+        .${uniqueId} p,
+        .${uniqueId} .summary,
+        .${uniqueId} .about-text,
+        .${uniqueId} .description,
+        .${uniqueId} .achievement-description,
+        .${uniqueId} .custom-content,
+        .${uniqueId} ul li,
+        .${uniqueId} ol li {
+          color: ${userColors.text} !important;
+        }
+      `;
+    }
+
+
+    return css;
+  }
+
+  /**
+   * Generate spacing rules CSS
+   * @param {string} uniqueId - Unique CSS identifier
+   * @returns {string} - Generated CSS
+   */
+  generateSpacingRules(uniqueId) {
+    return `
+      /* Add more bottom spacing for main section titles */
+      .${uniqueId} h2,
+      .${uniqueId} .section-title,
+      .${uniqueId} .sidebar-title {
+        margin-bottom: 0.5rem !important;
+        padding-bottom: 0.25rem !important;
+      }
+      
+      /* Specific spacing for work experience and projects sections */
+      .${uniqueId} .work-experience h2,
+      .${uniqueId} .projects h2,
+      .${uniqueId} .education h2,
+      .${uniqueId} .skills h2,
+      .${uniqueId} .achievements h2,
+      .${uniqueId} .certifications h2,
+      .${uniqueId} .languages h2,
+      .${uniqueId} .summary h2 {
+        margin-bottom: 0.75rem !important;
+        padding-bottom: 0.375rem !important;
+      }
+      
+      /* Remove bottom spacing from the last element */
+      .${uniqueId} > *:last-child,
+      .${uniqueId} section:last-child,
+      .${uniqueId} .section:last-child,
+      .${uniqueId} .work-experience:last-child,
+      .${uniqueId} .education:last-child,
+      .${uniqueId} .skills:last-child,
+      .${uniqueId} .projects:last-child,
+      .${uniqueId} .achievements:last-child,
+      .${uniqueId} .certifications:last-child,
+      .${uniqueId} .languages:last-child,
+      .${uniqueId} .summary:last-child,
+      .${uniqueId} .custom-fields:last-child,
+      .${uniqueId} .main-column > *:last-child,
+      .${uniqueId} .sidebar > *:last-child,
+      .${uniqueId} .content-grid > *:last-child {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+      }
+      
+      /* General list styling for HTML content in descriptions */
+      .${uniqueId} ul, .${uniqueId} ol { 
+        margin: 0.25rem 0; 
+        padding-left: 1rem; 
+      }
+      .${uniqueId} ul li, .${uniqueId} ol li { 
+        margin-bottom: 0.125rem; 
+        line-height: 1.3; 
+      }
+      .${uniqueId} ul { 
+        list-style-type: disc; 
+      }
+      .${uniqueId} ol { 
+        list-style-type: decimal; 
+      }
+      
+      /* Also remove bottom spacing from last items within sections 
+      .${uniqueId} .job-item:last-child,
+      .${uniqueId} .edu-item:last-child,
+      .${uniqueId} .project-item:last-child,
+      .${uniqueId} .cert-item:last-child,
+      .${uniqueId} .achievement-item:last-child,
+      .${uniqueId} .skill-category:last-child,
+      .${uniqueId} .language-item:last-child,
+      .${uniqueId} .custom-field:last-child {
+        margin-bottom: 2px !important;
+        padding-bottom: 0 !important;
+      } */
+    `;
+  }
+
+  /**
+   * Optimized CSS rendering with caching
+   * @param {Object} template - Template object
+   * @param {Object} data - Template data
+   * @param {string} uniqueId - Unique identifier for CSS scoping
+   * @returns {string} - Rendered CSS
+   */
+  renderCss(template, data, uniqueId) {
+    const templateId = template._id?.toString() || template.name || 'default';
+    const styling = template.styling;
+    const dataStyling = data.styling;
+    
+    // Generate hash for caching
+    const stylingHash = this.generateStylingHash(styling, dataStyling);
+    
+    // Check cache first
+    const cachedCss = this.getCachedStyles(stylingHash, templateId);
+    if (cachedCss) {
+      return cachedCss;
+    }
+    
+    // Get or compile CSS template
+    const cssTemplate = this.getCssTemplate(template);
+    
+    // Generate CSS using template
+    const css = cssTemplate(styling, dataStyling, uniqueId);
+    
+    // Cache the result
+    this.setCachedStyles(stylingHash, templateId, css);
+    
+    return css;
+  }
+
+  /**
+   * Clear CSS cache (useful for development or memory management)
+   */
+  clearCache() {
+    this.styleCache.clear();
+    this.cssTemplates.clear();
+  }
+
+  /**
+   * Get cache statistics
+   * @returns {Object} - Cache statistics
+   */
+  getCacheStats() {
+    return {
+      styleCacheSize: this.styleCache.size,
+      cssTemplatesSize: this.cssTemplates.size,
+      maxCacheSize: this.maxCacheSize
+    };
   }
 
   /**
@@ -262,8 +738,6 @@ class TemplateRenderer {
     // Convert MongoDB objects to plain JavaScript objects
     const plainData = JSON.parse(JSON.stringify(resumeData));
     
-
-    
     const data = {
       ...plainData,
       // Add computed fields
@@ -277,7 +751,7 @@ class TemplateRenderer {
       },
       // Add template-specific settings
       template: {
-        colors: template.styling?.colors || {},
+        colors: this.getEffectiveColors(plainData.styling?.template?.colors, template.styling?.colors),
         fonts: template.styling?.fonts || {},
         layout: template.layout?.type || 'single-column',
         category: template.category || 'modern'
@@ -285,8 +759,6 @@ class TemplateRenderer {
       // Add resume styling data
       styling: plainData.styling || {}
     };
-
-
 
     // Ensure arrays exist and are plain objects
     data.workExperience = Array.isArray(data.workExperience) ? data.workExperience : [];
@@ -314,252 +786,6 @@ class TemplateRenderer {
     }));
 
     return data;
-  }
-
-  /**
-   * Render CSS with template variables
-   * @param {Object} template - Template object
-   * @param {Object} data - Template data
-   * @param {string} uniqueId - Unique identifier for CSS scoping
-   * @returns {string} - Rendered CSS
-   */
-  renderCss(template, data, uniqueId) {
-    let css = template.templateCode.css;
-
-    // Replace CSS variables with template styling
-    const styling = template.styling;
-    const colors = styling.colors || {};
-    const fonts = styling.fonts || {};
-    const spacing = styling.spacing || {};
-
-    // Replace color variables
-    Object.keys(colors).forEach(key => {
-      const pattern = new RegExp(`var\\(--color-${key}\\)`, 'g');
-      css = css.replace(pattern, colors[key]);
-    });
-
-    // Replace font variables
-    Object.keys(fonts).forEach(key => {
-      if (key !== 'sizes') {
-        const pattern = new RegExp(`var\\(--font-${key}\\)`, 'g');
-        css = css.replace(pattern, fonts[key]);
-      }
-    });
-
-    // Replace font size variables
-    if (fonts.sizes) {
-      Object.keys(fonts.sizes).forEach(size => {
-        const pattern = new RegExp(`var\\(--font-size-${size}\\)`, 'g');
-        css = css.replace(pattern, `${fonts.sizes[size]}px`);
-      });
-    }
-
-    // Replace spacing variables
-    if (spacing.margins) {
-      Object.keys(spacing.margins).forEach(side => {
-        const pattern = new RegExp(`var\\(--margin-${side}\\)`, 'g');
-        css = css.replace(pattern, `${spacing.margins[side]}px`);
-      });
-    }
-
-    if (spacing.padding) {
-      Object.keys(spacing.padding).forEach(type => {
-        const pattern = new RegExp(`var\\(--padding-${type}\\)`, 'g');
-        css = css.replace(pattern, `${spacing.padding[type]}px`);
-      });
-    }
-
-    // Apply template styling options if available (new format)
-    if (data.styling && data.styling.template) {
-      const templateStyling = data.styling.template;
-      
-
-      
-      // Header level mapping
-      const headerLevels = {
-        'h1': { fontSize: '2.5rem', fontWeight: '700', marginBottom: '1rem' },
-        'h2': { fontSize: '2rem', fontWeight: '600', marginBottom: '0.875rem' },
-        'h3': { fontSize: '1.5rem', fontWeight: '600', marginBottom: '0.75rem' },
-        'h4': { fontSize: '1.25rem', fontWeight: '500', marginBottom: '0.625rem' },
-        'h5': { fontSize: '1.125rem', fontWeight: '500', marginBottom: '0.5rem' }
-      };
-
-      // Apply header level
-      if (templateStyling.headerLevel && headerLevels[templateStyling.headerLevel]) {
-        const level = headerLevels[templateStyling.headerLevel];
-        css += `
-          .${uniqueId} .name,
-          .${uniqueId} h1,
-          .${uniqueId} h2,
-          .${uniqueId} h3,
-          .${uniqueId} h4,
-          .${uniqueId} h5 { 
-            font-size: ${level.fontSize} !important; 
-            font-weight: ${level.fontWeight} !important; 
-            margin-bottom: ${level.marginBottom} !important; 
-          }
-        `;
-
-      }
-
-      // Apply font size
-      if (templateStyling.fontSize) {
-        const fontSize = templateStyling.fontSize;
-        css += `
-          .${uniqueId},
-          .${uniqueId} * { 
-            font-size: ${fontSize}px !important; 
-          }
-        `;
-
-      }
-
-      // Apply line spacing
-      if (templateStyling.lineSpacing) {
-        const lineSpacing = templateStyling.lineSpacing;
-        css += `
-          .${uniqueId},
-          .${uniqueId} * { 
-            line-height: ${lineSpacing} !important; 
-          }
-        `;
-
-      }
-
-      // Apply section spacing
-      if (templateStyling.sectionSpacing) {
-        const sectionSpacing = templateStyling.sectionSpacing;
-        css += `
-          .${uniqueId} section,
-          .${uniqueId} .section,
-          .${uniqueId} .work-experience,
-          .${uniqueId} .education,
-          .${uniqueId} .skills,
-          .${uniqueId} .projects,
-          .${uniqueId} .achievements,
-          .${uniqueId} .certifications,
-          .${uniqueId} .languages { 
-            margin-bottom: ${sectionSpacing}rem !important; 
-            padding-bottom: ${sectionSpacing * 0.5}rem !important; 
-          }
-        `;
-
-      }
-    }
-    // Apply header styling options if available (old format - for backward compatibility)
-    else if (data.styling && data.styling.header) {
-      const headerStyling = data.styling.header;
-      
-
-      
-      // Header size mapping
-      const headerSizes = {
-        'small': { padding: '15px', margin: '10px 0' },
-        'medium': { padding: '20px', margin: '15px 0' },
-        'large': { padding: '25px', margin: '20px 0' },
-        'extra-large': { padding: '30px', margin: '25px 0' }
-      };
-
-      // Text size mapping
-      const textSizes = {
-        'small': { fontSize: '14px', lineHeight: '1.3' },
-        'medium': { fontSize: '16px', lineHeight: '1.4' },
-        'large': { fontSize: '18px', lineHeight: '1.5' }
-      };
-
-      // Label size mapping
-      const labelSizes = {
-        'small': { fontSize: '10px', lineHeight: '1.2' },
-        'medium': { fontSize: '12px', lineHeight: '1.3' },
-        'large': { fontSize: '14px', lineHeight: '1.4' }
-      };
-
-      // Spacing mapping
-      const spacingOptions = {
-        'compact': { gap: '8px', marginBottom: '10px' },
-        'normal': { gap: '12px', marginBottom: '15px' },
-        'spacious': { gap: '16px', marginBottom: '20px' }
-      };
-
-      // Apply header size
-      if (headerStyling.size && headerSizes[headerStyling.size]) {
-        const size = headerSizes[headerStyling.size];
-        css += `
-          .${uniqueId} .header,
-          .${uniqueId} .tech-header,
-          .${uniqueId} .classic-header,
-          .${uniqueId} .executive-header { 
-            padding: ${size.padding} !important; 
-            margin: ${size.margin} !important; 
-          }
-        `;
-
-      }
-
-      // Apply text size
-      if (headerStyling.textSize && textSizes[headerStyling.textSize]) {
-        const textSize = textSizes[headerStyling.textSize];
-        css += `
-          .${uniqueId} .header .name,
-          .${uniqueId} .tech-header .name,
-          .${uniqueId} .classic-header .name,
-          .${uniqueId} .executive-header .name,
-          .${uniqueId} .name { 
-            font-size: ${textSize.fontSize} !important; 
-            line-height: ${textSize.lineHeight} !important; 
-          }
-        `;
-
-      }
-
-      // Apply label size
-      if (headerStyling.labelSize && labelSizes[headerStyling.labelSize]) {
-        const labelSize = labelSizes[headerStyling.labelSize];
-        css += `
-          .${uniqueId} .header .contact-info,
-          .${uniqueId} .header .contact-item,
-          .${uniqueId} .header .contact-details,
-          .${uniqueId} .tech-header .contact-info,
-          .${uniqueId} .tech-header .contact-item,
-          .${uniqueId} .classic-header .contact-info,
-          .${uniqueId} .classic-header .contact-item,
-          .${uniqueId} .classic-header .contact-details,
-          .${uniqueId} .executive-header .contact-info,
-          .${uniqueId} .executive-header .contact-item { 
-            font-size: ${labelSize.fontSize} !important; 
-            line-height: ${labelSize.lineHeight} !important; 
-          }
-        `;
-
-      }
-
-      // Apply spacing
-      if (headerStyling.spacing && spacingOptions[headerStyling.spacing]) {
-        const spacing = spacingOptions[headerStyling.spacing];
-        css += `
-          .${uniqueId} .header .contact-info,
-          .${uniqueId} .tech-header .contact-info,
-          .${uniqueId} .classic-header .contact-info,
-          .${uniqueId} .executive-header .contact-info { 
-            gap: ${spacing.gap} !important; 
-            margin-bottom: ${spacing.marginBottom} !important; 
-          }
-          .${uniqueId} .header .contact-item,
-          .${uniqueId} .tech-header .contact-item,
-          .${uniqueId} .classic-header .contact-item,
-          .${uniqueId} .executive-header .contact-item { 
-            margin-bottom: ${spacing.gap} !important; 
-          }
-        `;
-
-      }
-    } else {
-
-    }
-
-
-
-    return css;
   }
 
   /**
@@ -811,4 +1037,4 @@ class TemplateRenderer {
   }
 }
 
-module.exports = TemplateRenderer; 
+module.exports = OptimizedTemplateRenderer; 

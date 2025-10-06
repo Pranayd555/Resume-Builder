@@ -318,6 +318,82 @@ class EmailService {
     }
   }
 
+  // Contact form email methods
+  async sendContactNotification({ contactId, name, email, subject, message, category, createdAt }) {
+    try {
+      const htmlContent = await this.loadTemplate('contact-notification', {
+        contactId,
+        name,
+        email,
+        subject,
+        message,
+        category: category.charAt(0).toUpperCase() + category.slice(1).replace('-', ' '),
+        createdAt: new Date(createdAt).toLocaleString(),
+        adminUrl: `${process.env.CLIENT_URL}/admin/contacts/${contactId}`
+      });
+
+      const notificationEmail = process.env.ADMIN_EMAIL || process.env.SUPPORT_EMAIL || process.env.EMAIL_USER;
+      
+      await this.sendEmail(
+        notificationEmail,
+        `New Contact Form Submission: ${subject}`,
+        htmlContent
+      );
+      
+      logger.info(`Contact notification email sent for contact from ${email}`);
+    } catch (error) {
+      logger.error(`Failed to send contact notification email:`, error);
+      throw error;
+    }
+  }
+
+  async sendContactAutoReply({ name, email, subject, category }) {
+    try {
+      const htmlContent = await this.loadTemplate('contact-auto-reply', {
+        name,
+        subject,
+        category: category.charAt(0).toUpperCase() + category.slice(1).replace('-', ' '),
+        supportEmail: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER,
+        websiteUrl: process.env.CLIENT_URL
+      });
+
+      await this.sendEmail(
+        email,
+        'We received your message - Resume Builder',
+        htmlContent
+      );
+      
+      logger.info(`Contact auto-reply sent to ${email}`);
+    } catch (error) {
+      logger.error(`Failed to send contact auto-reply:`, error);
+      throw error;
+    }
+  }
+
+  async sendContactResponse({ name, email, subject, response, adminName }) {
+    try {
+      const htmlContent = await this.loadTemplate('contact-response', {
+        name,
+        subject,
+        response,
+        adminName,
+        supportEmail: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER,
+        websiteUrl: process.env.CLIENT_URL
+      });
+
+      await this.sendEmail(
+        email,
+        `Re: ${subject}`,
+        htmlContent
+      );
+      
+      logger.info(`Contact response sent to ${email}`);
+    } catch (error) {
+      logger.error(`Failed to send contact response:`, error);
+      throw error;
+    }
+  }
+
   stripHtml(html) {
     return html.replace(/<[^>]*>?/gm, '');
   }

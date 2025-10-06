@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import AuthLoader from './AuthLoader';
 
 function AuthCallback() {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ function AuthCallback() {
           // Store the token and update auth context
           const result = await loginWithToken(token);
           if (result.success) {
-            navigate('/resume-list', { replace: true });
+            navigate('/dashboard', { replace: true });
           } else {
             setError(result.error || 'Authentication failed');
             setLoading(false);
@@ -55,18 +56,16 @@ function AuthCallback() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Completing authentication...</p>
-        </div>
-      </div>
+      <AuthLoader 
+        title="Completing authentication..."
+        subtitle="Please wait while we complete your login process."
+      />
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
             <svg className="w-12 h-12 text-red-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -75,10 +74,10 @@ function AuthCallback() {
             <h3 className="text-lg font-semibold text-red-800 mb-2">Authentication Error</h3>
             <p className="text-red-700 mb-4">{error}</p>
             <button
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/')}
               className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
             >
-              Back to Login
+              Back to Home
             </button>
           </div>
         </div>

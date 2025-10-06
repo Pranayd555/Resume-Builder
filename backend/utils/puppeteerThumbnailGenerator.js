@@ -2,6 +2,8 @@ const puppeteer = require('puppeteer');
 const path = require('path');
 const fs = require('fs').promises;
 const handlebars = require('handlebars');
+const OptimizedTemplateRenderer = require('../utils/templateRenderer');
+const sharp = require('sharp');
 
 class PuppeteerThumbnailGenerator {
   constructor() {
@@ -45,140 +47,245 @@ class PuppeteerThumbnailGenerator {
 
   generateSampleData() {
     return {
-      personalInfo: {
-        fullName: 'John Smith',
-        email: 'john.smith@email.com',
-        phone: '(555) 123-4567',
-        address: 'New York, NY',
-        linkedin: 'linkedin.com/in/johnsmith',
-        website: 'johnsmith.dev'
-      },
-      summary: 'Experienced software engineer with 5+ years of expertise in full-stack development, cloud architecture, and team leadership. Proven track record of delivering scalable solutions and mentoring junior developers.',
-      workExperience: [
+      "personalInfo": {
+        "fullName": "John Doe",
+        "email": "John@yopmail.com",
+        "phone": "+91 7689878934",
+        "address": "DN-53, Salt Lake, Sector-v",
+        "website": "",
+        "linkedin": "https://linkedin.com/john",
+        "github": "https://github.com/john"
+    },
+    "styling": {
+        "template": {
+            "headerLevel": "h3",
+            "headerFontSize": 18,
+            "fontSize": 12,
+            "lineSpacing": 1.3,
+            "sectionSpacing": 1
+        },
+        "header": {
+            "labelSize": "medium",
+            "size": "medium",
+            "spacing": "normal",
+            "textSize": "medium"
+        },
+        "fontFamily": "Inter",
+        "fontSize": 12,
+        "primaryColor": "#2563eb",
+        "secondaryColor": "#64748b"
+    },
+    "analytics": {
+        "views": 52,
+        "shares": 0,
+        "lastViewed": "2025-08-29T16:01:43.307Z",
+        "downloads": 6,
+        "lastDownloaded": "2025-08-29T16:00:48.195Z"
+    },
+    "title": "aaaBBDJSd",
+    "summary": "<p>A Senior Software Developer is a highly experienced professional responsible for designing, defveloping, testing, and maintaining complex software applications. They lead development teams, make architectural decisions, mentor junior developers, and ensure high-quality code through best practices and efficient workflows.ffcvvcvcvcv</p><p>fdfd</p>",
+    "workExperience": [
         {
-          jobTitle: 'Senior Software Engineer',
-          company: 'Tech Corp',
-          location: 'New York, NY',
-          startDate: '2022-01-01',
-          endDate: null,
-          isCurrentJob: true,
-          description: 'Lead development of microservices architecture serving 1M+ users',
-          achievements: [
-            'Reduced system latency by 40% through optimization',
-            'Mentored 5 junior developers and improved team productivity',
-            'Implemented CI/CD pipeline reducing deployment time by 60%'
-          ]
+            "jobTitle": "trainee",
+            "company": "TCS",
+            "location": "Kolkata",
+            "startDate": "2018-01-04T00:00:00.000Z",
+            "endDate": null,
+            "isCurrentJob": true,
+            "description": "<ul><li>A Senior Software Developer is a highly experienced professional responsible for designing, developing, testing, and maintaining complex software applications.&nbsp;</li><li>They lead development teams, make architectural decisions, mentor junior developers, and ensure high-quality code through best practices and efficient workflows.</li></ul>",
+            "achievements": [],
+            "_id": "68b1be4539fdbe1114618348",
+            "id": "68b1be4539fdbe1114618348"
         },
         {
-          jobTitle: 'Software Engineer',
-          company: 'StartupXYZ',
-          location: 'San Francisco, CA',
-          startDate: '2020-06-01',
-          endDate: '2021-12-31',
-          isCurrentJob: false,
-          description: 'Developed full-stack applications using React, Node.js, and AWS',
-          achievements: [
-            'Built customer dashboard serving 10K+ users',
-            'Integrated payment processing system with 99.9% uptime'
-          ]
+            "jobTitle": "Software developer",
+            "company": "ITC",
+            "location": "Kolkata",
+            "startDate": "2022-07-19T00:00:00.000Z",
+            "endDate": null,
+            "isCurrentJob": true,
+            "description": "<ol><li>A Senior Software Developer is a highly experienced professional responsible for designing, developing, testing, and maintaining complex software applications.&nbsp;</li><li>They lead development teams, make architectural decisions, mentor junior developers, and ensure high-quality code through best practices and efficient workflows.</li></ol>",
+            "achievements": [],
+            "_id": "68b1be4539fdbe1114618349",
+            "id": "68b1be4539fdbe1114618349"
         }
-      ],
-      education: [
+    ],
+    "education": [
         {
-          degree: 'Master of Science in Computer Science',
-          institution: 'Stanford University',
-          location: 'Stanford, CA',
-          startDate: '2018-09-01',
-          endDate: '2020-05-01',
-          isCurrentlyStudying: false,
-          gpa: '3.8',
-          description: 'Specialized in Machine Learning and Distributed Systems'
+            "degree": "Btech",
+            "institution": "MAKAUT",
+            "location": "Kolkata",
+            "startDate": "2013-02-05T00:00:00.000Z",
+            "endDate": "2018-05-31T00:00:00.000Z",
+            "isCurrentlyStudying": false,
+            "gpa": 7.6,
+            "description": "",
+            "_id": "68b1be4539fdbe111461834a",
+            "id": "68b1be4539fdbe111461834a"
         },
         {
-          degree: 'Bachelor of Science in Computer Science',
-          institution: 'UC Berkeley',
-          location: 'Berkeley, CA',
-          startDate: '2014-09-01',
-          endDate: '2018-05-01',
-          isCurrentlyStudying: false,
-          gpa: '3.6'
+            "degree": "12th",
+            "institution": "A B C High School",
+            "location": "Kolkata",
+            "startDate": "2013-02-05T00:00:00.000Z",
+            "endDate": "2018-05-31T00:00:00.000Z",
+            "isCurrentlyStudying": false,
+            "gpa": 7.6,
+            "description": "",
+            "_id": "68b1be4539fdbe111461834a",
+            "id": "68b1be4539fdbe111461834a"
+        },
+        {
+            "degree": "10th",
+            "institution": "D A V Public School",
+            "location": "Kolkata",
+            "startDate": "2013-02-05T00:00:00.000Z",
+            "endDate": "2018-05-31T00:00:00.000Z",
+            "isCurrentlyStudying": false,
+            "gpa": 7.6,
+            "description": "",
+            "_id": "68b1be4539fdbe111461834a",
+            "id": "68b1be4539fdbe111461834a"
         }
-      ],
-      skills: [
+    ],
+    "skills": [
         {
-          category: 'Programming Languages',
-          items: [
-            { name: 'JavaScript', level: 90 },
-            { name: 'Python', level: 85 },
-            { name: 'Java', level: 80 },
-            { name: 'TypeScript', level: 85 }
-          ]
+            "category": "Technical",
+            "items": [
+                {
+                    "name": "Angular",
+                    "level": "intermediate",
+                    "_id": "68b1be4539fdbe111461834c",
+                    "id": "68b1be4539fdbe111461834c"
+                },
+                {
+                    "name": "Javascript",
+                    "level": "intermediate",
+                    "_id": "68b1be4539fdbe111461834d",
+                    "id": "68b1be4539fdbe111461834d"
+                },
+                {
+                    "name": "HTML",
+                    "level": "intermediate",
+                    "_id": "68b1be4539fdbe111461834e",
+                    "id": "68b1be4539fdbe111461834e"
+                },
+                {
+                    "name": "CSS",
+                    "level": "intermediate",
+                    "_id": "68b1be4539fdbe111461834f",
+                    "id": "68b1be4539fdbe111461834f"
+                },
+                {
+                    "name": "React",
+                    "level": "intermediate",
+                    "_id": "68b1be4539fdbe1114618350",
+                    "id": "68b1be4539fdbe1114618350"
+                }
+            ],
+            "_id": "68b1be4539fdbe111461834b",
+            "id": "68b1be4539fdbe111461834b"
         },
         {
-          category: 'Frameworks & Libraries',
-          items: [
-            { name: 'React', level: 90 },
-            { name: 'Node.js', level: 85 },
-            { name: 'Express.js', level: 85 },
-            { name: 'Django', level: 75 }
-          ]
-        },
-        {
-          category: 'Tools & Technologies',
-          items: [
-            { name: 'AWS', level: 80 },
-            { name: 'Docker', level: 75 },
-            { name: 'Git', level: 90 },
-            { name: 'MongoDB', level: 80 }
-          ]
+            "category": "Management skills",
+            "items": [
+                {
+                    "name": "Jira",
+                    "level": "intermediate",
+                    "_id": "68b1be4539fdbe1114618352",
+                    "id": "68b1be4539fdbe1114618352"
+                },
+                {
+                    "name": "Azure",
+                    "level": "intermediate",
+                    "_id": "68b1be4539fdbe1114618353",
+                    "id": "68b1be4539fdbe1114618353"
+                },
+                {
+                    "name": "Github",
+                    "level": "intermediate",
+                    "_id": "68b1be4539fdbe1114618354",
+                    "id": "68b1be4539fdbe1114618354"
+                }
+            ],
+            "_id": "68b1be4539fdbe1114618351",
+            "id": "68b1be4539fdbe1114618351"
         }
-      ],
-      projects: [
+    ],
+    "projects": [
         {
-          name: 'E-commerce Platform',
-          description: 'Full-stack e-commerce solution with React frontend and Node.js backend',
-          technologies: ['React', 'Node.js', 'MongoDB', 'Stripe'],
-          url: 'https://github.com/johnsmith/ecommerce',
-          startDate: '2023-01-01',
-          endDate: '2023-06-01'
+            "name": "OMSA",
+            "description": "It was a development project",
+            "technologies": [
+                "Angular",
+                "Nodejs",
+                "Jqurey",
+                "Rxjs"
+            ],
+            "url": "",
+            "githubUrl": "",
+            "startDate": null,
+            "endDate": null,
+            "_id": "68b1be4539fdbe1114618355",
+            "id": "68b1be4539fdbe1114618355"
         },
         {
-          name: 'Real-time Chat Application',
-          description: 'WebSocket-based chat application with real-time messaging',
-          technologies: ['Socket.io', 'React', 'Express.js', 'Redis'],
-          url: 'https://github.com/johnsmith/chatapp',
-          startDate: '2022-08-01',
-          endDate: '2022-12-01'
+            "name": "Mondee",
+            "description": "It was an enhancement project",
+            "technologies": [
+                "Angular",
+                "Nodejs",
+                "Jqurey",
+                "Rxjs"
+            ],
+            "url": "",
+            "githubUrl": "",
+            "startDate": null,
+            "endDate": null,
+            "_id": "68b1be4539fdbe1114618356",
+            "id": "68b1be4539fdbe1114618356"
         }
-      ],
-      certifications: [
+    ],
+    "achievements": [
         {
-          name: 'AWS Certified Solutions Architect',
-          issuer: 'Amazon Web Services',
-          date: '2023-03-01',
-          credentialId: 'AWS-SA-2023-001'
+            "title": "On the spot team award",
+            "description": "",
+            "date": null,
+            "issuer": "TCS",
+            "_id": "68b1be4539fdbe1114618357",
+            "id": "68b1be4539fdbe1114618357"
         },
         {
-          name: 'Google Cloud Professional Developer',
-          issuer: 'Google Cloud',
-          date: '2022-11-01',
-          credentialId: 'GCP-PD-2022-001'
+            "title": "Best team award",
+            "description": "",
+            "date": null,
+            "issuer": "TCS",
+            "_id": "68b1be4539fdbe1114618358",
+            "id": "68b1be4539fdbe1114618358"
         }
-      ],
-      achievements: [
+    ],
+    "certifications": [
         {
-          title: 'Employee of the Year',
-          description: 'Recognized for outstanding contribution to company growth',
-          date: '2023-01-01',
-          issuer: 'Tech Corp'
+            "name": "Javascript fundamentals",
+            "issuer": "Meta",
+            "date": null,
+            "expiryDate": null,
+            "credentialId": "",
+            "url": "",
+            "_id": "68b1be4539fdbe1114618359",
+            "id": "68b1be4539fdbe1114618359"
         },
         {
-          title: 'Hackathon Winner',
-          description: 'First place in company-wide innovation hackathon',
-          date: '2022-06-01',
-          issuer: 'StartupXYZ'
+            "name": "Angular Intermediate",
+            "issuer": "Jobsschool",
+            "date": null,
+            "expiryDate": null,
+            "credentialId": "",
+            "url": "",
+            "_id": "68b1be4539fdbe111461835a",
+            "id": "68b1be4539fdbe111461835a"
         }
-      ],
+    ],
       languages: [
         { name: 'English', proficiency: 'Native' },
         { name: 'Spanish', proficiency: 'Conversational' },
@@ -225,82 +332,147 @@ class PuppeteerThumbnailGenerator {
       this.registerHelpers();
 
       // Compile template HTML
-      const htmlTemplate = handlebars.compile(template.templateCode.html);
-      const compiledHTML = htmlTemplate(this.sampleData);
-
-      // Create full HTML document
-      const fullHTML = `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
+      // const htmlTemplate = handlebars.compile(template.templateCode.html);
+      // const compiledHTML = htmlTemplate(this.sampleData);
+      const renderer = new OptimizedTemplateRenderer();
+    
+      // Prepare resume data for rendering
+      const resumeData = {
+        title: this.sampleData.title,
+        personalInfo: this.sampleData.personalInfo,
+        summary: this.sampleData.summary,
+        workExperience: this.sampleData.workExperience,
+        education: this.sampleData.education,
+        skills: this.sampleData.skills,
+        projects: this.sampleData.projects,
+        achievements: this.sampleData.achievements,
+        certifications: this.sampleData.certifications,
+        languages: this.sampleData.languages,
+        customFields: this.sampleData.customFields,
+        styling: this.sampleData.styling || {} // Include styling data
+      };
+      const renderResult = renderer.render(template, resumeData);
+      
+      const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>${template.name}</title>
           <style>
-            ${template.templateCode.css}
-            
-            /* Additional styles for better thumbnails */
-            body {
-              margin: 0;
-              padding: 20px;
-              font-family: ${template.styling.fonts.primary}, sans-serif;
-              background: ${template.styling.colors.background};
-              color: ${template.styling.colors.text};
-              transform: scale(0.8);
-              transform-origin: top left;
-              width: 125%;
-              height: 125%;
-            }
-            
-            .resume {
-              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-              border-radius: 8px;
-              overflow: hidden;
-            }
-            
-            /* Ensure text is readable in thumbnail */
-            * {
-              font-size: max(8px, 1em) !important;
-              line-height: 1.2 !important;
-            }
-            
-            /* Hide very small text elements */
-            .small-text,
-            .fine-print {
-              display: none;
-            }
+              /* Basic reset and page setup */
+              * {
+                  margin: 0;
+                  padding: 0;
+                  box-sizing: border-box;
+              }
+              
+              :root { 
+                  --template-bg: ${template.styling.colors.background || '#ffffff'}; 
+              }
+              
+              body {
+                  margin: 0;
+                  padding: 0;
+                  background: ${template.styling.colors.background || '#ffffff'};
+              }
+              
+              /* Template CSS from renderer - HIGHEST PRIORITY */
+              ${renderResult.css}
+              
+              /* Minimal PDF-specific overrides - LOWEST PRIORITY */
+              /* Only apply essential PDF optimizations that don't conflict with template design */
+              
+              /* Print optimizations - minimal and non-conflicting */
+              @media print {
+                  body {
+                      background: ${template?.styling?.colors?.background || '#ffffff'} !important;
+                  }
+                  .resume { 
+                      box-shadow: none;
+                      background: ${template?.styling?.colors?.background || '#ffffff'} !important;
+                  }
+                  * { 
+                      -webkit-print-color-adjust: exact; 
+                      color-adjust: exact;
+                  }
+              }
+              
+              /* Page margins for PDF generation */
+              @page :first {
+                  margin: 0in 0in 0.5in 0in;
+              }
+              
+              @page {
+                  margin: 0.5in 0in 0.5in 0in;
+              }
+              
+              /* Remove bottom spacing from the last element for PDF */
+              .resume > *:last-child,
+              .resume section:last-child,
+              .resume .section:last-child,
+              .resume .work-experience:last-child,
+              .resume .education:last-child,
+              .resume .skills:last-child,
+              .resume .projects:last-child,
+              .resume .achievements:last-child,
+              .resume .certifications:last-child,
+              .resume .languages:last-child,
+              .resume .summary:last-child,
+              .resume .custom-fields:last-child,
+              .resume .main-content > *:last-child,
+              .resume .sidebar > *:last-child,
+              .resume .content-grid > *:last-child {
+                margin-bottom: 0 !important;
+                padding-bottom: 0 !important;
+              }
+              
+              /* Also remove bottom spacing from last items within sections */
+              .resume .job-item:last-child,
+              .resume .edu-item:last-child,
+              .resume .project-item:last-child,
+              .resume .cert-item:last-child,
+              .resume .achievement-item:last-child,
+              .resume .skill-category:last-child,
+              .resume .language-item:last-child,
+              .resume .custom-field:last-child {
+                margin-bottom: 0 !important;
+                padding-bottom: 0 !important;
+              }
           </style>
-        </head>
-        <body>
-          ${compiledHTML}
-        </body>
-        </html>
-      `;
+      </head>
+      <body>
+          ${renderResult.html}
+      </body>
+      </html>
+    `;
 
       // Create new page
       const page = await this.browser.newPage();
       
-      // Set viewport
+      // Set viewport to match the template dimensions
       await page.setViewport({
-        width: Math.max(width * 3, 900),
-        height: Math.max(height * 3, 1200),
+        width: Math.max(width * 2, 800),
+        height: Math.max(height * 2, 1000),
         deviceScaleFactor: 2
       });
 
       // Load HTML content
-      await page.setContent(fullHTML, {
+      await page.setContent(htmlContent, {
         waitUntil: 'networkidle0',
         timeout: 30000
       });
 
       // Wait for fonts to load
       await page.evaluateHandle('document.fonts.ready');
+      await page.emulateMediaType('print');
 
       // Generate filename if not provided
       const thumbnailFilename = filename || `${template.name.toLowerCase().replace(/\s+/g, '-')}-thumbnail.${format}`;
       const thumbnailPath = path.join(this.outputDir, thumbnailFilename);
 
-      // Take screenshot
+      // Take screenshot with proper clipping
       const screenshotOptions = {
         path: thumbnailPath,
         width,
@@ -311,12 +483,24 @@ class PuppeteerThumbnailGenerator {
         clip: {
           x: 0,
           y: 0,
-          width: Math.max(width * 3, 900),
-          height: Math.max(height * 3, 1200)
+          width: Math.max(width * 2, 800),
+          height: Math.max(height * 2, 1000)
         }
       };
 
-      await page.screenshot(screenshotOptions);
+      const screenshotBuffer = await page.screenshot(screenshotOptions);
+      const whiteBorderHeight = 60; // in pixels
+
+      // Add white border using sharp
+      const finalImage = await sharp(screenshotBuffer).extend({
+          top: 0,
+          bottom: whiteBorderHeight,
+          left: 0,
+          right: 0,
+          background: 'white'
+        })
+        .toBuffer();
+      await sharp(finalImage).toFile(thumbnailPath);
 
       // Close page
       await page.close();
@@ -425,7 +609,7 @@ class PuppeteerThumbnailGenerator {
       const htmlTemplate = handlebars.compile(template.templateCode.html);
       const compiledHTML = htmlTemplate(this.sampleData);
 
-      // Create full HTML document
+      // Create full HTML document with minimal styling to match actual rendering
       const fullHTML = `
         <!DOCTYPE html>
         <html lang="en">
@@ -434,26 +618,42 @@ class PuppeteerThumbnailGenerator {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>${template.name}</title>
           <style>
-            ${template.templateCode.css}
+            /* Basic reset and page setup */
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            
+            :root { 
+              --template-bg: ${template.styling.colors.background || '#ffffff'}; 
+            }
+            
             body {
               margin: 0;
-              padding: 20px;
-              font-family: ${template.styling.fonts.primary}, sans-serif;
-              background: ${template.styling.colors.background};
-              color: ${template.styling.colors.text};
-              transform: scale(0.8);
-              transform-origin: top left;
-              width: 125%;
-              height: 125%;
+              padding: 10px;
+              background: var(--template-bg);
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             }
+            
+            /* Template CSS from template - use as-is without modifications */
+            ${template.templateCode.css}
+            
+            /* Minimal thumbnail-specific adjustments for better preview */
             .resume {
-              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-              border-radius: 8px;
+              max-width: 8.5in;
+              margin: 0 auto;
+              background: var(--template-bg);
+              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+              border-radius: 4px;
               overflow: hidden;
             }
-            * {
-              font-size: max(8px, 1em) !important;
-              line-height: 1.2 !important;
+            
+            /* Ensure consistent rendering across templates */
+            .resume * {
+              text-rendering: optimizeLegibility;
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
             }
           </style>
         </head>
@@ -466,10 +666,10 @@ class PuppeteerThumbnailGenerator {
       // Create new page
       const page = await this.browser.newPage();
       
-      // Set viewport
+      // Set viewport to match the template dimensions
       await page.setViewport({
-        width: Math.max(width * 3, 900),
-        height: Math.max(height * 3, 1200),
+        width: Math.max(width * 2, 800),
+        height: Math.max(height * 2, 1000),
         deviceScaleFactor: 2
       });
 
@@ -482,7 +682,7 @@ class PuppeteerThumbnailGenerator {
       // Wait for fonts to load
       await page.evaluateHandle('document.fonts.ready');
 
-      // Take screenshot as buffer
+      // Take screenshot as buffer with proper clipping
       const screenshotBuffer = await page.screenshot({
         type: format,
         quality: format === 'jpeg' ? 85 : undefined,
@@ -490,8 +690,8 @@ class PuppeteerThumbnailGenerator {
         clip: {
           x: 0,
           y: 0,
-          width: Math.max(width * 3, 900),
-          height: Math.max(height * 3, 1200)
+          width: Math.max(width * 2, 800),
+          height: Math.max(height * 2, 1000)
         }
       });
 

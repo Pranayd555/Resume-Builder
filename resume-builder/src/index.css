@@ -14,6 +14,7 @@
       sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    @apply bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100;
   }
 
   code {
@@ -26,4 +27,182 @@
   .form-input {
     @apply focus:outline-none focus:ring-0 border-none;
   }
+  
+  /* A4 Aspect Ratio Container */
+  .aspect-a4 {
+    aspect-ratio: 1 / 1.414;
+  }
+  
+  /* Resume Template Card */
+  .template-card {
+    @apply bg-white dark:bg-orange-50/90 rounded-xl shadow-lg border border-gray-200 dark:border-orange-200/50 overflow-hidden transition-all duration-300 hover:shadow-xl;
+  }
+  
+  .template-card:hover {
+    @apply transform scale-105;
+  }
+  
+  /* Template Image Container */
+  .template-image-container {
+    @apply w-full bg-white dark:bg-orange-100/80 flex items-center justify-center overflow-hidden p-2;
+  }
+  
+  .template-image {
+    @apply w-full h-full object-contain max-w-full max-h-full;
+  }
+  
+  /* Carousel Navigation */
+  .carousel-nav-button {
+    @apply w-10 h-10 bg-white dark:bg-orange-50/90 rounded-full shadow-lg border border-gray-200 dark:border-orange-200/50 text-gray-600 dark:text-gray-700 hover:text-blue-600 dark:hover:text-blue-600 hover:shadow-xl transition-all duration-200;
+  }
+  
+  /* Mobile Optimizations */
+  @media (max-width: 640px) {
+    .template-card {
+      @apply shadow-md;
+    }
+    
+    .template-card:hover {
+      @apply transform-none;
+    }
+  }
 }
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-progress {
+    animation: progress 10s ease-in-out infinite;
+  }
+  
+  @keyframes progress {
+    0% {
+      width: 0%;
+    }
+    50% {
+      width: 50%;
+    }
+    100% {
+      width: 100%;
+    }
+  }
+  
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  /* Line clamp utilities */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+  
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+  
+  /* Swiper customizations */
+  .swiper-pagination-bullet {
+    @apply bg-blue-400 opacity-50 transition-all duration-300;
+  }
+  
+  .swiper-pagination-bullet-active {
+    @apply bg-blue-600 opacity-100 transform scale-125;
+  }
+  
+  /* Mobile touch optimizations */
+  @media (max-width: 640px) {
+    .swiper-slide {
+      @apply touch-pan-y;
+    }
+  }
+}
+
+/* Dark mode styles for SketchPicker - Comprehensive targeting */
+.dark .sketch-picker-dark input,
+.dark .sketch-picker-dark input[type="text"],
+.dark .sketch-picker-dark input[type="number"],
+.dark .sketch-picker-dark .sketch-picker input,
+.dark .sketch-picker-dark .flexbox-fix input,
+.dark .sketch-picker-dark .sketch-picker .flexbox-fix input,
+.dark .sketch-picker-dark .sketch-picker .flexbox-fix input[type="text"],
+.dark .sketch-picker-dark .sketch-picker .flexbox-fix input[type="number"] {
+  background-color: #374151 !important;
+  color: #f9fafb !important;
+  border-color: #4b5563 !important;
+}
+
+.dark .sketch-picker-dark input:focus,
+.dark .sketch-picker-dark input[type="text"]:focus,
+.dark .sketch-picker-dark input[type="number"]:focus,
+.dark .sketch-picker-dark .sketch-picker input:focus,
+.dark .sketch-picker-dark .flexbox-fix input:focus,
+.dark .sketch-picker-dark .sketch-picker .flexbox-fix input:focus {
+  background-color: #4b5563 !important;
+  border-color: #6b7280 !important;
+}
+
+/* Target all inputs within the sketch picker */
+.dark .sketch-picker-dark .sketch-picker input[type="text"],
+.dark .sketch-picker-dark .sketch-picker input[type="number"] {
+  background-color: #374151 !important;
+  color: #f9fafb !important;
+  border: 1px solid #4b5563 !important;
+}
+
+/* Target the hex input specifically */
+.dark .sketch-picker-dark .sketch-picker .flexbox-fix input[type="text"] {
+  background-color: #374151 !important;
+  color: #f9fafb !important;
+  border: 1px solid #4b5563 !important;
+}
+
+/* Global dark mode targeting for all SketchPicker inputs */
+.dark .sketch-picker input,
+.dark .sketch-picker input[type="text"],
+.dark .sketch-picker input[type="number"] {
+  background-color: #374151 !important;
+  color: #f9fafb !important;
+  border: 1px solid #4b5563 !important;
+}
+
+.dark .sketch-picker input:focus,
+.dark .sketch-picker input[type="text"]:focus,
+.dark .sketch-picker input[type="number"]:focus {
+  background-color: #4b5563 !important;
+  border-color: #6b7280 !important;
+}
+
+
