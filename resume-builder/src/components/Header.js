@@ -135,16 +135,21 @@ function Header() {
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo/Brand */}
-          <div className="flex items-center min-w-0 flex-1">
-            <h1 
-              className="text-base sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent cursor-pointer hover:from-blue-700 hover:to-purple-700 transition-all duration-200 truncate"
-              onClick={() => navigate('/')}
-            >
-              Resume Builder
-            </h1>
-          </div>
+                <div className="flex items-center min-w-0 flex-1">
+                <img 
+                  src="/resume-builder-logo-192.png" 
+                  alt="Resume Builder logo featuring a stylized document icon with blue and purple gradient, representing a professional and modern resume creation tool. The logo is next to the text Resume Builder in bold gradient letters. The environment is a clean website header with a welcoming and professional tone." 
+                  className="h-8 mr-2" 
+                />
+                <h1 
+                  className="text-base sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent cursor-pointer hover:from-blue-700 hover:to-purple-700 transition-all duration-200 truncate"
+                  onClick={() => navigate('/')}
+                >
+                  Resume Builder
+                </h1>
+                </div>
 
-          {/* Desktop Navigation */}
+                {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-4 lg:space-x-6">
             {/* User Info */}
             {user && (

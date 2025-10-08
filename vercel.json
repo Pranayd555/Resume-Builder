@@ -15,20 +15,20 @@
       }
     },
     {
-      "src": "/favicon.ico",
-      "dest": "/favicon.ico"
+      "src": "/resume-builder-logo.ico",
+      "dest": "/resume-builder-logo.ico"
     },
     {
       "src": "/manifest.json",
       "dest": "/manifest.json"
     },
     {
-      "src": "/logo192.png",
-      "dest": "/logo192.png"
+      "src": "/resume-builder-logo-192.png",
+      "dest": "/resume-builder-logo-192.png"
     },
     {
-      "src": "/logo512.png",
-      "dest": "/logo512.png"
+      "src": "/resume-builder-logo-512.png",
+      "dest": "/resume-builder-logo-512.png"
     },
     {
       "src": "/robots.txt",
