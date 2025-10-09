@@ -2,12 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { subscriptionAPI } from '../services/api';
 import AuthLoader from './AuthLoader';
+import { toast } from 'react-toastify';
 
 function Subscription() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [selectedPlan, setSelectedPlan] = useState(null);
-  const [billingCycle, setBillingCycle] = useState('monthly');
+  // Always use monthly billing
+  const billingCycle = 'monthly';
   const [currentSubscription, setCurrentSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
   const [trialLoading, setTrialLoading] = useState(false);
@@ -57,13 +59,13 @@ function Subscription() {
         .then(response => {
           if (response.success) {
             setCurrentSubscription(response.data.subscription);
-            alert('Subscription activated successfully! Welcome to Pro!');
+            toast.success('Subscription activated successfully! Welcome to Pro!');
             navigate('/dashboard');
           }
         })
         .catch(error => {
           console.error('Error handling subscription success:', error);
-          alert('Error activating subscription. Please contact support.');
+          toast.error('Error activating subscription. Please contact support.');
         })
         .finally(() => {
           setSuccessLoading(false);
@@ -85,12 +87,13 @@ function Subscription() {
       const response = await subscriptionAPI.startTrial(trialType);
       if (response.success) {
         setCurrentSubscription(response.data.subscription);
-        alert(`Trial started! You have ${trialType === 'free' ? '3' : '7'} days to try Pro features.`);
+        toast.success(`Trial started! You have ${trialType === 'free' ? '3' : '7'} days to try Pro features.`);
         navigate('/dashboard');
       }
     } catch (error) {
       console.error('Error starting trial:', error);
-      alert('Error starting trial. Please try again.');
+      const errorMessage = error.response?.data?.error || 'Error starting trial. Please try again.';
+      toast.error(errorMessage);
     } finally {
       setTrialLoading(false);
     }
@@ -106,7 +109,7 @@ function Subscription() {
       }
     } catch (error) {
       console.error('Error creating checkout session:', error);
-      alert('Error creating checkout session. Please try again.');
+      toast.error('Error creating checkout session. Please try again.');
     }
   };
 
@@ -133,7 +136,7 @@ function Subscription() {
   const features = [
     { name: 'Resume Creation', free: '2 total', pro: '5 total' },
     { name: 'Template Access', free: 'Free templates only', pro: 'All templates' },
-    { name: 'AI Actions', free: '10 per month', pro: '200 per month' },
+    { name: 'AI Actions', free: '200 per month', pro: '200 per month' },
     { name: 'Export Formats', free: 'PDF only', pro: 'PDF + DOCX' },
     { name: 'Resume Feedback', free: 'Basic', pro: 'ATS score + grammar analysis' },
     { name: 'Cloud Storage', free: 'No', pro: 'Unlimited cloud history' },
@@ -228,38 +231,6 @@ function Subscription() {
           </div>
         )}
 
-        {/* Billing Toggle */}
-        <div className="flex justify-center mb-12">
-          <div className="bg-white/80 dark:bg-orange-50/95 backdrop-blur-sm rounded-xl p-2 shadow-lg border border-gray-200 dark:border-orange-200/30">
-            <div className="flex">
-              <button
-                onClick={() => setBillingCycle('monthly')}
-                className={`px-6 py-3 rounded-lg text-sm font-medium transition-colors ${
-                  billingCycle === 'monthly'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                }`}
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => setBillingCycle('yearly')}
-                className={`px-6 py-3 rounded-lg text-sm font-medium transition-colors relative ${
-                  billingCycle === 'yearly'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                }`}
-              >
-                Yearly
-                {billingCycle === 'yearly' && (
-                  <span className="absolute -top-2 -right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                    Save 34%
-                  </span>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
 
                           {/* Pricing Table */}
          <div className="max-w-4xl mx-auto mb-12">
@@ -284,16 +255,11 @@ function Subscription() {
                  <div className="pt-2">
                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Pro</h3>
                    <div className="text-3xl font-bold text-gray-900 mb-1">
-                     ${billingCycle === 'monthly' ? '9.99' : '79.99'}
+                     $9.99
                    </div>
                    <p className="text-sm text-gray-600">
-                     /{billingCycle === 'monthly' ? 'month' : 'year'}
+                     /month
                    </p>
-                   {billingCycle === 'yearly' && (
-                     <p className="text-sm text-green-600 font-medium mt-1">
-                       Save ${(9.99 * 12 - 79.99).toFixed(2)} per year
-                     </p>
-                   )}
                  </div>
                </div>
              </div>
@@ -407,16 +373,11 @@ function Subscription() {
                <div className="text-center mb-6 pt-2">
                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Pro</h3>
                  <div className="text-4xl font-bold text-gray-900 mb-1">
-                   ${billingCycle === 'monthly' ? '9.99' : '79.99'}
+                   $9.99
                  </div>
                  <p className="text-sm text-gray-600">
-                   /{billingCycle === 'monthly' ? 'month' : 'year'}
+                   /month
                  </p>
-                 {billingCycle === 'yearly' && (
-                   <p className="text-sm text-green-600 font-medium mt-1">
-                     Save ${(9.99 * 12 - 79.99).toFixed(2)} per year
-                   </p>
-                 )}
                </div>
                
                <div className="space-y-4 mb-6">

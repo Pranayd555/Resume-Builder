@@ -6,9 +6,10 @@ import {
   Bars3Icon,
   ArrowRightOnRectangleIcon,
   SunIcon,
-  MoonIcon
+  MoonIcon,
+  CurrencyDollarIcon
 } from '@heroicons/react/24/outline';
-import { apiHelpers } from '../services/api';
+import { apiHelpers, analyticsAPI } from '../services/api';
 
 function Header() {
   const navigate = useNavigate();
@@ -17,8 +18,62 @@ function Header() {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [showMenu, setShowMenu] = useState(false);
   const [profilePictureVersion, setProfilePictureVersion] = useState(0);
+  const [tokenBalance, setTokenBalance] = useState(null);
   const mobileMenuRef = useRef(null);
   const mobileMenuButtonRef = useRef(null);
+
+  // Initialize token balance from localStorage
+  useEffect(() => {
+    if (isAuthenticated) {
+      // First try to get from localStorage
+      const storedBalance = apiHelpers.getTokenBalance();
+      if (storedBalance !== null) {
+        setTokenBalance(storedBalance);
+      }
+
+      // Then fetch fresh data from API
+      const fetchTokenBalance = async () => {
+        try {
+          const response = await analyticsAPI.getAnalyticsSummary();
+          if (response.success) {
+            // Try new token structure first, then fallback to old structure
+            const tokenBalance = response.data?.tokens?.balance || 
+                               response.data?.subscription?.tokenBalance || 
+                               0;
+            setTokenBalance(tokenBalance);
+            // Store in localStorage for future use
+            apiHelpers.setTokenBalance(tokenBalance);
+            
+            // Store full token data if available
+            if (response.data?.tokens) {
+              apiHelpers.setTokenData(response.data.tokens);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch token balance:', error);
+          // Fallback to localStorage if API fails
+          const fallbackBalance = apiHelpers.getTokenBalance();
+          if (fallbackBalance !== null) {
+            setTokenBalance(fallbackBalance);
+          }
+        }
+      };
+      fetchTokenBalance();
+    }
+  }, [isAuthenticated]);
+
+  // Listen for token balance updates from other components
+  useEffect(() => {
+    const handleTokenBalanceUpdate = (event) => {
+      setTokenBalance(event.detail.balance);
+    };
+
+    window.addEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
+    
+    return () => {
+      window.removeEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
+    };
+  }, []);
 
   // Helper function to get profile picture URL from user data
   const getProfilePictureUrl = (userData) => {
@@ -117,9 +172,6 @@ function Header() {
     navigate('/analytics');
   };
 
-  const handlePrivacyPolicy = () => {
-    navigate('/privacy-policy');
-  };
 
   const handleDashboard = () => {
     navigate('/dashboard');
@@ -187,6 +239,14 @@ function Header() {
                 </span>
               </div>
             )}
+
+            {/* Token Balance */}
+            <div className="flex items-center space-x-1 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
+              <CurrencyDollarIcon className="w-4 h-4 text-green-600 dark:text-green-400" />
+              <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                {tokenBalance !== null ? tokenBalance : 0}
+              </span>
+            </div>
             
             <div className="h-5 w-px bg-gray-300 dark:bg-gray-600"></div>
             
@@ -220,12 +280,6 @@ function Header() {
               className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 px-2 py-1 lg:px-3 lg:py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-200 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:shadow-sm"
             >
               Analytics
-            </button>
-            <button
-              onClick={handlePrivacyPolicy}
-              className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 px-2 py-1 lg:px-3 lg:py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-200 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:shadow-sm"
-            >
-              Privacy Policy
             </button>
             <button
               onClick={handleLogout}
@@ -293,6 +347,14 @@ function Header() {
                   </div>
                 </div>
               )}
+
+              {/* Token Balance - Mobile */}
+              <div className="flex items-center justify-center space-x-2 bg-green-100 dark:bg-green-900/30 px-3 py-2 rounded-lg mx-2">
+                <CurrencyDollarIcon className="w-4 h-4 text-green-600 dark:text-green-400" />
+                <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                  {tokenBalance !== null ? tokenBalance : 0} tokens available
+                </span>
+              </div>
               
               {/* Dark Mode Toggle - Mobile */}
               <button
@@ -325,12 +387,6 @@ function Header() {
                 className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 w-full text-left"
               >
                 Analytics
-              </button>
-              <button
-                onClick={handlePrivacyPolicy}
-                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 w-full text-left"
-              >
-                Privacy Policy
               </button>
               <button
                 onClick={handleLogout}

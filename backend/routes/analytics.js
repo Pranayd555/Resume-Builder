@@ -177,6 +177,10 @@ router.get('/summary', protect, async (req, res) => {
     // Get subscription info
     const subscription = await Subscription.findOne({ user: req.user.id });
     
+    // Get user info for tokens
+    const User = require('../models/User');
+    const user = await User.findById(req.user.id).select('tokens razorpayTransactions');
+    
     // Get templates used by user
     const templatesUsed = await Template.find({
       'usage.uniqueUsers': req.user.id
@@ -194,11 +198,12 @@ router.get('/summary', protect, async (req, res) => {
         plan: subscription?.plan || 'free',
         resumeLimit: subscription?.features?.resumeLimit || 2,
         resumesCreated: subscription?.usage?.resumesCreated || 0,
-        aiActionsLimit: subscription?.features?.aiActionsLimit || 10,
+        aiActionsLimit: subscription?.features?.aiActionsLimit || 200,
         aiActionsUsed: subscription?.usage?.aiActionsThisCycle || 0,
         cycleStartDate: subscription?.usage?.cycleStartDate || new Date(),
         nextBillingDate: subscription?.billing?.nextBillingDate || null,
-        billingCycle: subscription?.billing?.cycle || 'monthly'
+        billingCycle: subscription?.billing?.cycle || 'monthly',
+        tokenBalance: user?.tokens || 0
       },
       templates: {
         totalUsed: templatesUsed.length,
@@ -208,6 +213,10 @@ router.get('/summary', protect, async (req, res) => {
           category: template.category,
           usage: template.usage
         }))
+      },
+      tokens: {
+        balance: user?.tokens || 0,
+        recentTransactions: user?.razorpayTransactions?.slice(0, 5) || []
       }
     };
 
@@ -271,15 +280,15 @@ router.get('/ai-usage', protect, async (req, res) => {
     const aiUsageAnalytics = {
       currentUsage: {
         aiActionsUsed: usage.aiActionsThisCycle || 0,
-        aiActionsLimit: subscription.features?.aiActionsLimit || 10,
-        remainingActions: Math.max(0, (subscription.features?.aiActionsLimit || 10) - (usage.aiActionsThisCycle || 0)),
-        usagePercentage: Math.round(((usage.aiActionsThisCycle || 0) / (subscription.features?.aiActionsLimit || 10)) * 100)
+        aiActionsLimit: subscription.features?.aiActionsLimit || 200,
+        remainingActions: Math.max(0, (subscription.features?.aiActionsLimit || 200) - (usage.aiActionsThisCycle || 0)),
+        usagePercentage: Math.round(((usage.aiActionsThisCycle || 0) / (subscription.features?.aiActionsLimit || 200)) * 100)
       },
       cycleInfo,
       plan: subscription.plan,
       status: subscription.status,
       features: {
-        aiActionsLimit: subscription.features?.aiActionsLimit || 10,
+        aiActionsLimit: subscription.features?.aiActionsLimit || 200,
         aiReview: subscription.features?.aiReview || false
       }
     };
@@ -336,6 +345,29 @@ router.post('/admin/reset-ai-cycle/:userId', protect, async (req, res) => {
     });
   } catch (error) {
     logger.error('Admin reset AI cycle error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+});
+
+// @desc    Get user token balance
+// @route   GET /api/analytics/tokens
+// @access  Private
+router.get('/tokens', protect, async (req, res) => {
+  try {
+    const User = require('../models/User');
+    const user = await User.findById(req.user.id).select('tokens');
+    
+    res.json({
+      success: true,
+      data: {
+        balance: user?.tokens || 0
+      }
+    });
+  } catch (error) {
+    logger.error('Get token balance error:', error);
     res.status(500).json({
       success: false,
       error: 'Server error'

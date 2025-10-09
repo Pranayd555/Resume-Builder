@@ -166,7 +166,7 @@ const checkAIActionLimit = async (req, res, next) => {
 
     if (!subscription.canUseAIAction()) {
       const currentUsage = subscription.usage.aiActionsThisCycle || 0;
-      const limit = subscription.features?.aiActionsLimit || 10;
+      const limit = subscription.features?.aiActionsLimit || 200;
       const planName = subscription.plan === 'free' ? 'Free' : 'Pro';
       const cycleType = subscription.plan === 'free' ? 'month' : (subscription.billing?.cycle || 'month');
       return res.status(403).json({

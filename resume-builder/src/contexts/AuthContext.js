@@ -293,6 +293,12 @@ export const AuthProvider = ({ children }) => {
   const updateUser = (userData) => {
     const updatedUser = createUserModel(userData);
     apiHelpers.setCurrentUserData(updatedUser);
+    
+    // Update token data if available
+    if (userData.tokens !== undefined) {
+      apiHelpers.setTokenBalance(userData.tokens);
+    }
+    
     dispatch({ type: AUTH_ACTIONS.UPDATE_USER, payload: updatedUser });
   };
 
