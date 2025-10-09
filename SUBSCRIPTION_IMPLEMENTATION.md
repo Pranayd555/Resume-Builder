@@ -52,13 +52,13 @@ This document outlines the complete implementation of the subscription system fo
 - **GET `/plans`**: Returns updated plan structure
 - **GET `/current`**: Gets current subscription (creates free if none)
 - **POST `/start-trial`**: Starts free or paid trial
-- **POST `/create-checkout-session`**: Creates Stripe checkout
+- **POST `/create-checkout-session`**: Creates razorpay checkout
 - **POST `/success`**: Handles successful payment
 - **POST `/cancel`**: Cancels subscription
 - **POST `/reactivate`**: Reactivates canceled subscription
 - **GET `/billing-history`**: Gets payment history
 - **POST `/update-payment-method`**: Updates payment method
-- **POST `/webhook`**: Stripe webhook handler
+- **POST `/webhook`**: razorpay webhook handler
 
 ### Middleware
 
@@ -78,7 +78,7 @@ This document outlines the complete implementation of the subscription system fo
 - **Current Subscription Display**: Shows active subscription status
 - **Trial Management**: Start free trials without payment
 - **Subscription Management**: View details, billing history, cancel
-- **Success Handling**: Processes Stripe success redirects
+- **Success Handling**: Processes razorpay success redirects
 - **Usage Display**: Shows current usage vs limits
 
 ### Updated Services
@@ -87,7 +87,7 @@ This document outlines the complete implementation of the subscription system fo
 - **`getCurrentSubscription()`**: Gets user's subscription
 - **`getPlans()`**: Fetches available plans
 - **`startTrial(trialType)`**: Starts trial period
-- **`createCheckoutSession(planId, billingCycle)`**: Creates Stripe session
+- **`createCheckoutSession(planId, billingCycle)`**: Creates razorpay session
 - **`handleSubscriptionSuccess(sessionId)`**: Processes successful payment
 - **`cancelSubscription(reason)`**: Cancels subscription
 - **`getBillingHistory()`**: Gets payment history
@@ -133,7 +133,7 @@ This document outlines the complete implementation of the subscription system fo
 
 ## 💳 Payment Integration
 
-### Stripe Integration
+### razorpay Integration
 - **Checkout Sessions**: Secure payment flow
 - **Webhooks**: Real-time subscription updates
 - **Customer Management**: Automatic customer creation
@@ -170,16 +170,16 @@ This document outlines the complete implementation of the subscription system fo
 ### Data Integrity
 - **Usage Limits**: Enforced at API level
 - **Plan Validation**: Template and feature access controlled
-- **Payment Verification**: Stripe webhook signature verification
+- **Payment Verification**: razorpay webhook signature verification
 - **Audit Trail**: Complete payment and usage history
 
 ## 🚀 Deployment Considerations
 
 ### Environment Variables
 ```env
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-STRIPE_PUBLISHABLE_KEY=pk_test_...
+razorpay_SECRET_KEY=sk_test_...
+razorpay_WEBHOOK_SECRET=whsec_...
+razorpay_PUBLISHABLE_KEY=pk_test_...
 CLIENT_URL=http://localhost:3000
 ```
 

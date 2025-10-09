@@ -6,11 +6,7 @@ const User = require('../models/User');
 const logger = require('../utils/logger');
 const emailService = require('../utils/emailService');
 
-// Initialize Stripe only if secret key is provided
-let stripe;
-if (process.env.STRIPE_SECRET_KEY) {
-  stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-}
+// Stripe integration removed
 
 const router = express.Router();
 
@@ -242,8 +238,8 @@ router.post('/start-trial', [
         monthStartAtUtc: new Date()
       };
       
-      // Clear any existing Stripe data for trial
-      subscription.stripe = {};
+      // Clear any existing payment data for trial
+      // Payment integration removed
     }
 
     await subscription.save();
@@ -278,206 +274,9 @@ router.post('/start-trial', [
   }
 });
 
-// @desc    Create Stripe checkout session
-// @route   POST /api/subscriptions/create-checkout-session
-// @access  Private
-router.post('/create-checkout-session', [
-  protect,
-  body('plan').isIn(['pro']).withMessage('Valid plan is required'),
-  body('billing').isIn(['monthly', 'yearly']).withMessage('Valid billing cycle is required')
-], async (req, res) => {
-  try {
-    if (!stripe) {
-      return res.status(500).json({
-        success: false,
-        error: 'Payment processing not configured'
-      });
-    }
+// Stripe checkout session route removed
 
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
-    }
-
-    const { plan, billing } = req.body;
-    const user = req.user;
-
-    // Define price mapping (in production, these would be Stripe Price IDs)
-    const priceMapping = {
-      pro: {
-        monthly: 'price_pro_monthly_999',
-        yearly: 'price_pro_yearly_7900'
-      }
-    };
-
-    const priceId = priceMapping[plan][billing];
-
-    if (!priceId) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid plan or billing cycle'
-      });
-    }
-
-    // Create or get Stripe customer
-    let customer;
-    const existingSubscription = await Subscription.findOne({ user: user.id });
-
-    if (existingSubscription && existingSubscription.stripe?.customerId) {
-      customer = await stripe.customers.retrieve(existingSubscription.stripe.customerId);
-    } else {
-      customer = await stripe.customers.create({
-        email: user.email,
-        name: `${user.firstName} ${user.lastName}`,
-        metadata: {
-          userId: user.id.toString()
-        }
-      });
-    }
-
-    // Create checkout session
-    const session = await stripe.checkout.sessions.create({
-      customer: customer.id,
-      payment_method_types: ['card'],
-      mode: 'subscription',
-      line_items: [{
-        price: priceId,
-        quantity: 1
-      }],
-      success_url: `${process.env.CLIENT_URL}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.CLIENT_URL}/subscription/plans`,
-      metadata: {
-        userId: user.id.toString(),
-        plan,
-        billing
-      }
-    });
-
-    res.json({
-      success: true,
-      data: {
-        sessionId: session.id,
-        url: session.url
-      }
-    });
-  } catch (error) {
-    logger.error('Create checkout session error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Error creating checkout session'
-    });
-  }
-});
-
-// @desc    Handle successful subscription
-// @route   POST /api/subscriptions/success
-// @access  Private
-router.post('/success', [
-  protect,
-  body('sessionId').notEmpty().withMessage('Session ID is required')
-], async (req, res) => {
-  try {
-    if (!stripe) {
-      return res.status(500).json({
-        success: false,
-        error: 'Payment processing not configured'
-      });
-    }
-
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
-    }
-
-    const { sessionId } = req.body;
-
-    // Retrieve the checkout session
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-
-    if (session.metadata.userId !== req.user.id.toString()) {
-      return res.status(403).json({
-        success: false,
-        error: 'Unauthorized'
-      });
-    }
-
-    if (session.payment_status !== 'paid') {
-      return res.status(400).json({
-        success: false,
-        error: 'Payment not completed'
-      });
-    }
-
-    // Get subscription details
-    const stripeSubscription = await stripe.subscriptions.retrieve(session.subscription);
-
-    // Update or create subscription
-    let subscription = await Subscription.findOne({ user: req.user.id });
-
-    if (!subscription) {
-      subscription = new Subscription({
-        user: req.user.id,
-        plan: session.metadata.plan,
-        status: 'active',
-        billing: {
-          cycle: session.metadata.billing,
-          amount: stripeSubscription.items.data[0].price.unit_amount / 100,
-          currency: stripeSubscription.currency.toUpperCase(),
-          nextBillingDate: new Date(stripeSubscription.current_period_end * 1000)
-        },
-        stripe: {
-          customerId: session.customer,
-          subscriptionId: session.subscription,
-          priceId: stripeSubscription.items.data[0].price.id
-        }
-      });
-    } else {
-      subscription.plan = session.metadata.plan;
-      subscription.status = 'active';
-      subscription.billing.cycle = session.metadata.billing;
-      subscription.billing.amount = stripeSubscription.items.data[0].price.unit_amount / 100;
-      subscription.billing.currency = stripeSubscription.currency.toUpperCase();
-      subscription.billing.nextBillingDate = new Date(stripeSubscription.current_period_end * 1000);
-      subscription.stripe.customerId = session.customer;
-      subscription.stripe.subscriptionId = session.subscription;
-      subscription.stripe.priceId = stripeSubscription.items.data[0].price.id;
-    }
-
-    await subscription.save();
-
-    // Recalculate actual resume count since subscription started
-    await subscription.recalculateResumeCount();
-
-    // Update user subscription info
-    await User.findByIdAndUpdate(req.user.id, {
-      'subscription.plan': session.metadata.plan,
-      'subscription.isActive': true,
-      'subscription.stripeCustomerId': session.customer,
-      'subscription.stripeSubscriptionId': session.subscription
-    });
-
-    logger.info(`Subscription activated: ${session.metadata.plan} for user ${req.user.email}`);
-
-    res.json({
-      success: true,
-      data: {
-        subscription
-      }
-    });
-  } catch (error) {
-    logger.error('Subscription success error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Error processing subscription'
-    });
-  }
-});
+// Stripe success handler removed
 
 // @desc    Cancel subscription
 // @route   POST /api/subscriptions/cancel
@@ -503,12 +302,7 @@ router.post('/cancel', [
       });
     }
 
-    if (stripe && subscription.stripe?.subscriptionId) {
-      // Cancel Stripe subscription
-      await stripe.subscriptions.update(subscription.stripe.subscriptionId, {
-        cancel_at_period_end: true
-      });
-    }
+    // Stripe integration removed
 
     // Update subscription
     subscription.status = 'canceled';
@@ -557,12 +351,7 @@ router.post('/reactivate', protect, async (req, res) => {
       });
     }
 
-    if (stripe && subscription.stripe?.subscriptionId) {
-      // Reactivate Stripe subscription
-      await stripe.subscriptions.update(subscription.stripe.subscriptionId, {
-        cancel_at_period_end: false
-      });
-    }
+    // Stripe integration removed
 
     // Update subscription
     subscription.status = 'active';
@@ -622,227 +411,8 @@ router.get('/billing-history', protect, async (req, res) => {
   }
 });
 
-// @desc    Update payment method
-// @route   POST /api/subscriptions/update-payment-method
-// @access  Private
-router.post('/update-payment-method', [
-  protect,
-  body('paymentMethodId').notEmpty().withMessage('Payment method ID is required')
-], async (req, res) => {
-  try {
-    if (!stripe) {
-      return res.status(500).json({
-        success: false,
-        error: 'Payment processing not configured'
-      });
-    }
+// Stripe payment method update route removed
 
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
-    }
-
-    const subscription = await Subscription.findOne({ user: req.user.id });
-
-    if (!subscription || !subscription.stripe?.subscriptionId) {
-      return res.status(404).json({
-        success: false,
-        error: 'No active subscription found'
-      });
-    }
-
-    const { paymentMethodId } = req.body;
-
-    // Attach payment method to customer
-    await stripe.paymentMethods.attach(paymentMethodId, {
-      customer: subscription.stripe.customerId
-    });
-
-    // Update subscription default payment method
-    await stripe.subscriptions.update(subscription.stripe.subscriptionId, {
-      default_payment_method: paymentMethodId
-    });
-
-    // Update our record
-    subscription.stripe.paymentMethodId = paymentMethodId;
-    await subscription.save();
-
-    res.json({
-      success: true,
-      data: {
-        message: 'Payment method updated successfully'
-      }
-    });
-  } catch (error) {
-    logger.error('Update payment method error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Error updating payment method'
-    });
-  }
-});
-
-// @desc    Stripe webhook handler
-// @route   POST /api/subscriptions/webhook
-// @access  Public (Stripe webhook)
-router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-  try {
-    if (!stripe) {
-      return res.status(500).send('Payment processing not configured');
-    }
-
-    const sig = req.headers['stripe-signature'];
-    let event;
-
-    try {
-      event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-    } catch (err) {
-      logger.error('Webhook signature verification failed:', err.message);
-      return res.status(400).send(`Webhook Error: ${err.message}`);
-    }
-
-    // Handle the event
-    switch (event.type) {
-      case 'payment_intent.succeeded':
-        await handlePaymentSucceeded(event.data.object);
-        break;
-      case 'payment_intent.payment_failed':
-        await handlePaymentFailed(event.data.object);
-        break;
-      case 'customer.subscription.updated':
-        await handleSubscriptionUpdated(event.data.object);
-        break;
-      case 'customer.subscription.deleted':
-        await handleSubscriptionDeleted(event.data.object);
-        break;
-      case 'invoice.payment_succeeded':
-        await handleInvoicePaymentSucceeded(event.data.object);
-        break;
-      default:
-        logger.info(`Unhandled event type: ${event.type}`);
-    }
-
-    res.json({ received: true });
-  } catch (error) {
-    logger.error('Webhook error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Webhook error'
-    });
-  }
-});
-
-// Helper functions for webhook handlers
-async function handlePaymentSucceeded(paymentIntent) {
-  const subscription = await Subscription.findOne({
-    'stripe.customerId': paymentIntent.customer
-  }).populate('user');
-
-  if (subscription) {
-    await subscription.addPayment({
-      amount: paymentIntent.amount / 100,
-      currency: paymentIntent.currency.toUpperCase(),
-      status: 'succeeded',
-      stripePaymentIntentId: paymentIntent.id,
-      paidAt: new Date()
-    });
-
-    // Send subscription confirmation email
-    try {
-      const user = subscription.user;
-      const planName = subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1);
-      const amount = (paymentIntent.amount / 100).toFixed(2);
-      
-      await emailService.sendSubscriptionConfirmation(
-        user.email,
-        `${user.firstName} ${user.lastName}`,
-        planName,
-        amount
-      );
-    } catch (emailError) {
-      logger.error('Failed to send subscription confirmation email:', emailError);
-    }
-  }
-}
-
-async function handlePaymentFailed(paymentIntent) {
-  const subscription = await Subscription.findOne({
-    'stripe.customerId': paymentIntent.customer
-  });
-
-  if (subscription) {
-    await subscription.addPayment({
-      amount: paymentIntent.amount / 100,
-      currency: paymentIntent.currency.toUpperCase(),
-      status: 'failed',
-      stripePaymentIntentId: paymentIntent.id,
-      failureReason: paymentIntent.last_payment_error?.message
-    });
-
-    // Update subscription status
-    subscription.status = 'past_due';
-    await subscription.save();
-  }
-}
-
-async function handleSubscriptionUpdated(stripeSubscription) {
-  const subscription = await Subscription.findOne({
-    'stripe.subscriptionId': stripeSubscription.id
-  });
-
-  if (subscription) {
-    subscription.status = stripeSubscription.status;
-    subscription.billing.nextBillingDate = new Date(stripeSubscription.current_period_end * 1000);
-    await subscription.save();
-  }
-}
-
-async function handleSubscriptionDeleted(stripeSubscription) {
-  const subscription = await Subscription.findOne({
-    'stripe.subscriptionId': stripeSubscription.id
-  }).populate('user');
-
-  if (subscription) {
-    const previousPlan = subscription.plan;
-    subscription.plan = 'free';
-    subscription.status = 'canceled';
-    subscription.endDate = new Date();
-    await subscription.save();
-
-    // Send subscription cancellation email
-    try {
-      const user = subscription.user;
-      const planName = previousPlan.charAt(0).toUpperCase() + previousPlan.slice(1);
-      
-      await emailService.sendSubscriptionCancellation(
-        user.email,
-        `${user.firstName} ${user.lastName}`,
-        planName
-      );
-    } catch (emailError) {
-      logger.error('Failed to send subscription cancellation email:', emailError);
-    }
-  }
-}
-
-async function handleInvoicePaymentSucceeded(invoice) {
-  const subscription = await Subscription.findOne({
-    'stripe.customerId': invoice.customer
-  });
-
-  if (subscription) {
-    await subscription.addPayment({
-      amount: invoice.amount_paid / 100,
-      currency: invoice.currency.toUpperCase(),
-      status: 'succeeded',
-      stripeInvoiceId: invoice.id,
-      description: `Subscription payment for ${subscription.plan} plan`,
-      paidAt: new Date(invoice.status_transitions.paid_at * 1000)
-    });
-  }
-}
+// Stripe webhook handler and helper functions removed
 
 module.exports = router; 

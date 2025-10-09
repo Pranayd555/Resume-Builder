@@ -84,24 +84,7 @@ const subscriptionSchema = new mongoose.Schema({
     maxlength: [500, 'Cancel reason cannot exceed 500 characters']
   },
   
-  // Payment Integration
-  stripe: {
-    customerId: {
-      type: String,
-      required: function() {
-        return this.plan !== 'free' && this.status !== 'trialing';
-      }
-    },
-    subscriptionId: {
-      type: String,
-      required: function() {
-        return this.plan !== 'free' && this.status !== 'trialing';
-      }
-    },
-    priceId: String,
-    invoiceId: String,
-    paymentMethodId: String
-  },
+  // Payment Integration - Removed Stripe integration
   
   // Features and Limits
   features: {
@@ -213,8 +196,8 @@ const subscriptionSchema = new mongoose.Schema({
       enum: ['pending', 'succeeded', 'failed', 'refunded'],
       required: true
     },
-    stripePaymentIntentId: String,
-    stripeInvoiceId: String,
+    paymentId: String,
+    invoiceId: String,
     description: String,
     paidAt: Date,
     failureReason: String,
@@ -321,8 +304,7 @@ subscriptionSchema.virtual('trialRemainingDays').get(function() {
 // Index for performance
 subscriptionSchema.index({ user: 1 });
 subscriptionSchema.index({ plan: 1, status: 1 });
-subscriptionSchema.index({ 'stripe.customerId': 1 });
-subscriptionSchema.index({ 'stripe.subscriptionId': 1 });
+// Removed Stripe indexes
 subscriptionSchema.index({ 'billing.nextBillingDate': 1 });
 
 // Method to check if trial is still active
@@ -605,8 +587,8 @@ subscriptionSchema.methods.addPayment = function(paymentData) {
     amount: paymentData.amount,
     currency: paymentData.currency || 'USD',
     status: paymentData.status,
-    stripePaymentIntentId: paymentData.stripePaymentIntentId,
-    stripeInvoiceId: paymentData.stripeInvoiceId,
+    paymentId: paymentData.paymentId,
+    invoiceId: paymentData.invoiceId,
     description: paymentData.description,
     paidAt: paymentData.paidAt || new Date(),
     failureReason: paymentData.failureReason,
