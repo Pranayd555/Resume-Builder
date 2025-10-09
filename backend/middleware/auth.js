@@ -272,6 +272,54 @@ const checkExportFormat = async (req, res, next) => {
   }
 };
 
+// Check and consume tokens for free plan users
+const checkTokenLimit = async (req, res, next) => {
+  try {
+    // Only check tokens for free plan users
+    if (req.subscription && req.subscription.plan === 'free') {
+      const user = await User.findById(req.user.id);
+      
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          error: 'User not found'
+        });
+      }
+
+      // Check if user has enough tokens (1 token for resume parsing)
+      if (!user.hasTokens(1)) {
+        return res.status(403).json({
+          success: false,
+          error: 'Insufficient tokens. You need 1 token to parse resume files. Please buy tokens to continue.',
+          tokensRequired: 1,
+          currentTokens: user.tokens,
+          action: 'buy_tokens'
+        });
+      }
+
+      // Consume 1 token for resume parsing
+      try {
+        await user.consumeTokens(1);
+        logger.info(`Token consumed: 1 token for user ${req.user.id}, remaining: ${user.tokens}`);
+      } catch (error) {
+        logger.error(`Error consuming tokens: ${error.message}`);
+        return res.status(500).json({
+          success: false,
+          error: 'Error processing token consumption'
+        });
+      }
+    }
+    
+    next();
+  } catch (error) {
+    logger.error('Check token limit error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Error checking token limits'
+    });
+  }
+};
+
 // Track usage after successful operations
 const trackUsage = async (req, res, next) => {
   const originalSend = res.json;
@@ -304,5 +352,6 @@ module.exports = {
   checkAIActionLimit,
   checkTemplateAccess,
   checkExportFormat,
+  checkTokenLimit,
   trackUsage
 }; 

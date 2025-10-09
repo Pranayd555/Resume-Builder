@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { ChevronDownIcon, CheckCircleIcon, ExclamationTriangleIcon, LightBulbIcon, SparklesIcon, AdjustmentsHorizontalIcon, KeyIcon } from '@heroicons/react/24/outline';
-import { aiAPI } from '../services/api';
+import { aiAPI, subscriptionAPI, apiHelpers } from '../services/api';
+import { useTokenBalance } from '../hooks/useTokenBalance';
 import AILoader from './AILoader';
 
 const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, resume = null, resumeId = null }) => {
@@ -10,7 +11,27 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
   const [showAllKeywords, setShowAllKeywords] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingType, setProcessingType] = useState(null);
+  const [subscription, setSubscription] = useState(null);
   const navigate = useNavigate();
+  const { tokenBalance, hasEnoughTokens } = useTokenBalance();
+
+  // Fetch subscription status
+  useEffect(() => {
+    const fetchSubscription = async () => {
+      try {
+        const response = await subscriptionAPI.getCurrentSubscription();
+        if (response.success) {
+          setSubscription(response.data.subscription);
+        }
+      } catch (error) {
+        console.error('Failed to fetch subscription:', error);
+        // Default to free plan if fetch fails
+        setSubscription({ plan: 'free', status: 'active' });
+      }
+    };
+
+    fetchSubscription();
+  }, []);
 
   // Auto-open when new analysis is available
   useEffect(() => {
@@ -48,10 +69,61 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
     return Math.min((score / maxScore) * 100, 100);
   };
 
+  // Check if user can use AI features based on plan and tokens
+  const canUseAIFeatures = () => {
+    if (!subscription) return false;
+    
+    // Premium users can use AI features unlimited
+    if (subscription.plan === 'pro') {
+      return true;
+    }
+    
+    // Free users need tokens
+    if (subscription.plan === 'free') {
+      return hasEnoughTokens(1); // 1 token required for AI features
+    }
+    
+    return false;
+  };
+
+  // Get AI feature restriction message
+  const getAIFeatureRestrictionMessage = () => {
+    if (!subscription) return null;
+    
+    if (subscription.plan === 'free') {
+      if (!hasEnoughTokens(1)) {
+        return {
+          type: 'error',
+          message: 'You need tokens to use AI features. You have 0 tokens remaining.',
+          action: 'Buy Tokens'
+        };
+      }
+      return {
+        type: 'info',
+        message: `You have ${tokenBalance} tokens remaining. AI features cost 1 token each.`,
+        action: null
+      };
+    }
+    
+    return null; // Premium users have no restrictions
+  };
+
   // Handle Adjust Tone action
   const handleAdjustTone = async () => {
     if (!resume || !resumeId) {
       toast.error('Resume data not available');
+      return;
+    }
+
+    // Check if user can use AI features
+    if (!canUseAIFeatures()) {
+      const restrictionMessage = getAIFeatureRestrictionMessage();
+      if (restrictionMessage) {
+        toast.error(restrictionMessage.message);
+        if (restrictionMessage.action === 'Buy Tokens') {
+          navigate('/subscription');
+        }
+      }
       return;
     }
 
@@ -68,6 +140,11 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       const response = await aiAPI.adjustTone(resumeId, requestData);
       
       if (response.success) {
+        // Update token balance after successful operation
+        const currentBalance = apiHelpers.getTokenBalance();
+        const newBalance = Math.max(0, currentBalance - 1);
+        apiHelpers.updateTokenBalance(newBalance);
+        
         // Store the AI-enhanced data in localStorage with a flag
         const aiEnhancedData = {
           ...response.data,
@@ -105,6 +182,18 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       return;
     }
 
+    // Check if user can use AI features
+    if (!canUseAIFeatures()) {
+      const restrictionMessage = getAIFeatureRestrictionMessage();
+      if (restrictionMessage) {
+        toast.error(restrictionMessage.message);
+        if (restrictionMessage.action === 'Buy Tokens') {
+          navigate('/subscription');
+        }
+      }
+      return;
+    }
+
     try {
       setIsProcessing(true);
       setProcessingType('enhance-keywords');
@@ -120,6 +209,10 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       const response = await aiAPI.enhanceKeywords(resumeId, requestData);
       
       if (response.success) {
+        // Update token balance after successful operation
+        const currentBalance = apiHelpers.getTokenBalance();
+        const newBalance = Math.max(0, currentBalance - 1);
+        apiHelpers.updateTokenBalance(newBalance);
         
         // Store the AI-enhanced data in localStorage with a flag
         const aiEnhancedData = {
@@ -425,11 +518,47 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
               <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
               AI-Powered Improvements
             </h4>
+            
+            {/* Token restriction message for free users */}
+            {subscription && subscription.plan === 'free' && (
+              <div className={`p-3 rounded-lg border mb-4 ${
+                hasEnoughTokens(1) 
+                  ? 'bg-blue-50 border-blue-200 text-blue-800' 
+                  : 'bg-red-50 border-red-200 text-red-800'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-sm font-medium">
+                      {hasEnoughTokens(1) 
+                        ? `You have ${tokenBalance} tokens. AI features cost 1 token each.`
+                        : 'You need tokens to use AI features.'
+                      }
+                    </span>
+                  </div>
+                  {!hasEnoughTokens(1) && (
+                    <button
+                      onClick={() => navigate('/subscription')}
+                      className="px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
+                    >
+                      Buy Tokens
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+            
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 onClick={handleAdjustTone}
-                disabled={isProcessing}
-                className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium text-sm"
+                disabled={isProcessing || !canUseAIFeatures()}
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-all duration-200 font-medium text-sm ${
+                  canUseAIFeatures() 
+                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700' 
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <AdjustmentsHorizontalIcon className="w-4 h-4" />
                 Adjust Tone
@@ -437,8 +566,12 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
               </button>
               <button
                 onClick={handleEnhanceKeywords}
-                disabled={isProcessing}
-                className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium text-sm"
+                disabled={isProcessing || !canUseAIFeatures()}
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-all duration-200 font-medium text-sm ${
+                  canUseAIFeatures() 
+                    ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:from-purple-600 hover:to-purple-700' 
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <KeyIcon className="w-4 h-4" />
                 Enhance Keywords
@@ -446,7 +579,10 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
               </button>
             </div>
             <p className="text-xs text-gray-500 mt-2 text-center">
-              AI will analyze your resume and make targeted improvements
+              {canUseAIFeatures() 
+                ? 'AI will analyze your resume and make targeted improvements'
+                : 'AI features require tokens - Buy tokens to continue'
+              }
             </p>
           </div>
         </div>
