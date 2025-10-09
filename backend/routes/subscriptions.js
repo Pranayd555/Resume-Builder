@@ -19,26 +19,26 @@ router.get('/plans', async (req, res) => {
       {
         id: 'free',
         name: 'Free',
-        price: { monthly: 0, yearly: 0 },
+        price: { monthly: 0 },
         features: [
           '2 resume projects total',
           'Basic templates only',
           'PDF export (with watermark)',
           'Email support',
-          '10 AI actions per month'
+          '200 AI actions per month'
         ],
         limits: {
           resumes: 2,
           templates: ['free'],
           exports: ['pdf'],
-          aiActions: 10
+          aiActions: 200
         },
         popular: false
       },
       {
         id: 'pro',
         name: 'Pro',
-        price: { monthly: 9.99, yearly: 79 },
+        price: { monthly: 9.99 },
         features: [
           '5 resume projects total',
           'Full access to all premium templates',
@@ -164,7 +164,7 @@ router.get('/current', protect, async (req, res) => {
           },
           aiActions: {
             used: usage.aiActionsThisMonth || 0,
-            limit: subscription.features?.aiActionsLimit || 10
+            limit: subscription.features?.aiActionsLimit || 200
           }
         }
       }

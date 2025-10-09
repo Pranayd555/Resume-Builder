@@ -167,7 +167,7 @@ const TermsConditions = () => {
               
               <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-500 mb-4">Pro Plan</h3>
               <p className="text-gray-600 dark:text-gray-300 mb-4">
-                Pro plan subscriptions are billed monthly or annually. All fees are non-refundable except as required by law or as specified in our refund policy.
+                Pro plan subscriptions are billed monthly. All fees are non-refundable except as required by law or as specified in our refund policy.
               </p>
               
               <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-500 mb-4">Price Changes</h3>

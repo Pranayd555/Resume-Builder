@@ -246,9 +246,9 @@ router.get('/usage', protect, async (req, res) => {
       success: true,
       data: {
         aiActionsUsed: usage.aiActionsThisCycle || 0,
-        aiActionsLimit: subscription.features?.aiActionsLimit || 10,
+        aiActionsLimit: subscription.features?.aiActionsLimit || 200,
         plan: subscription.plan,
-        remainingActions: Math.max(0, (subscription.features?.aiActionsLimit || 10) - (usage.aiActionsThisCycle || 0)),
+        remainingActions: Math.max(0, (subscription.features?.aiActionsLimit || 200) - (usage.aiActionsThisCycle || 0)),
         cycleStartDate: usage.cycleStartDate || subscription.startDate,
         nextBillingDate: subscription.billing?.nextBillingDate || null,
         billingCycle: subscription.billing?.cycle || 'monthly',

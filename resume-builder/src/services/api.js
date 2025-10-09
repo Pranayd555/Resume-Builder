@@ -719,6 +719,8 @@ export const apiHelpers = {
   clearAuthData: () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
+    localStorage.removeItem('tokenBalance');
+    localStorage.removeItem('tokenData');
   },
 
   // Format error message
@@ -747,6 +749,51 @@ export const apiHelpers = {
   // Set current user data
   setCurrentUserData: (userData) => {
     localStorage.setItem('user', JSON.stringify(userData));
+  },
+
+  // Token management functions
+  setTokenBalance: (balance) => {
+    localStorage.setItem('tokenBalance', JSON.stringify(balance));
+  },
+
+  getTokenBalance: () => {
+    const balance = localStorage.getItem('tokenBalance');
+    return balance ? JSON.parse(balance) : 0;
+  },
+
+  setTokenData: (tokenData) => {
+    localStorage.setItem('tokenData', JSON.stringify(tokenData));
+  },
+
+  getTokenData: () => {
+    const tokenData = localStorage.getItem('tokenData');
+    return tokenData ? JSON.parse(tokenData) : null;
+  },
+
+  clearTokenData: () => {
+    localStorage.removeItem('tokenBalance');
+    localStorage.removeItem('tokenData');
+  },
+
+  // Update token balance across the app
+  updateTokenBalance: (newBalance) => {
+    apiHelpers.setTokenBalance(newBalance);
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent('tokenBalanceUpdated', { 
+      detail: { balance: newBalance } 
+    }));
+  },
+
+  // Update token data across the app
+  updateTokenData: (tokenData) => {
+    apiHelpers.setTokenData(tokenData);
+    if (tokenData.balance !== undefined) {
+      apiHelpers.setTokenBalance(tokenData.balance);
+    }
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent('tokenDataUpdated', { 
+      detail: tokenData 
+    }));
   },
 };
 

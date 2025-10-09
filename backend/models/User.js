@@ -151,6 +151,61 @@ const userSchema = new mongoose.Schema({
     }
   },
   
+  // Token System
+  tokens: {
+    type: Number,
+    default: 20,
+    min: 0
+  },
+  
+  // Razorpay Transaction History (last 20 transactions)
+  razorpayTransactions: [{
+    transactionId: {
+      type: String,
+      required: true
+    },
+    orderId: {
+      type: String,
+      required: true
+    },
+    amount: {
+      type: Number,
+      required: true
+    },
+    currency: {
+      type: String,
+      default: 'INR'
+    },
+    status: {
+      type: String,
+      enum: ['created', 'authorized', 'captured', 'refunded', 'failed'],
+      required: true
+    },
+    paymentId: String,
+    signature: String,
+    method: String,
+    bank: String,
+    wallet: String,
+    vpa: String,
+    email: String,
+    contact: String,
+    fee: Number,
+    tax: Number,
+    errorCode: String,
+    errorDescription: String,
+    errorSource: String,
+    errorStep: String,
+    errorReason: String,
+    createdAt: {
+      type: Date,
+      default: Date.now
+    },
+    capturedAt: Date,
+    refundedAt: Date,
+    notes: String,
+    metadata: mongoose.Schema.Types.Mixed
+  }],
+  
   // Security
   emailVerificationToken: String,
   emailVerificationExpire: Date,
@@ -339,10 +394,74 @@ userSchema.methods.clearEmailOtp = function() {
   this.emailOtpExpire = undefined;
 };
 
+// Method to check if user has enough tokens
+userSchema.methods.hasTokens = function(requiredTokens = 1) {
+  return this.tokens >= requiredTokens;
+};
+
+// Method to consume tokens
+userSchema.methods.consumeTokens = function(tokensToConsume = 1) {
+  if (this.tokens < tokensToConsume) {
+    throw new Error('Insufficient tokens');
+  }
+  this.tokens -= tokensToConsume;
+  return this.save();
+};
+
+// Method to add tokens
+userSchema.methods.addTokens = function(tokensToAdd) {
+  this.tokens += tokensToAdd;
+  return this.save();
+};
+
+// Method to add Razorpay transaction (maintains last 20 transactions)
+userSchema.methods.addRazorpayTransaction = function(transactionData) {
+  // Add new transaction to the beginning of the array
+  this.razorpayTransactions.unshift(transactionData);
+  
+  // Keep only the last 20 transactions
+  if (this.razorpayTransactions.length > 20) {
+    this.razorpayTransactions = this.razorpayTransactions.slice(0, 20);
+  }
+  
+  return this.save();
+};
+
+// Method to update transaction status
+userSchema.methods.updateTransactionStatus = function(transactionId, status, additionalData = {}) {
+  const transaction = this.razorpayTransactions.find(t => t.transactionId === transactionId);
+  if (transaction) {
+    transaction.status = status;
+    Object.assign(transaction, additionalData);
+    
+    // Set timestamps based on status
+    if (status === 'captured') {
+      transaction.capturedAt = new Date();
+    } else if (status === 'refunded') {
+      transaction.refundedAt = new Date();
+    }
+    
+    return this.save();
+  }
+  return false;
+};
+
+// Method to get transaction history
+userSchema.methods.getTransactionHistory = function(limit = 20) {
+  return this.razorpayTransactions.slice(0, limit);
+};
+
+// Method to get transaction by ID
+userSchema.methods.getTransactionById = function(transactionId) {
+  return this.razorpayTransactions.find(t => t.transactionId === transactionId);
+};
+
 // Index for performance
 userSchema.index({ email: 1 });
 userSchema.index({ googleId: 1 });
 userSchema.index({ linkedinId: 1 });
+userSchema.index({ 'razorpayTransactions.transactionId': 1 });
+userSchema.index({ 'razorpayTransactions.orderId': 1 });
 // Stripe indexes removed
 
 module.exports = mongoose.model('User', userSchema); 

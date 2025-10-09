@@ -21,10 +21,11 @@ const subscriptionSchema = new mongoose.Schema({
   billing: {
     cycle: {
       type: String,
-      enum: ['monthly', 'yearly'],
+      enum: ['monthly'],
       required: function() {
         return this.plan !== 'free' && this.status !== 'trialing';
-      }
+      },
+      default: 'monthly'
     },
     amount: {
       type: Number,
@@ -351,7 +352,7 @@ subscriptionSchema.methods.expireTrial = function() {
     this.features.resumeLimit = 2;
     this.features.templateAccess = ['free'];
     this.features.exportFormats = ['pdf'];
-    this.features.aiActionsLimit = 10;
+    this.features.aiActionsLimit = 200;
     this.features.aiReview = false;
     this.features.prioritySupport = false;
     this.features.customBranding = false;
@@ -376,7 +377,7 @@ subscriptionSchema.pre('save', function(next) {
     this.features.resumeLimit = 2;
     this.features.templateAccess = ['free'];
     this.features.exportFormats = ['pdf'];
-    this.features.aiActionsLimit = 10;
+    this.features.aiActionsLimit = 200;
     this.features.aiReview = false;
     this.features.prioritySupport = false;
     this.features.customBranding = false;
@@ -459,11 +460,8 @@ function ensureSubscriptionCycleWindow(subscriptionDoc) {
       subscriptionDoc.usage.cycleStartDate = now;
       
       // Update next billing date for the next cycle
-      if (subscriptionDoc.billing.cycle === 'monthly') {
-        subscriptionDoc.billing.nextBillingDate = new Date(nextBilling.getTime() + 30 * 24 * 60 * 60 * 1000);
-      } else if (subscriptionDoc.billing.cycle === 'yearly') {
-        subscriptionDoc.billing.nextBillingDate = new Date(nextBilling.getTime() + 365 * 24 * 60 * 60 * 1000);
-      }
+      // Always monthly billing
+      subscriptionDoc.billing.nextBillingDate = new Date(nextBilling.getTime() + 30 * 24 * 60 * 60 * 1000);
     }
   }
 }
@@ -618,11 +616,8 @@ subscriptionSchema.methods.resetAIActionCycle = function() {
   // For paid users, also update next billing date
   if (this.billing?.nextBillingDate) {
     const now = new Date();
-    if (this.billing.cycle === 'monthly') {
-      this.billing.nextBillingDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-    } else if (this.billing.cycle === 'yearly') {
-      this.billing.nextBillingDate = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
-    }
+    // Always monthly billing
+    this.billing.nextBillingDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
   }
   
   return this.save();

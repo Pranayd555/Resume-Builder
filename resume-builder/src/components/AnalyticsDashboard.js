@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { analyticsAPI } from '../services/api';
+import { analyticsAPI, apiHelpers } from '../services/api';
 import { toast } from 'react-toastify';
 import AuthLoader from './AuthLoader';
 import { 
@@ -8,7 +8,13 @@ import {
   DocumentArrowDownIcon, 
   DocumentTextIcon,
   SparklesIcon,
-  ChartBarIcon
+  ChartBarIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  CreditCardIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  CurrencyDollarIcon
 } from '@heroicons/react/24/outline';
 
 
@@ -16,6 +22,35 @@ function AnalyticsDashboard() {
   const navigate = useNavigate();
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isTemplatesAccordionOpen, setIsTemplatesAccordionOpen] = useState(false);
+  const [isPaymentHistoryAccordionOpen, setIsPaymentHistoryAccordionOpen] = useState(false);
+
+  // Custom scrollbar styles
+  const scrollbarStyles = `
+    .payment-scrollbar::-webkit-scrollbar {
+      width: 8px;
+    }
+    .payment-scrollbar::-webkit-scrollbar-track {
+      background: #f3f4f6;
+      border-radius: 4px;
+    }
+    .payment-scrollbar::-webkit-scrollbar-thumb {
+      background: #d1d5db;
+      border-radius: 4px;
+    }
+    .payment-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #9ca3af;
+    }
+    .dark .payment-scrollbar::-webkit-scrollbar-track {
+      background: #fed7aa;
+    }
+    .dark .payment-scrollbar::-webkit-scrollbar-thumb {
+      background: #fb923c;
+    }
+    .dark .payment-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #f97316;
+    }
+  `;
 
   useEffect(() => {
     fetchAnalytics();
@@ -28,13 +63,48 @@ function AnalyticsDashboard() {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
+      
+      // First try to get token data from localStorage
+      const storedTokenData = apiHelpers.getTokenData();
+      const storedTokenBalance = apiHelpers.getTokenBalance();
+      
       const response = await analyticsAPI.getAnalyticsSummary();
       if (response.success) {
-        setAnalytics(response.data);
+        // Merge with localStorage data for better performance
+        const analyticsData = {
+          ...response.data,
+          tokens: {
+            balance: response.data?.tokens?.balance || storedTokenBalance || 0,
+            recentTransactions: response.data?.tokens?.recentTransactions || storedTokenData?.recentTransactions || []
+          }
+        };
+        
+        // Store updated token data in localStorage
+        if (response.data?.tokens) {
+          apiHelpers.setTokenData(response.data.tokens);
+          apiHelpers.setTokenBalance(response.data.tokens.balance);
+        }
+        
+        setAnalytics(analyticsData);
       }
     } catch (error) {
       console.error('Failed to fetch analytics:', error);
-      toast.error('Failed to load analytics data');
+      
+      // Fallback to localStorage data if API fails
+      const storedTokenData = apiHelpers.getTokenData();
+      const storedTokenBalance = apiHelpers.getTokenBalance();
+      
+      if (storedTokenData || storedTokenBalance !== null) {
+        setAnalytics(prev => ({
+          ...prev,
+          tokens: {
+            balance: storedTokenBalance || 0,
+            recentTransactions: storedTokenData?.recentTransactions || []
+          }
+        }));
+      } else {
+        toast.error('Failed to load analytics data');
+      }
     } finally {
       setLoading(false);
     }
@@ -63,10 +133,11 @@ function AnalyticsDashboard() {
     );
   }
 
-  const { resumes, subscription, templates } = analytics;
+  const { resumes, subscription, templates, tokens } = analytics;
 
   return (
     <div className="min-h-screen pt-16">
+      <style dangerouslySetInnerHTML={{ __html: scrollbarStyles }} />
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -159,7 +230,7 @@ function AnalyticsDashboard() {
             <h3 className="text-lg font-medium text-gray-900">Subscription Status</h3>
           </div>
           <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div>
                 <p className="text-sm font-medium text-gray-500">Current Plan</p>
                 <p className="text-lg font-semibold text-gray-900 capitalize">{subscription.plan}</p>
@@ -177,7 +248,6 @@ function AnalyticsDashboard() {
                 </div>
               </div>
               <div>
-
                 <p className="text-sm font-medium text-gray-500">AI Actions This Month</p>
                 <p className="text-lg font-semibold text-gray-900">
                   {subscription.aiActionsUsed} / {subscription.aiActionsLimit === -1 ? '∞' : subscription.aiActionsLimit}
@@ -189,31 +259,134 @@ function AnalyticsDashboard() {
                   ></div>
                 </div>
               </div>
+              <div>
+                <div className="flex items-center">
+                  <CurrencyDollarIcon className="h-5 w-5 text-green-600 mr-2" />
+                  <p className="text-sm font-medium text-gray-500">Token Balance</p>
+                </div>
+                <p className="text-lg font-semibold text-gray-900">
+                  {tokens?.balance || subscription.tokenBalance || 0} tokens
+                </p>
+                <p className="text-xs text-gray-500">
+                  Available for AI actions
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Templates Used */}
+        {/* Templates Used Accordion */}
         {templates.totalUsed > 0 && (
-          <div className="bg-white/80 dark:bg-orange-50/95 backdrop-blur-sm rounded-lg shadow">
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-orange-700/30">
+          <div className="bg-white/80 dark:bg-orange-50/95 backdrop-blur-sm rounded-lg shadow border border-gray-200 dark:border-orange-200/30">
+            <button
+              onClick={() => setIsTemplatesAccordionOpen(!isTemplatesAccordionOpen)}
+              className="w-full px-6 py-4 border-b border-gray-200 dark:border-orange-700/30 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-orange-100/50 transition-colors"
+            >
               <h3 className="text-lg font-medium text-gray-900 dark:text-gray-700">Templates Used</h3>
-            </div>
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {templates.templates.map((template) => (
-                  <div key={template.id} className="border border-gray-200 dark:border-orange-700/30 rounded-lg p-4">
-                    <h4 className="font-medium text-gray-900 dark:text-gray-700">{template.name}</h4>
-                    <p className="text-sm text-gray-500 capitalize dark:text-gray-700">{template.category}</p>
-                    <p className="text-xs text-gray-400 mt-1 dark:text-gray-700">
-                      Used {template.usage.totalUses} times
-                    </p>
+              {isTemplatesAccordionOpen ? (
+                <ChevronUpIcon className="h-5 w-5 text-gray-500 dark:text-gray-700" />
+              ) : (
+                <ChevronDownIcon className="h-5 w-5 text-gray-500 dark:text-gray-700" />
+              )}
+            </button>
+            <div 
+              className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                isTemplatesAccordionOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <div className="p-6">
+                <div className="max-h-80 overflow-y-auto">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {templates.templates.map((template) => (
+                      <div key={template.id} className="border border-gray-200 dark:border-orange-700/30 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <h4 className="font-medium text-gray-900 dark:text-gray-700">{template.name}</h4>
+                        <p className="text-sm text-gray-500 capitalize dark:text-gray-700">{template.category}</p>
+                        <p className="text-xs text-gray-400 mt-1 dark:text-gray-700">
+                          Used {template.usage.totalUses} times
+                        </p>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
             </div>
           </div>
         )}
+
+        {/* Payment History Accordion */}
+        <div className="mt-8 bg-white/80 dark:bg-orange-50/95 backdrop-blur-sm rounded-lg shadow border border-gray-200 dark:border-orange-200/30">
+          <button
+            onClick={() => setIsPaymentHistoryAccordionOpen(!isPaymentHistoryAccordionOpen)}
+            className="w-full px-6 py-4 border-b border-gray-200 dark:border-orange-700/30 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-orange-100/50 transition-colors"
+          >
+            <div className="flex items-center">
+              <CreditCardIcon className="h-5 w-5 text-gray-500 dark:text-gray-700 mr-3" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-700">Payment History</h3>
+            </div>
+            {isPaymentHistoryAccordionOpen ? (
+              <ChevronUpIcon className="h-5 w-5 text-gray-500 dark:text-gray-700" />
+            ) : (
+              <ChevronDownIcon className="h-5 w-5 text-gray-500 dark:text-gray-700" />
+            )}
+          </button>
+          <div 
+            className={`overflow-hidden transition-all duration-300 ease-in-out ${
+              isPaymentHistoryAccordionOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+            }`}
+          >
+            <div className="p-6">
+              <div 
+                className="max-h-80 overflow-y-auto payment-scrollbar"
+                style={{
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: '#d1d5db #f3f4f6'
+                }}
+              >
+                {tokens?.recentTransactions && tokens.recentTransactions.length > 0 ? (
+                  <div className="space-y-4">
+                    {tokens.recentTransactions.map((transaction, index) => (
+                      <div key={transaction.transactionId || index} className="border border-gray-200 dark:border-orange-700/30 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            {transaction.status === 'captured' ? (
+                              <CheckCircleIcon className="h-5 w-5 text-green-500 mr-3" />
+                            ) : transaction.status === 'failed' ? (
+                              <XCircleIcon className="h-5 w-5 text-red-500 mr-3" />
+                            ) : (
+                              <div className="h-5 w-5 rounded-full bg-yellow-500 mr-3"></div>
+                            )}
+                            <div>
+                              <h4 className="font-medium text-gray-900 dark:text-gray-700">
+                                {transaction.notes || 'Token Purchase'}
+                              </h4>
+                              <p className="text-sm text-gray-500 dark:text-gray-700">
+                                {transaction.method ? `${transaction.method.toUpperCase()} Payment` : 'Razorpay Payment'} - {transaction.status}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-gray-900 dark:text-gray-100">
+                              ₹{(transaction.amount / 100).toFixed(2)}
+                            </p>
+                            <p className="text-xs text-gray-400 dark:text-gray-700">
+                              {new Date(transaction.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <CreditCardIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
+                    <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No payment history</h3>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Your payment transactions will appear here.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
