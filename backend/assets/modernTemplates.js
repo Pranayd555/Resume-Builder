@@ -1600,7 +1600,7 @@ module.exports = [
             </section>
             {{/if}}
           </article>`,
-          css: `.resume.bold-accent { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; background: white; color: #1f2937; line-height: 1.4; padding: 0; }
+          css: `.resume.bold-accent { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 5px; background: white; color: #1f2937; line-height: 1.4; padding: 0; }
           .header { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 16px 20px; margin-bottom: 12px; }
           .name { font-weight: 700; margin-bottom: 6px; letter-spacing: -0.5px; color: white; }
           .contact-info { display: flex; flex-wrap: wrap; gap: 12px; color: rgba(255, 255, 255, 0.9); line-height: 1.4; }

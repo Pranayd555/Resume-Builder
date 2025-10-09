@@ -245,7 +245,7 @@ module.exports = [
         .header { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 16px 20px 10px; margin-bottom: 6px; border-radius: 0 0 6px 6px; box-shadow: 0 2px 6px rgba(30, 64, 175, 0.2); }
         @media print { .header { background: #1e40af !important; border-radius: 0; box-shadow: none; } }
         .header-content { max-width: 100%; }
-        .name { font-weight: 700; margin-bottom: 6px; letter-spacing: -0.5px; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .name { font-weight: 700; margin-bottom: 6px; letter-spacing: -0.5px; text-shadow: 0 1px 2px rgba(0,0,0,0.1); text-align: center; }
         .contact-info { display: flex; flex-direction: column; gap: 2px; }
         .contact-row { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
         .contact-item { opacity: 0.95; }
@@ -276,7 +276,7 @@ module.exports = [
         
         .technologies { display: flex; flex-wrap: wrap; gap: 2px; margin: 2px 0; }
         .tech-label { font-weight: bold; display: inline; }
-        .tech-tag { background: #1e40af; color: white; padding: 1px 4px; border-radius: 2px; }
+        .tech-tag { background: #1e40af; color: white; padding: 2px 4px; border-radius: 2px; }
         
         .project-links { margin: 2px 0; }
         .project-links a { color: #1e40af; text-decoration: none; margin-right: 8px; }
@@ -297,7 +297,7 @@ module.exports = [
         .skill-category { margin-bottom: 2px; }
         .skill-category-title { font-weight: 600; color: #1f2937; margin-bottom: 2px; }
         .skill-items { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 2px; }
-        .skill-item { background: #1e40af; color: white; padding: 1px 4px; border-radius: 2px; }
+        .skill-item { background: #1e40af; color: white; padding: 2px 4px; border-radius: 2px; }
         .skill-item[data-level="expert"] { background: #059669; }
         .skill-item[data-level="advanced"] { background: #0ea5e9; }
         .skill-item[data-level="intermediate"] { background: #1e40af; }
