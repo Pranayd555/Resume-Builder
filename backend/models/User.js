@@ -125,8 +125,7 @@ const userSchema = new mongoose.Schema({
         return new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year
       }
     },
-    stripeCustomerId: String,
-    stripeSubscriptionId: String
+    // Stripe integration removed
   },
   
   // Usage Limits
@@ -344,6 +343,6 @@ userSchema.methods.clearEmailOtp = function() {
 userSchema.index({ email: 1 });
 userSchema.index({ googleId: 1 });
 userSchema.index({ linkedinId: 1 });
-userSchema.index({ 'subscription.stripeCustomerId': 1 });
+// Stripe indexes removed
 
 module.exports = mongoose.model('User', userSchema); 

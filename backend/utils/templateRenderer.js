@@ -981,7 +981,7 @@ class OptimizedTemplateRenderer {
         {
           name: 'E-commerce Platform',
           description: 'Full-stack e-commerce application with payment processing and inventory management',
-          technologies: ['React', 'Node.js', 'MongoDB', 'Stripe API'],
+          technologies: ['React', 'Node.js', 'MongoDB', 'Razorpay API'],
           url: 'https://ecommerce-demo.com',
           githubUrl: 'https://github.com/johndoe/ecommerce-platform',
           startDate: '2020-01-01',
