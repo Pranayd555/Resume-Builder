@@ -1,7 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const multer = require('multer');
-const { protect, checkAIActionLimit, trackUsage } = require('../middleware/auth');
+const { protect, checkAIActionLimit, checkTokenLimit, trackUsage } = require('../middleware/auth');
 const Subscription = require('../models/Subscription');
 const Resume = require('../models/Resume');
 const Template = require('../models/Template');
@@ -135,6 +135,7 @@ const upload = multer({
 router.post('/rewrite', [
   protect,
   checkAIActionLimit,
+  checkTokenLimit,
   body('content').trim().isLength({ min: 10 }).withMessage('Content must be at least 10 characters'),
   body('tone').optional().isIn(['professional', 'casual', 'formal', 'creative']).withMessage('Invalid tone'),
   body('style').optional().isIn(['concise', 'detailed', 'action-oriented', 'achievement-focused']).withMessage('Invalid style')
@@ -184,6 +185,7 @@ router.post('/rewrite', [
 router.post('/summarize', [
   protect,
   checkAIActionLimit,
+  checkTokenLimit,
   body('content').trim().isLength({ min: 20 }).withMessage('Content must be at least 20 characters'),
   body('maxLength').optional().isInt({ min: 50, max: 500 }).withMessage('Max length must be between 50 and 500 characters')
 ], trackUsage, async (req, res) => {
@@ -271,6 +273,7 @@ router.get('/usage', protect, async (req, res) => {
 router.post('/ats-score', [
   protect,
   checkAIActionLimit,
+  checkTokenLimit,
   upload.single('jobDescriptionFile'), // Handle file upload for job description
   body('resumeId').isMongoId().withMessage('Valid resume ID is required'),
   body('jobDescription').optional().trim().isLength({ min: 10 }).withMessage('Job description must be at least 10 characters'),
@@ -553,6 +556,7 @@ router.get('/ats-score/:resumeId', protect, async (req, res) => {
 router.post('/adjust-tone', [
   protect,
   checkAIActionLimit,
+  checkTokenLimit,
   body('resumeId').isMongoId().withMessage('Valid resume ID is required'),
   body('resume_json').isObject().withMessage('Resume JSON is required'),
   body('ats_analysis').isObject().withMessage('ATS analysis is required'),
@@ -703,6 +707,7 @@ router.post('/adjust-tone', [
     router.post('/enhance-keywords', [
       protect,
       checkAIActionLimit,
+      checkTokenLimit,
       body('resumeId').isMongoId().withMessage('Valid resume ID is required'),
       body('resume_json').isObject().withMessage('Resume JSON is required'),
       body('ats_analysis').isObject().withMessage('ATS analysis is required'),
