@@ -483,78 +483,7 @@ export const uploadAPI = {
   },
 };
 
-// AI API calls
-export const aiAPI = {
-  generateATSScore: async (resumeId, inputType, jobDescription = null, jobDescriptionFile = null) => {
-    const formData = new FormData();
-    formData.append('resumeId', resumeId);
-    formData.append('inputType', inputType);
-    
-    if (inputType === 'text' && jobDescription) {
-      formData.append('jobDescription', jobDescription);
-    } else if (inputType === 'file' && jobDescriptionFile) {
-      formData.append('jobDescriptionFile', jobDescriptionFile);
-    }
-
-    const config = createApiConfig('/ai/ats-score', {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    const response = await api.post('/ai/ats-score', formData, config);
-    return response.data;
-  },
-
-  rewriteContent: async (content, tone = 'professional', style = 'action-oriented') => {
-    const config = createApiConfig('/ai/rewrite');
-    const response = await api.post('/ai/rewrite', {
-      content,
-      tone,
-      style
-    }, config);
-    return response.data;
-  },
-
-  summarizeContent: async (content, maxLength = 150) => {
-    const config = createApiConfig('/ai/summarize');
-    const response = await api.post('/ai/summarize', {
-      content,
-      maxLength
-    }, config);
-    return response.data;
-  },
-
-  // ATS-based AI endpoints
-  adjustTone: async (resumeId, requestData) => {
-    const config = createApiConfig('/ai/adjust-tone');
-    const response = await api.post('/ai/adjust-tone', {
-      resumeId,
-      ...requestData
-    }, config);
-    return response.data;
-  },
-
-  enhanceKeywords: async (resumeId, requestData) => {
-    const config = createApiConfig('/ai/enhance-keywords');
-    const response = await api.post('/ai/enhance-keywords', {
-      resumeId,
-      ...requestData
-    }, config);
-    return response.data;
-  },
-
-  getAIUsage: async () => {
-    const config = createApiConfig('/ai/usage');
-    const response = await api.get('/ai/usage', config);
-    return response.data;
-  },
-
-  getATSAnalysis: async (resumeId) => {
-    const config = createApiConfig('/ai/ats-score');
-    const response = await api.get(`/ai/ats-score/${resumeId}`, config);
-    return response.data;
-  },
-};
+// AI services have been moved to aiService.js
 
 // User API calls
 export const userAPI = {
