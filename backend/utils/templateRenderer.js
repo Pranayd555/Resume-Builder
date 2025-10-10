@@ -210,6 +210,7 @@ class OptimizedTemplateRenderer {
         .${uniqueId} .name {
           font-size: ${templateStyling.headerFontSize + 2}px !important;  
           font-weight: 600 !important; 
+          margin-bottom: 0.25rem !important; 
         }
           
         

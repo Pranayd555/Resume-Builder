@@ -1860,6 +1860,7 @@ module.exports = [
             
             h2 { 
               color: #3b82f6;
+              margin-bottom: 6px !important;
             }
             
             .section-card { 
