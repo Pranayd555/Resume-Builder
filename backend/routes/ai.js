@@ -154,22 +154,76 @@ router.post('/rewrite', [
 
     const { content, tone = 'professional', style = 'action-oriented' } = req.body;
 
-    // TODO: Implement actual AI rewriting logic here
-    // For now, return a mock response
-    const rewrittenContent = `[AI Rewritten] ${content} - Enhanced with ${tone} tone and ${style} style.`;
+    // Initialize Gemini AI
+    const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
 
-    logger.info(`AI rewrite request processed for user ${req.user.email}`);
+    // Create prompt for ATS-friendly professional enhancement
+    const prompt = `
+You are an expert resume writing assistant specializing in ATS-optimized, professional, and achievement-driven content.
 
-    res.json({
-      success: true,
-      data: {
-        originalContent: content,
-        rewrittenContent,
-        tone,
-        style,
-        message: 'Content rewritten successfully'
-      }
-    });
+Task:
+Enhance the following text to be ATS-friendly, keyword-rich, and professionally polished while maintaining its original meaning.
+
+Guidelines:
+- Use strong action verbs (Developed, Led, Implemented, Optimized, Managed, Created, etc.)
+- Include relevant industry keywords and technical terms naturally
+- Quantify achievements with numbers, percentages, and metrics where possible
+- Use bullet points for better ATS parsing and readability
+- Start sentences with action verbs to demonstrate impact
+- Avoid generic phrases like "responsible for" or "worked on"
+- Include specific technologies, tools, and methodologies
+- Keep content concise but impactful
+- Use professional terminology appropriate for the industry
+- Structure content for easy ATS scanning and human reading
+
+CRITICAL OUTPUT REQUIREMENTS:
+- Return ONLY clean HTML without any markdown formatting
+- Do NOT include code blocks - return clean html code
+- Do NOT include any markdown syntax
+- Return pure HTML that can be directly inserted into a CKEditor
+- Use proper HTML tags like <ul>, <li>, <p>, <strong>, etc.
+- Ensure the HTML is valid and well-formed
+
+User Input:
+"${content}"
+
+Return the final ATS-optimized, keyword-rich text as clean HTML only.
+    `;
+
+    try {
+      const response = await genAI.models.generateContent({
+        model: "gemini-2.0-flash",
+        contents: prompt,
+      });
+
+      let rewrittenContent = response.text;
+      
+      // Clean the response to remove markdown formatting
+      rewrittenContent = rewrittenContent
+        .replace(/```html\n?/g, '')
+        .replace(/```\n?/g, '')
+        .trim();
+
+      logger.info(`AI rewrite request processed for user ${req.user.email}`);
+
+      res.json({
+        success: true,
+        data: {
+          originalContent: content,
+          rewrittenContent,
+          tone,
+          style,
+          message: 'Content enhanced successfully'
+        }
+      });
+
+    } catch (geminiError) {
+      logger.error('Gemini rewrite error:', geminiError);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to enhance content with AI'
+      });
+    }
   } catch (error) {
     logger.error('AI rewrite error:', error);
     res.status(500).json({
@@ -186,8 +240,7 @@ router.post('/summarize', [
   protect,
   checkAIActionLimit,
   checkTokenLimit,
-  body('content').trim().isLength({ min: 20 }).withMessage('Content must be at least 20 characters'),
-  body('maxLength').optional().isInt({ min: 50, max: 500 }).withMessage('Max length must be between 50 and 500 characters')
+  body('content').trim().isLength({ min: 20 }).withMessage('Content must be at least 20 characters')
 ], trackUsage, async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -201,23 +254,78 @@ router.post('/summarize', [
     // Set usage type for tracking
     req.usageType = 'aiAction';
 
-    const { content, maxLength = 150 } = req.body;
+    const { content } = req.body;
 
-    // TODO: Implement actual AI summarization logic here
-    // For now, return a mock response
-    const summary = `[AI Summary] ${content.substring(0, maxLength)}...`;
+    // Initialize Gemini AI
+    const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
 
-    logger.info(`AI summarize request processed for user ${req.user.email}`);
+    // Create prompt for ATS-friendly text enhancement
+    const prompt = `
+You are an expert resume writing assistant specializing in ATS-optimized, professional, and achievement-driven content.
 
-    res.json({
-      success: true,
-      data: {
-        originalContent: content,
-        summary,
-        maxLength,
-        message: 'Content summarized successfully'
-      }
-    });
+Task:
+Enhance the following text to be ATS-friendly, keyword-rich, and professionally polished while maintaining its original meaning.
+
+Guidelines:
+- Use strong action verbs (Developed, Led, Implemented, Optimized, Managed, Created, etc.)
+- Include relevant industry keywords and technical terms naturally
+- Quantify achievements with numbers, percentages, and metrics where possible
+- Start sentences with action verbs to demonstrate impact
+- Avoid generic phrases like "responsible for" or "worked on"
+- Include specific technologies, tools, and methodologies
+- Keep content concise but impactful
+- Use professional terminology appropriate for the industry
+- Structure content for easy ATS scanning and human reading
+- Format as flowing paragraphs, not bullet points or lists
+
+CRITICAL OUTPUT REQUIREMENTS:
+- Return ONLY clean HTML without any markdown formatting
+- Do NOT include code blocks - return clean html code
+- Do NOT include any markdown syntax
+- Return pure HTML that can be directly inserted into a CKEditor
+- Use paragraph tags <p> for content structure
+- Do NOT use bullet points <ul> or <li> tags
+- Ensure the HTML is valid and well-formed
+- Format as continuous, flowing text in paragraph form
+
+User Input:
+"${content}"
+
+Return the final summarized text as clean HTML paragraphs only.
+    `;
+
+    try {
+      const response = await genAI.models.generateContent({
+        model: "gemini-2.0-flash",
+        contents: prompt,
+      });
+
+      let enhancedText = response.text;
+      
+      // Clean the response to remove markdown formatting
+      enhancedText = enhancedText
+        .replace(/```html\n?/g, '')
+        .replace(/```\n?/g, '')
+        .trim();
+
+      logger.info(`AI summarize request processed for user ${req.user.email}`);
+
+      res.json({
+        success: true,
+        data: {
+          originalContent: content,
+          summary: enhancedText,
+          message: 'Content enhanced successfully'
+        }
+      });
+
+    } catch (geminiError) {
+      logger.error('Gemini summarization error:', geminiError);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to enhance content with AI'
+      });
+    }
   } catch (error) {
     logger.error('AI summarize error:', error);
     res.status(500).json({

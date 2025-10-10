@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { ChevronDownIcon, CheckCircleIcon, ExclamationTriangleIcon, LightBulbIcon, SparklesIcon, AdjustmentsHorizontalIcon, KeyIcon } from '@heroicons/react/24/outline';
-import { aiAPI, subscriptionAPI, apiHelpers } from '../services/api';
+import { subscriptionAPI, apiHelpers } from '../services/api';
+import aiService from '../services/aiService';
 import { useTokenBalance } from '../hooks/useTokenBalance';
 import AILoader from './AILoader';
 
@@ -131,13 +132,7 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       setIsProcessing(true);
       setProcessingType('adjust-tone');
       
-      const requestData = {
-        resume_json: resume,
-        ats_analysis: atsAnalysis,
-        focus: ["summary", "experience", "projects"]
-      };
-
-      const response = await aiAPI.adjustTone(resumeId, requestData);
+      const response = await aiService.adjustTone(resumeId, resume, atsAnalysis, ["summary", "experience", "projects"]);
       
       if (response.success) {
         // Update token balance after successful operation
@@ -198,15 +193,7 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       setIsProcessing(true);
       setProcessingType('enhance-keywords');
       
-      const requestData = {
-        resume_json: resume,
-        ats_analysis: {
-          missing_keywords: atsAnalysis.missing_keywords || []
-        },
-        target_sections: ["skills", "experience", "projects"]
-      };
-
-      const response = await aiAPI.enhanceKeywords(resumeId, requestData);
+      const response = await aiService.enhanceKeywords(resumeId, resume, atsAnalysis, ["skills", "experience", "projects"]);
       
       if (response.success) {
         // Update token balance after successful operation

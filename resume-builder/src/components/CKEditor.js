@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import AIButton from './AIButton';
 import './CKEditor.css';
 
 const CKEditor = ({
@@ -12,6 +13,7 @@ const CKEditor = ({
   const editorRef = useRef(null);
   const editorInstanceRef = useRef(null);
   const onChangeRef = useRef(onChange);
+  const [editorInstance, setEditorInstance] = useState(null);
 
   // Update the ref when onChange changes
   useEffect(() => {
@@ -37,6 +39,8 @@ const CKEditor = ({
         })
         .then(editor => {
           editorInstanceRef.current = editor;
+          setEditorInstance(editor); // Update state to trigger re-render
+          console.log('CKEditor: Editor instance created and set', { editor });
           
           // Set initial content
           if (value) {
@@ -58,6 +62,7 @@ const CKEditor = ({
       if (editorInstanceRef.current) {
         editorInstanceRef.current.destroy();
         editorInstanceRef.current = null;
+        setEditorInstance(null); // Clear state
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -75,6 +80,10 @@ const CKEditor = ({
 
   return (
     <div className={`ckeditor-container ${className}`}>
+      <AIButton 
+        editorInstance={editorInstance}
+        onContentChange={onChange}
+      />
       <div ref={editorRef}></div>
     </div>
   );
