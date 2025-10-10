@@ -238,7 +238,7 @@ module.exports = [
             </div>
             </div>
         </article>`,
-        css: `.resume.professional-corporate { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; background: white; color: #1f2937; line-height: 1; }
+        css: `.resume.professional-corporate { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; background: white; color: #1f2937; line-height: 1.4; }
         @media print { .resume.professional-corporate { max-width: none; margin: 0; padding: 0; } }
         @media (max-width: 768px) { .resume.professional-corporate .content-grid { grid-template-columns: 1fr; gap: 12px; } }
         
@@ -252,24 +252,28 @@ module.exports = [
         .contact-item a { color: white; text-decoration: none; }
         .contact-item a:hover { text-decoration: underline; }
         
-        .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 6px; padding: 0 20px 6px; }
-        section { margin-bottom: 6px; }
+        .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; padding: 0 20px 12px; }
+        section { margin-bottom: 12px; }
         h2 { font-weight: 600; color: #1e40af; margin-bottom: 2px; padding-bottom: 4px; border-bottom: 2px solid #e5e7eb; position: relative; }
         h2::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 18px; height: 2px; background: #1e40af; }
-        .summary-text { line-height: 1; color: #4b5563; text-align: justify; }
+        .summary-text { line-height: 1.4; color: #4b5563; text-align: justify; }
         
-        .job-entry, .edu-entry, .project-entry, .achievement-entry { margin-bottom: 2px; padding-bottom: 2px; border-bottom: 1px solid #f3f4f6; }
+        .job-entry, .edu-entry, .project-entry, .achievement-entry { margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #f3f4f6; }
         .job-header, .edu-header, .project-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px; }
         .job-title-company h3, .edu-title-institution h3, .project-header h3, .achievement-entry .achievement-title { font-weight: 600; color: #1f2937; margin-bottom: 2px; }
         .company-location, .institution-location { display: flex; gap: 4px; color: #6b7280; }
         .dates { color: #9ca3af; font-weight: 500; text-align: right; }
-        .description { margin-bottom: 0.25rem; color: #4b5563; line-height: 1; }
-        .achievements { margin: 2px 0; }
-        .achievements li { margin-bottom: 1px; color: #4b5563; }
+        .description, .project-description, .job-description, .edu-description, .achievement-description { 
+            margin-bottom: 6px; 
+            color: #4b5563; 
+            line-height: 1.4; 
+        }
+        .achievements { margin: 4px 0; }
+        .achievements li { margin-bottom: 2px; color: #4b5563; line-height: 1.4; }
         
         /* General list styling for HTML content in descriptions */
         ul, ol { margin: 2px 0; padding-left: 1rem; }
-        ul li, ol li { margin-bottom: 1px; color: #4b5563; line-height: 1.3; }
+        ul li, ol li { margin-bottom: 2px; color: #4b5563; line-height: 1.4; }
         ul { list-style-type: disc; }
         ol { list-style-type: decimal; }
         .gpa { color: #6b7280; margin: 2px 0; }
@@ -294,14 +298,36 @@ module.exports = [
         .sidebar h2::after { background: #1f2937; }
         .sidebar section { margin-bottom: 6px; }
         
-        .skill-category { margin-bottom: 2px; }
-        .skill-category-title { font-weight: 600; color: #1f2937; margin-bottom: 2px; }
-        .skill-items { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 2px; }
-        .skill-item { background: #1e40af; color: white; padding: 2px 4px; border-radius: 2px; }
-        .skill-item[data-level="expert"] { background: #059669; }
-        .skill-item[data-level="advanced"] { background: #0ea5e9; }
-        .skill-item[data-level="intermediate"] { background: #1e40af; }
-        .skill-item[data-level="beginner"] { background: #6b7280; }
+        .skill-category { margin-bottom: 4px; }
+        .skill-category-title { font-weight: 600; color: #1f2937; margin-bottom: 3px; font-size: 12px; }
+        .skill-items { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; }
+        
+        /* Professional Corporate specific skill item styling */
+        .resume.professional-corporate .skill-item { 
+            background: #1e40af !important; 
+            color: white !important; 
+            padding: 3px 6px; 
+            border-radius: 3px; 
+            font-size: 11px; 
+            font-weight: 500; 
+            display: inline-block; 
+            white-space: nowrap; 
+            border: none !important;
+            box-shadow: none !important;
+        }
+        
+        .resume.professional-corporate .skill-item[data-level="expert"] { 
+            background:rgb(1, 27, 111) !important; 
+        }
+        .resume.professional-corporate .skill-item[data-level="advanced"] { 
+            background:rgb(15, 50, 165) !important; 
+        }
+        .resume.professional-corporate .skill-item[data-level="intermediate"] { 
+            background:rgb(40, 78, 218) !important; 
+        }
+        .resume.professional-corporate .skill-item[data-level="beginner"] { 
+            background:rgb(78, 117, 246) !important; 
+        }
         
         .cert-item { margin-bottom: 2px; padding-bottom: 2px; border-bottom: 1px solid #f3f4f6; }
         .cert-item h3 { font-weight: 600; color: #1f2937; margin-bottom: 2px; }
@@ -1017,10 +1043,10 @@ module.exports = [
                       {{personalInfo.phone}}
                     </div>
                     {{/if}}
-                    {{#if personalInfo.location}}
+                    {{#if personalInfo.address}}
                     <div class="contact-item" itemprop="address">
                       <span class="contact-icon">📍</span>
-                      {{personalInfo.location}}
+                      {{personalInfo.address}}
                     </div>
                     {{/if}}
                     {{#if personalInfo.website}}
@@ -1444,21 +1470,21 @@ module.exports = [
             transition: background-color 0.3s ease;
           }
           
-          .skill-item[data-level="expert"] {
-            background: #059669;
-          }
-          
-          .skill-item[data-level="advanced"] {
-            background: #0ea5e9;
-          }
-          
-          .skill-item[data-level="intermediate"] {
-            background: #1e3a8a;
-          }
-          
-          .skill-item[data-level="beginner"] {
-            background: #6b7280;
-          }
+        .skill-item[data-level="expert"] {
+          background: rgb(1, 27, 111);
+        }
+        
+        .skill-item[data-level="advanced"] {
+          background: rgb(15, 50, 165);
+        }
+        
+        .skill-item[data-level="intermediate"] {
+          background: rgb(40, 78, 218);
+        }
+        
+        .skill-item[data-level="beginner"] {
+          background: rgb(78, 117, 246);
+        }
           
           .language-item {
             display: flex;
