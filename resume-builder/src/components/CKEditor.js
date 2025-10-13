@@ -530,14 +530,6 @@ const CKEditorComponent = ({
               // Mobile-specific initialization
               const editorElement = editor.editing.view.document.getRoot();
               if (editorElement) {
-                // Ensure mobile touch events work properly
-                editorElement.on('touchstart', (evt, data) => {
-                  // Allow text selection on mobile
-                  editorElement.getDocument().getSelection().change(selection => {
-                    selection.setTo(selection.getFirstPosition());
-                  });
-                });
-                
                 // Fix mobile keyboard focus
                 editorElement.on('focus', () => {
                   const editableElement = document.querySelector('.ck-editor__editable');
