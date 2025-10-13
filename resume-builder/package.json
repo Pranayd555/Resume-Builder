@@ -7,10 +7,11 @@
     "npm": ">=8.0.0"
   },
   "dependencies": {
-    "@ckeditor/ckeditor5-build-classic": "^41.4.2",
+    "@ckeditor/ckeditor5-react": "^11.0.0",
     "@heroicons/react": "^2.2.0",
     "@lottiefiles/dotlottie-web": "^0.51.1",
     "axios": "^1.6.0",
+    "ckeditor5": "^47.0.0",
     "lottie-react": "^2.4.1",
     "pdfjs-dist": "^4.0.379",
     "react": "^19.1.0",
@@ -23,9 +24,9 @@
     "swiper": "^11.2.10"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
     "eject": "react-scripts eject",
     "vercel-build": "npm ci && npm run build"
   },
@@ -48,6 +49,7 @@
     ]
   },
   "devDependencies": {
+    "@craco/craco": "^7.1.0",
     "@tailwindcss/forms": "^0.5.10",
     "autoprefixer": "^10.4.0",
     "postcss": "^8.4.0",
