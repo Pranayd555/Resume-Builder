@@ -15,11 +15,72 @@ const CKEditorComponent = ({
   configType = "base" // "base" or "pro"
 }) => {
   const [isLayoutReady, setIsLayoutReady] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const cloud = useCKEditorCloud({ version: '47.0.0' });
 
   useEffect(() => {
     setIsLayoutReady(true);
-    return () => setIsLayoutReady(false);
+    
+    // Detect mobile device
+    const checkMobile = () => {
+      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                            window.innerWidth <= 768;
+      setIsMobile(isMobileDevice);
+      return isMobileDevice;
+    };
+    
+    checkMobile();
+    
+    // Mobile-specific fixes for CKEditor
+    const handleMobileTouch = () => {
+      // Force focus on mobile devices
+      const editorElement = document.querySelector('.ck-editor__editable');
+      if (editorElement) {
+        editorElement.style.webkitUserSelect = 'text';
+        editorElement.style.userSelect = 'text';
+        editorElement.style.webkitTouchCallout = 'default';
+        editorElement.style.touchAction = 'manipulation';
+      }
+    };
+    
+    // Add mobile touch event listeners
+    const addMobileListeners = () => {
+      const editorElement = document.querySelector('.ck-editor__editable');
+      if (editorElement) {
+        // Prevent default touch behaviors that interfere with text selection
+        editorElement.addEventListener('touchstart', (e) => {
+          e.stopPropagation();
+        }, { passive: true });
+        
+        editorElement.addEventListener('touchend', (e) => {
+          e.stopPropagation();
+          // Ensure focus on touch
+          setTimeout(() => {
+            if (editorElement) {
+              editorElement.focus();
+            }
+          }, 100);
+        }, { passive: true });
+        
+        // Fix for iOS Safari keyboard issues
+        editorElement.addEventListener('focus', () => {
+          editorElement.style.webkitUserSelect = 'text';
+          editorElement.style.userSelect = 'text';
+          editorElement.style.webkitTouchCallout = 'default';
+        });
+      }
+    };
+    
+    // Apply mobile fixes after a short delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      handleMobileTouch();
+      addMobileListeners();
+    }, 100);
+    
+    return () => {
+      clearTimeout(timer);
+      setIsLayoutReady(false);
+    };
   }, []);
 
   // Base configuration with basic functionalities
@@ -134,6 +195,13 @@ const CKEditorComponent = ({
         initialData: value || ` Welcome to Your Resume Template Builder `,
         placeholder: placeholder || 'Start designing your template here...',
         licenseKey: LICENSE_KEY,
+        // Mobile-specific configuration
+        mobile: {
+          // Enable mobile-specific features
+          enableMobileSupport: true,
+          // Prevent zoom on double tap
+          preventZoom: true
+        },
         // Ensure HTML output format
         htmlSupport: {
           allow: [
@@ -418,7 +486,14 @@ const CKEditorComponent = ({
         },
         initialData: value || ` Welcome to Your Resume Template Builder `,
         placeholder: placeholder || 'Start designing your template here...',
-        licenseKey: LICENSE_KEY
+        licenseKey: LICENSE_KEY,
+        // Mobile-specific configuration
+        mobile: {
+          // Enable mobile-specific features
+          enableMobileSupport: true,
+          // Prevent zoom on double tap
+          preventZoom: true
+        }
       }
     };
   }, [value, placeholder]);
@@ -439,7 +514,7 @@ const CKEditorComponent = ({
   }, [cloud, isLayoutReady, configType, createBaseConfig, createProConfig]);
 
   return (
-    <div className={`ckeditor-container ${className}`} style={{ position: 'relative', overflow: 'visible' }}>
+    <div className={`ckeditor-container ${isMobile ? 'mobile-editor' : ''} ${className}`} style={{ position: 'relative', overflow: 'visible' }}>
       <AIButton 
         editorInstance={ClassicEditor && editorConfig ? 'ready' : null}
         onContentChange={onChange}
@@ -451,6 +526,29 @@ const CKEditorComponent = ({
             config={editorConfig}
             onReady={editor => {
               console.log('CKEditor: Editor is ready to use!', editor);
+              
+              // Mobile-specific initialization
+              const editorElement = editor.editing.view.document.getRoot();
+              if (editorElement) {
+                // Ensure mobile touch events work properly
+                editorElement.on('touchstart', (evt, data) => {
+                  // Allow text selection on mobile
+                  editorElement.getDocument().getSelection().change(selection => {
+                    selection.setTo(selection.getFirstPosition());
+                  });
+                });
+                
+                // Fix mobile keyboard focus
+                editorElement.on('focus', () => {
+                  const editableElement = document.querySelector('.ck-editor__editable');
+                  if (editableElement) {
+                    editableElement.style.webkitUserSelect = 'text';
+                    editableElement.style.userSelect = 'text';
+                    editableElement.style.webkitTouchCallout = 'default';
+                    editableElement.style.touchAction = 'manipulation';
+                  }
+                });
+              }
             }}
             onChange={(event, editor) => {
               const data = editor.getData();

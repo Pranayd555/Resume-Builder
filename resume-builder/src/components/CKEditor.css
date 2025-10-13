@@ -8,6 +8,42 @@
   background-color: white;
 }
 
+/* Mobile-specific editor container */
+.ckeditor-container.mobile-editor {
+  -webkit-overflow-scrolling: touch;
+  overflow-x: auto;
+  overflow-y: visible;
+  /* Ensure proper mobile touch handling */
+  touch-action: manipulation;
+  -webkit-touch-callout: default;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* Mobile editor content area */
+.ckeditor-container.mobile-editor .ck-editor__editable {
+  /* Enhanced mobile touch support */
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+  -webkit-touch-callout: default !important;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1) !important;
+  touch-action: manipulation !important;
+  /* Prevent zoom on double tap */
+  touch-action: manipulation;
+  /* Fix iOS Safari issues */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  /* Ensure proper focus behavior */
+  outline: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
 /* Heading Styles for CKEditor */
 .ckeditor-container .ck-editor__editable h1 {
   font-size: 1.5rem;
@@ -344,6 +380,57 @@
   .ckeditor-container .ck-editor__editable {
     font-size: 14px;
     line-height: 1.4;
+    /* Mobile touch and keyboard fixes */
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    touch-action: manipulation;
+    /* Ensure proper focus behavior */
+    outline: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+  
+  /* Mobile-specific CKEditor container fixes */
+  .ckeditor-container {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+  
+  /* Fix mobile keyboard issues */
+  .ckeditor-container .ck-editor__editable:focus {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+    outline: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+  
+  /* Ensure mobile toolbar is touch-friendly */
+  .ckeditor-container .ck-toolbar {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+  }
+  
+  /* Mobile button touch targets */
+  .ckeditor-container .ck-button {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
   }
 }
 
@@ -539,6 +626,57 @@
   word-wrap: break-word;
   overflow-wrap: break-word;
   max-width: 100%;
+}
+
+/* Mobile-specific touch and keyboard fixes */
+@media (max-width: 768px) {
+  /* Ensure CKEditor is properly focusable on mobile */
+  .ckeditor-container .ck-editor__editable {
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
+    -webkit-touch-callout: default !important;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1) !important;
+    touch-action: manipulation !important;
+    /* Prevent zoom on double tap */
+    touch-action: manipulation;
+    /* Ensure proper keyboard behavior */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    /* Fix iOS Safari keyboard issues */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+  
+  /* Mobile container fixes */
+  .ckeditor-container {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: auto;
+    overflow-y: visible;
+    /* Prevent horizontal scroll issues */
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Fix mobile toolbar scrolling */
+  .ckeditor-container .ck-editor__top {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: auto;
+    overflow-y: visible;
+    width: 100%;
+  }
+  
+  /* Mobile dropdown fixes */
+  .ckeditor-container .ck-dropdown__panel {
+    -webkit-overflow-scrolling: touch;
+    touch-action: manipulation;
+    /* Ensure dropdowns work on mobile */
+    z-index: 10000 !important;
+    position: absolute !important;
+  }
 }
 
 /* Reduce excessive spacing in paragraphs and content */
