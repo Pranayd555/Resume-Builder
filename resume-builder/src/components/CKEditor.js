@@ -1,92 +1,491 @@
-import React, { useEffect, useRef, useState } from 'react';
-import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import React, { useEffect, useState, useMemo } from 'react';
+import { CKEditor, useCKEditorCloud } from '@ckeditor/ckeditor5-react';
 import AIButton from './AIButton';
 import './CKEditor.css';
 
-const CKEditor = ({
+const LICENSE_KEY =
+	'eyJhbGciOiJFUzI1NiJ9.eyJleHAiOjE3OTE5MzU5OTksImp0aSI6IjBiZjkyNDIxLTE1Y2UtNDI3Ny1hOWUzLTBhMWU5ZjIxZTgxNSIsImxpY2Vuc2VkSG9zdHMiOlsiMTI3LjAuMC4xIiwibG9jYWxob3N0IiwiMTkyLjE2OC4qLioiLCIxMC4qLiouKiIsIjE3Mi4qLiouKiIsIioudGVzdCIsIioubG9jYWxob3N0IiwiKi5sb2NhbCJdLCJ1c2FnZUVuZHBvaW50IjoiaHR0cHM6Ly9wcm94eS1ldmVudC5ja2VkaXRvci5jb20iLCJkaXN0cmlidXRpb25DaGFubmVsIjpbImNsb3VkIiwiZHJ1cGFsIl0sImxpY2Vuc2VUeXBlIjoiZGV2ZWxvcG1lbnQiLCJmZWF0dXJlcyI6WyJEUlVQIiwiRTJQIiwiRTJXIl0sInJlbW92ZUZlYXR1cmVzIjpbIlBCIiwiUkYiLCJTQ0giLCJUQ1AiLCJUTCIsIlRDUiIsIklSIiwiU1VBIiwiQjY0QSIsIkxQIiwiSEUiLCJSRUQiLCJQRk8iLCJXQyIsIkZBUiIsIkJLTSIsIkZQSCIsIk1SRSJdLCJ2YyI6IjJkYjI3M2U5In0.Flw0SF8GzKz1_VFPxIuDUn0fZl-EMfekTddDljh3GQ4apahLIe5H6pLeQFiR0GaRUrmPZvyxmRLmKqqYtousbw';
+
+const CKEditorComponent = ({
   value,
   onChange,
   placeholder = "",
   className = "",
-  readOnly = false
+  readOnly = false,
+  configType = "base" // "base" or "pro"
 }) => {
-  const editorRef = useRef(null);
-  const editorInstanceRef = useRef(null);
-  const onChangeRef = useRef(onChange);
-  const [editorInstance, setEditorInstance] = useState(null);
+  const [isLayoutReady, setIsLayoutReady] = useState(false);
+  const cloud = useCKEditorCloud({ version: '47.0.0' });
 
-  // Update the ref when onChange changes
   useEffect(() => {
-    onChangeRef.current = onChange;
-  }, [onChange]);
+    setIsLayoutReady(true);
+    return () => setIsLayoutReady(false);
+  }, []);
 
-  // Initialize editor only once
-  useEffect(() => {
-    if (editorRef.current && !editorInstanceRef.current) {
-      ClassicEditor
-        .create(editorRef.current, {
-          toolbar: {
-            items: [
-              'bold',
-              'italic',
-              '|',
-              'bulletedList',
-              'numberedList'
-            ]
-          },
-          placeholder: placeholder,
-          readOnly: readOnly
-        })
-        .then(editor => {
-          editorInstanceRef.current = editor;
-          setEditorInstance(editor); // Update state to trigger re-render
-          console.log('CKEditor: Editor instance created and set', { editor });
-          
-          // Set initial content
-          if (value) {
-            editor.setData(value);
-          }
-          
-          // Listen for changes
-          editor.model.document.on('change:data', () => {
-            const data = editor.getData();
-            onChangeRef.current(data);
-          });
-        })
-        .catch(error => {
-          console.error('CKEditor initialization error:', error);
-        });
-    }
+  // Base configuration with basic functionalities
+  const createBaseConfig = useMemo(() => (plugins) => {
+    const {
+      ClassicEditor,
+      Autosave,
+      Essentials,
+      Paragraph,
+      Heading,
+      Bold,
+      Italic,
+      Underline,
+      FontColor,
+      FontSize,
+      List,
+      TodoList,
+      Indent,
+      IndentBlock,
+      Alignment,
+      Link,
+      AutoLink,
+      CloudServices
+    } = plugins;
 
-    return () => {
-      if (editorInstanceRef.current) {
-        editorInstanceRef.current.destroy();
-        editorInstanceRef.current = null;
-        setEditorInstance(null); // Clear state
+    return {
+      ClassicEditor,
+      editorConfig: {
+        toolbar: {
+          items: [
+            'undo',
+            'redo',
+            '|',
+            'heading',
+            '|',
+            'fontSize',
+            'fontColor',
+            '|',
+            'bold',
+            'italic',
+            'underline',
+            '|',
+            'alignment',
+            '|',
+            'bulletedList',
+            'numberedList',
+            'todoList',
+            'outdent',
+            'indent',
+            '|',
+            'link'
+          ],
+          shouldNotGroupWhenFull: true
+        },
+        plugins: [
+          Alignment,
+          AutoLink,
+          Autosave,
+          Bold,
+          CloudServices,
+          Essentials,
+          FontColor,
+          FontSize,
+          Heading,
+          Indent,
+          IndentBlock,
+          Italic,
+          Link,
+          List,
+          Paragraph,
+          TodoList,
+          Underline
+        ],
+        fontSize: {
+          options: [10, 12, 14, 'default', 18, 20, 22],
+          supportAllValues: true
+        },
+        fontColor: {
+          colors: [
+            { color: 'hsl(0, 0%, 0%)', label: 'Black' },
+            { color: 'hsl(0, 0%, 30%)', label: 'Dim grey' },
+            { color: 'hsl(0, 0%, 60%)', label: 'Grey' },
+            { color: 'hsl(0, 0%, 90%)', label: 'Light grey' },
+            { color: 'hsl(0, 0%, 100%)', label: 'White', hasBorder: true },
+            { color: 'hsl(0, 75%, 60%)', label: 'Red' },
+            { color: 'hsl(30, 75%, 60%)', label: 'Orange' },
+            { color: 'hsl(60, 75%, 60%)', label: 'Yellow' },
+            { color: 'hsl(90, 75%, 60%)', label: 'Light green' },
+            { color: 'hsl(120, 75%, 60%)', label: 'Green' },
+            { color: 'hsl(150, 75%, 60%)', label: 'Aquamarine' },
+            { color: 'hsl(180, 75%, 60%)', label: 'Turquoise' },
+            { color: 'hsl(210, 75%, 60%)', label: 'Light blue' },
+            { color: 'hsl(240, 75%, 60%)', label: 'Blue' },
+            { color: 'hsl(270, 75%, 60%)', label: 'Purple' }
+          ]
+        },
+        heading: {
+          options: [
+            { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+            { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+            { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+            { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' },
+            { model: 'heading4', view: 'h4', title: 'Heading 4', class: 'ck-heading_heading4' },
+            { model: 'heading5', view: 'h5', title: 'Heading 5', class: 'ck-heading_heading5' },
+            { model: 'heading6', view: 'h6', title: 'Heading 6', class: 'ck-heading_heading6' }
+          ]
+        },
+        link: {
+          addTargetToExternalLinks: true,
+          defaultProtocol: 'https://'
+        },
+        initialData: value || ` Welcome to Your Resume Template Builder `,
+        placeholder: placeholder || 'Start designing your template here...',
+        licenseKey: LICENSE_KEY,
+        // Ensure HTML output format
+        htmlSupport: {
+          allow: [
+            {
+              name: /^.*$/,
+              styles: true,
+              attributes: true,
+              classes: true
+            }
+          ]
+        }
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array to run only once - we intentionally don't include placeholder, readOnly, value to avoid recreating editor
+  }, [value, placeholder]);
 
-  // Handle value updates separately
-  useEffect(() => {
-    if (editorInstanceRef.current && value !== editorInstanceRef.current.getData()) {
-      // Only update if the editor is not currently focused to avoid interrupting user input
-      if (!editorInstanceRef.current.editing.view.document.isFocused) {
-        editorInstanceRef.current.setData(value || '');
+  // Pro configuration with all plugins
+  const createProConfig = useMemo(() => (plugins) => {
+    const {
+      ClassicEditor,
+      Autosave,
+      Essentials,
+      Paragraph,
+      ImageUtils,
+      ImageEditing,
+      Heading,
+      Bold,
+      Italic,
+      Underline,
+      Strikethrough,
+      Subscript,
+      Superscript,
+      Code,
+      BlockQuote,
+      FontBackgroundColor,
+      FontColor,
+      FontFamily,
+      FontSize,
+      Highlight,
+      Indent,
+      IndentBlock,
+      Alignment,
+      Link,
+      AutoLink,
+      HorizontalLine,
+      ImageBlock,
+      ImageToolbar,
+      ImageInline,
+      ImageInsertViaUrl,
+      AutoImage,
+      CloudServices,
+      ImageUpload,
+      ImageStyle,
+      LinkImage,
+      ImageCaption,
+      ImageTextAlternative,
+      List,
+      TodoList,
+      Table,
+      TableToolbar,
+      TableCaption,
+      Style,
+      GeneralHtmlSupport,
+      Fullscreen,
+      Autoformat,
+      TextTransformation,
+      MediaEmbed,
+      PlainTableOutput,
+      SourceEditing,
+      ShowBlocks,
+      HtmlComment,
+      TextPartLanguage
+    } = plugins;
+
+    return {
+      ClassicEditor,
+      editorConfig: {
+        toolbar: {
+          items: [
+            'undo',
+            'redo',
+            '|',
+            'sourceEditing',
+            'showBlocks',
+            'textPartLanguage',
+            'fullscreen',
+            '|',
+            'heading',
+            'style',
+            '|',
+            'fontSize',
+            'fontFamily',
+            'fontColor',
+            'fontBackgroundColor',
+            '|',
+            'bold',
+            'italic',
+            'underline',
+            'strikethrough',
+            'subscript',
+            'superscript',
+            'code',
+            '|',
+            'horizontalLine',
+            'link',
+            'mediaEmbed',
+            'insertTable',
+            'highlight',
+            'blockQuote',
+            '|',
+            'alignment',
+            '|',
+            'bulletedList',
+            'numberedList',
+            'todoList',
+            'outdent',
+            'indent',
+            '|',
+            'imageUpload',
+          ],
+          shouldNotGroupWhenFull: true
+        },
+        plugins: [
+          Alignment,
+          Autoformat,
+          AutoImage,
+          AutoLink,
+          Autosave,
+          BlockQuote,
+          Bold,
+          CloudServices,
+          Code,
+          Essentials,
+          FontBackgroundColor,
+          FontColor,
+          FontFamily,
+          FontSize,
+          Fullscreen,
+          GeneralHtmlSupport,
+          Heading,
+          Highlight,
+          HorizontalLine,
+          HtmlComment,
+          ImageBlock,
+          ImageCaption,
+          ImageEditing,
+          ImageInline,
+          ImageInsertViaUrl,
+          ImageStyle,
+          ImageTextAlternative,
+          ImageToolbar,
+          ImageUpload,
+          ImageUtils,
+          Indent,
+          IndentBlock,
+          Italic,
+          Link,
+          LinkImage,
+          List,
+          MediaEmbed,
+          Paragraph,
+          PlainTableOutput,
+          ShowBlocks,
+          SourceEditing,
+          Strikethrough,
+          Style,
+          Subscript,
+          Superscript,
+          Table,
+          TableCaption,
+          TableToolbar,
+          TextPartLanguage,
+          TextTransformation,
+          TodoList,
+          Underline
+        ],
+        fontFamily: {
+          supportAllValues: true
+        },
+        fontSize: {
+          options: [10, 12, 14, 'default', 18, 20, 22],
+          supportAllValues: true
+        },
+        fontColor: {
+          colors: [
+            { color: 'hsl(0, 0%, 0%)', label: 'Black' },
+            { color: 'hsl(0, 0%, 30%)', label: 'Dim grey' },
+            { color: 'hsl(0, 0%, 60%)', label: 'Grey' },
+            { color: 'hsl(0, 0%, 90%)', label: 'Light grey' },
+            { color: 'hsl(0, 0%, 100%)', label: 'White', hasBorder: true },
+            { color: 'hsl(0, 75%, 60%)', label: 'Red' },
+            { color: 'hsl(30, 75%, 60%)', label: 'Orange' },
+            { color: 'hsl(60, 75%, 60%)', label: 'Yellow' },
+            { color: 'hsl(90, 75%, 60%)', label: 'Light green' },
+            { color: 'hsl(120, 75%, 60%)', label: 'Green' },
+            { color: 'hsl(150, 75%, 60%)', label: 'Aquamarine' },
+            { color: 'hsl(180, 75%, 60%)', label: 'Turquoise' },
+            { color: 'hsl(210, 75%, 60%)', label: 'Light blue' },
+            { color: 'hsl(240, 75%, 60%)', label: 'Blue' },
+            { color: 'hsl(270, 75%, 60%)', label: 'Purple' }
+          ]
+        },
+        fontBackgroundColor: {
+          colors: [
+            { color: 'hsl(0, 0%, 0%)', label: 'Black' },
+            { color: 'hsl(0, 0%, 30%)', label: 'Dim grey' },
+            { color: 'hsl(0, 0%, 60%)', label: 'Grey' },
+            { color: 'hsl(0, 0%, 90%)', label: 'Light grey' },
+            { color: 'hsl(0, 0%, 100%)', label: 'White', hasBorder: true },
+            { color: 'hsl(0, 75%, 60%)', label: 'Red' },
+            { color: 'hsl(30, 75%, 60%)', label: 'Orange' },
+            { color: 'hsl(60, 75%, 60%)', label: 'Yellow' },
+            { color: 'hsl(90, 75%, 60%)', label: 'Light green' },
+            { color: 'hsl(120, 75%, 60%)', label: 'Green' },
+            { color: 'hsl(150, 75%, 60%)', label: 'Aquamarine' },
+            { color: 'hsl(180, 75%, 60%)', label: 'Turquoise' },
+            { color: 'hsl(210, 75%, 60%)', label: 'Light blue' },
+            { color: 'hsl(240, 75%, 60%)', label: 'Blue' },
+            { color: 'hsl(270, 75%, 60%)', label: 'Purple' }
+          ]
+        },
+        fullscreen: {
+          onEnterCallback: container =>
+            container.classList.add(
+              'editor-container',
+              'editor-container_classic-editor',
+              'editor-container_include-style',
+              'editor-container_include-fullscreen',
+              'main-container'
+            )
+        },
+        heading: {
+          options: [
+            { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+            { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+            { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+            { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' },
+            { model: 'heading4', view: 'h4', title: 'Heading 4', class: 'ck-heading_heading4' },
+            { model: 'heading5', view: 'h5', title: 'Heading 5', class: 'ck-heading_heading5' },
+            { model: 'heading6', view: 'h6', title: 'Heading 6', class: 'ck-heading_heading6' }
+          ]
+        },
+        htmlSupport: {
+          allow: [
+            {
+              name: /^.*$/,
+              styles: true,
+              attributes: true,
+              classes: true
+            }
+          ]
+        },
+        image: {
+          toolbar: ['toggleImageCaption', 'imageTextAlternative', '|', 'imageStyle:inline', 'imageStyle:wrapText', 'imageStyle:breakText']
+        },
+        link: {
+          addTargetToExternalLinks: true,
+          defaultProtocol: 'https://',
+          decorators: {
+            toggleDownloadable: {
+              mode: 'manual',
+              label: 'Downloadable',
+              attributes: {
+                download: 'file'
+              }
+            }
+          }
+        },
+        style: {
+          definitions: [
+            { name: 'Article category', element: 'h3', classes: ['category'] },
+            { name: 'Title', element: 'h2', classes: ['document-title'] },
+            { name: 'Subtitle', element: 'h3', classes: ['document-subtitle'] },
+            { name: 'Info box', element: 'p', classes: ['info-box'] },
+            { name: 'CTA Link Primary', element: 'a', classes: ['button', 'button--green'] },
+            { name: 'CTA Link Secondary', element: 'a', classes: ['button', 'button--black'] },
+            { name: 'Marker', element: 'span', classes: ['marker'] },
+            { name: 'Spoiler', element: 'span', classes: ['spoiler'] }
+          ]
+        },
+        table: {
+          contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
+        },
+        initialData: value || ` Welcome to Your Resume Template Builder `,
+        placeholder: placeholder || 'Start designing your template here...',
+        licenseKey: LICENSE_KEY
       }
+    };
+  }, [value, placeholder]);
+
+  const { ClassicEditor, editorConfig } = useMemo(() => {
+    if (cloud.status !== 'success' || !isLayoutReady) {
+      return {};
     }
-  }, [value]);
+
+    const plugins = cloud.CKEditor;
+
+    // Return configuration based on configType
+    if (configType === "pro") {
+      return createProConfig(plugins);
+    } else {
+      return createBaseConfig(plugins);
+    }
+  }, [cloud, isLayoutReady, configType, createBaseConfig, createProConfig]);
 
   return (
-    <div className={`ckeditor-container ${className}`}>
+    <div className={`ckeditor-container ${className}`} style={{ position: 'relative', overflow: 'visible' }}>
       <AIButton 
-        editorInstance={editorInstance}
+        editorInstance={ClassicEditor && editorConfig ? 'ready' : null}
         onContentChange={onChange}
       />
-      <div ref={editorRef}></div>
+      {ClassicEditor && editorConfig && (
+        <div style={{ position: 'relative', overflow: 'visible' }}>
+          <CKEditor
+            editor={ClassicEditor}
+            config={editorConfig}
+            onReady={editor => {
+              console.log('CKEditor: Editor is ready to use!', editor);
+            }}
+            onChange={(event, editor) => {
+              const data = editor.getData();
+              // Ensure we always get HTML format
+              console.log('CKEditor output:', data);
+              console.log('Content type check - contains HTML tags:', /<[^>]+>/.test(data));
+              
+              // Force HTML output if the data looks like markdown
+              if (data.includes('##') || data.includes('**') || (data.includes('*') && !data.includes('<'))) {
+                console.warn('CKEditor is outputting markdown instead of HTML. This should not happen.');
+                // Convert markdown to HTML as fallback
+                const htmlData = data
+                  .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                  .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                  .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                  .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+                  .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+                  .replace(/\n/gim, '<br>');
+                console.log('Converted to HTML:', htmlData);
+                onChange(htmlData);
+              } else {
+                onChange(data);
+              }
+            }}
+            onBlur={(event, editor) => {
+              console.log('Blur.', editor);
+            }}
+            onFocus={(event, editor) => {
+              console.log('Focus.', editor);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };
 
-export default CKEditor;
+export default CKEditorComponent;
