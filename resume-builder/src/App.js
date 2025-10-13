@@ -13,6 +13,7 @@ import Layout from './components/Layout';
 import Login from './components/login';
 import Register from './components/Register';
 import ResumeList from './components/resume-list';
+import CreateTemplate from './components/CreateTemplate';
 import ResumeTemplates from './components/resume-templates';
 import ResumeForm from './components/ResumeForm';
 import TemplateSelection from './components/TemplateSelection';
@@ -148,6 +149,14 @@ function AppContent() {
                 element={
                   <ProtectedRoute>
                     <AnalyticsDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/create-template" 
+                element={
+                  <ProtectedRoute>
+                    <CreateTemplate />
                   </ProtectedRoute>
                 } 
               />
