@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import AIService from '../services/aiService';
 import { useTokenBalance } from '../hooks/useTokenBalance';
 import './AIButton.css';
+import { CurrencyDollarIcon } from '@heroicons/react/24/outline';
 
 const AIButton = ({ editorInstance, onContentChange }) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -22,7 +23,7 @@ const AIButton = ({ editorInstance, onContentChange }) => {
     }
 
     const editorContent = getEditorContent();
-    
+
     if (!editorContent || editorContent.trim().length === 0) {
       showNotification('Please add some content to the editor first.', 'warning');
       return;
@@ -38,7 +39,7 @@ const AIButton = ({ editorInstance, onContentChange }) => {
 
     try {
       let result;
-      
+
       switch (action) {
         case 'summarize':
           result = await AIService.summarizeContent(editorContent, 150);
@@ -49,24 +50,24 @@ const AIButton = ({ editorInstance, onContentChange }) => {
         default:
           throw new Error('Unknown AI action');
       }
-      
+
       // Replace the entire editor content with processed version
       const processedText = result.data.rewrittenContent || result.data.summary;
       replaceEditorContent(processedText);
-      
+
       // Consume 1 token for successful AI processing
       consumeTokens(1);
-      
+
       // Trigger content change event to update the editor
       if (onContentChange) {
         onContentChange(processedText);
       }
-      
+
       showNotification('Content processed successfully!', 'success');
     } catch (error) {
       console.error('AI Action error:', error);
       showNotification(
-        error.message || 'Failed to process content. Please try again.', 
+        error.message || 'Failed to process content. Please try again.',
         'error'
       );
     } finally {
@@ -76,7 +77,7 @@ const AIButton = ({ editorInstance, onContentChange }) => {
 
   const getEditorContent = () => {
     if (!editorInstance) return '';
-    
+
     try {
       return editorInstance.getData();
     } catch (error) {
@@ -87,7 +88,7 @@ const AIButton = ({ editorInstance, onContentChange }) => {
 
   const replaceEditorContent = (newText) => {
     if (!editorInstance) return;
-    
+
     try {
       editorInstance.setData(newText);
     } catch (error) {
@@ -105,7 +106,7 @@ const AIButton = ({ editorInstance, onContentChange }) => {
     const notification = document.createElement('div');
     notification.className = `ai-notification ${type}`;
     notification.textContent = message;
-    
+
     document.body.appendChild(notification);
 
     // Auto-remove after 4 seconds
@@ -144,11 +145,16 @@ const AIButton = ({ editorInstance, onContentChange }) => {
             <>
               <span className="ai-icon">✨</span>
               AI Polish
-              <span className="token-count">({tokenBalance})</span>
+              <span className="token-info">
+                <span className="token-cost-display">
+                  <CurrencyDollarIcon className="w-4 h-4 text-green-600 dark:text-green-400" />1
+                </span>
+                <span className="token-count">({tokenBalance} left)</span>
+              </span>
             </>
           )}
         </button>
-        
+
         {showDropdown && (
           <div className="ai-dropdown">
             {menuItems.map((item, index) => (

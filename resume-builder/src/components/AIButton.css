@@ -162,12 +162,13 @@
 /* Responsive design */
 @media (max-width: 768px) {
   .ai-dropdown {
-    position: fixed;
+    /* Removed fixed positioning for mobile */
+    /* position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     width: 90%;
-    max-width: 300px;
+    max-width: 300px; */
     z-index: 10001;
   }
   
@@ -176,4 +177,31 @@
     left: 10px;
     max-width: none;
   }
+}
+
+.ai-button .token-info {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ai-button .token-cost-display {
+  display: flex;
+  align-items: center;
+  font-size: 0.8em;
+  color: #f0f0f0;
+}
+
+.ai-button .token-cost-display svg {
+  margin-right: 2px;
+}
+
+.ai-button .token-count {
+  font-size: 0.8em;
+  color: #f0f0f0;
+}
+
+.ai-button .token-count {
+  font-size: 0.8em;
+  color: #f0f0f0;
 }

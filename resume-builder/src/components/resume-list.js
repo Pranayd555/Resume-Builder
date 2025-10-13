@@ -899,23 +899,30 @@ function ResumeList() {
             <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg">Create and manage your professional resumes</p>
             
           </div>
-                     {canCreateNewResume() && (
-             <div className="flex flex-col items-end gap-2">
-               <button
-                 onClick={handleCreateNew}
-                 className={`px-6 sm:px-8 py-3 sm:py-4 rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2 sm:gap-3 font-semibold text-sm sm:text-base min-w-[140px] sm:min-w-auto ${
-                   isEmailVerificationRequired() 
-                     ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 cursor-not-allowed opacity-75' 
-                     : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 hover:shadow-xl transform hover:scale-105'
-                 }`}
-               >
-                 <PlusIcon className="w-5 h-5 sm:w-6 sm:h-6" />
-                 <span className="whitespace-nowrap">
-                   {isEmailVerificationRequired() ? 'Verify Email First' : 'Create New'}
-                 </span>
-               </button>
-             </div>
-           )}
+          <div className="flex flex-wrap items-center gap-4">
+            {canCreateNewResume() && (
+              <button
+                onClick={handleCreateNew}
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl transition-all duration-200 shadow-lg font-semibold text-sm sm:text-base min-w-[140px] sm:min-w-auto ${
+                  isEmailVerificationRequired()
+                    ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 cursor-not-allowed opacity-75'
+                    : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 hover:shadow-xl transform hover:scale-105'
+                }`}
+              >
+                <PlusIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+                <span className="whitespace-nowrap">
+                  {isEmailVerificationRequired() ? 'Verify Email First' : 'Create New Resume'}
+                </span>
+              </button>
+            )}
+            <button
+              onClick={() => navigate('/create-template')}
+              className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-semibold rounded-xl shadow-lg hover:bg-green-700 transition-all duration-200 hover:shadow-xl transform hover:scale-105"
+            >
+              <PlusIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+              Create Your Own Template
+            </button>
+          </div>
         </div>
         
         {/* Email Verification Banner */}
