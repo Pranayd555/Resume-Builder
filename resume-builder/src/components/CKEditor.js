@@ -498,7 +498,7 @@ const CKEditorComponent = ({
         }
       }
     };
-  }, [value, placeholder]);
+  }, [value, placeholder, isMobile]);
 
   const { ClassicEditor, editorConfig } = useMemo(() => {
     if (cloud.status !== 'success' || !isLayoutReady) {
@@ -513,7 +513,7 @@ const CKEditorComponent = ({
     } else {
       return createBaseConfig(plugins);
     }
-  }, [cloud, isLayoutReady, configType, createBaseConfig, createProConfig, isMobile]);
+  }, [cloud, isLayoutReady, configType, createBaseConfig, createProConfig]);
 
   return (
     <div className={`ckeditor-container ${isMobile ? 'mobile-editor' : ''} ${className}`} style={{ position: 'relative', overflow: 'visible' }}>
