@@ -63,7 +63,7 @@ module.exports = [
             {{#if summary}}
             <section class="summary">
             <h2 class="primaryFont">Professional Summary</h2>
-            <div class="summary-text secondaryFont" itemprop="description">{{{summary}}}</div>
+            <div class="summary secondaryFont" itemprop="description">{{{summary}}}</div>
             </section>
             {{/if}}
             
@@ -99,7 +99,7 @@ module.exports = [
                     {{#if isCurrentJob}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
                 </span>
                 </div>
-                {{#if description}}<div class="item-description secondaryFont" itemprop="description">{{{description}}}</div>{{/if}}
+                {{#if description}}<div class="job-description secondaryFont" itemprop="description">{{{description}}}</div>{{/if}}
                 {{#if achievements}}
                 <ul class="achievements secondaryFont">
                 {{#each achievements}}<li>{{this}}</li>{{/each}}
@@ -121,7 +121,7 @@ module.exports = [
                     {{#if startDate}}<span class="project-dates secondaryFont">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</span>{{/if}}
                 </div>
                 </div>
-                {{#if description}}<div class="item-description secondaryFont">{{{description}}}</div>{{/if}}
+                {{#if description}}<div class="project-description secondaryFont">{{{description}}}</div>{{/if}}
                 {{#if technologies}}
                 <div class="technologies secondaryFont">
                 <div class="tech-label primaryFont">Technologies:</div> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
@@ -151,7 +151,7 @@ module.exports = [
                 </span>
                 </div>
                 {{#if gpa}}<div class="gpa secondaryFont">GPA: {{gpa}}</div>{{/if}}
-                {{#if description}}<div class="item-description secondaryFont">{{{description}}}</div>{{/if}}
+                {{#if description}}<div class="edu-description secondaryFont">{{{description}}}</div>{{/if}}
             </div>
             {{/each}}
             </section>
@@ -163,7 +163,7 @@ module.exports = [
             {{#each achievements}}
             <div class="achievement-item">
                 {{#if title}}<div class="achievement-title primaryFont">{{title}}</div>{{/if}}
-                {{#if description}}<div class="item-description secondaryFont">{{{description}}}</div>{{/if}}
+                {{#if description}}<div class="achievement-description secondaryFont">{{{description}}}</div>{{/if}}
                 {{#if date}}<div class="achievement-date secondaryFont">{{formatDate date}}</div>{{/if}}
                 {{#if issuer}}<div class="achievement-issuer secondaryFont">{{issuer}}</div>{{/if}}
             </div>
@@ -224,7 +224,7 @@ module.exports = [
         .contact-item { display: flex; align-items: center; }
         .contact-item a { color: #6b7280; text-decoration: none; }
         .summary { margin-bottom: 6px; }
-        .summary-text { color: #4b5563; line-height: 1; text-align: justify; }
+        .summary { color: #4b5563; line-height: 1; text-align: justify; }
         section { margin-bottom: 6px; }
         h2 { font-weight: 600; color: #1f2937; margin-bottom: 4px; padding-bottom: 2px; border-bottom: 1px solid #e5e7eb; }
         .experience-item, .education-item, .project-item, .achievement-item, .cert-item { margin-bottom: 2px; padding-bottom: 2px; }
@@ -232,7 +232,7 @@ module.exports = [
         .item-title h3, .achievement-item .achievement-title, .custom-field h3 { font-weight: 600; color: #1f2937; margin-bottom: 2px; }
         .company, .institution, .location, .cert-issuer { color: #6b7280; }
         .dates { color: #9ca3af; font-weight: 500; }
-        .item-description, .custom-content { margin: 2px 0; color: #4b5563; line-height: 1; }
+        .summary, .job-description, .edu-description, .project-description, .achievement-description, .custom-content { margin: 2px 0; color: #4b5563; line-height: 1; }
         .achievements { margin: 2px 0; }
         .achievements li { margin-bottom: 2px; color: #4b5563; }
         
