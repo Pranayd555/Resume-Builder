@@ -939,7 +939,7 @@ module.exports = [
                 {{#each projects}}
                 <div class="project-item">
                   <div class="project-name primaryFont">{{name}}</div>
-                  {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
+                  {{#if description}}<div class="project-description secondaryFont">{{{description}}}</div>{{/if}}
                   {{#if technologies}}
                   <div class="technologies">
                     <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
@@ -1000,7 +1000,7 @@ module.exports = [
                 {{#each achievements}}
                 <div class="achievement-item">
                   {{#if title}}<div class="achievement-title primaryFont">{{title}}</div>{{/if}}
-                  {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
+                  {{#if description}}<div class="achievement-description secondaryFont">{{{description}}}</div>{{/if}}
                   {{#if date}}<div class="achievement-date secondaryFont">{{formatDate date}}</div>{{/if}}
                   {{#if issuer}}<div class="achievement-issuer secondaryFont">{{issuer}}</div>{{/if}}
                 </div>

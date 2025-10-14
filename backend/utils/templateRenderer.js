@@ -615,6 +615,105 @@ class OptimizedTemplateRenderer {
         list-style-type: decimal; 
       }
       
+      /* Preserve CKEditor formatting in all description fields */
+      .${uniqueId} .summary-text,
+      .${uniqueId} .about-text,
+      .${uniqueId} .executive-summary,
+      .${uniqueId} .summary-section,
+      .${uniqueId} .summary,
+      .${uniqueId} .project-description,
+      .${uniqueId} .job-description,
+      .${uniqueId} .edu-description,
+      .${uniqueId} .achievement-description,
+      .${uniqueId} .custom-content {
+        /* Don't override CKEditor styles */
+      }
+      
+      /* Preserve all CKEditor inline styles */
+      .${uniqueId} .summary-text span[style],
+      .${uniqueId} .about-text span[style],
+      .${uniqueId} .executive-summary span[style],
+      .${uniqueId} .summary-section span[style],
+      .${uniqueId} .summary span[style],
+      .${uniqueId} .project-description span[style],
+      .${uniqueId} .job-description span[style],
+      .${uniqueId} .edu-description span[style],
+      .${uniqueId} .achievement-description span[style],
+      .${uniqueId} .custom-content span[style] {
+        /* Let inline styles take precedence */
+      }
+      
+      /* Ensure CKEditor bold formatting is preserved */
+      .${uniqueId} .summary-text strong, .${uniqueId} .summary-text b,
+      .${uniqueId} .about-text strong, .${uniqueId} .about-text b,
+      .${uniqueId} .executive-summary strong, .${uniqueId} .executive-summary b,
+      .${uniqueId} .summary-section strong, .${uniqueId} .summary-section b,
+      .${uniqueId} .summary strong, .${uniqueId} .summary b,
+      .${uniqueId} .project-description strong, .${uniqueId} .project-description b,
+      .${uniqueId} .job-description strong, .${uniqueId} .job-description b,
+      .${uniqueId} .edu-description strong, .${uniqueId} .edu-description b,
+      .${uniqueId} .achievement-description strong, .${uniqueId} .achievement-description b,
+      .${uniqueId} .custom-content strong, .${uniqueId} .custom-content b {
+        font-weight: 700 !important;
+      }
+      
+      /* Ensure CKEditor italic formatting is preserved */
+      .${uniqueId} .summary-text em, .${uniqueId} .summary-text i,
+      .${uniqueId} .about-text em, .${uniqueId} .about-text i,
+      .${uniqueId} .executive-summary em, .${uniqueId} .executive-summary i,
+      .${uniqueId} .summary-section em, .${uniqueId} .summary-section i,
+      .${uniqueId} .summary em, .${uniqueId} .summary i,
+      .${uniqueId} .project-description em, .${uniqueId} .project-description i,
+      .${uniqueId} .job-description em, .${uniqueId} .job-description i,
+      .${uniqueId} .edu-description em, .${uniqueId} .edu-description i,
+      .${uniqueId} .achievement-description em, .${uniqueId} .achievement-description i,
+      .${uniqueId} .custom-content em, .${uniqueId} .custom-content i {
+        font-style: italic !important;
+      }
+      
+      /* Ensure CKEditor underline formatting is preserved */
+      .${uniqueId} .summary-text u,
+      .${uniqueId} .about-text u,
+      .${uniqueId} .executive-summary u,
+      .${uniqueId} .summary-section u,
+      .${uniqueId} .summary u,
+      .${uniqueId} .project-description u,
+      .${uniqueId} .job-description u,
+      .${uniqueId} .edu-description u,
+      .${uniqueId} .achievement-description u,
+      .${uniqueId} .custom-content u {
+        text-decoration: underline !important;
+      }
+      
+      /* Preserve CKEditor list formatting */
+      .${uniqueId} .summary-text ol, .${uniqueId} .summary-text ul,
+      .${uniqueId} .about-text ol, .${uniqueId} .about-text ul,
+      .${uniqueId} .executive-summary ol, .${uniqueId} .executive-summary ul,
+      .${uniqueId} .summary-section ol, .${uniqueId} .summary-section ul,
+      .${uniqueId} .summary ol, .${uniqueId} .summary ul,
+      .${uniqueId} .project-description ol, .${uniqueId} .project-description ul,
+      .${uniqueId} .job-description ol, .${uniqueId} .job-description ul,
+      .${uniqueId} .edu-description ol, .${uniqueId} .edu-description ul,
+      .${uniqueId} .achievement-description ol, .${uniqueId} .achievement-description ul,
+      .${uniqueId} .custom-content ol, .${uniqueId} .custom-content ul {
+        margin: 0.25rem 0;
+        padding-left: 1rem;
+      }
+      
+      .${uniqueId} .summary-text li, .${uniqueId} .summary-text li,
+      .${uniqueId} .about-text li, .${uniqueId} .about-text li,
+      .${uniqueId} .executive-summary li, .${uniqueId} .executive-summary li,
+      .${uniqueId} .summary-section li, .${uniqueId} .summary-section li,
+      .${uniqueId} .summary li, .${uniqueId} .summary li,
+      .${uniqueId} .project-description li, .${uniqueId} .project-description li,
+      .${uniqueId} .job-description li, .${uniqueId} .job-description li,
+      .${uniqueId} .edu-description li, .${uniqueId} .edu-description li,
+      .${uniqueId} .achievement-description li, .${uniqueId} .achievement-description li,
+      .${uniqueId} .custom-content li, .${uniqueId} .custom-content li {
+        margin-bottom: 0.125rem;
+        line-height: 1.3;
+      }
+      
       /* Also remove bottom spacing from last items within sections 
       .${uniqueId} .job-item:last-child,
       .${uniqueId} .edu-item:last-child,

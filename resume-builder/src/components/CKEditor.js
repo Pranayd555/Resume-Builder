@@ -27,6 +27,7 @@ const CKEditorComponent = ({
       const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
                             window.innerWidth <= 768;
       setIsMobile(isMobileDevice);
+      console.log('isMobileDevice', isMobileDevice);
       return isMobileDevice;
     };
     
@@ -322,7 +323,7 @@ const CKEditorComponent = ({
             '|',
             'imageUpload',
           ],
-          shouldNotGroupWhenFull: true
+          shouldNotGroupWhenFull: !isMobile
         },
         plugins: [
           Alignment,
@@ -512,7 +513,7 @@ const CKEditorComponent = ({
     } else {
       return createBaseConfig(plugins);
     }
-  }, [cloud, isLayoutReady, configType, createBaseConfig, createProConfig]);
+  }, [cloud, isLayoutReady, configType, createBaseConfig, createProConfig, isMobile]);
 
   return (
     <div className={`ckeditor-container ${isMobile ? 'mobile-editor' : ''} ${className}`} style={{ position: 'relative', overflow: 'visible' }}>
