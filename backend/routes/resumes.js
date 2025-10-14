@@ -16,6 +16,38 @@ const sharp = require('sharp');
 
 const router = express.Router();
 
+// Helper function to handle Mongoose validation errors
+const handleValidationError = (error, res) => {
+  if (error.name === 'ValidationError') {
+    const errors = Object.values(error.errors).map(err => ({
+      field: err.path,
+      message: err.message,
+      value: err.value
+    }));
+    
+    return res.status(400).json({
+      success: false,
+      error: 'Validation failed',
+      details: errors
+    });
+  }
+  
+  if (error.name === 'CastError') {
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid data format',
+      details: `Invalid ${error.path}: ${error.value}`
+    });
+  }
+  
+  // For other errors, return generic server error
+  return res.status(500).json({
+    success: false,
+    error: 'Server error',
+    details: process.env.NODE_ENV === 'development' ? error.message : undefined
+  });
+};
+
 // @desc    Save resume form data (Step 1: Form submission)
 // @route   POST /api/resumes/form-data
 // @access  Private
@@ -74,11 +106,7 @@ router.post('/form-data', [
   } catch (error) {
     logger.error('Save resume form data error:', error);
     logger.error('Error stack:', error.stack);
-    res.status(500).json({
-      success: false,
-      error: 'Server error',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    return handleValidationError(error, res);
   }
 });
 
@@ -195,11 +223,7 @@ router.post('/auto-save', [
   } catch (error) {
     logger.error('Auto-save resume error:', error);
     logger.error('Error stack:', error.stack);
-    res.status(500).json({
-      success: false,
-      error: 'Server error',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    return handleValidationError(error, res);
   }
 });
 
@@ -265,10 +289,7 @@ router.put('/:id/complete', protect, async (req, res) => {
     });
   } catch (error) {
     logger.error('Mark resume as completed error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error'
-    });
+    return handleValidationError(error, res);
   }
 });
 
@@ -369,10 +390,7 @@ router.put('/:id/template', [
     });
   } catch (error) {
     logger.error('Update resume template error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error'
-    });
+    return handleValidationError(error, res);
   }
 });
 
@@ -445,10 +463,7 @@ router.put('/:id/template-styling', [
     });
   } catch (error) {
     logger.error('Update template styling error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error'
-    });
+    return handleValidationError(error, res);
   }
 });
 
@@ -1006,6 +1021,7 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
       <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/47.0.0/ckeditor5.css" />
           <title>${resume.title}</title>
           <style>
               /* Basic reset and page setup */
@@ -2143,10 +2159,7 @@ router.post('/', [
     });
   } catch (error) {
     logger.error('Create resume error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error'
-    });
+    return handleValidationError(error, res);
   }
 });
 
@@ -2204,10 +2217,7 @@ router.put('/:id', [
     });
   } catch (error) {
     logger.error('Update resume error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error'
-    });
+    return handleValidationError(error, res);
   }
 });
 

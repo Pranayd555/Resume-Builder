@@ -8,11 +8,18 @@
   background-color: white;
 }
 
+/* Mobile container overflow fix */
+@media (max-width: 768px) {
+  .ckeditor-container {
+    overflow: hidden;
+  }
+}
+
 /* Mobile-specific editor container */
 .ckeditor-container.mobile-editor {
   -webkit-overflow-scrolling: touch;
   overflow-x: auto;
-  overflow-y: visible;
+  overflow-y: hidden;
   touch-action: manipulation;
   user-select: text;
 }
@@ -340,7 +347,7 @@
   min-width: 100px !important;
 }
 
-/* Responsive CKEditor toolbar - copied from CreateTemplate.css */
+/* Responsive CKEditor toolbar */
 @media (max-width: 768px) {
   .ckeditor-container .ck-editor__top {
     overflow-x: auto;
@@ -359,6 +366,19 @@
   .ckeditor-container .ck-toolbar .ck-button {
     min-width: 22px;
     height: 32px;
+  }
+}
+
+/* Large screen toolbar - keep on single line */
+@media (min-width: 1024px) {
+  .ckeditor-container .ck-toolbar {
+    flex-wrap: nowrap;
+    overflow-x: visible;
+  }
+  
+  .ckeditor-container .ck-toolbar__items {
+    flex-wrap: nowrap;
+    overflow-x: visible;
   }
 }
 
@@ -382,7 +402,7 @@
   .ckeditor-container {
     -webkit-overflow-scrolling: touch;
     overflow-x: auto;
-    overflow-y: visible;
+    overflow-y: hidden;
   }
   
   /* Fix mobile keyboard issues */
@@ -547,6 +567,24 @@
   overflow: visible;
 }
 
+/* Mobile toolbar fixes without sticky positioning */
+@media (max-width: 768px) {
+  .ckeditor-container .ck-editor__top {
+    background-color: #f9fafb;
+    border-bottom: 1px solid #d1d5db;
+  }
+  
+  .ckeditor-container .ck-toolbar {
+    background-color: #f9fafb;
+  }
+  
+  /* Ensure main content area has proper positioning */
+  .ckeditor-container .ck-editor__main {
+    position: relative;
+    z-index: 1;
+  }
+}
+
 .ckeditor-container .ck-editor__top {
   width: 100%;
   overflow: visible;
@@ -621,7 +659,7 @@
   .ckeditor-container {
     -webkit-overflow-scrolling: touch;
     overflow-x: auto;
-    overflow-y: visible;
+    overflow-y: hidden;
     /* Prevent horizontal scroll issues */
     width: 100%;
     max-width: 100%;

@@ -134,11 +134,62 @@ app.use(mongoSanitize());
 // Data sanitization against XSS
 app.use((req, res, next) => {
   if (req.body) {
-    Object.keys(req.body).forEach(key => {
-      if (typeof req.body[key] === 'string') {
-        req.body[key] = xss(req.body[key]);
+    // Recursive function to sanitize nested objects and arrays
+    const sanitizeObject = (obj, isResumeRequest = false) => {
+      if (typeof obj === 'string') {
+        // Check if this is a resume content field
+        const resumeContentFields = ['summary', 'description', 'content'];
+        const isResumeContentField = isResumeRequest && resumeContentFields.some(field => 
+          obj.includes(`<span style=`) || obj.includes(`<strong>`) || obj.includes(`<em>`) || obj.includes(`<u>`)
+        );
+        
+        if (isResumeContentField) {
+          // For resume content fields, use a more permissive XSS filter that preserves CKEditor formatting
+          return xss(obj, {
+            whiteList: {
+              'p': ['style'],
+              'span': ['style'],
+              'strong': [],
+              'b': [],
+              'em': [],
+              'i': [],
+              'u': [],
+              'ol': ['class', 'style'],
+              'ul': ['class', 'style'],
+              'li': ['class', 'data-list-item-id', 'style'],
+              'br': [],
+              'div': ['style'],
+              'h1': ['style'],
+              'h2': ['style'],
+              'h3': ['style'],
+              'h4': ['style'],
+              'h5': ['style'],
+              'h6': ['style']
+            },
+            stripIgnoreTag: true,
+            stripIgnoreTagBody: ['script']
+          });
+        } else {
+          // For other fields, use standard XSS sanitization
+          return xss(obj);
+        }
+      } else if (Array.isArray(obj)) {
+        return obj.map(item => sanitizeObject(item, isResumeRequest));
+      } else if (obj && typeof obj === 'object') {
+        const sanitized = {};
+        Object.keys(obj).forEach(key => {
+          sanitized[key] = sanitizeObject(obj[key], isResumeRequest);
+        });
+        return sanitized;
       }
-    });
+      return obj;
+    };
+    
+    // Check if this is a resume request
+    const isResumeRequest = req.path.includes('/resumes');
+    
+    // Sanitize the entire request body
+    req.body = sanitizeObject(req.body, isResumeRequest);
   }
   next();
 });

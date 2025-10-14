@@ -65,7 +65,7 @@ const resumeSchema = new mongoose.Schema({
   summary: {
     type: String,
     trim: true,
-    maxlength: [1000, 'Summary cannot exceed 1000 characters']
+    maxlength: [10000, 'Summary cannot exceed 10000 characters']
   },
   
   // Fresher status
@@ -119,7 +119,7 @@ const resumeSchema = new mongoose.Schema({
     description: {
       type: String,
       trim: true,
-      maxlength: [2000, 'Description cannot exceed 2000 characters']
+      maxlength: [10000, 'Description cannot exceed 10000 characters']
     },
     achievements: [{
       type: String,
@@ -172,7 +172,7 @@ const resumeSchema = new mongoose.Schema({
     description: {
       type: String,
       trim: true,
-      maxlength: [1000, 'Description cannot exceed 1000 characters']
+      maxlength: [10000, 'Description cannot exceed 10000 characters']
     }
   }],
   
@@ -216,7 +216,7 @@ const resumeSchema = new mongoose.Schema({
     description: {
       type: String,
       trim: true,
-      maxlength: [1000, 'Description cannot exceed 1000 characters']
+      maxlength: [10000, 'Description cannot exceed 10000 characters']
     },
     technologies: [{
       type: String,
@@ -248,7 +248,7 @@ const resumeSchema = new mongoose.Schema({
     description: {
       type: String,
       trim: true,
-      maxlength: [500, 'Description cannot exceed 500 characters']
+      maxlength: [10000, 'Description cannot exceed 10000 characters']
     },
     date: Date,
     issuer: {
@@ -312,7 +312,7 @@ const resumeSchema = new mongoose.Schema({
     content: {
       type: String,
       trim: true,
-      maxlength: [2000, 'Content cannot exceed 2000 characters']
+      maxlength: [10000, 'Content cannot exceed 10000 characters']
     },
     type: {
       type: String,
