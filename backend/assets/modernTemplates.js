@@ -64,7 +64,7 @@ module.exports = [
               {{#if summary}}
               <section class="summary secondaryFont">
                 <h3 class="primaryFont">Professional Summary</h3>
-                <div class="summary-text secondaryFont" itemprop="description">{{{summary}}}</div>
+                <div class="summary secondaryFont" itemprop="description">{{{summary}}}</div>
               </section>
               {{/if}}
               
@@ -353,7 +353,7 @@ module.exports = [
             {{#if summary}}
             <section class="executive-summary secondaryFont">
               <h3 class="primaryFont">Executive Summary</h3>
-              <div class="summary-text secondaryFont" itemprop="description">{{{summary}}}</div>
+              <div class="summary secondaryFont" itemprop="description">{{{summary}}}</div>
             </section>
             {{/if}}
             
@@ -506,7 +506,7 @@ module.exports = [
            section { margin-top: 1rem; }
            h3 { font-weight: 600; color: #1f2937; margin-bottom: 0.5rem; position: relative; padding-bottom: 0.25rem; }
            h3::after { content: ''; position: absolute; bottom: 0; left: 0; width: 30px; height: 2px; background: #f59e0b; }
-           .executive-summary .summary-text { line-height: 1; color: #4b5563; font-style: italic; text-align: justify; }
+           .executive-summary .summary { line-height: 1; color: #4b5563; font-style: italic; text-align: justify; }
           .position, .edu-entry, .project-item, .achievement-item { margin-bottom: 0.5rem; }
           .position-header, .edu-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.25rem; }
           .position-title, .edu-degree, .project-name, .achievement-title { font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
@@ -623,7 +623,7 @@ module.exports = [
             {{#if summary}}
             <section class="summary-section">
               <h3 class="primaryFont">Professional Summary</h3>
-              <div class="summary-text secondaryFont" itemprop="description">{{{summary}}}</div>
+              <div class="summary secondaryFont" itemprop="description">{{{summary}}}</div>
             </section>
             {{/if}}
             
@@ -888,7 +888,7 @@ module.exports = [
               {{#if summary}}
               <section class="summary secondaryFont">
                 <h3 class="primaryFont">Professional Summary</h3>
-                <div class="summary-text secondaryFont" itemprop="description">{{{summary}}}</div>
+                <div class="summary secondaryFont" itemprop="description">{{{summary}}}</div>
               </section>
               {{/if}}
               
@@ -1186,7 +1186,7 @@ module.exports = [
             {{#if summary}}
             <section class="summary">
               <h2 class="primaryFont">Professional Summary</h2>
-              <div class="summary-text secondaryFont" itemprop="description">{{{summary}}}</div>
+              <div class="summary secondaryFont" itemprop="description">{{{summary}}}</div>
             </section>
             {{/if}}
             
@@ -1455,7 +1455,7 @@ module.exports = [
             {{#if summary}}
             <section class="summary">
               <h2 class="primaryFont">Professional Summary</h2>
-              <div class="summary-text secondaryFont" itemprop="description">{{{summary}}}</div>
+              <div class="summary secondaryFont" itemprop="description">{{{summary}}}</div>
             </section>
             {{/if}}
             
@@ -1721,7 +1721,7 @@ module.exports = [
             {{#if summary}}
             <section class="summary">
               <h2 class="primaryFont">Professional Summary</h2>
-              <div class="summary-text secondaryFont" itemprop="description">{{{summary}}}</div>
+              <div class="summary secondaryFont" itemprop="description">{{{summary}}}</div>
             </section>
             {{/if}}
             

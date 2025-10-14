@@ -65,7 +65,7 @@ module.exports = [
             {{#if summary}}
             <section class="research-interests">
             <h2 class="primaryFont">Research Interests</h2>
-            <div class="summary-text secondaryFont" itemprop="description">{{{summary}}}</div>
+            <div class="summary secondaryFont" itemprop="description">{{{summary}}}</div>
             </section>
             {{/if}}
             
@@ -98,7 +98,7 @@ module.exports = [
                     {{#if isCurrentJob}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
                 </div>
                 </div>
-                {{#if description}}<div class="position-description secondaryFont" itemprop="description">{{{description}}}</div>{{/if}}
+                {{#if description}}<div class="job-description secondaryFont" itemprop="description">{{{description}}}</div>{{/if}}
             </div>
             {{/each}}
             </section>
@@ -110,7 +110,7 @@ module.exports = [
             {{#each projects}}
             <div class="publication-entry">
                 <strong class="project-name primaryFont">{{name}}</strong>
-                {{#if description}}<div class="publication-description secondaryFont">{{{description}}}</div>{{/if}}
+                {{#if description}}<div class="project-description secondaryFont">{{{description}}}</div>{{/if}}
                 {{#if technologies}}
                 <div class="methodologies secondaryFont">
                 <span class="label">Methodologies/Tools:</span>{{#each technologies}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}
@@ -206,7 +206,7 @@ module.exports = [
         .institution-info { color: #6b7280; font-style: italic; }
         .edu-dates, .job-dates, .project-dates, .cert-dates, .achievement-date { color: #9ca3af; font-weight: 500; }
         .gpa { color: #6b7280; margin-bottom: 2px; }
-        .edu-description, .position-description, .publication-description, .achievement-description { margin: 2px 0; color: #4b5563; line-height: 1.3; text-align: justify; }
+        .summary, .job-description, .edu-description, .project-description, .achievement-description { margin: 2px 0; color: #4b5563; line-height: 1.3; text-align: justify; }
         .methodologies { margin: 2px 0; }
         .methodologies .label { font-weight: 400; color: #6b7280; }
         .publication-entry { border-left: 3px solid #10b981; padding-left: 8px; }

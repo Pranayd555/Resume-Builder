@@ -86,7 +86,7 @@ module.exports = [
                 {{#if summary}}
                 <section class="summary secondaryFont">
                 <h2 class="primaryFont">Professional Summary</h2>
-                <div class="summary-text secondaryFont" itemprop="description">{{{summary}}}</div>
+                <div class="summary secondaryFont" itemprop="description">{{{summary}}}</div>
                 </section>
                 {{/if}}
                 
@@ -256,14 +256,14 @@ module.exports = [
         section { margin-bottom: 12px; }
         h2 { font-weight: 600; color: #1e40af; margin-bottom: 2px; padding-bottom: 4px; border-bottom: 2px solid #e5e7eb; position: relative; }
         h2::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 18px; height: 2px; background: #1e40af; }
-        .summary-text { line-height: 1.4; color: #4b5563; text-align: justify; }
+        .summary { line-height: 1.4; color: #4b5563; text-align: justify; }
         
         .job-entry, .edu-entry, .project-entry, .achievement-entry { margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #f3f4f6; }
         .job-header, .edu-header, .project-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px; }
         .job-title-company h3, .edu-title-institution h3, .project-header h3, .achievement-entry .achievement-title { font-weight: 600; color: #1f2937; margin-bottom: 2px; }
         .company-location, .institution-location { display: flex; gap: 4px; color: #6b7280; }
         .dates { color: #9ca3af; font-weight: 500; text-align: right; }
-        .description, .project-description, .job-description, .edu-description, .achievement-description { 
+        .summary, .job-description, .project-description, .edu-description, .achievement-description { 
             margin-bottom: 6px; 
             color: #4b5563; 
             line-height: 1.4; 
@@ -457,7 +457,7 @@ module.exports = [
                       <div class="location secondaryFont">{{location}}</div>
                     {{/if}}
                     {{#if description}}
-                      <div class="description secondaryFont">{{{description}}}</div>
+                      <div class="job-description secondaryFont">{{{description}}}</div>
                     {{/if}}
                     {{#if achievements}}
                       <ul class="role-achievements secondaryFont">
@@ -478,7 +478,7 @@ module.exports = [
                   <div class="project-item">
                     <strong class="secondaryFont">{{name}}</strong>
                     {{#if description}}
-                      <div class="description secondaryFont">{{{description}}}</div>
+                      <div class="project-description secondaryFont">{{{description}}}</div>
                     {{/if}}
                     {{#if technologies}}
                       <div class="project-technologies secondaryFont">
@@ -522,7 +522,7 @@ module.exports = [
                       <div class="gpa secondaryFont">GPA: {{gpa}}</div>
                     {{/if}}
                     {{#if description}}
-                      <div class="education-description secondaryFont">{{{description}}}</div>
+                      <div class="edu-description secondaryFont">{{{description}}}</div>
                     {{/if}}
                   </div>
                 {{/each}}
@@ -652,7 +652,7 @@ module.exports = [
           .institution { color: #1e3a8a; font-weight: 400; margin-bottom: 2px; }
           .edu-dates { color: #64748b; font-style: italic; }
           .gpa { color: #64748b; margin-top: 2px; font-weight: 400;}
-          .education-description { line-height: 1.3; color: #374151; margin: 2px 0; }
+          .edu-description { line-height: 1.3; color: #374151; margin: 2px 0; }
           .competencies-grid { display: flex; flex-direction: column; gap: 2px; }
           .competency-title { font-weight: 600; color: #1f2937; margin-bottom: 2px; }
           .competency-items { color: #374151; line-height: 1; }
@@ -766,7 +766,7 @@ module.exports = [
               {{#if summary}}
               <section class="summary secondaryFont">
                 <h3 class="primaryFont">Professional Summary</h3>
-                <div class="summary-text secondaryFont" itemprop="description">{{{summary}}}</div>
+                <div class="summary secondaryFont" itemprop="description">{{{summary}}}</div>
               </section>
               {{/if}}
               
@@ -817,7 +817,7 @@ module.exports = [
                 {{#each projects}}
                 <div class="project-item">
                   <div class="project-name primaryFont">{{name}}</div>
-                  {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
+                  {{#if description}}<div class="project-description secondaryFont">{{{description}}}</div>{{/if}}
                   {{#if technologies}}
                   <div class="technologies">
                     <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
@@ -878,7 +878,7 @@ module.exports = [
                 {{#each achievements}}
                 <div class="achievement-item">
                   {{#if title}}<div class="achievement-title primaryFont">{{title}}</div>{{/if}}
-                  {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
+                  {{#if description}}<div class="achievement-description secondaryFont">{{{description}}}</div>{{/if}}
                    {{#if date}}<div class="achievement-date secondaryFont">{{formatDate date}}</div>{{/if}}
                    {{#if issuer}}<div class="achievement-issuer secondaryFont">{{issuer}}</div>{{/if}}
                 </div>

@@ -184,7 +184,7 @@ module.exports = [
                             {{formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{formatDate endDate}}{{/if}}
                           </div>
                           {{#if description}}
-                            <div class="description secondaryFont">{{{description}}}</div>
+                            <div class="job-description secondaryFont">{{{description}}}</div>
                           {{/if}}
                           {{#if achievements}}
                             <ul class="achievements secondaryFont">
@@ -749,7 +749,7 @@ module.exports = [
             {{#if summary}}
             <section class="summary">
               <h2 class="primaryFont">Professional Summary</h2>
-              <div class="summary-text secondaryFont" itemprop="description">{{{summary}}}</div>
+              <div class="summary secondaryFont" itemprop="description">{{{summary}}}</div>
             </section>
             {{/if}}
             
@@ -762,7 +762,7 @@ module.exports = [
                   <div class="project-name primaryFont">{{name}}</div>
                   {{#if startDate}}<div class="project-dates secondaryFont">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
                 </div>
-                {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
+                {{#if description}}<div class="project-description secondaryFont">{{{description}}}</div>{{/if}}
                 {{#if technologies}}
                 <div class="technologies secondaryFont">
                   <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag">{{this}}</span>{{/each}}
@@ -863,7 +863,7 @@ module.exports = [
               {{#each achievements}}
               <div class="achievement-item">
                 {{#if title}}<div class="achievement-title primaryFont">{{title}}</div>{{/if}}
-                {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
+                {{#if description}}<div class="achievement-description secondaryFont">{{{description}}}</div>{{/if}}
                 {{#if date}}<div class="achievement-date secondaryFont">{{formatDate date}}</div>{{/if}}
                 {{#if issuer}}<div class="achievement-issuer secondaryFont">{{issuer}}</div>{{/if}}
               </div>
@@ -918,7 +918,7 @@ module.exports = [
           .job-title, .edu-degree { font-weight: 600; color: #111827; margin-bottom: 2px; }
           .job-meta, .edu-meta { color: #6b7280; }
           .job-dates, .edu-dates { color: #9ca3af; font-weight: 500; }
-          .job-description, .edu-description, .achievement-description { margin: 4px 0; color: #4b5563; line-height: 1.4; }
+          .summary, .job-description, .edu-description, .project-description, .achievement-description { margin: 4px 0; color: #4b5563; line-height: 1.4; }
           .achievements { margin: 4px 0; }
           .achievements li { margin-bottom: 2px; color: #4b5563; }
           

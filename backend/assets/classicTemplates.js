@@ -63,7 +63,7 @@ module.exports = [
             {{#if summary}}
             <section class="objective secondaryFont">
               <h2 class="primaryFont">PROFESSIONAL OBJECTIVE</h2>
-              <div class="summary-text secondaryFont" itemprop="description">{{{summary}}}</div>
+              <div class="summary secondaryFont" itemprop="description">{{{summary}}}</div>
             </section>
             {{/if}}
             
@@ -214,7 +214,7 @@ module.exports = [
           .dates { font-style: italic; }
           
           .company-info, .institution-info, .cert-issuer, .issuer-info { margin-bottom: 2px; }
-          .job-description, .edu-description, .project-description, .achievement-description { margin: 2px 0; text-align: justify; }
+          .summary, .job-description, .edu-description, .project-description, .achievement-description { margin: 2px 0; text-align: justify; }
           
           .achievements { margin: 2px 0; }
           .achievements li { margin-bottom: 2px; }
@@ -329,7 +329,7 @@ module.exports = [
               {{#if summary}}
                 <section class="summary-section">
                   <h2 class="primaryFont">PROFESSIONAL SUMMARY</h2>
-                  <div class="secondaryFont">{{{summary}}}</div>
+                  <div class="summary secondaryFont">{{{summary}}}</div>
                 </section>
               {{/if}}
               
@@ -373,7 +373,7 @@ module.exports = [
                         <div class="gpa secondaryFont">GPA: {{gpa}}</div>
                       {{/if}}
                       {{#if description}}
-                        <div class="education-description secondaryFont">{{{description}}}</div>
+                        <div class="edu-description secondaryFont">{{{description}}}</div>
                       {{/if}}
                     </div>
                   {{/each}}
@@ -460,7 +460,7 @@ module.exports = [
             .website { color: #6b7280;} .website a { color: #6b7280; text-decoration: none; }
             section { margin-bottom: 6px; }
             section h2 { font-weight: bold; color: #1f2937; text-transform: uppercase; margin-bottom: 6px; border-bottom: 1px solid #1f2937; padding-bottom: 2px; letter-spacing: 0.5px; }
-            .summary-section p { line-height: 1; color: #1f2937; text-align: justify; }
+            .summary { line-height: 1; color: #1f2937; text-align: justify; }
             .job-entry { margin-top: 2px; margin-bottom: 2px; padding-bottom: 2px; border-bottom: 1px dotted #6b7280; }
             .job-title-line { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
             .job-title-line h3 { color: #1f2937; font-weight: bold; margin: 0; }
@@ -473,7 +473,7 @@ module.exports = [
             .edu-dates { color: #6b7280; font-style: italic; }
             .school-line { color: #4b5563; margin-bottom: 2px; font-weight: 500; }
             .gpa { color: #6b7280; margin-bottom: 2px; }
-            .education-description { color: #1f2937; line-height: 1; }
+            .edu-description { color: #1f2937; line-height: 1; }
             .project-entry { margin-top: 2px; margin-bottom: 2px; padding-bottom: 2px; border-bottom: 1px dotted #6b7280; }
             .project-line { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
             .project-line h3 { color: #1f2937; font-weight: bold; margin: 0; }
@@ -567,7 +567,7 @@ module.exports = [
                 {{#if summary}}
                 <section class="summary">
                   <h2 class="primaryFont">Professional Summary</h2>
-                  <div class="summary-text secondaryFont" itemprop="description">{{{summary}}}</div>
+                  <div class="summary secondaryFont" itemprop="description">{{{summary}}}</div>
                 </section>
                 {{/if}}
                 
@@ -644,7 +644,7 @@ module.exports = [
                       <div class="project-name primaryFont">{{name}}</div>
                       {{#if startDate}}<div class="project-dates secondaryFont">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
                     </div>
-                    {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
+                    {{#if description}}<div class="project-description secondaryFont">{{{description}}}</div>{{/if}}
                     {{#if technologies}}
                     <div class="technologies">
                       <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
@@ -681,7 +681,7 @@ module.exports = [
                   {{#each achievements}}
                   <div class="achievement-item">
                     {{#if title}}<div class="achievement-title primaryFont">{{title}}</div>{{/if}}
-                    {{#if description}}<div class="description secondaryFont">{{{description}}}</div>{{/if}}
+                    {{#if description}}<div class="achievement-description secondaryFont">{{{description}}}</div>{{/if}}
                     {{#if date}}<div class="achievement-date secondaryFont">{{formatDate date}}</div>{{/if}}
                     {{#if issuer}}<div class="achievement-issuer secondaryFont">{{issuer}}</div>{{/if}}
                   </div>
@@ -796,9 +796,11 @@ module.exports = [
                 margin: 2px 0;
               }
               
+              .summary,
               .job-description,
               .project-description,
-              .edu-description {
+              .edu-description,
+              .achievement-description {
                 margin: 3px 0;
                 color: #374151;
                 line-height: 1.4;
