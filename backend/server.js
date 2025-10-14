@@ -164,7 +164,21 @@ app.use((req, res, next) => {
               'h3': ['style'],
               'h4': ['style'],
               'h5': ['style'],
-              'h6': ['style']
+              'h6': ['style'],
+              'section': ['style'],
+              'article': ['style'],
+              'header': ['style'],
+              'footer': ['style'],
+              'main': ['style'],
+              'aside': ['style'],
+              'nav': ['style'],
+              'table': ['style'],
+              'tr': ['style'],
+              'td': ['style'],
+              'th': ['style'],
+              'tbody': ['style'],
+              'thead': ['style'],
+              'tfoot': ['style']
             },
             stripIgnoreTag: true,
             stripIgnoreTagBody: ['script']
@@ -185,8 +199,8 @@ app.use((req, res, next) => {
       return obj;
     };
     
-    // Check if this is a resume request
-    const isResumeRequest = req.path.includes('/resumes');
+    // Check if this is a resume or template creation request
+    const isResumeRequest = req.path.includes('/resumes') || req.path.includes('/createTemplate');
     
     // Sanitize the entire request body
     req.body = sanitizeObject(req.body, isResumeRequest);
