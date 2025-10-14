@@ -41,7 +41,7 @@ router.post('/', async (req, res) => {
 
                     body {
                     font-family: 'Arial', sans-serif;
-                    padding: 24px;
+                    padding: 10px;
                     max-width: 900px;
                     margin: 0 auto;
                     background: #fff;
@@ -52,22 +52,6 @@ router.post('/', async (req, res) => {
                     box-sizing: border-box;
                     -webkit-print-color-adjust: exact !important;
                     print-color-adjust: exact !important;
-                    }
-
-                    /* Fix for flex / align-items not showing */
-                    [style*="display:flex"] {
-                    display: flex !important;
-                    }
-
-                    /* Preserve hsl() colors exactly */
-                    [style*="color:hsl"], [style*="background:hsl"], [style*="background-color:hsl"] {
-                    color: inherit !important;
-                    background-color: inherit !important;
-                    }
-
-                    /* Force borders to be printed */
-                    [style*="border"] {
-                    border-style: solid !important;
                     }
 
                     .ck-content {
@@ -103,10 +87,10 @@ router.post('/', async (req, res) => {
           format: 'A4',
           printBackground: true,
           margin: {
-            top: '10mm',
-            right: '10mm',
-            bottom: '10mm',
-            left: '10mm',
+            top: '5mm',
+            right: '5mm',
+            bottom: '5mm',
+            left: '5mm',
           },
           scale: 1,
           preferCSSPageSize: true,
