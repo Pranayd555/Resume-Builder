@@ -31,7 +31,6 @@ const ATSScoreModal = ({
           setSubscription(response.data.subscription);
         }
       } catch (error) {
-        console.error('Failed to fetch subscription:', error);
         // Default to free plan if fetch fails
         setSubscription({ plan: 'free', status: 'active' });
       }
@@ -115,7 +114,6 @@ const ATSScoreModal = ({
 
   // Handle API error
   const handleError = (error) => {
-    console.error('ATS Score generation error:', error);
     toast.error(error.userMessage || 'Failed to generate ATS score');
     setAtsGenerating(false);
     // Modal stays open for retry
@@ -150,15 +148,6 @@ const ATSScoreModal = ({
         jobDescriptionFile
       );
       
-      console.log('=== ATS SCORE RESPONSE ===');
-      console.log('Success:', response.success);
-      console.log('Resume Title:', response.data?.resumeTitle);
-      console.log('Template Name:', response.data?.templateName);
-      console.log('Job Description Length:', response.data?.jobDescriptionLength);
-      console.log('Input Type:', response.data?.inputType);
-      console.log('--- ATS Analysis ---');
-      console.log(response.data?.atsAnalysis);
-      console.log('=== END ATS RESPONSE ===');
       
       // Update token balance after successful operation
       const currentBalance = apiHelpers.getTokenBalance();
@@ -292,6 +281,7 @@ const ATSScoreModal = ({
                       placeholder="Paste the job description here..."
                       className="min-h-[180px]"
                       disabled={atsGenerating}
+                      showAIButton={false}
                     />
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">

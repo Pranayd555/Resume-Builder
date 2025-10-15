@@ -241,6 +241,59 @@ class AIService {
       message: response.message || 'Keywords enhanced successfully'
     };
   }
+
+  /**
+   * Generate PDF template from basic details using AI
+   * @param {string} content - The basic details content
+   * @returns {Promise<Object>} - Generated PDF template content
+   */
+  async generatePDFTemplate(content) {
+    if (!content || content.trim().length < 20) {
+      throw new Error('Content must be at least 20 characters long');
+    }
+
+    const response = await this._makeRequest('/ai/generate-pdf-template', {
+      content: content.trim()
+    });
+
+    // Backend returns { success: true, data: { templateContent, ... } }
+    return {
+      success: true,
+      data: {
+        templateContent: response.data.templateContent,
+        originalContent: response.data.originalContent,
+        templateType: response.data.templateType,
+        message: response.data.message || 'PDF template generated successfully'
+      }
+    };
+  }
+
+  /**
+   * Restructure current template using AI (structured template required)
+   * @param {string} content - The current template content
+   * @returns {Promise<Object>} - Restructured template content
+   */
+  async restructureTemplate(content) {
+    if (!content || content.trim().length < 50) {
+      throw new Error('Content must be at least 50 characters long for restructuring');
+    }
+
+    const response = await this._makeRequest('/ai/restructure-template', {
+      content: content.trim()
+    });
+
+    // Backend returns { success: true, data: { restructuredContent, ... } }
+    return {
+      success: true,
+      data: {
+        restructuredContent: response.data.restructuredContent,
+        originalContent: response.data.originalContent,
+        structureType: response.data.structureType,
+        improvements: response.data.improvements,
+        message: response.data.message || 'Template restructured successfully'
+      }
+    };
+  }
 }
 
 const aiServiceInstance = new AIService();

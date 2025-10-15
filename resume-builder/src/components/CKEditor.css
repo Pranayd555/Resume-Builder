@@ -1,190 +1,162 @@
+@import "https://cdn.ckeditor.com/ckeditor5/47.0.0/ckeditor5.css";
+@import url('https://fonts.googleapis.com/css2?family=Oswald&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+@media print {
+	body {
+		margin: 0 !important;
+	}
+}
+
+:root {
+	--ck-content-font-family: 'Lato';
+}
+
+.main-container {
+	font-family: var(--ck-content-font-family);
+	width: fit-content;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.editor-container_classic-editor .editor-container__editor {
+	min-width: 795px;
+	max-width: 795px;
+}
+
+.ck-content h3.category {
+	font-family: 'Oswald';
+	font-size: 20px;
+	font-weight: bold;
+	color: #555;
+	letter-spacing: 10px;
+	margin: 0;
+	padding: 0;
+}
+
+.ck-content h2.document-title {
+	font-family: 'Oswald';
+	font-size: 50px;
+	font-weight: bold;
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+.ck-content h3.document-subtitle {
+	font-family: 'Oswald';
+	font-size: 20px;
+	color: #555;
+	margin: 0 0 1em;
+	font-weight: bold;
+	padding: 0;
+}
+
+.ck-content p.info-box {
+	--background-size: 30px;
+	--background-color: #e91e63;
+	padding: 1.2em 2em;
+	border: 1px solid var(--background-color);
+	background:
+		linear-gradient(135deg, var(--background-color) 0%, var(--background-color) var(--background-size), transparent var(--background-size)),
+		linear-gradient(
+			135deg,
+			transparent calc(100% - var(--background-size)),
+			var(--background-color) calc(100% - var(--background-size)),
+			var(--background-color)
+		);
+	border-radius: 10px;
+	margin: 1.5em 2em;
+	box-shadow: 5px 5px 0 #ffe6ef;
+}
+
+.ck-content span.marker {
+	background: yellow;
+}
+
+.ck-content span.spoiler {
+	background: #000;
+	color: #000;
+}
+
+.ck-content span.spoiler:hover {
+	background: #000;
+	color: #fff;
+}
+
+.ck-content .button {
+	display: inline-block;
+	width: 260px;
+	border-radius: 8px;
+	margin: 0 auto;
+	padding: 12px;
+	color: #ffffff;
+	font-size: 24px;
+	font-weight: 700;
+	text-align: center;
+	text-decoration: none;
+}
+
+.ck-content .button--green {
+	background-color: #406b1e;
+}
+
+.ck-content .button--black {
+	background-color: #141517;
+}
+
+
 /* CKEditor Container Styles */
 .ckeditor-container {
   width: 100%;
   position: relative;
-  overflow: visible;
   border: 1px solid #d1d5db;
   border-radius: 0.5rem;
   background-color: white;
 }
 
-/* Mobile container overflow fix */
-@media (max-width: 768px) {
-  .ckeditor-container {
-    overflow: hidden;
-  }
-}
-
-/* Mobile-specific editor container */
-.ckeditor-container.mobile-editor {
-  -webkit-overflow-scrolling: touch;
-  overflow-x: auto;
-  overflow-y: hidden;
-  touch-action: manipulation;
-  user-select: text;
-}
-
-/* Mobile editor content area */
-.ckeditor-container.mobile-editor .ck-editor__editable {
-  user-select: text;
-  -webkit-touch-callout: default;
-  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
-  touch-action: manipulation;
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
-  outline: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-}
-
-/* Heading Styles for CKEditor */
-.ckeditor-container .ck-editor__editable h1 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1.3;
-  margin: 0.5rem 0 0.5rem 0;
-  color: #1f2937;
-  border-bottom: 1px solid #e5e7eb;
-  padding-bottom: 0.25rem;
-}
-
-.ckeditor-container .ck-editor__editable h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  line-height: 1.3;
-  margin: 0.4rem 0 0.3rem 0;
-  color: #374151;
-}
-
-.ckeditor-container .ck-editor__editable h3 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  line-height: 1.3;
-  margin: 0.3rem 0 0.2rem 0;
-  color: #4b5563;
-}
-
-.ckeditor-container .ck-editor__editable h4 {
-  font-size: 1rem;
-  font-weight: 600;
-  line-height: 1.3;
-  margin: 0.25rem 0 0.15rem 0;
-  color: #6b7280;
-}
-
-.ckeditor-container .ck-editor__editable h5 {
-  font-size: 0.9rem;
-  font-weight: 600;
-  line-height: 1.3;
-  margin: 0.2rem 0 0.1rem 0;
-  color: #6b7280;
-}
-
-.ckeditor-container .ck-editor__editable h6 {
-  font-size: 0.8rem;
-  font-weight: 600;
-  line-height: 1.3;
-  margin: 0.15rem 0 0.1rem 0;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-/* Additional heading styles for better visibility */
-.ckeditor-container .ck-editor__editable h1,
-.ckeditor-container .ck-editor__editable h2,
-.ckeditor-container .ck-editor__editable h3,
-.ckeditor-container .ck-editor__editable h4,
-.ckeditor-container .ck-editor__editable h5,
-.ckeditor-container .ck-editor__editable h6 {
-  display: block;
-  font-family: inherit;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-}
-
-/* Ensure headings are properly spaced */
-.ckeditor-container .ck-editor__editable h1 + p,
-.ckeditor-container .ck-editor__editable h2 + p,
-.ckeditor-container .ck-editor__editable h3 + p,
-.ckeditor-container .ck-editor__editable h4 + p,
-.ckeditor-container .ck-editor__editable h5 + p,
-.ckeditor-container .ck-editor__editable h6 + p {
-  margin-top: 0.5rem;
-}
-
-/* Heading toolbar button styles */
-.ckeditor-container .ck-heading_heading1 {
-  font-size: 1.5rem !important;
-  font-weight: 700 !important;
-}
-
-.ckeditor-container .ck-heading_heading2 {
-  font-size: 1.25rem !important;
-  font-weight: 600 !important;
-}
-
-.ckeditor-container .ck-heading_heading3 {
-  font-size: 1.125rem !important;
-  font-weight: 600 !important;
-}
-
-.ckeditor-container .ck-heading_heading4 {
-  font-size: 1rem !important;
-  font-weight: 600 !important;
-}
-
-.ckeditor-container .ck-heading_heading5 {
-  font-size: 0.875rem !important;
-  font-weight: 600 !important;
-}
-
-.ckeditor-container .ck-heading_heading6 {
-  font-size: 0.75rem !important;
-  font-weight: 600 !important;
-  text-transform: uppercase !important;
-}
-
-/* Ensure headings are visible in the editor */
-.ckeditor-container .ck-editor__editable [data-heading="true"] {
-  display: block !important;
-  margin: 0.5rem 0 !important;
-}
-
-/* Specific heading styles for better visibility */
-.ckeditor-container .ck-editor__editable h1[data-heading="true"],
-.ckeditor-container .ck-editor__editable h2[data-heading="true"],
-.ckeditor-container .ck-editor__editable h3[data-heading="true"],
-.ckeditor-container .ck-editor__editable h4[data-heading="true"],
-.ckeditor-container .ck-editor__editable h5[data-heading="true"],
-.ckeditor-container .ck-editor__editable h6[data-heading="true"] {
-  display: block !important;
-  width: 100% !important;
-  clear: both !important;
-}
-
+/* Essential Editor Styles */
 .ckeditor-container .ck-editor__editable {
   min-height: 300px;
   max-height: 500px;
   overflow-y: auto;
-  overflow-x: hidden;
   border: none;
   border-radius: 0 0 0.5rem 0.5rem;
-  padding: 0.4rem 0.75rem;
+  padding: 1rem;
   font-size: 0.875rem;
-  line-height: 1.3;
+  line-height: 1.5;
   background-color: white;
   color: #111827;
-  width: 100%;
-  box-sizing: border-box;
 }
 
-/* Dark mode styles for CKEditor */
-.dark .ckeditor-container .ck-editor__editable {
-  background-color: white;
-  color: #111827;
-  border-color: #d1d5db;
+/* Modern Slim Scrollbar Styling */
+.ckeditor-container .ck-editor__editable::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ckeditor-container .ck-editor__editable::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.ckeditor-container .ck-editor__editable::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.ckeditor-container .ck-editor__editable::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.ckeditor-container .ck-editor__editable::-webkit-scrollbar-thumb:active {
+  background: #64748b;
+}
+
+/* Firefox scrollbar styling */
+.ckeditor-container .ck-editor__editable {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
 }
 
 .ckeditor-container .ck-editor__editable:focus {
@@ -193,532 +165,549 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Fix for lists going out of screen */
-.ckeditor-container .ck-editor__editable ul,
-.ckeditor-container .ck-editor__editable ol {
-  margin: 0.2rem 0;
-  padding-left: 1.2rem;
-  list-style-position: outside;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-}
-
-.ckeditor-container .ck-editor__editable li {
-  margin: 0.1rem 0;
-  padding-left: 0.15rem;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-  line-height: 1.4;
-}
-
-/* Ensure list markers stay within bounds */
-.ckeditor-container .ck-editor__editable ul {
-  list-style-type: disc;
-}
-
-.ckeditor-container .ck-editor__editable ol {
-  list-style-type: decimal;
-}
-
-/* Fix for CKEditor's internal list styling */
-.ckeditor-container .ck-editor__editable .ck-list-bogus-paragraph {
-  display: block;
-  margin: 0;
-  padding: 0;
-}
-
-/* Ensure content doesn't overflow */
+/* Content overflow protection */
 .ckeditor-container .ck-editor__editable * {
   max-width: 100%;
   box-sizing: border-box;
 }
 
-/* Toolbar styling - Smaller and project-themed */
+/* Minimal Toolbar Styling */
 .ckeditor-container .ck-toolbar {
   border: none;
   border-bottom: 1px solid #d1d5db;
   border-radius: 0.5rem 0.5rem 0 0;
   background-color: #f9fafb;
-  padding: 0.25rem;
-  width: 100%;
+  padding: 0.5rem;
+}
+
+/* ========================================
+   COMPREHENSIVE HTML TAG STYLES
+   Ensuring CKEditor content and PDF consistency
+   ======================================== */
+
+/* Base HTML Elements - Consistent across editor and PDF */
+.ck-content {
+  /* Reset and base styles */
   box-sizing: border-box;
-  overflow: visible;
+  font-family: 'Lato', 'Arial', sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #1f2937;
+  background: white;
 }
 
-/* Dark mode toolbar styles */
-.dark .ckeditor-container .ck-toolbar {
+/* Typography Elements */
+.ck-content h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 16px 0;
+  padding: 0;
+  line-height: 1.2;
+}
+
+.ck-content h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 12px 0;
+  padding: 0;
+  line-height: 1.3;
+}
+
+.ck-content h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 10px 0;
+  padding: 0;
+  line-height: 1.3;
+}
+
+.ck-content h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 8px 0;
+  padding: 0;
+  line-height: 1.3;
+}
+
+.ck-content h5 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 6px 0;
+  padding: 0;
+  line-height: 1.3;
+}
+
+.ck-content h6 {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 4px 0;
+  padding: 0;
+  line-height: 1.3;
+}
+
+.ck-content p {
+  font-size: 14px;
+  line-height: 1.4;
+  margin: 0 0 8px 0;
+  padding: 0;
+}
+
+.ck-content strong, .ck-content b {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.ck-content em, .ck-content i {
+  font-style: italic;
+  color: #4b5563;
+}
+
+.ck-content u {
+  text-decoration: underline;
+  color: #1f2937;
+}
+
+.ck-content s, .ck-content strike {
+  text-decoration: line-through;
+  color: #6b7280;
+}
+
+.ck-content mark {
+  background-color: #fef3c7;
+  color: #92400e;
+  padding: 1px 2px;
+  border-radius: 2px;
+}
+
+.ck-content small {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.ck-content sub {
+  font-size: 10px;
+  vertical-align: sub;
+  color: #6b7280;
+}
+
+.ck-content sup {
+  font-size: 10px;
+  vertical-align: super;
+  color: #6b7280;
+}
+
+/* Code Elements */
+.ck-content code {
+  font-family: 'Courier New', 'Monaco', monospace;
+  font-size: 12px;
+  background-color: #f3f4f6;
+  color: #1f2937;
+  padding: 2px 4px;
+  border-radius: 3px;
+  border: 1px solid #e5e7eb;
+}
+
+.ck-content pre {
+  font-family: 'Courier New', 'Monaco', monospace;
+  font-size: 12px;
+  background-color: #f8fafc;
+  color: #1f2937;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  margin: 8px 0;
+  overflow-x: auto;
+  line-height: 1.4;
+}
+
+.ck-content pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+}
+
+/* List Elements */
+.ck-content ul {
+  margin: 8px 0;
+  padding-left: 20px;
+  list-style-type: disc;
+}
+
+.ck-content ol {
+  margin: 8px 0;
+  padding-left: 20px;
+  list-style-type: decimal;
+}
+
+.ck-content li {
+  margin: 4px 0;
+  line-height: 1.4;
+  color: #374151;
+}
+
+.ck-content ul ul, .ck-content ol ol, .ck-content ul ol, .ck-content ol ul {
+  margin: 4px 0;
+}
+
+.ck-content ul ul {
+  list-style-type: circle;
+}
+
+.ck-content ul ul ul {
+  list-style-type: square;
+}
+
+/* Table Elements */
+.ck-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 14px;
+}
+
+.ck-content th {
+  background-color: #f8fafc;
+  color: #1f2937;
+  font-weight: 600;
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+.ck-content td {
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+}
+
+.ck-content tr:nth-child(even) {
   background-color: #f9fafb;
-  border-color: #d1d5db;
 }
 
-.ckeditor-container .ck-toolbar__items {
-  gap: 0.125rem;
+.ck-content tr:hover {
+  background-color: #f3f4f6;
 }
 
-/* Smaller button styling */
-.ckeditor-container .ck-button {
-  padding: 0.25rem 0.5rem !important;
-  font-size: 0.75rem !important;
-  border-radius: 0.375rem !important;
-  transition: all 0.15s ease-in-out !important;
-  min-width: auto !important;
-  height: auto !important;
-  line-height: 1 !important;
-  border: 1px solid #d1d5db !important;
-  color: #374151 !important;
-  font-weight: 500 !important;
+/* Link Elements */
+.ck-content a {
+  color: #2563eb;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s ease;
 }
 
-.ckeditor-container .ck-button:hover {
-  background-color: #f3f4f6 !important;
-  border-color: #9ca3af !important;
-  color: #111827 !important;
+.ck-content a:hover {
+  color: #1d4ed8;
+  border-bottom-color: #1d4ed8;
 }
 
-/* Active/selected button styling */
-.ckeditor-container .ck-button.ck-on,
-.ckeditor-container .ck-button.ck-button_with-text.ck-on {
-  background-color: #3b82f6 !important;
-  color: white !important;
-  border-color: #3b82f6 !important;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+.ck-content a:visited {
+  color: #7c3aed;
 }
 
-.ckeditor-container .ck-button.ck-on:hover,
-.ckeditor-container .ck-button.ck-button_with-text.ck-on:hover {
-  background-color: #2563eb !important;
-  border-color: #2563eb !important;
+/* Blockquote Elements */
+.ck-content blockquote {
+  margin: 12px 0;
+  padding: 12px 16px;
+  border-left: 4px solid #e5e7eb;
+  background-color: #f9fafb;
+  color: #4b5563;
+  font-style: italic;
+  border-radius: 0 4px 4px 0;
 }
 
-/* Icon styling */
-.ckeditor-container .ck-button .ck-button__icon {
-  width: 1rem !important;
-  height: 1rem !important;
+.ck-content blockquote p {
+  margin: 0;
+  color: inherit;
 }
 
-/* Remove default CKEditor button styling */
-.ckeditor-container .ck-button:not(.ck-disabled):hover {
-  background-color: #f3f4f6 !important;
+/* Horizontal Rule */
+.ck-content hr {
+  border: none;
+  height: 1px;
+  background-color: #e5e7eb;
+  margin: 16px 0;
 }
 
-.ckeditor-container .ck-button:not(.ck-disabled):active {
-  background-color: #e5e7eb !important;
+/* Form Elements */
+.ck-content input[type="text"],
+.ck-content input[type="email"],
+.ck-content input[type="password"],
+.ck-content input[type="number"],
+.ck-content textarea,
+.ck-content select {
+  font-family: inherit;
+  font-size: 14px;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background-color: white;
+  color: #1f2937;
+  outline: none;
+  transition: border-color 0.2s ease;
 }
 
-/* Override any conflicting styles */
-.ckeditor-container .ck.ck-toolbar .ck-toolbar__items .ck.ck-button {
-  padding: 0.25rem 0.5rem !important;
-  font-size: 0.75rem !important;
-  border-radius: 0.375rem !important;
-  min-width: auto !important;
-  height: auto !important;
-  line-height: 1 !important;
-  border: 1px solid #d1d5db !important;
-  color: #374151 !important;
-  font-weight: 500 !important;
+.ck-content input:focus,
+.ck-content textarea:focus,
+.ck-content select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
-.ckeditor-container .ck.ck-toolbar .ck-toolbar__items .ck.ck-button.ck-on {
-  background-color: #f97316 !important;
-  color: white !important;
-  border-color: #f97316 !important;
+/* Button Elements */
+.ck-content button {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background-color: white;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.ckeditor-container .ck.ck-toolbar .ck-toolbar__items .ck.ck-button:hover {
-  background-color: #f97316 !important;
-  border-color: #f97316 !important;
-  color: white !important;
-  cursor: pointer !important;
+.ck-content button:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
 }
 
-.ckeditor-container .ck.ck-toolbar .ck-toolbar__items .ck.ck-button.ck-on:hover {
-  background-color: #ea580c !important;
-  border-color: #ea580c !important;
+.ck-content button:active {
+  background-color: #f3f4f6;
+  transform: translateY(1px);
 }
 
-/* Alignment dropdown size control */
-.ckeditor-container .ck-dropdown__panel {
-  max-width: 200px !important;
-  min-width: 100px !important;
+/* Image Elements */
+.ck-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin: 8px 0;
 }
 
-.ckeditor-container .ck-list {
-  max-width: 200px !important;
-  min-width: 100px !important;
+.ck-content figure {
+  margin: 12px 0;
+  text-align: center;
 }
 
-/* Responsive CKEditor toolbar */
-@media (max-width: 768px) {
-  .ckeditor-container .ck-editor__top {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+.ck-content figcaption {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* Definition Lists */
+.ck-content dl {
+  margin: 8px 0;
+}
+
+.ck-content dt {
+  font-weight: 600;
+  color: #1f2937;
+  margin: 8px 0 4px 0;
+}
+
+.ck-content dd {
+  margin: 0 0 8px 20px;
+  color: #374151;
+}
+
+/* Address Element */
+.ck-content address {
+  font-style: italic;
+  color: #4b5563;
+  margin: 8px 0;
+}
+
+/* Time Element */
+.ck-content time {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+/* Abbreviation */
+.ck-content abbr {
+  border-bottom: 1px dotted #9ca3af;
+  cursor: help;
+}
+
+/* Keyboard */
+.ck-content kbd {
+  font-family: 'Courier New', 'Monaco', monospace;
+  font-size: 12px;
+  background-color: #f3f4f6;
+  color: #1f2937;
+  padding: 2px 4px;
+  border-radius: 3px;
+  border: 1px solid #d1d5db;
+}
+
+/* Sample Output */
+.ck-content samp {
+  font-family: 'Courier New', 'Monaco', monospace;
+  font-size: 12px;
+  color: #1f2937;
+}
+
+/* Variable */
+.ck-content var {
+  font-style: italic;
+  color: #7c3aed;
+}
+
+/* Citation */
+.ck-content cite {
+  font-style: italic;
+  color: #6b7280;
+}
+
+/* Quote */
+.ck-content q {
+  font-style: italic;
+  color: #4b5563;
+}
+
+.ck-content q::before {
+  content: '"';
+}
+
+.ck-content q::after {
+  content: '"';
+}
+
+/* Details and Summary */
+.ck-content details {
+  margin: 8px 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background-color: #f9fafb;
+}
+
+.ck-content summary {
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: #f3f4f6;
+  border-radius: 6px 6px 0 0;
+}
+
+.ck-content details[open] summary {
+  border-radius: 6px 6px 0 0;
+}
+
+.ck-content details > *:not(summary) {
+  padding: 8px 12px;
+}
+
+/* Progress and Meter */
+.ck-content progress {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background-color: #e5e7eb;
+}
+
+.ck-content progress::-webkit-progress-bar {
+  background-color: #e5e7eb;
+  border-radius: 4px;
+}
+
+.ck-content progress::-webkit-progress-value {
+  background-color: #3b82f6;
+  border-radius: 4px;
+}
+
+.ck-content meter {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+}
+
+/* Print-specific styles for PDF generation */
+@media print {
+  .ck-content {
+    font-size: 12px;
+    line-height: 1.3;
+    color: #000;
+    background: white;
   }
   
+  .ck-content h1 { font-size: 18px; }
+  .ck-content h2 { font-size: 16px; }
+  .ck-content h3 { font-size: 14px; }
+  .ck-content h4 { font-size: 13px; }
+  .ck-content h5 { font-size: 12px; }
+  .ck-content h6 { font-size: 11px; }
+  
+  .ck-content a {
+    color: #000;
+    text-decoration: underline;
+  }
+  
+  .ck-content a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 10px;
+    color: #666;
+  }
+  
+  .ck-content blockquote {
+    border-left: 2px solid #ccc;
+    background: #f9f9f9;
+  }
+  
+  .ck-content table {
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+  
+  .ck-content th,
+  .ck-content td {
+    border: 1px solid #ccc;
+    padding: 4px 6px;
+  }
+  
+  .ck-content th {
+    background: #f0f0f0;
+    font-weight: bold;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
   .ckeditor-container .ck-toolbar {
     flex-wrap: wrap;
-    gap: 4px;
   }
   
-  .ckeditor-container .ck-toolbar__separator {
-    display: none;
-  }
-  
-  .ckeditor-container .ck-toolbar .ck-button {
-    min-width: 22px;
-    height: 32px;
-  }
-}
-
-/* Large screen toolbar - keep on single line */
-@media (min-width: 1024px) {
-  .ckeditor-container .ck-toolbar {
-    flex-wrap: nowrap;
-    overflow-x: visible;
-  }
-  
-  .ckeditor-container .ck-toolbar__items {
-    flex-wrap: nowrap;
-    overflow-x: visible;
-  }
-}
-
-/* Mobile-specific adjustments */
-@media (max-width: 640px) {
   .ckeditor-container .ck-editor__editable {
     font-size: 14px;
-    line-height: 1.4;
-    /* Mobile touch and keyboard fixes */
-    /* user-select and touch-action handled by general mobile-editor styles */
-    -webkit-touch-callout: default;
-    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
-    /* Ensure proper focus behavior */
-    outline: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
   }
   
-  /* Mobile-specific CKEditor container fixes */
-  .ckeditor-container {
-    -webkit-overflow-scrolling: touch;
-    overflow-x: auto;
-    overflow-y: hidden;
+  .ck-content {
+    font-size: 14px;
   }
   
-  /* Fix mobile keyboard issues */
-  .ckeditor-container .ck-editor__editable:focus {
-    -webkit-touch-callout: default;
-    outline: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
+  .ck-content h1 { font-size: 20px; }
+  .ck-content h2 { font-size: 18px; }
+  .ck-content h3 { font-size: 16px; }
+  .ck-content h4 { font-size: 15px; }
+  .ck-content h5 { font-size: 14px; }
+  .ck-content h6 { font-size: 13px; }
+  
+  .ck-content table {
+    font-size: 12px;
   }
   
-  /* Ensure mobile toolbar is touch-friendly */
-  .ckeditor-container .ck-toolbar {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    touch-action: manipulation;
+  .ck-content th,
+  .ck-content td {
+    padding: 6px 8px;
   }
-  
-  /* Mobile button touch targets */
-  .ckeditor-container .ck-button {
-    min-height: 44px;
-    min-width: 44px;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
-  }
-}
-
-/* Fix dropdown positioning and overflow */
-.ckeditor-container .ck-editor {
-  position: relative;
-  overflow: visible;
-  width: 100%;
-  box-sizing: border-box;
-  display: block;
-}
-
-.ckeditor-container .ck-editor__editable {
-  position: relative;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-/* Ensure dropdowns stay within editor bounds */
-.ckeditor-container .ck-dropdown__panel {
-  position: absolute !important;
-  z-index: 10000 !important;
-  max-height: 300px !important;
-  overflow-y: auto !important;
-  box-sizing: border-box !important;
-}
-
-/* Ensure all CKEditor dropdowns have proper z-index for all screen sizes */
-.ckeditor-container .ck-editor .ck-dropdown__panel,
-.ckeditor-container .ck-editor .ck-list,
-.ckeditor-container .ck-editor .ck-balloon-panel {
-  z-index: 10000 !important;
-  overflow-x: hidden !important;
-  box-sizing: border-box !important;
-}
-
-.ck-color-grid__tile {
-  width: 20px !important;
-  height: 20px !important;
-  margin: 2px !important;
-}
-
-.ck-color-table {
-  max-width: 200px !important;
-}
-
-.ck-color-table__color {
-  width: 20px !important;
-  height: 20px !important;
-  border: 1px solid #ccc !important;
-}
-
-/* Ensure dropdowns don't go beyond screen */
-.ck-dropdown__panel.ck-dropdown__panel_se {
-  left: 0 !important;
-}
-
-.ck-dropdown__panel.ck-dropdown__panel_sw {
-  right: 0 !important;
-}
-
-/* Basic responsive design */
-@media (max-width: 768px) {
-  .ck-editor__top {
-    overflow-x: auto;
-  }
-  
-  .ck-toolbar {
-    flex-wrap: wrap;
-  }
-  
-  .ckeditor-container .ck-dropdown__panel {
-    position: absolute !important;
-    z-index: 10000 !important;
-    min-width: fit-content;
-    max-width: 90vw !important;
-    max-height: 300px !important;
-  }
-}
-
-/* Fix for screens larger than 768px */
-@media (min-width: 769px) {
-  .ckeditor-container .ck-dropdown__panel {
-    z-index: 10000 !important;
-    max-height: 50vh !important;
-    box-sizing: border-box !important;
-  }
-  
-  .ckeditor-container .ck-editor {
-    overflow: visible !important;
-    width: 100% !important;
-  }
-  
-  .ckeditor-container .ck-editor__editable {
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    width: 100% !important;
-  }
-}
-
-/* Fix for Styles dropdown overflow */
-.ck-style-panel {
-  max-width: fit-content !important;
-  max-height: 400px !important;
-  overflow-y: auto !important;
-}
-
-.ck-style-panel__style-group {
-  max-width: 100% !important;
-}
-
-.ck-style-panel__style-preview {
-  max-width: 100% !important;
-}
-
-/* Fix for all dropdown panels */
-.ckeditor-container .ck-dropdown__panel {
-  max-height: 60vh !important;
-  overflow-y: auto !important;
-  box-sizing: border-box !important;
-}
-
-.ckeditor-container .ck.ck-toolbar-dropdown>.ck-dropdown__panel {
-  width: 20vw !important;
-  box-sizing: border-box !important;
-}
-
-/* Additional containment rules */
-.ckeditor-container * {
-  box-sizing: border-box;
-}
-
-.ckeditor-container .ck-editor__main {
-  width: 100%;
-  overflow: visible;
-}
-
-/* Mobile toolbar fixes without sticky positioning */
-@media (max-width: 768px) {
-  .ckeditor-container .ck-editor__top {
-    background-color: #f9fafb;
-    border-bottom: 1px solid #d1d5db;
-  }
-  
-  .ckeditor-container .ck-toolbar {
-    background-color: #f9fafb;
-  }
-  
-  /* Ensure main content area has proper positioning */
-  .ckeditor-container .ck-editor__main {
-    position: relative;
-    z-index: 1;
-  }
-}
-
-.ckeditor-container .ck-editor__top {
-  width: 100%;
-  overflow: visible;
-  position: relative;
-  z-index: 1;
-}
-
-/* Ensure toolbar items don't overflow */
-.ckeditor-container .ck-toolbar__items {
-  flex-wrap: wrap;
-  max-width: 100%;
-  overflow: visible;
-}
-
-/* Fix for any floating elements */
-.ckeditor-container .ck-balloon-panel {
-  box-sizing: border-box !important;
-}
-
-/* Custom scrollbar styling for better UX */
-.ckeditor-container .ck-editor__editable::-webkit-scrollbar {
-  width: 8px;
-}
-
-.ckeditor-container .ck-editor__editable::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-.ckeditor-container .ck-editor__editable::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-}
-
-.ckeditor-container .ck-editor__editable::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
-/* Ensure content can grow and scroll properly */
-.ckeditor-container .ck-editor__editable p,
-.ckeditor-container .ck-editor__editable div,
-.ckeditor-container .ck-editor__editable h1,
-.ckeditor-container .ck-editor__editable h2,
-.ckeditor-container .ck-editor__editable h3,
-.ckeditor-container .ck-editor__editable h4,
-.ckeditor-container .ck-editor__editable h5,
-.ckeditor-container .ck-editor__editable h6 {
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  max-width: 100%;
-}
-
-/* Mobile-specific touch and keyboard fixes */
-@media (max-width: 768px) {
-  /* Ensure CKEditor is properly focusable on mobile */
-  .ckeditor-container .ck-editor__editable {
-    /* user-select and touch-action handled by general mobile-editor styles */
-    -webkit-touch-callout: default !important;
-    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1) !important;
-    /* Prevent zoom on double tap */
-    touch-action: manipulation;
-    /* Ensure proper keyboard behavior */
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    /* Fix iOS Safari keyboard issues */
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-  }
-  
-  /* Mobile container fixes */
-  .ckeditor-container {
-    -webkit-overflow-scrolling: touch;
-    overflow-x: auto;
-    overflow-y: hidden;
-    /* Prevent horizontal scroll issues */
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-  }
-  
-  /* Fix mobile toolbar scrolling */
-  .ckeditor-container .ck-editor__top {
-    -webkit-overflow-scrolling: touch;
-    overflow-x: auto;
-    overflow-y: visible;
-    width: 100%;
-  }
-  
-  /* Mobile dropdown fixes */
-  .ckeditor-container .ck-dropdown__panel {
-    -webkit-overflow-scrolling: touch;
-    touch-action: manipulation;
-    /* Ensure dropdowns work on mobile */
-    z-index: 10000 !important;
-    position: absolute !important;
-  }
-}
-
-/* Reduce excessive spacing in paragraphs and content */
-.ckeditor-container .ck-editor__editable p {
-  margin: 0.2rem 0;
-  line-height: 1.4;
-}
-
-.ckeditor-container .ck-editor__editable div {
-  margin: 0.1rem 0;
-  line-height: 1.4;
-}
-
-/* Reduce spacing around lists */
-.ckeditor-container .ck-editor__editable ul,
-.ckeditor-container .ck-editor__editable ol {
-  margin: 0.2rem 0;
-  padding-left: 1.2rem;
-}
-
-.ckeditor-container .ck-editor__editable li {
-  margin: 0.1rem 0;
-  line-height: 1.4;
-}
-
-/* Reduce spacing around page breaks */
-.ckeditor-container .ck-editor__editable hr {
-  margin: 0.3rem 0;
-  border: none;
-  border-top: 1px solid #ccc;
-}
-
-/* Remove excessive top/bottom margins from the editor content */
-.ckeditor-container .ck-editor__editable > *:first-child {
-  margin-top: 0.2rem !important;
-}
-
-.ckeditor-container .ck-editor__editable > *:last-child {
-  margin-bottom: 0.2rem !important;
 }

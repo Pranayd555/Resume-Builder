@@ -17,7 +17,9 @@
     "generate-thumbnails": "node scripts/generatePuppeteerThumbnails.js",
     "update-thumbnails": "node scripts/updateTemplatesWithPuppeteerThumbnails.js",
     "seed": "node scripts/seedDatabase.js",
-    "unlock-account": "node scripts/unlock-account.js"
+    "unlock-account": "node scripts/unlock-account.js",
+    "add-tokens": "node scripts/add-tokens.js",
+    "add-tokens-force": "node scripts/add-tokens.js"
   },
   "dependencies": {
     "@google/genai": "^1.16.0",

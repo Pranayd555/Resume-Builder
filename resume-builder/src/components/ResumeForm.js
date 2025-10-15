@@ -80,7 +80,8 @@ const TextAreaField = ({
   onChange, 
   rows = 3, 
   placeholder = "", 
-  className = ""
+  className = "",
+  isProMode = false
 }) => (
   <div>
     <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
@@ -90,6 +91,8 @@ const TextAreaField = ({
       value={value}
       onChange={onChange}
       placeholder={placeholder}
+      showAIButton={true}
+      isProMode={isProMode}
       className={className}
     />
   </div>
@@ -133,9 +136,12 @@ const saveToLocalStorage = (formData, currentStep, isEditMode) => {
 function ResumeForm() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, getSubscriptionPlan } = useAuth();
   const { tokenBalance, hasEnoughTokens } = useTokenBalance();
   const [loading, setLoading] = useState(false);
+  
+  // Check if user has pro subscription
+  const isProMode = getSubscriptionPlan() === 'pro';
   const [currentStep, setCurrentStep] = useState(1);
   const [validationErrors, setValidationErrors] = useState({});
   const [isEditMode, setIsEditMode] = useState(false);
@@ -1554,6 +1560,7 @@ function ResumeForm() {
           onChange={(value) => handleInputChange('root', 'summary', value)}
           rows={4}
           placeholder="Write a brief summary of your professional background and key achievements..."
+          isProMode={isProMode}
         />
         
         {/* Extracted Text Reference - Only show when parsedData is NOT available */}
@@ -1871,6 +1878,8 @@ function ResumeForm() {
               value={job.description}
               onChange={(value) => handleInputChange('workExperience', 'description', value, index)}
               placeholder="Describe your role and responsibilities..."
+              showAIButton={true}
+              isProMode={isProMode}
             />
           </div>
         </div>
@@ -2081,6 +2090,8 @@ function ResumeForm() {
               value={edu.description}
               onChange={(value) => handleInputChange('education', 'description', value, index)}
               placeholder="Relevant coursework, honors, activities..."
+              showAIButton={true}
+              isProMode={isProMode}
             />
           </div>
         </div>
@@ -2417,6 +2428,8 @@ function ResumeForm() {
               value={project.description}
               onChange={(value) => handleInputChange('projects', 'description', value, index)}
               placeholder="Describe the project, your role, and key features..."
+              showAIButton={true}
+              isProMode={isProMode}
             />
           </div>
         </div>
@@ -2513,6 +2526,8 @@ function ResumeForm() {
               value={achievement.description}
               onChange={(value) => handleInputChange('achievements', 'description', value, index)}
               placeholder="Describe the achievement..."
+              showAIButton={true}
+              isProMode={isProMode}
             />
           </div>
         </div>
