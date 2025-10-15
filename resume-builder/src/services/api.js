@@ -1,10 +1,9 @@
 import axios from 'axios';
-import { API_BASE_URL } from '../config/api';
 import { createApiConfig } from '../config/timeouts';
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: process.env.REACT_APP_API_URL,
   timeout: 30000, // Increased from 10 seconds to 30 seconds
   headers: {
     'Content-Type': 'application/json',
@@ -618,7 +617,7 @@ export const apiHelpers = {
     normalizeUrl: (url) => {
       try {
         // Ensure any localhost:5000 absolute URL is swapped to our backend origin
-        const apiOrigin = new URL(API_BASE_URL).origin;
+        const apiOrigin = new URL(process.env.REACT_APP_API_URL).origin;
         const resolved = new URL(url, apiOrigin); // resolves relative paths against apiOrigin
         const isLocalhost5000 = resolved.origin.startsWith('http://localhost:5000');
         if (isLocalhost5000) {

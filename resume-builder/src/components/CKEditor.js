@@ -1,11 +1,245 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { CKEditor, useCKEditorCloud } from '@ckeditor/ckeditor5-react';
 import AIButton from './AIButton';
+import '../plugins/TemplateBlocksPlugin.css';
 import './CKEditor.css';
-import { API_BASE_URL } from '../config/api';
 
-const LICENSE_KEY = API_BASE_URL.includes('localhost') ?
-	'eyJhbGciOiJFUzI1NiJ9.eyJleHAiOjE3OTE5MzU5OTksImp0aSI6IjBiZjkyNDIxLTE1Y2UtNDI3Ny1hOWUzLTBhMWU5ZjIxZTgxNSIsImxpY2Vuc2VkSG9zdHMiOlsiMTI3LjAuMC4xIiwibG9jYWxob3N0IiwiMTkyLjE2OC4qLioiLCIxMC4qLiouKiIsIjE3Mi4qLiouKiIsIioudGVzdCIsIioubG9jYWxob3N0IiwiKi5sb2NhbCJdLCJ1c2FnZUVuZHBvaW50IjoiaHR0cHM6Ly9wcm94eS1ldmVudC5ja2VkaXRvci5jb20iLCJkaXN0cmlidXRpb25DaGFubmVsIjpbImNsb3VkIiwiZHJ1cGFsIl0sImxpY2Vuc2VUeXBlIjoiZGV2ZWxvcG1lbnQiLCJmZWF0dXJlcyI6WyJEUlVQIiwiRTJQIiwiRTJXIl0sInJlbW92ZUZlYXR1cmVzIjpbIlBCIiwiUkYiLCJTQ0giLCJUQ1AiLCJUTCIsIlRDUiIsIklSIiwiU1VBIiwiQjY0QSIsIkxQIiwiSEUiLCJSRUQiLCJQRk8iLCJXQyIsIkZBUiIsIkJLTSIsIkZQSCIsIk1SRSJdLCJ2YyI6IjJkYjI3M2U5In0.Flw0SF8GzKz1_VFPxIuDUn0fZl-EMfekTddDljh3GQ4apahLIe5H6pLeQFiR0GaRUrmPZvyxmRLmKqqYtousbw' : 'eyJhbGciOiJFUzI1NiJ9.eyJleHAiOjE3OTE5MzU5OTksImp0aSI6IjJjYTdiYThmLWI4OWItNDUxNy1iMDRhLWMwYzVhMWVmMzk4OCIsInVzYWdlRW5kcG9pbnQiOiJodHRwczovL3Byb3h5LWV2ZW50LmNrZWRpdG9yLmNvbSIsImRpc3RyaWJ1dGlvbkNoYW5uZWwiOlsiY2xvdWQiLCJkcnVwYWwiXSwiZmVhdHVyZXMiOlsiRFJVUCIsIkUyUCIsIkUyVyJdLCJyZW1vdmVGZWF0dXJlcyI6WyJQQiIsIlJGIiwiU0NIIiwiVENQIiwiVEwiLCJUQ1IiLCJJUiIsIlNVQSIsIkI2NEEiLCJMUCIsIkhFIiwiUkVEIiwiUEZPIiwiV0MiLCJGQVIiLCJCS00iLCJGUEgiLCJNUkUiXSwidmMiOiJkOGEzMzQzZSJ9.79PAxzpMDDpiXzn3nnzjf2cX3Eugwtdn7UDb1MnvRkQ5SGlKUz2PPO5XrPs4xkq4snIfxxo-IgBBoNFuYwij2Q';
+// Get CKEditor license key from environment variables
+const getLicenseKey = () => {
+  // Check for environment variable first (for production)
+  if (process.env.REACT_APP_CKEDITOR_LICENSE_KEY) {
+    return process.env.REACT_APP_CKEDITOR_LICENSE_KEY;
+  }
+};
+
+const LICENSE_KEY = getLicenseKey();
+
+// Template data structure
+const templates = [
+  {
+    title: 'Two Column Block',
+    content: `<div style="display: flex; gap: 10px; margin: 10px 0;"><div style="flex: 1; border: 1px dashed #ccc; padding: 10px; min-height: 50px;">Left Column</div><div style="flex: 1; border: 1px dashed #ccc; padding: 10px; min-height: 50px;">Right Column</div></div>`
+  },
+  {
+    title: 'Highlighted Box',
+    content: `<div style="border: 2px solid #f39c12; padding: 15px; background: #fff8e1; margin: 10px 0; border-radius: 4px;">Highlighted Text Here</div>`
+  },
+  {
+    title: 'Centered Title Section',
+    content: `<section style="text-align: center; padding: 20px; margin: 10px 0;"><h2>Section Title</h2><p>Write something here...</p></section>`
+  },
+  {
+    title: 'Info Card',
+    content: `<div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin: 10px 0; background: #f9f9f9;"><h3 style="margin-top: 0;">Card Title</h3><p>Card content goes here...</p></div>`
+  },
+  {
+    title: 'Three Column Layout',
+    content: `<div style="display: flex; gap: 10px; margin: 10px 0;"><div style="flex: 1; border: 1px dashed #ccc; padding: 10px; min-height: 50px;">Column 1</div><div style="flex: 1; border: 1px dashed #ccc; padding: 10px; min-height: 50px;">Column 2</div><div style="flex: 1; border: 1px dashed #ccc; padding: 10px; min-height: 50px;">Column 3</div></div>`
+  },
+  {
+    title: 'Call to Action Box',
+    content: `<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; margin: 10px 0; border-radius: 8px; text-align: center;"><h3 style="margin-top: 0; color: white;">Call to Action</h3><p>Your message here...</p></div>`
+  }
+];
+
+// Initialize Template Blocks functionality
+const initializeTemplateBlocks = (editor) => {
+  // Create the toolbar button
+  editor.ui.componentFactory.add('insertTemplate', locale => {
+    const buttonView = editor.ui.componentFactory.create('button', locale);
+    
+    buttonView.set({
+      label: 'Insert Template',
+      icon: `<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+      </svg>`,
+      tooltip: true,
+      isToggleable: false
+    });
+
+    // Execute command on click
+    buttonView.on('execute', () => {
+      showTemplateDialog(editor);
+    });
+
+    return buttonView;
+  });
+};
+
+// Show template selection dialog
+const showTemplateDialog = (editor) => {
+  // Create modal overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'template-blocks-overlay';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  `;
+
+  // Create modal content
+  const modal = document.createElement('div');
+  modal.className = 'template-blocks-modal';
+  modal.style.cssText = `
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 700px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    position: relative;
+  `;
+
+  // Create header
+  const header = document.createElement('div');
+  header.className = 'template-blocks-header';
+  header.style.cssText = `
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #f0f0f0;
+  `;
+
+  const title = document.createElement('h3');
+  title.className = 'template-blocks-title';
+  title.textContent = 'Insert Template Block';
+  title.style.cssText = 'margin: 0; color: #333; font-size: 20px; font-weight: 600;';
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'template-blocks-close';
+  closeBtn.innerHTML = '×';
+  closeBtn.style.cssText = `
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+  `;
+
+  header.appendChild(title);
+  header.appendChild(closeBtn);
+
+  // Create template grid
+  const grid = document.createElement('div');
+  grid.className = 'template-blocks-grid';
+  grid.style.cssText = `
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+  `;
+
+  // Create template items
+  templates.forEach((template, index) => {
+    const templateItem = document.createElement('div');
+    templateItem.className = 'template-blocks-item';
+    templateItem.style.cssText = `
+      border: 2px solid #e8e8e8;
+      border-radius: 8px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: white;
+      position: relative;
+      overflow: hidden;
+    `;
+
+    templateItem.innerHTML = `
+      <div style="font-weight: 600; margin-bottom: 8px; color: #333; font-size: 16px;">${template.title}</div>
+      <div style="font-size: 13px; color: #666; margin-bottom: 12px;">Click to insert</div>
+      <div style="border: 1px dashed #ccc; padding: 12px; background: #fafafa; border-radius: 6px; font-size: 12px; color: #666; line-height: 1.4; min-height: 60px; display: flex; align-items: center; justify-content: center; text-align: center;">
+        ${template.content.replace(/<[^>]*>/g, '').substring(0, 50)}...
+      </div>
+    `;
+
+    // Hover effects
+    templateItem.addEventListener('mouseenter', () => {
+      templateItem.style.borderColor = '#007cba';
+      templateItem.style.boxShadow = '0 8px 25px rgba(0, 124, 186, 0.15)';
+      templateItem.style.transform = 'translateY(-2px)';
+    });
+
+    templateItem.addEventListener('mouseleave', () => {
+      templateItem.style.borderColor = '#e8e8e8';
+      templateItem.style.boxShadow = 'none';
+      templateItem.style.transform = 'translateY(0)';
+    });
+
+    // Click handler
+    templateItem.addEventListener('click', () => {
+      insertTemplate(editor, template.content);
+      closeDialog(overlay);
+    });
+
+    grid.appendChild(templateItem);
+  });
+
+  // Close handlers
+  const closeDialog = (overlay) => {
+    if (overlay && overlay.parentNode) {
+      overlay.parentNode.removeChild(overlay);
+    }
+  };
+  
+  closeBtn.addEventListener('click', () => closeDialog(overlay));
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeDialog(overlay);
+  });
+
+  // Escape key handler
+  const handleEscape = (e) => {
+    if (e.key === 'Escape') {
+      closeDialog(overlay);
+      document.removeEventListener('keydown', handleEscape);
+    }
+  };
+  document.addEventListener('keydown', handleEscape);
+
+  // Assemble modal
+  modal.appendChild(header);
+  modal.appendChild(grid);
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+
+  // Focus management
+  setTimeout(() => {
+    const firstTemplate = grid.querySelector('div');
+    if (firstTemplate) firstTemplate.focus();
+  }, 100);
+};
+
+// Insert template into editor
+const insertTemplate = (editor, templateContent) => {
+  // Use the editor's insertContent method
+  editor.model.change(writer => {
+    const selection = editor.model.document.selection;
+    const position = selection.getFirstPosition();
+    
+    // Insert HTML content directly
+    const viewFragment = editor.data.processor.toView(templateContent);
+    const modelFragment = editor.data.toModel(viewFragment);
+    
+    editor.model.insertContent(modelFragment, position);
+  });
+};
 
 const CKEditorComponent = ({
   value,
@@ -106,8 +340,7 @@ const CKEditorComponent = ({
       IndentBlock,
       Alignment,
       Link,
-      AutoLink,
-      CloudServices
+      AutoLink
     } = plugins;
 
     return {
@@ -131,11 +364,12 @@ const CKEditorComponent = ({
             '|',
             'bulletedList',
             'numberedList',
-            'todoList',
             'outdent',
             'indent',
             '|',
-            'link'
+            'link',
+            '|',
+            'insertTemplate'
           ],
           shouldNotGroupWhenFull: true
         },
@@ -144,7 +378,6 @@ const CKEditorComponent = ({
           AutoLink,
           Autosave,
           Bold,
-          CloudServices,
           Essentials,
           FontColor,
           FontSize,
@@ -255,7 +488,6 @@ const CKEditorComponent = ({
       ImageInline,
       ImageInsertViaUrl,
       AutoImage,
-      CloudServices,
       ImageUpload,
       ImageStyle,
       LinkImage,
@@ -268,10 +500,8 @@ const CKEditorComponent = ({
       TableCaption,
       Style,
       GeneralHtmlSupport,
-      Fullscreen,
       Autoformat,
       TextTransformation,
-      MediaEmbed,
       PlainTableOutput,
       SourceEditing,
       ShowBlocks,
@@ -290,7 +520,6 @@ const CKEditorComponent = ({
             'sourceEditing',
             'showBlocks',
             'textPartLanguage',
-            'fullscreen',
             '|',
             'heading',
             'style',
@@ -310,7 +539,6 @@ const CKEditorComponent = ({
             '|',
             'horizontalLine',
             'link',
-            'mediaEmbed',
             'insertTable',
             'highlight',
             'blockQuote',
@@ -319,11 +547,12 @@ const CKEditorComponent = ({
             '|',
             'bulletedList',
             'numberedList',
-            'todoList',
             'outdent',
             'indent',
             '|',
             'imageUpload',
+            '|',
+            'insertTemplate'
           ],
           shouldNotGroupWhenFull: true
         },
@@ -335,14 +564,12 @@ const CKEditorComponent = ({
           Autosave,
           BlockQuote,
           Bold,
-          CloudServices,
           Code,
           Essentials,
           FontBackgroundColor,
           FontColor,
           FontFamily,
           FontSize,
-          Fullscreen,
           GeneralHtmlSupport,
           Heading,
           Highlight,
@@ -364,7 +591,6 @@ const CKEditorComponent = ({
           Link,
           LinkImage,
           List,
-          MediaEmbed,
           Paragraph,
           PlainTableOutput,
           ShowBlocks,
@@ -425,16 +651,6 @@ const CKEditorComponent = ({
             { color: 'hsl(240, 75%, 60%)', label: 'Blue' },
             { color: 'hsl(270, 75%, 60%)', label: 'Purple' }
           ]
-        },
-        fullscreen: {
-          onEnterCallback: container =>
-            container.classList.add(
-              'editor-container',
-              'editor-container_classic-editor',
-              'editor-container_include-style',
-              'editor-container_include-fullscreen',
-              'main-container'
-            )
         },
         heading: {
           options: [
@@ -535,6 +751,9 @@ const CKEditorComponent = ({
             config={editorConfig}
             onReady={editor => {
               setEditorInstance(editor);
+              
+              // Initialize Template Blocks Plugin
+              initializeTemplateBlocks(editor);
               
               // Mobile-specific initialization
               const editorElement = editor.editing.view.document.getRoot();

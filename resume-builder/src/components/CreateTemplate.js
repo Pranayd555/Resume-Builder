@@ -4,11 +4,11 @@ import { toast } from 'react-toastify';
 import CKEditorComponent from './CKEditor';
 import AnimatedBackground from './AnimatedBackground';
 import api, { apiHelpers } from '../services/api';
-import './CreateTemplate.css';
 
 const CreateTemplate = () => {
 	const navigate = useNavigate();
-	const [templateContent, setTemplateContent] = useState(`<h1 style="text-align: center; color:rgb(180, 107, 39); font-family: 'Brush Script MT', cursive">
+	const [templateContent, setTemplateContent] = useState(`
+		<h1 style="text-align: center; color:rgb(180, 107, 39); font-family: 'Brush Script MT', cursive">
             ⭐Create Your Own Template
           </h1>
           
@@ -108,20 +108,26 @@ const CreateTemplate = () => {
 		}
 	};
 
+	// Back to dashboard function
+	const handleBackToDashboard = () => {
+		navigate('/dashboard');
+	};
+
 	return (
 		<div className="min-h-screen relative">
 			<AnimatedBackground />
 			<div className="relative z-10 container mx-auto px-4 pt-20 pb-8">
 				<div className="max-w-6xl mx-auto">
-					<div className="rounded-lg p-4 mb-6 relative z-[60]">
+					{/* Back Button */}
+					<div className="flex items-center gap-3 mb-6">
 						<button
-							onClick={() => navigate(-1)}
-							className="flex items-center dark:text-gray-400 hover:dark:text-gray-200 text-gray-600 hover:text-gray-800 transition-colors duration-200"
+							onClick={handleBackToDashboard}
+							className="flex items-center gap-2 text-gray-600 dark:text-gray-200 hover:text-gray-800 dark:hover:text-gray-100 transition-colors font-medium group"
 						>
-							<svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg className="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
 							</svg>
-							Back
+							<span className="text-sm sm:text-base">Back to Dashboard</span>
 						</button>
 					</div>
 					
@@ -130,6 +136,7 @@ const CreateTemplate = () => {
 					</h1>
 					<p className="dark:text-white/80 text-gray-600 text-base sm:text-lg mb-4">
 						This is where you will create your custom resume template. Use the editor below to design your template.
+						(<span className="text-red-500 font-bold">* </span>We Do Not Store Templates created here.)
 					</p>
 					<div className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
 					<CKEditorComponent

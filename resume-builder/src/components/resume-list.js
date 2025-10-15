@@ -23,7 +23,8 @@ import {
   CurrencyDollarIcon,
   ExclamationTriangleIcon,
   ChartBarIcon,
-  SparklesIcon
+  SparklesIcon,
+  ArrowsRightLeftIcon
 } from '@heroicons/react/24/outline';
 import { resumeAPI, analyticsAPI, apiHelpers } from '../services/api';
 import { createResumeModel } from '../models/dataModels';
@@ -1230,6 +1231,22 @@ function ResumeList() {
                                  </button>
                                )}
                                <button
+                                 disabled={resume.status === 'draft'}
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   navigate(`/template-selection/${resume.id}`);
+                                 }}
+                                 className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
+                                  resume.status === 'draft'
+                                    ? 'text-gray-400 cursor-not-allowed'
+                                    : 'text-gray-700 hover:bg-gray-100'
+                                }`}
+                               >
+                                 <ArrowsRightLeftIcon className="h-4 w-4" />
+                                 Change Template
+                               </button>
+
+                               <button
                                  disabled={resume.status === 'draft' || !canCreateNewResume()}
                                  onClick={(e) => {
                                    e.stopPropagation();
@@ -1244,6 +1261,7 @@ function ResumeList() {
                                  <DocumentDuplicateIcon className="w-4 h-4" />
                                  Duplicate
                                </button>
+                               
                                <button
                                  onClick={(e) => {
                                    e.stopPropagation();
@@ -1277,28 +1295,7 @@ function ResumeList() {
                                  ATS Analysis
                                  <SparklesIcon className="w-3 h-3 text-purple-500" />
                                </button>
-                               {/* <button
-                                 onClick={(e) => {
-                                   e.stopPropagation();
-                                   handleDownloadDOCX(resume.id);
-                                 }}
-                                 disabled={resume.status === 'draft' || downloadingResumes.has(resume.id)}
-                                 className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
-                                   resume.status === 'draft' || downloadingResumes.has(resume.id)
-                                     ? 'text-gray-400 cursor-not-allowed'
-                                     : 'text-gray-700 hover:bg-gray-100'
-                                 }`}
-                                 title={resume.status === 'draft' ? 'Publish resume to download' : 'Download DOCX'}
-                               >
-                                 {downloadingResumes.has(resume.id) ? (
-                                   <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                   </svg>
-                                 ) : (
-                                   <ArrowDownTrayIcon className="w-4 h-4" />
-                                 )}
-                                 {downloadingResumes.has(resume.id) ? 'Downloading...' : 'Download DOCX'}
-                               </button> */}
+
                                <button
                                  onClick={(e) => {
                                    e.stopPropagation();

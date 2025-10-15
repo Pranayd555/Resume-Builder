@@ -1,0 +1,256 @@
+/* Template Blocks Plugin Styles */
+
+/* Modal Overlay */
+.template-blocks-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal Content */
+.template-blocks-modal {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 700px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  animation: slideIn 0.3s ease-out;
+  position: relative;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Modal Header */
+.template-blocks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.template-blocks-title {
+  margin: 0;
+  color: #333;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.template-blocks-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.template-blocks-close:hover {
+  background: #f5f5f5;
+  color: #333;
+}
+
+/* Template Grid */
+.template-blocks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+/* Template Item */
+.template-blocks-item {
+  border: 2px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.template-blocks-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #007cba, #00a0d2);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.template-blocks-item:hover {
+  border-color: #007cba;
+  box-shadow: 0 8px 25px rgba(0, 124, 186, 0.15);
+  transform: translateY(-2px);
+}
+
+.template-blocks-item:hover::before {
+  transform: scaleX(1);
+}
+
+.template-blocks-item:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 15px rgba(0, 124, 186, 0.2);
+}
+
+/* Template Item Content */
+.template-blocks-item-title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+  font-size: 16px;
+}
+
+.template-blocks-item-description {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.template-blocks-item-preview {
+  border: 1px dashed #ccc;
+  padding: 12px;
+  background: #fafafa;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .template-blocks-modal {
+    margin: 20px;
+    max-width: calc(100vw - 40px);
+    padding: 20px;
+  }
+  
+  .template-blocks-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .template-blocks-item {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .template-blocks-modal {
+    margin: 10px;
+    max-width: calc(100vw - 20px);
+    padding: 16px;
+  }
+  
+  .template-blocks-title {
+    font-size: 18px;
+  }
+  
+  .template-blocks-item-title {
+    font-size: 15px;
+  }
+}
+
+/* Focus styles for accessibility */
+.template-blocks-item:focus {
+  outline: 2px solid #007cba;
+  outline-offset: 2px;
+}
+
+.template-blocks-close:focus {
+  outline: 2px solid #007cba;
+  outline-offset: 2px;
+}
+
+/* Loading state */
+.template-blocks-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: #666;
+}
+
+.template-blocks-loading::after {
+  content: '';
+  width: 20px;
+  height: 20px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #007cba;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-left: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Empty state */
+.template-blocks-empty {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.template-blocks-empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.template-blocks-empty-text {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.template-blocks-empty-subtext {
+  font-size: 14px;
+  color: #999;
+}

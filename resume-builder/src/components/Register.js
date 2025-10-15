@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { API_BASE_URL } from '../config/api';
 import { useNavigate, Link } from 'react-router-dom';
 import { useRouteScrollToTop } from '../hooks/useAutoScroll';
 import { useAuth } from '../contexts/AuthContext';
@@ -371,7 +370,7 @@ function Register() {
                 <button
                   type="button"
                   onClick={() => {
-                    window.location.href = `${API_BASE_URL}/api/auth/google`;
+                    window.location.href = `${process.env.REACT_APP_API_URL}/api/auth/google`;
                   }}
                   className="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all duration-200"
                   title="Sign up with Google"
@@ -388,7 +387,7 @@ function Register() {
                 <button
                   type="button"
                   onClick={() => {
-                    window.location.href = `${API_BASE_URL}/api/auth/linkedin`;
+                    window.location.href = `${process.env.REACT_APP_API_URL}/api/auth/linkedin`;
                   }}
                   className="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all duration-200"
                   title="Sign up with LinkedIn"
