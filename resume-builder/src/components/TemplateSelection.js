@@ -92,6 +92,11 @@ function TemplateSelection() {
     }
   };
 
+  // Back to dashboard function
+  const handleBackToDashboard = () => {
+    navigate('/dashboard');
+  };
+
   const filteredTemplates = templates.filter(template => 
     filterCategory === 'all' || template.category === filterCategory
   );
@@ -205,11 +210,27 @@ function TemplateSelection() {
     <div className="min-h-screen pt-16">
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-            Choose Your Template
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg">Select a professional template that matches your style</p>
+        <div className="mb-8">
+          {/* Back Button */}
+          <div className="flex items-center gap-3 mb-6">
+            <button
+              onClick={handleBackToDashboard}
+              className="flex items-center gap-2 text-gray-600 dark:text-gray-200 hover:text-gray-800 dark:hover:text-gray-100 transition-colors font-medium group"
+            >
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="text-sm sm:text-base">Back to Dashboard</span>
+            </button>
+          </div>
+          
+          {/* Title and Description */}
+          <div className="text-center">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+              Choose Your Template
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg">Select a professional template that matches your style</p>
+          </div>
         </div>
 
         {/* Category Filter */}

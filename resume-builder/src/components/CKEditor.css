@@ -180,6 +180,43 @@
   padding: 0.5rem;
 }
 
+@media (max-width: 768px) {
+  /* On mobile: make toolbar scroll with content instead of sticking */
+  .ck-sticky-panel__content_sticky {
+    position: static !important;
+  }
+}
+
+.ck-toolbar {
+  background-color: #FFF7EDCC  !important;
+  border-bottom: 2px solid orange !important;
+}
+
+/* CKEditor Button States - Orange Theme */
+.ck-toolbar .ck-button.ck-on,
+.ck-toolbar .ck-button.ck-active,
+.ck-toolbar .ck-button.ck-selected {
+  background-color: #ff6b35 !important;
+  color: white !important;
+  border-color: #ff6b35 !important;
+}
+
+.ck-toolbar .ck-button.ck-on:hover,
+.ck-toolbar .ck-button.ck-active:hover,
+.ck-toolbar .ck-button.ck-selected:hover {
+  background-color: #ff8c42 !important;
+  border-color: #ff8c42 !important;
+}
+
+.ck-toolbar .ck-button:hover {
+  background-color: #fff3e0 !important;
+  border-color: #ff6b35 !important;
+}
+
+.ck-toolbar .ck-button:focus {
+  box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2) !important;
+}
+
 /* ========================================
    COMPREHENSIVE HTML TAG STYLES
    Ensuring CKEditor content and PDF consistency

@@ -201,7 +201,8 @@
   color: #f0f0f0;
 }
 
-.ai-button .token-count {
-  font-size: 0.8em;
-  color: #f0f0f0;
+/* Info text styling */
+.ai-info-text {
+  padding-left: 4px;
 }
+

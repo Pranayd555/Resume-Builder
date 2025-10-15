@@ -185,6 +185,15 @@ const AIButton = ({ editorInstance, onContentChange, isProMode = false }) => {
           </div>
         )}
       </div>
+      
+      {/* Info Text */}
+      {!isProMode && (
+        <div className="ai-info-text">
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            <span className='text-red-500'>*</span>AI generated responses are not saved until you submit the form or save a draft.
+          </span>
+        </div>
+      )}
     </div>
   );
 };

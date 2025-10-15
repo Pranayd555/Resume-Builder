@@ -1,8 +1,7 @@
-import { API_BASE_URL } from '../config/api';
 
 class AIService {
   constructor() {
-    this.baseURL = API_BASE_URL;
+    this.baseURL = process.env.REACT_APP_API_URL;
   }
 
   async _makeRequest(endpoint, data, method = 'POST') {
