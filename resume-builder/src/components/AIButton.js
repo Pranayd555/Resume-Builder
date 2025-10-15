@@ -4,14 +4,13 @@ import { useTokenBalance } from '../hooks/useTokenBalance';
 import './AIButton.css';
 import { CurrencyDollarIcon } from '@heroicons/react/24/outline';
 
-const AIButton = ({ editorInstance, onContentChange }) => {
+const AIButton = ({ editorInstance, onContentChange, isProMode = false }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const { tokenBalance, hasEnoughTokens, consumeTokens } = useTokenBalance();
 
   const handleAIAction = async (action) => {
     if (!editorInstance) {
-      console.log('AIButton: Editor instance not available', { editorInstance });
       showNotification('Editor not available. Please wait for the editor to load or refresh the page.', 'warning');
       return;
     }
@@ -47,12 +46,27 @@ const AIButton = ({ editorInstance, onContentChange }) => {
         case 'professional':
           result = await AIService.polishContent(editorContent, 'professional', 'achievement-focused');
           break;
+        case 'generatePDFTemplate':
+          // For pro mode - generate PDF template from basic details
+          result = await AIService.generatePDFTemplate(editorContent);
+          break;
+        case 'restructureTemplate':
+          // For pro mode - restructure current template (structured template required)
+          result = await AIService.restructureTemplate(editorContent);
+          break;
         default:
           throw new Error('Unknown AI action');
       }
 
       // Replace the entire editor content with processed version
-      const processedText = result.data.rewrittenContent || result.data.summary;
+      let processedText;
+      if (action === 'generatePDFTemplate') {
+        processedText = result.data.templateContent;
+      } else if (action === 'restructureTemplate') {
+        processedText = result.data.restructuredContent;
+      } else {
+        processedText = result.data.rewrittenContent || result.data.summary;
+      }
       replaceEditorContent(processedText);
 
       // Consume 1 token for successful AI processing
@@ -65,7 +79,6 @@ const AIButton = ({ editorInstance, onContentChange }) => {
 
       showNotification('Content processed successfully!', 'success');
     } catch (error) {
-      console.error('AI Action error:', error);
       showNotification(
         error.message || 'Failed to process content. Please try again.',
         'error'
@@ -81,7 +94,6 @@ const AIButton = ({ editorInstance, onContentChange }) => {
     try {
       return editorInstance.getData();
     } catch (error) {
-      console.error('Error getting editor content:', error);
       return '';
     }
   };
@@ -92,7 +104,6 @@ const AIButton = ({ editorInstance, onContentChange }) => {
     try {
       editorInstance.setData(newText);
     } catch (error) {
-      console.error('Error setting editor content:', error);
       showNotification('Failed to update editor content. Please try again.', 'error');
     }
   };
@@ -122,7 +133,10 @@ const AIButton = ({ editorInstance, onContentChange }) => {
     }, 4000);
   };
 
-  const menuItems = [
+  const menuItems = isProMode ? [
+    { label: 'Generate PDF Template', action: 'generatePDFTemplate', icon: '📋' },
+    { label: 'Restructure Template', action: 'restructureTemplate', icon: '🔄' }
+  ] : [
     { label: 'Summarize', action: 'summarize', icon: '📝' },
     { label: 'Make Professional', action: 'professional', icon: '💼' }
   ];
@@ -144,7 +158,7 @@ const AIButton = ({ editorInstance, onContentChange }) => {
           ) : (
             <>
               <span className="ai-icon">✨</span>
-              AI Polish
+              {isProMode ? 'AI Pro Tools' : 'AI Polish'}
               <span className="token-info">
                 <span className="token-cost-display">
                   <CurrencyDollarIcon className="w-4 h-4 text-green-600 dark:text-green-400" />1

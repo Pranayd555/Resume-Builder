@@ -8,11 +8,11 @@ import './CreateTemplate.css';
 
 const CreateTemplate = () => {
 	const navigate = useNavigate();
-	const [templateContent, setTemplateContent] = useState(`<h1 style="text-align: center; color: #2c3e50; margin-bottom: 30px; font-size: 2.5rem; font-weight: 700;">
-            Professional Resume Template
+	const [templateContent, setTemplateContent] = useState(`<h1 style="text-align: center; color:rgb(180, 107, 39); font-family: 'Brush Script MT', cursive">
+            ⭐Create Your Own Template
           </h1>
           
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 30px;">
+          <div style="background: #764ba2; color: white; padding: 20px; border-radius: 10px; margin-bottom: 30px;">
             <h2 style="color: white; margin: 0 0 10px 0; font-size: 1.8rem;">John Smith</h2>
             <p style="margin: 5px 0; font-size: 1.1rem; opacity: 0.9;">Senior Software Engineer</p>
             <p style="margin: 5px 0; font-size: 1rem; opacity: 0.8;">📧 john.smith@email.com | 📱 (555) 123-4567 | 🌐 linkedin.com/in/johnsmith</p>
@@ -132,12 +132,14 @@ const CreateTemplate = () => {
 						This is where you will create your custom resume template. Use the editor below to design your template.
 					</p>
 					<div className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
-						<CKEditorComponent
-							value={templateContent}
-							onChange={setTemplateContent}
-							placeholder="Start designing your template here..."
-							configType="pro"
-						/>
+					<CKEditorComponent
+						value={templateContent}
+						onChange={setTemplateContent}
+						placeholder="Start designing your template here..."
+						configType="pro"
+						showAIButton={true}
+						isProMode={true}
+					/>
 					</div>
 					
 					<div className="mt-6 flex justify-center">

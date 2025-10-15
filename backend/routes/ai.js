@@ -964,4 +964,208 @@ router.post('/adjust-tone', [
   }
 });
 
+// @desc    Generate PDF template from basic details using AI
+// @route   POST /api/ai/generate-pdf-template
+// @access  Private
+router.post('/generate-pdf-template', [
+  protect,
+  checkAIActionLimit,
+  checkTokenLimit,
+  body('content').trim().isLength({ min: 20 }).withMessage('Content must be at least 20 characters')
+], trackUsage, async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
+    }
+
+    // Set usage type for tracking
+    req.usageType = 'aiAction';
+
+    const { content } = req.body;
+
+    // Initialize Gemini AI
+    const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
+
+    // Create prompt for PDF template generation
+    const prompt = `
+You are an expert resume template designer specializing in creating professional, ATS-optimized resume templates.
+
+Task:
+Generate a complete, professional resume template from the provided basic details. Create a well-structured, visually appealing template that can be used as a PDF template.
+
+Guidelines:
+- Create a complete resume structure with all essential sections
+- Use professional formatting and layout
+- Include proper HTML structure for PDF generation
+- Make it ATS-friendly with clear sections and formatting
+- Use modern, clean design principles
+- Include proper spacing and typography
+- Ensure the template is comprehensive and ready to use
+- Structure content logically with clear hierarchy
+
+CRITICAL OUTPUT REQUIREMENTS:
+- Return ONLY clean HTML without any markdown formatting
+- Do NOT include code blocks - return clean html code
+- Do NOT include any markdown syntax
+- Return pure HTML that can be directly inserted into a CKEditor
+- Use proper HTML tags for structure: <div>, <h1>, <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>
+- Include inline CSS styling for professional appearance
+- Ensure the HTML is valid and well-formed
+- Make it suitable for PDF generation
+
+User Input:
+"${content}"
+
+Return a complete, professional resume template as clean HTML only.
+    `;
+
+    try {
+      const response = await genAI.models.generateContent({
+        model: "gemini-2.0-flash",
+        contents: prompt,
+      });
+
+      let templateContent = response.text;
+      
+      // Clean the response to remove markdown formatting
+      templateContent = templateContent
+        .replace(/```html\n?/g, '')
+        .replace(/```\n?/g, '')
+        .trim();
+
+      logger.info(`AI PDF template generation request processed for user ${req.user.email}`);
+
+      res.json({
+        success: true,
+        data: {
+          originalContent: content,
+          templateContent,
+          templateType: 'PDF Template',
+          message: 'PDF template generated successfully'
+        }
+      });
+
+    } catch (geminiError) {
+      logger.error('Gemini PDF template generation error:', geminiError);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to generate PDF template with AI'
+      });
+    }
+  } catch (error) {
+    logger.error('AI PDF template generation error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+});
+
+// @desc    Restructure current template using AI (structured template required)
+// @route   POST /api/ai/restructure-template
+// @access  Private
+router.post('/restructure-template', [
+  protect,
+  checkAIActionLimit,
+  checkTokenLimit,
+  body('content').trim().isLength({ min: 50 }).withMessage('Content must be at least 50 characters for restructuring')
+], trackUsage, async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
+    }
+
+    // Set usage type for tracking
+    req.usageType = 'aiAction';
+
+    const { content } = req.body;
+
+    // Initialize Gemini AI
+    const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
+
+    // Create prompt for template restructuring
+    const prompt = `
+You are an expert resume template designer and ATS optimization specialist.
+
+Task:
+Restructure and improve the provided resume template to make it more professional, ATS-friendly, and visually appealing while maintaining all the original content.
+
+Guidelines:
+- Analyze the current template structure and identify areas for improvement
+- Reorganize content for better flow and readability
+- Improve formatting and visual hierarchy
+- Enhance ATS compatibility
+- Maintain all original content but improve presentation
+- Use modern design principles
+- Ensure proper spacing and typography
+- Create clear section divisions
+- Optimize for both human readers and ATS systems
+
+CRITICAL OUTPUT REQUIREMENTS:
+- Return ONLY clean HTML without any markdown formatting
+- Do NOT include code blocks - return clean html code
+- Do NOT include any markdown syntax
+- Return pure HTML that can be directly inserted into a CKEditor
+- Use proper HTML tags for structure: <div>, <h1>, <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>
+- Include inline CSS styling for professional appearance
+- Ensure the HTML is valid and well-formed
+- Preserve all original content but improve structure and presentation
+
+User Input:
+"${content}"
+
+Return the restructured and improved template as clean HTML only.
+    `;
+
+    try {
+      const response = await genAI.models.generateContent({
+        model: "gemini-2.0-flash",
+        contents: prompt,
+      });
+
+      let restructuredContent = response.text;
+      
+      // Clean the response to remove markdown formatting
+      restructuredContent = restructuredContent
+        .replace(/```html\n?/g, '')
+        .replace(/```\n?/g, '')
+        .trim();
+
+      logger.info(`AI template restructuring request processed for user ${req.user.email}`);
+
+      res.json({
+        success: true,
+        data: {
+          originalContent: content,
+          restructuredContent,
+          structureType: 'Restructured Template',
+          improvements: ['Enhanced formatting', 'Improved ATS compatibility', 'Better visual hierarchy', 'Professional styling'],
+          message: 'Template restructured successfully'
+        }
+      });
+
+    } catch (geminiError) {
+      logger.error('Gemini template restructuring error:', geminiError);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to restructure template with AI'
+      });
+    }
+  } catch (error) {
+    logger.error('AI template restructuring error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+});
+
 module.exports = router;

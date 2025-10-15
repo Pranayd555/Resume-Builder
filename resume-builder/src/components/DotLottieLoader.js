@@ -15,11 +15,6 @@ const DotLottieLoader = ({
     if (canvasRef.current && !dotLottieRef.current) {
       const initializeAnimation = async () => {
         try {
-          console.log('Canvas element:', canvasRef.current);
-          console.log('Canvas dimensions:', canvasRef.current.width, 'x', canvasRef.current.height);
-          console.log('Animation data keys:', Object.keys(dotlottieLoaderAnimation));
-          console.log('Animation version:', dotlottieLoaderAnimation.v);
-          console.log('Animation frame rate:', dotlottieLoaderAnimation.fr);
           
           // Create a new DotLottie instance with the animation data directly
           dotLottieRef.current = new DotLottie({
@@ -29,36 +24,28 @@ const DotLottieLoader = ({
             data: dotlottieLoaderAnimation,
           });
           
-          console.log('DotLottie instance created:', dotLottieRef.current);
           
           // Add event listeners to debug
           if (dotLottieRef.current) {
             dotLottieRef.current.addEventListener('ready', () => {
-              console.log('DotLottie animation is ready');
             });
             
             dotLottieRef.current.addEventListener('play', () => {
-              console.log('DotLottie animation started playing');
             });
             
             dotLottieRef.current.addEventListener('error', (event) => {
-              console.error('DotLottie animation error:', event);
             });
           }
           
         } catch (error) {
-          console.error('Error initializing DotLottie:', error);
-          console.error('Error details:', error.message, error.stack);
           
           // Alternative approach: try loading as URL
           try {
-            console.log('Trying fallback with blob URL...');
             // Convert the JSON data to a blob URL
             const jsonString = JSON.stringify(dotlottieLoaderAnimation);
             const blob = new Blob([jsonString], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             
-            console.log('Blob URL created:', url);
             
             dotLottieRef.current = new DotLottie({
               canvas: canvasRef.current,
@@ -67,15 +54,12 @@ const DotLottieLoader = ({
               src: url,
             });
             
-            console.log('DotLottie animation loaded with blob URL');
             
             // Clean up the blob URL after a delay
             setTimeout(() => {
               URL.revokeObjectURL(url);
             }, 1000);
           } catch (fallbackError) {
-            console.error('Fallback also failed:', fallbackError);
-            console.error('Fallback error details:', fallbackError.message, fallbackError.stack);
           }
         }
       };
@@ -90,7 +74,6 @@ const DotLottieLoader = ({
           dotLottieRef.current.destroy();
           dotLottieRef.current = null;
         } catch (error) {
-          console.error('Error destroying DotLottie:', error);
         }
       }
     };

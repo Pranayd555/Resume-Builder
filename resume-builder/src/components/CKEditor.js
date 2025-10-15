@@ -13,10 +13,13 @@ const CKEditorComponent = ({
   placeholder = "",
   className = "",
   readOnly = false,
-  configType = "base" // "base" or "pro"
+  configType = "base", // "base" or "pro"
+  showAIButton = true, // Show AI button by default
+  isProMode = false // Pro mode for different AI button functionality
 }) => {
   const [isLayoutReady, setIsLayoutReady] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [editorInstance, setEditorInstance] = useState(null);
   const cloud = useCKEditorCloud({ version: '47.0.0' });
 
   useEffect(() => {
@@ -27,7 +30,6 @@ const CKEditorComponent = ({
       const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
                             window.innerWidth <= 768;
       setIsMobile(isMobileDevice);
-      console.log('isMobileDevice', isMobileDevice);
       return isMobileDevice;
     };
     
@@ -517,17 +519,22 @@ const CKEditorComponent = ({
 
   return (
     <div className={`ckeditor-container ${isMobile ? 'mobile-editor' : ''} ${className}`} style={{ position: 'relative', overflow: 'visible' }}>
-      <AIButton 
-        editorInstance={ClassicEditor && editorConfig ? 'ready' : null}
-        onContentChange={onChange}
-      />
+      {showAIButton && (
+        <div className="mt-2 ml-2">
+        <AIButton 
+          editorInstance={editorInstance}
+            onContentChange={onChange}
+            isProMode={isProMode}
+          />
+        </div>
+      )}
       {ClassicEditor && editorConfig && (
         <div style={{ position: 'relative', overflow: 'visible' }}>
           <CKEditor
             editor={ClassicEditor}
             config={editorConfig}
             onReady={editor => {
-              console.log('CKEditor: Editor is ready to use!', editor);
+              setEditorInstance(editor);
               
               // Mobile-specific initialization
               const editorElement = editor.editing.view.document.getRoot();
@@ -547,12 +554,9 @@ const CKEditorComponent = ({
             onChange={(event, editor) => {
               const data = editor.getData();
               // Ensure we always get HTML format
-              console.log('CKEditor output:', data);
-              console.log('Content type check - contains HTML tags:', /<[^>]+>/.test(data));
               
               // Force HTML output if the data looks like markdown
               if (data.includes('##') || data.includes('**') || (data.includes('*') && !data.includes('<'))) {
-                console.warn('CKEditor is outputting markdown instead of HTML. This should not happen.');
                 // Convert markdown to HTML as fallback
                 const htmlData = data
                   .replace(/^### (.*$)/gim, '<h3>$1</h3>')
@@ -561,17 +565,14 @@ const CKEditorComponent = ({
                   .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
                   .replace(/\*(.*?)\*/gim, '<em>$1</em>')
                   .replace(/\n/gim, '<br>');
-                console.log('Converted to HTML:', htmlData);
                 onChange(htmlData);
               } else {
                 onChange(data);
               }
             }}
             onBlur={(event, editor) => {
-              console.log('Blur.', editor);
             }}
             onFocus={(event, editor) => {
-              console.log('Focus.', editor);
             }}
           />
         </div>
