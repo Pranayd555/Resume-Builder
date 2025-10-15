@@ -112,22 +112,18 @@ router.post('/', async (req, res) => {
 
                   .ck-content strong, .ck-content b {
                     font-weight: 600;
-                    color: #1f2937;
                   }
 
                   .ck-content em, .ck-content i {
                     font-style: italic;
-                    color: #4b5563;
                   }
 
                   .ck-content u {
                     text-decoration: underline;
-                    color: #1f2937;
                   }
 
                   .ck-content s, .ck-content strike {
                     text-decoration: line-through;
-                    color: #6b7280;
                   }
 
                   .ck-content mark {

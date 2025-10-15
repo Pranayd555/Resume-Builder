@@ -325,7 +325,7 @@ const CKEditorComponent = ({
             '|',
             'imageUpload',
           ],
-          shouldNotGroupWhenFull: !isMobile
+          shouldNotGroupWhenFull: true
         },
         plugins: [
           Alignment,
@@ -500,7 +500,7 @@ const CKEditorComponent = ({
         }
       }
     };
-  }, [value, placeholder, isMobile]);
+  }, [value, placeholder]);
 
   const { ClassicEditor, editorConfig } = useMemo(() => {
     if (cloud.status !== 'success' || !isLayoutReady) {
