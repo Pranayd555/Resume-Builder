@@ -141,7 +141,7 @@ const ATSScoreModal = ({
       const jobDescriptionFile = atsInputType === 'file' ? atsFile : null;
       
       // Call the ATS score API
-      const response = await aiService.generateATSScore(
+      await aiService.generateATSScore(
         resumeId,
         atsInputType,
         jobDescription,
