@@ -76,11 +76,12 @@ const CreateTemplate = () => {
 			toast.error('Please add some content to your template before generating PDF');
 			return;
 		}
-		console.log('Generating PDF...', templateContent);
+		const updatedContent = templateContent.replace(`<div class="ck ck-reset_all"><div class="ck ck-widget__type-around__button ck-widget__type-around__button_before" style="align-items:center;display:flex;justify-content:center;" title="Insert paragraph before block" aria-hidden="true"><span style="color:white;font-size:14px;"><span style="line-height:1;"><strong>+</strong></span></span></div><div class="ck ck-widget__type-around__button ck-widget__type-around__button_after" style="align-items:center;display:flex;justify-content:center;" title="Insert paragraph after block" aria-hidden="true"><span style="color:white;font-size:14px;"><span style="line-height:1;"><strong>+</strong></span></span></div><div class="ck ck-widget__type-around__fake-caret">&nbsp;</div>`, ``);
+		console.log('Generating PDF...', updatedContent);
 		setIsGeneratingPDF(true);
 		try {
 			const response = await api.post('/createTemplate', {
-				content: templateContent,
+				content: updatedContent,
 				title: 'Custom Template'
 			}, {
 				responseType: 'blob' // Important for PDF downloads

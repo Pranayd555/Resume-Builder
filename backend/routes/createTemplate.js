@@ -341,11 +341,6 @@ router.post('/', async (req, res) => {
                     margin: 8px 0;
                   }
 
-                  .ck-content figure {
-                    margin: 12px 0;
-                    text-align: center;
-                  }
-
                   .ck-content figcaption {
                     font-size: 12px;
                     color: #6b7280;
@@ -559,6 +554,12 @@ router.post('/', async (req, res) => {
                       padding: 6px 8px;
                     }
                   }
+
+                    .ck.ck-widget__type-around__button.ck-widget__type-around__button_after {
+                      display: none !important;
+                    }
+
+                    ck ck-widget__type-around__button ck-widget__type-around__button_after
 
                     .page-break {
                     page-break-before: always;
