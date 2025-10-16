@@ -161,14 +161,197 @@
 
 .ckeditor-container .ck-editor__editable:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+
+/* Override CKEditor's default focus styles with orange theme */
+.ck.ck-editor__editable.ck-focused:not(.ck-editor__nested-editable) {
+  border: 1px solid #f97316 !important;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1) !important;
+}
+
+/* Override widget type-around button styles with orange theme */
+.ck .ck-widget.ck-widget_selected>.ck-widget__type-around>.ck-widget__type-around__button,
+.ck .ck-widget>.ck-widget__type-around>.ck-widget__type-around__button:hover {
+  background: #f97316 !important;
+  color: white !important;
 }
 
 /* Content overflow protection */
 .ckeditor-container .ck-editor__editable * {
   max-width: 100%;
   box-sizing: border-box;
+}
+
+/* Template block styles */
+.ck-content .template-block {
+  width: 100%;
+  box-sizing: border-box;
+  display: block;
+  margin: 10px 0;
+}
+
+.ck-content .template-block * {
+  box-sizing: border-box;
+}
+
+/* Type-around button styles for template blocks */
+.ck-widget__type-around {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  height: 0;
+  overflow: visible;
+}
+
+.ck-widget__type-around__button {
+  position: absolute;
+  background: #f97316;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  z-index: 1000;
+  box-shadow: 0 1px 4px rgba(249, 115, 22, 0.3);
+}
+
+.ck-widget__type-around__button_before {
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.ck-widget__type-around__button_after {
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.ck-widget__type-around__button:hover {
+  background: #ea580c;
+  transform: translateX(-50%) scale(1.1);
+  opacity: 1;
+  color: white;
+}
+
+.ck-widget__type-around__button_before:hover {
+  transform: translateX(-50%) scale(1.1);
+}
+
+.ck-widget__type-around__button_after:hover {
+  transform: translateX(-50%) scale(1.1);
+}
+
+.ck-widget__type-around__button span {
+  color: white;
+}
+
+.ck-widget__type-around__fake-caret {
+  display: none;
+}
+
+/* Show type-around buttons on hover */
+.ck-widget:hover .ck-widget__type-around__button {
+  opacity: 0.8;
+}
+
+.ck-widget:hover .ck-widget__type-around__button:hover {
+  opacity: 1;
+}
+
+/* Force type-around buttons to be visible on template blocks */
+.template-block-widget:hover .ck-widget__type-around__button {
+  opacity: 0.8 !important;
+}
+
+.template-block-widget:hover .ck-widget__type-around__button:hover {
+  opacity: 1 !important;
+}
+
+/* Make sure template blocks are editable */
+.ck-widget.template-block-widget {
+  position: relative;
+  margin: 10px 0;
+  border: 2px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.ck-widget.template-block-widget:hover {
+  border-color: #f97316;
+}
+
+.ck-widget.template-block-widget .template-block {
+  position: relative;
+  z-index: 1;
+}
+
+.ck-widget.template-block-widget .template-block * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Ensure template content is editable */
+.template-block-content {
+  position: relative;
+  z-index: 1;
+}
+
+.template-block-content * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Template block with selection handle */
+.ck-widget.template-block-widget {
+  position: relative;
+  margin: 10px 0;
+}
+
+.ck-widget.template-block-widget.ck-widget_selected {
+  outline: 2px solid #f97316;
+  outline-offset: 2px;
+}
+
+.ck-widget.template-block-widget.ck-widget_with-selection-handle {
+  position: relative;
+}
+
+.ck-widget__selection-handle {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  width: 16px;
+  height: 16px;
+  background: #f97316;
+  border-radius: 2px;
+  cursor: pointer;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.ck-widget.template-block-widget:hover .ck-widget__selection-handle,
+.ck-widget.template-block-widget.ck-widget_selected .ck-widget__selection-handle {
+  opacity: 1;
+}
+
+.ck-widget__selection-handle svg {
+  width: 12px;
+  height: 12px;
+  fill: white;
 }
 
 /* Minimal Toolbar Styling */
@@ -404,6 +587,17 @@
   border-collapse: collapse;
   margin: 12px 0;
   font-size: 14px;
+  table-layout: fixed; /* Ensures consistent column widths */
+}
+
+/* Override CKEditor's default table behavior for template tables */
+.ck-content table.template-table {
+  table-layout: fixed !important;
+  width: 100% !important;
+}
+
+.ck-content table.template-table td {
+  box-sizing: border-box !important;
 }
 
 .ck-content th {
@@ -419,6 +613,7 @@
   padding: 8px 12px;
   border: 1px solid #e5e7eb;
   color: #374151;
+  vertical-align: top; /* Ensures content aligns to top */
 }
 
 .ck-content tr:nth-child(even) {
@@ -427,6 +622,73 @@
 
 .ck-content tr:hover {
   background-color: #f3f4f6;
+}
+
+/* Specific styles for template tables */
+.ck-content table.template-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  table-layout: fixed !important;
+}
+
+.ck-content table.template-table td {
+  vertical-align: top !important;
+}
+
+/* Override CKEditor's default table behavior for template tables with colspan */
+.ck-content table.template-table td[colspan="2"] {
+  width: 33.33% !important;
+  max-width: 33.33% !important;
+  min-width: 33.33% !important;
+}
+
+.ck-content table.template-table td[colspan="3"] {
+  width: 50% !important;
+  max-width: 50% !important;
+  min-width: 50% !important;
+}
+
+.ck-content table.template-table td[colspan="4"] {
+  width: 60% !important;
+  max-width: 60% !important;
+  min-width: 60% !important;
+}
+
+/* Specific width overrides for different column splits */
+.ck-content table.template-table td[style*="width: 30%"] {
+  width: 30% !important;
+  max-width: 30% !important;
+  min-width: 30% !important;
+}
+
+.ck-content table.template-table td[style*="width: 40%"] {
+  width: 40% !important;
+  max-width: 40% !important;
+  min-width: 40% !important;
+}
+
+.ck-content table.template-table td[style*="width: 50%"] {
+  width: 50% !important;
+  max-width: 50% !important;
+  min-width: 50% !important;
+}
+
+.ck-content table.template-table td[style*="width: 60%"] {
+  width: 60% !important;
+  max-width: 60% !important;
+  min-width: 60% !important;
+}
+
+.ck-content table.template-table td[style*="width: 70%"] {
+  width: 70% !important;
+  max-width: 70% !important;
+  min-width: 70% !important;
+}
+
+.ck-content table.template-table td[style*="width: 33.33%"] {
+  width: 33.33% !important;
+  max-width: 33.33% !important;
+  min-width: 33.33% !important;
 }
 
 /* Link Elements */
@@ -491,8 +753,8 @@
 .ck-content input:focus,
 .ck-content textarea:focus,
 .ck-content select:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  border-color: #f97316;
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.1);
 }
 
 /* Button Elements */
@@ -656,7 +918,7 @@
 }
 
 .ck-content progress::-webkit-progress-value {
-  background-color: #3b82f6;
+  background-color: #f97316;
   border-radius: 4px;
 }
 
@@ -701,17 +963,80 @@
   .ck-content table {
     border-collapse: collapse;
     font-size: 11px;
+    width: 100% !important;
   }
   
   .ck-content th,
   .ck-content td {
     border: 1px solid #ccc;
     padding: 4px 6px;
+    vertical-align: top;
   }
   
   .ck-content th {
     background: #f0f0f0;
     font-weight: bold;
+  }
+  
+  /* Ensure table cells maintain their width in PDF */
+  .ck-content table.template-table td {
+    vertical-align: top !important;
+  }
+  
+  /* Override CKEditor's default table behavior for template tables with colspan in PDF */
+  .ck-content table.template-table td[colspan="2"] {
+    width: 33.33% !important;
+    max-width: 33.33% !important;
+    min-width: 33.33% !important;
+  }
+  
+  .ck-content table.template-table td[colspan="3"] {
+    width: 50% !important;
+    max-width: 50% !important;
+    min-width: 50% !important;
+  }
+  
+  .ck-content table.template-table td[colspan="4"] {
+    width: 60% !important;
+    max-width: 60% !important;
+    min-width: 60% !important;
+  }
+  
+  /* Specific width overrides for PDF */
+  .ck-content table.template-table td[style*="width: 30%"] {
+    width: 30% !important;
+    max-width: 30% !important;
+    min-width: 30% !important;
+  }
+  
+  .ck-content table.template-table td[style*="width: 40%"] {
+    width: 40% !important;
+    max-width: 40% !important;
+    min-width: 40% !important;
+  }
+  
+  .ck-content table.template-table td[style*="width: 50%"] {
+    width: 50% !important;
+    max-width: 50% !important;
+    min-width: 50% !important;
+  }
+  
+  .ck-content table.template-table td[style*="width: 60%"] {
+    width: 60% !important;
+    max-width: 60% !important;
+    min-width: 60% !important;
+  }
+  
+  .ck-content table.template-table td[style*="width: 70%"] {
+    width: 70% !important;
+    max-width: 70% !important;
+    min-width: 70% !important;
+  }
+  
+  .ck-content table.template-table td[style*="width: 33.33%"] {
+    width: 33.33% !important;
+    max-width: 33.33% !important;
+    min-width: 33.33% !important;
   }
 }
 

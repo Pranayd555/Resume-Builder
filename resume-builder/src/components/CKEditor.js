@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { CKEditor, useCKEditorCloud } from '@ckeditor/ckeditor5-react';
 import AIButton from './AIButton';
+import TemplateDialog from './TemplateDialog';
 import '../plugins/TemplateBlocksPlugin.css';
 import './CKEditor.css';
 
@@ -14,232 +15,145 @@ const getLicenseKey = () => {
 
 const LICENSE_KEY = getLicenseKey();
 
-// Template data structure
-const templates = [
-  {
-    title: 'Two Column Block',
-    content: `<div style="display: flex; gap: 10px; margin: 10px 0;"><div style="flex: 1; border: 1px dashed #ccc; padding: 10px; min-height: 50px;">Left Column</div><div style="flex: 1; border: 1px dashed #ccc; padding: 10px; min-height: 50px;">Right Column</div></div>`
-  },
-  {
-    title: 'Highlighted Box',
-    content: `<div style="border: 2px solid #f39c12; padding: 15px; background: #fff8e1; margin: 10px 0; border-radius: 4px;">Highlighted Text Here</div>`
-  },
-  {
-    title: 'Centered Title Section',
-    content: `<section style="text-align: center; padding: 20px; margin: 10px 0;"><h2>Section Title</h2><p>Write something here...</p></section>`
-  },
-  {
-    title: 'Info Card',
-    content: `<div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin: 10px 0; background: #f9f9f9;"><h3 style="margin-top: 0;">Card Title</h3><p>Card content goes here...</p></div>`
-  },
-  {
-    title: 'Three Column Layout',
-    content: `<div style="display: flex; gap: 10px; margin: 10px 0;"><div style="flex: 1; border: 1px dashed #ccc; padding: 10px; min-height: 50px;">Column 1</div><div style="flex: 1; border: 1px dashed #ccc; padding: 10px; min-height: 50px;">Column 2</div><div style="flex: 1; border: 1px dashed #ccc; padding: 10px; min-height: 50px;">Column 3</div></div>`
-  },
-  {
-    title: 'Call to Action Box',
-    content: `<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; margin: 10px 0; border-radius: 8px; text-align: center;"><h3 style="margin-top: 0; color: white;">Call to Action</h3><p>Your message here...</p></div>`
-  }
-];
 
-// Initialize Template Blocks functionality
-const initializeTemplateBlocks = (editor) => {
-  // Create the toolbar button
-  editor.ui.componentFactory.add('insertTemplate', locale => {
-    const buttonView = editor.ui.componentFactory.create('button', locale);
-    
-    buttonView.set({
-      label: 'Insert Template',
-      icon: `<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
-      </svg>`,
-      tooltip: true,
-      isToggleable: false
-    });
-
-    // Execute command on click
-    buttonView.on('execute', () => {
-      showTemplateDialog(editor);
-    });
-
-    return buttonView;
-  });
-};
-
-// Show template selection dialog
-const showTemplateDialog = (editor) => {
-  // Create modal overlay
-  const overlay = document.createElement('div');
-  overlay.className = 'template-blocks-overlay';
-  overlay.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 10000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  `;
-
-  // Create modal content
-  const modal = document.createElement('div');
-  modal.className = 'template-blocks-modal';
-  modal.style.cssText = `
-    background: white;
-    border-radius: 12px;
-    padding: 24px;
-    max-width: 700px;
-    max-height: 85vh;
-    overflow-y: auto;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-    position: relative;
-  `;
-
-  // Create header
-  const header = document.createElement('div');
-  header.className = 'template-blocks-header';
-  header.style.cssText = `
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    padding-bottom: 16px;
-    border-bottom: 2px solid #f0f0f0;
-  `;
-
-  const title = document.createElement('h3');
-  title.className = 'template-blocks-title';
-  title.textContent = 'Insert Template Block';
-  title.style.cssText = 'margin: 0; color: #333; font-size: 20px; font-weight: 600;';
-
-  const closeBtn = document.createElement('button');
-  closeBtn.className = 'template-blocks-close';
-  closeBtn.innerHTML = '×';
-  closeBtn.style.cssText = `
-    background: none;
-    border: none;
-    font-size: 28px;
-    cursor: pointer;
-    color: #666;
-    padding: 0;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    transition: all 0.2s ease;
-  `;
-
-  header.appendChild(title);
-  header.appendChild(closeBtn);
-
-  // Create template grid
-  const grid = document.createElement('div');
-  grid.className = 'template-blocks-grid';
-  grid.style.cssText = `
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-    margin-bottom: 24px;
-  `;
-
-  // Create template items
-  templates.forEach((template, index) => {
-    const templateItem = document.createElement('div');
-    templateItem.className = 'template-blocks-item';
-    templateItem.style.cssText = `
-      border: 2px solid #e8e8e8;
-      border-radius: 8px;
-      padding: 20px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      background: white;
-      position: relative;
-      overflow: hidden;
-    `;
-
-    templateItem.innerHTML = `
-      <div style="font-weight: 600; margin-bottom: 8px; color: #333; font-size: 16px;">${template.title}</div>
-      <div style="font-size: 13px; color: #666; margin-bottom: 12px;">Click to insert</div>
-      <div style="border: 1px dashed #ccc; padding: 12px; background: #fafafa; border-radius: 6px; font-size: 12px; color: #666; line-height: 1.4; min-height: 60px; display: flex; align-items: center; justify-content: center; text-align: center;">
-        ${template.content.replace(/<[^>]*>/g, '').substring(0, 50)}...
-      </div>
-    `;
-
-    // Hover effects
-    templateItem.addEventListener('mouseenter', () => {
-      templateItem.style.borderColor = '#007cba';
-      templateItem.style.boxShadow = '0 8px 25px rgba(0, 124, 186, 0.15)';
-      templateItem.style.transform = 'translateY(-2px)';
-    });
-
-    templateItem.addEventListener('mouseleave', () => {
-      templateItem.style.borderColor = '#e8e8e8';
-      templateItem.style.boxShadow = 'none';
-      templateItem.style.transform = 'translateY(0)';
-    });
-
-    // Click handler
-    templateItem.addEventListener('click', () => {
-      insertTemplate(editor, template.content);
-      closeDialog(overlay);
-    });
-
-    grid.appendChild(templateItem);
-  });
-
-  // Close handlers
-  const closeDialog = (overlay) => {
-    if (overlay && overlay.parentNode) {
-      overlay.parentNode.removeChild(overlay);
-    }
-  };
-  
-  closeBtn.addEventListener('click', () => closeDialog(overlay));
-  overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) closeDialog(overlay);
-  });
-
-  // Escape key handler
-  const handleEscape = (e) => {
-    if (e.key === 'Escape') {
-      closeDialog(overlay);
-      document.removeEventListener('keydown', handleEscape);
-    }
-  };
-  document.addEventListener('keydown', handleEscape);
-
-  // Assemble modal
-  modal.appendChild(header);
-  modal.appendChild(grid);
-  overlay.appendChild(modal);
-  document.body.appendChild(overlay);
-
-  // Focus management
-  setTimeout(() => {
-    const firstTemplate = grid.querySelector('div');
-    if (firstTemplate) firstTemplate.focus();
-  }, 100);
-};
-
-// Insert template into editor
+// Insert template into editor with type-around functionality
 const insertTemplate = (editor, templateContent) => {
-  // Use the editor's insertContent method
-  editor.model.change(writer => {
-    const selection = editor.model.document.selection;
-    const position = selection.getFirstPosition();
+  // Get the current selection
+  const selection = editor.model.document.selection;
+  
+  // Get the position where the cursor is currently located
+  const position = selection.getFirstPosition();
+  
+  // Wrap template content with type-around functionality
+  const wrappedTemplate = wrapTemplateWithTypeAround(templateContent);
+  
+  // Create a document fragment from the wrapped template content
+  const viewFragment = editor.data.processor.toView(wrappedTemplate);
+  
+  // Convert view fragment to model fragment
+  const modelFragment = editor.data.toModel(viewFragment);
+  
+  // Insert the template content at the current cursor position
+  editor.model.insertContent(modelFragment, position);
+  
+  // Focus the editor after insertion
+  editor.editing.view.focus();
+};
+
+// Wrap template content with type-around functionality
+const wrapTemplateWithTypeAround = (templateContent) => {
+  // Create the type-around button HTML
+  const typeAroundButtons = `
+    <div class="ck ck-reset_all ck-widget__type-around">
+      <div class="ck ck-widget__type-around__button ck-widget__type-around__button_before" title="Insert paragraph before block" aria-hidden="true" style="display: flex; align-items: center; justify-content: center;">
+        <span style="font-size: 14px; font-weight: 600; color: white; line-height: 1;">+</span>
+      </div>
+      <div class="ck ck-widget__type-around__button ck-widget__type-around__button_after" title="Insert paragraph after block" aria-hidden="true" style="display: flex; align-items: center; justify-content: center;">
+        <span style="font-size: 14px; font-weight: 600; color: white; line-height: 1;">+</span>
+      </div>
+      <div class="ck ck-widget__type-around__fake-caret"></div>
+    </div>
+  `;
+
+  // Create selection handle HTML
+  const selectionHandle = `
+    <div class="ck ck-widget__selection-handle">
+      <svg class="ck ck-icon ck-reset_all-excluded ck-icon_inherit-color" viewBox="0 0 16 16" aria-hidden="true">
+        <path d="M4 0v1H1v3H0V.5A.5.5 0 0 1 .5 0zm8 0h3.5a.5.5 0 0 1 .5.5V4h-1V1h-3zM4 16H.5a.5.5 0 0 1-.5-.5V12h1v3h3zm8 0v-1h3v-3h1v3.5a.5.5 0 0 1-.5.5z"></path>
+        <path fill-opacity=".256" d="M1 1h14v14H1z"></path>
+        <g class="ck-icon__selected-indicator">
+          <path d="M7 0h2v1H7zM0 7h1v2H0zm15 0h1v2h-1zm-8 8h2v1H7z"></path>
+          <path fill-opacity=".254" d="M1 1h14v14H1z"></path>
+        </g>
+      </svg>
+    </div>
+  `;
+
+  // Wrap the template content with the widget structure
+  const wrappedContent = `
+    <div class="ck-widget template-block-widget" style="position: relative; margin: 10px 0;">
+      ${selectionHandle}
+      <div class="template-block-content" style="position: relative; z-index: 1;">
+        ${templateContent}
+      </div>
+      ${typeAroundButtons}
+    </div>
+  `;
+
+  return wrappedContent;
+};
+
+// Setup type-around button functionality
+const setupTypeAroundButtons = (editor) => {
+  // Function to handle type-around button clicks
+  const handleTypeAroundClick = (event, position) => {
+    event.preventDefault();
+    event.stopPropagation();
     
-    // Insert HTML content directly
-    const viewFragment = editor.data.processor.toView(templateContent);
+    // Get the current selection
+    const selection = editor.model.document.selection;
+    const currentPosition = selection.getFirstPosition();
+    
+    // Create a new paragraph element
+    const paragraphHtml = '<p>&nbsp;</p>';
+    const viewFragment = editor.data.processor.toView(paragraphHtml);
     const modelFragment = editor.data.toModel(viewFragment);
     
-    editor.model.insertContent(modelFragment, position);
+    // Insert the paragraph at the specified position
+    if (position === 'before') {
+      // Find the position before the current template block
+      const templateBlock = currentPosition.parent;
+      if (templateBlock && (templateBlock.name === 'figure' || templateBlock.name === 'div')) {
+        const insertPosition = editor.model.createPositionBefore(templateBlock);
+        editor.model.insertContent(modelFragment, insertPosition);
+      }
+    } else if (position === 'after') {
+      // Find the position after the current template block
+      const templateBlock = currentPosition.parent;
+      if (templateBlock && (templateBlock.name === 'figure' || templateBlock.name === 'div')) {
+        const insertPosition = editor.model.createPositionAfter(templateBlock);
+        editor.model.insertContent(modelFragment, insertPosition);
+      }
+    }
+    
+    // Focus the editor
+    editor.editing.view.focus();
+  };
+
+  // Add event listeners for type-around buttons
+  const addTypeAroundListeners = () => {
+    const editorElement = document.querySelector('.ck-editor__editable');
+    if (!editorElement) return;
+
+    // Remove existing listeners to avoid duplicates
+    editorElement.removeEventListener('click', handleTypeAroundClick);
+    
+    // Add new listeners
+    editorElement.addEventListener('click', (event) => {
+      const target = event.target;
+      
+      // Check if clicked element is a type-around button
+      if (target.closest('.ck-widget__type-around__button_before')) {
+        handleTypeAroundClick(event, 'before');
+      } else if (target.closest('.ck-widget__type-around__button_after')) {
+        handleTypeAroundClick(event, 'after');
+      }
+    });
+  };
+
+  // Setup listeners when editor is ready
+  setTimeout(() => {
+    addTypeAroundListeners();
+  }, 100);
+
+  // Re-setup listeners when content changes
+  editor.model.document.on('change', () => {
+    setTimeout(() => {
+      addTypeAroundListeners();
+    }, 50);
   });
 };
+
 
 const CKEditorComponent = ({
   value,
@@ -254,6 +168,7 @@ const CKEditorComponent = ({
   const [isLayoutReady, setIsLayoutReady] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [editorInstance, setEditorInstance] = useState(null);
+  const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const cloud = useCKEditorCloud({ version: '47.0.0' });
 
   useEffect(() => {
@@ -367,9 +282,7 @@ const CKEditorComponent = ({
             'outdent',
             'indent',
             '|',
-            'link',
-            '|',
-            'insertTemplate'
+            'link'
           ],
           shouldNotGroupWhenFull: true
         },
@@ -550,9 +463,7 @@ const CKEditorComponent = ({
             'outdent',
             'indent',
             '|',
-            'imageUpload',
-            '|',
-            'insertTemplate'
+            'imageUpload'
           ],
           shouldNotGroupWhenFull: true
         },
@@ -736,12 +647,52 @@ const CKEditorComponent = ({
   return (
     <div className={`ckeditor-container ${isMobile ? 'mobile-editor' : ''} ${className}`} style={{ position: 'relative', overflow: 'visible' }}>
       {showAIButton && (
-        <div className="mt-2 ml-2">
+        <div className="mt-2 ml-2" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
         <AIButton 
           editorInstance={editorInstance}
             onContentChange={onChange}
             isProMode={isProMode}
           />
+        <button
+          onClick={() => {
+            setShowTemplateDialog(true);
+          }}
+          className="template-button-simple"
+          style={{
+            background: 'linear-gradient(to right, #f97316, #dc2626)',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '10px 16px',
+            color: 'white',
+            fontSize: '14px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 2px 8px rgba(249, 115, 22, 0.3)',
+            height: '40px',
+            minWidth: '120px',
+            justifyContent: 'center',
+            marginBottom: '10px'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.background = 'linear-gradient(to right, #ea580c, #b91c1c)';
+            e.target.style.transform = 'translateY(-2px)';
+            e.target.style.boxShadow = '0 4px 12px rgba(249, 115, 22, 0.4)';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background = 'linear-gradient(to right, #f97316, #dc2626)';
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = '0 2px 8px rgba(249, 115, 22, 0.3)';
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"/>
+          </svg>
+          Template
+        </button>
         </div>
       )}
       {ClassicEditor && editorConfig && (
@@ -752,8 +703,7 @@ const CKEditorComponent = ({
             onReady={editor => {
               setEditorInstance(editor);
               
-              // Initialize Template Blocks Plugin
-              initializeTemplateBlocks(editor);
+              // Template button is now implemented directly in JSX
               
               // Mobile-specific initialization
               const editorElement = editor.editing.view.document.getRoot();
@@ -769,6 +719,9 @@ const CKEditorComponent = ({
                   }
                 });
               }
+
+              // Add type-around button functionality
+              setupTypeAroundButtons(editor);
             }}
             onChange={(event, editor) => {
               const data = editor.getData();
@@ -796,6 +749,17 @@ const CKEditorComponent = ({
           />
         </div>
       )}
+      
+      {/* Template Dialog */}
+      <TemplateDialog
+        isOpen={showTemplateDialog}
+        onClose={() => setShowTemplateDialog(false)}
+        onInsertTemplate={(templateContent) => {
+          if (editorInstance) {
+            insertTemplate(editorInstance, templateContent);
+          }
+        }}
+      />
     </div>
   );
 };
