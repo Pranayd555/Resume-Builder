@@ -5,8 +5,8 @@ import { createPortal } from 'react-dom';
 const templates = [
   {
     title: 'Right Heavy Two Block',
-    content: `<div style="margin: 5px 0; display: flex; gap: 2%;">
-    <div style="flex: 1; background: #f8f9fa; padding: 16px; border-radius: 8px;">
+    content: `<div style="margin: 5px 0; display: flex;">
+    <div style="flex: 1; background: #f8f9fa; padding: 16px; border-radius: 8px; margin-right: 1%;">
       <h3 style="margin-top: 0; color: #2c3e50;">Left Column</h3>
       <p style="color: #555;">Add your content here. You can replace this with text, lists, or images.</p>
     </div>
@@ -18,8 +18,8 @@ const templates = [
   },
   {
     title: 'Left Heavy Two Block',
-    content: `<div style="margin: 5px 0; display: flex; gap: 2%;">
-    <div style="flex: 2; background: #f8f9fa; padding: 16px; border-radius: 8px;">
+    content: `<div style="margin: 5px 0; display: flex;">
+    <div style="flex: 2; background: #f8f9fa; padding: 16px; border-radius: 8px; margin-right: 1%;">
       <h3 style="margin-top: 0; color: #2c3e50;">Left Column</h3>
       <p style="color: #555;">Add your content here. You can replace this with text, lists, or images.</p>
     </div>
@@ -31,8 +31,8 @@ const templates = [
   },
   {
     title: 'Equal Two Block',
-    content: `<div style="margin: 5px 0; display: flex; gap: 2%;">
-    <div style="flex: 1; background: #f8f9fa; padding: 16px; border-radius: 8px;">
+    content: `<div style="margin: 5px 0; display: flex;">
+    <div style="flex: 1; background: #f8f9fa; padding: 16px; border-radius: 8px; margin-right: 1%;">
       <h3 style="margin-top: 0; color: #2c3e50;">Left Column</h3>
       <p style="color: #555;">Add your content here. You can replace this with text, lists, or images.</p>
     </div>
@@ -61,12 +61,12 @@ const templates = [
   },
   {
     title: 'Three Column Layout',
-    content: `<div style="margin: 5px 0; display: flex; gap: 2%;">
-    <div style="flex: 1; background: #f8f9fa; padding: 16px; border-radius: 8px;">
+    content: `<div style="margin: 5px 0; display: flex;">
+    <div style="flex: 1; background: #f8f9fa; padding: 16px; border-radius: 8px; margin-right: 1%;">
       <h3 style="margin-top: 0; color: #2c3e50;">Column 1</h3>
       <p style="color: #555;">Add your content here. You can replace this with text, lists, or images.</p>
     </div>
-    <div style="flex: 1; background: #ffffff; border: 1px solid #eee; padding: 16px; border-radius: 8px;">
+    <div style="flex: 1; background: #ffffff; border: 1px solid #eee; padding: 16px; border-radius: 8px; margin-right: 1%;">
       <h3 style="margin-top: 0; color: #2c3e50;">Column 2</h3>
       <p style="color: #555;">This section can hold additional details or visuals.</p>
     </div>
@@ -100,12 +100,12 @@ const templates = [
   },
   {
     title: 'Info Card Grid',
-    content: `<div style="margin: 5px 0; display: flex; gap: 2%;">
-    <div style="flex: 1; background: #f8f9fa; border-radius: 10px; padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+    content: `<div style="margin: 5px 0; display: flex;">
+    <div style="flex: 1; background: #f8f9fa; border-radius: 10px; padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); margin-right: 1%;">
       <h4 style="margin-top: 0;">Card 1</h4>
       <p style="color: #555;">Small description or feature detail goes here.</p>
     </div>
-    <div style="flex: 1; background: #f8f9fa; border-radius: 10px; padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+    <div style="flex: 1; background: #f8f9fa; border-radius: 10px; padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); margin-right: 1%;">
       <h4 style="margin-top: 0;">Card 2</h4>
       <p style="color: #555;">Use these to show benefits, points, or key info.</p>
     </div>
@@ -193,7 +193,7 @@ const TemplateDialog = ({ isOpen, onClose, onInsertTemplate }) => {
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
-          overflow: 'hidden'
+          overflowY: 'auto'
         }}
       >
         {/* Header */}
@@ -273,8 +273,8 @@ const TemplateDialog = ({ isOpen, onClose, onInsertTemplate }) => {
                 flexDirection: 'column'
               }}
               onMouseEnter={(e) => {
-                e.target.style.borderColor = '#007cba';
-                e.target.style.boxShadow = '0 8px 25px rgba(0, 124, 186, 0.15)';
+                e.target.style.borderColor = '#FF9800';
+                e.target.style.boxShadow = '0 8px 25px rgba(255, 152, 0, 0.15)';
                 e.target.style.transform = 'translateY(-2px)';
               }}
               onMouseLeave={(e) => {
@@ -341,6 +341,8 @@ const TemplateDialog = ({ isOpen, onClose, onInsertTemplate }) => {
             }
             .template-dialog-modal > div:first-child {
               padding: 16px 16px 12px 16px !important;
+              flex-direction: row !important;
+              justify-content: space-between !important;
             }
             
             /* Make flex layouts stack on mobile */
