@@ -316,7 +316,7 @@ function ResumeList() {
     
     if (subscription.plan === 'free') {
       return currentResumeCount < 2;
-    } else if (subscription.plan === 'pro') {
+    } else if (subscription.plan === "pro" || subscription.plan === "base") {
       return currentResumeCount < 5;
     }
     
@@ -918,7 +918,7 @@ function ResumeList() {
             )}
             <button
               onClick={() => navigate('/create-template')}
-              className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white font-semibold rounded-xl shadow-lg hover:bg-green-700 transition-all duration-200 hover:shadow-xl transform hover:scale-105"
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl shadow-lg hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 hover:shadow-xl transform hover:scale-105"
             >
               <PlusIcon className="w-5 h-5 sm:w-6 sm:h-6" />
               Create Your Own Template

@@ -10,6 +10,7 @@ import {
   CurrencyDollarIcon
 } from '@heroicons/react/24/outline';
 import { apiHelpers, analyticsAPI } from '../services/api';
+import api from '../services/api';
 
 function Header() {
   const navigate = useNavigate();
@@ -34,19 +35,25 @@ function Header() {
       // Then fetch fresh data from API
       const fetchTokenBalance = async () => {
         try {
-          const response = await analyticsAPI.getAnalyticsSummary();
+          // Try analytics API first
+          const response = await analyticsAPI.getTokenBalance();
           if (response.success) {
-            // Try new token structure first, then fallback to old structure
-            const tokenBalance = response.data?.tokens?.balance || 
-                               response.data?.subscription?.tokenBalance || 
-                               0;
+            const tokenBalance = response.data?.balance || 0;
             setTokenBalance(tokenBalance);
             // Store in localStorage for future use
             apiHelpers.setTokenBalance(tokenBalance);
             
             // Store full token data if available
-            if (response.data?.tokens) {
-              apiHelpers.setTokenData(response.data.tokens);
+            if (response.data) {
+              apiHelpers.setTokenData(response.data);
+            }
+          } else {
+            // Fallback to /api/auth/me
+            const authResponse = await api.get('/auth/me');
+            if (authResponse.data.success && authResponse.data.data?.user?.totalTokenBalance !== undefined) {
+              const tokenBalance = authResponse.data.data.user.totalTokenBalance;
+              setTokenBalance(tokenBalance);
+              apiHelpers.setTokenBalance(tokenBalance);
             }
           }
         } catch (error) {
@@ -59,6 +66,10 @@ function Header() {
         }
       };
       fetchTokenBalance();
+    } else {
+      // Clear token balance when not authenticated
+      setTokenBalance(null);
+      apiHelpers.clearTokenData();
     }
   }, [isAuthenticated]);
 
@@ -68,10 +79,18 @@ function Header() {
       setTokenBalance(event.detail.balance);
     };
 
+    const handleTokenDataUpdate = (event) => {
+      if (event.detail.balance !== undefined) {
+        setTokenBalance(event.detail.balance);
+      }
+    };
+
     window.addEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
+    window.addEventListener('tokenDataUpdated', handleTokenDataUpdate);
     
     return () => {
       window.removeEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
+      window.removeEventListener('tokenDataUpdated', handleTokenDataUpdate);
     };
   }, []);
 

@@ -19,6 +19,7 @@ import ResumeForm from './components/ResumeForm';
 import TemplateSelection from './components/TemplateSelection';
 import Feedback from './components/feedback';
 import Subscription from './components/subscription';
+import Payment from './components/Payment';
 import Profile from './components/Profile';
 import PrivacyPolicy from './components/public/PrivacyPolicy';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
@@ -133,6 +134,14 @@ function AppContent() {
                 element={
                   <ProtectedRoute>
                     <Subscription />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/payment" 
+                element={
+                  <ProtectedRoute>
+                    <Payment />
                   </ProtectedRoute>
                 } 
               />

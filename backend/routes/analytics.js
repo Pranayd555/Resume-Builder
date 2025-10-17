@@ -5,6 +5,7 @@ const Resume = require('../models/Resume');
 const Template = require('../models/Template');
 const Subscription = require('../models/Subscription');
 const logger = require('../utils/logger');
+const { calculateTotalTokens } = require('../utils/tokenCalculator');
 
 // @desc    Track resume view
 // @route   POST /api/analytics/resume/:id/view
@@ -61,9 +62,10 @@ router.post('/resume/:id/download', protect, async (req, res) => {
 
     // Check if user can export in the requested format
     if (!subscription.canExportFormat(format)) {
+      const planName = subscription.plan === 'free' ? 'Free' : subscription.plan === 'base' ? 'Base' : 'Pro';
       return res.status(403).json({
         success: false,
-        error: `${format.toUpperCase()} export not available in your subscription plan. Please upgrade to Pro.`
+        error: `${format.toUpperCase()} export not available in your ${planName} plan. Please upgrade to Base or Pro plan.`
       });
     }
 
@@ -139,9 +141,11 @@ router.post('/template/:id/use', protect, async (req, res) => {
     }
 
     if (!subscription.canAccessTemplate(template.availability.tier)) {
+      const planName = subscription.plan === 'free' ? 'Free' : subscription.plan === 'base' ? 'Base' : 'Pro';
+      const requiredPlan = template.availability.tier === 'premium' ? 'Base or Pro' : 'Free';
       return res.status(403).json({
         success: false,
-        error: 'Template not available in your subscription plan. Please upgrade to Pro.'
+        error: `Template not available in your ${planName} plan. Please upgrade to ${requiredPlan} plan.`
       });
     }
 
@@ -181,6 +185,9 @@ router.get('/summary', protect, async (req, res) => {
     const User = require('../models/User');
     const user = await User.findById(req.user.id).select('tokens razorpayTransactions');
     
+    // Calculate total available tokens using utility function
+    const tokenData = await calculateTotalTokens(req.user.id);
+    
     // Get templates used by user
     const templatesUsed = await Template.find({
       'usage.uniqueUsers': req.user.id
@@ -196,14 +203,23 @@ router.get('/summary', protect, async (req, res) => {
       },
       subscription: {
         plan: subscription?.plan || 'free',
+        planName: subscription?.plan === 'free' ? 'Free' : subscription?.plan === 'base' ? 'Base' : 'Pro',
         resumeLimit: subscription?.features?.resumeLimit || 2,
         resumesCreated: subscription?.usage?.resumesCreated || 0,
-        aiActionsLimit: subscription?.features?.aiActionsLimit || 200,
+        aiActionsLimit: subscription?.features?.aiActionsLimit || 'token-based',
         aiActionsUsed: subscription?.usage?.aiActionsThisCycle || 0,
+        freeTokens: subscription?.features?.freeTokens || 0,
+        freeTokensUsed: subscription?.usage?.freeTokensUsed || 0,
         cycleStartDate: subscription?.usage?.cycleStartDate || new Date(),
         nextBillingDate: subscription?.billing?.nextBillingDate || null,
         billingCycle: subscription?.billing?.cycle || 'monthly',
-        tokenBalance: user?.tokens || 0
+        tokenBalance: tokenData.totalTokenBalance,
+        features: {
+          aiReview: subscription?.features?.aiReview || false,
+          prioritySupport: subscription?.features?.prioritySupport || false,
+          customBranding: subscription?.features?.customBranding || false,
+          unlimitedExports: subscription?.features?.unlimitedExports || false,
+        }
       },
       templates: {
         totalUsed: templatesUsed.length,
@@ -215,7 +231,9 @@ router.get('/summary', protect, async (req, res) => {
         }))
       },
       tokens: {
-        balance: user?.tokens || 0,
+        balance: tokenData.totalTokenBalance,
+        purchasedTokens: tokenData.purchasedTokens,
+        remainingFreeTokens: tokenData.remainingFreeTokens,
         recentTransactions: user?.razorpayTransactions?.slice(0, 5) || []
       }
     };
@@ -277,19 +295,35 @@ router.get('/ai-usage', protect, async (req, res) => {
       cycleInfo.cycleProgress = ((now - lastReset) / (nextBilling - lastReset)) * 100;
     }
 
+    // Calculate token-based usage
+    const isTokenBased = subscription.features?.aiActionsLimit === 'token-based';
+    const freeTokens = subscription.features?.freeTokens || 0;
+    const freeTokensUsed = usage.freeTokensUsed || 0;
+    const remainingFreeTokens = Math.max(0, freeTokens - freeTokensUsed);
+    
     const aiUsageAnalytics = {
       currentUsage: {
         aiActionsUsed: usage.aiActionsThisCycle || 0,
-        aiActionsLimit: subscription.features?.aiActionsLimit || 200,
-        remainingActions: Math.max(0, (subscription.features?.aiActionsLimit || 200) - (usage.aiActionsThisCycle || 0)),
-        usagePercentage: Math.round(((usage.aiActionsThisCycle || 0) / (subscription.features?.aiActionsLimit || 200)) * 100)
+        aiActionsLimit: subscription.features?.aiActionsLimit || 'token-based',
+        remainingActions: isTokenBased ? remainingFreeTokens : Math.max(0, (subscription.features?.aiActionsLimit || 200) - (usage.aiActionsThisCycle || 0)),
+        usagePercentage: isTokenBased ? 
+          (freeTokens > 0 ? Math.round((freeTokensUsed / freeTokens) * 100) : 0) : 
+          Math.round(((usage.aiActionsThisCycle || 0) / (subscription.features?.aiActionsLimit || 200)) * 100),
+        freeTokens: freeTokens,
+        freeTokensUsed: freeTokensUsed,
+        remainingFreeTokens: remainingFreeTokens,
+        isTokenBased: isTokenBased
       },
       cycleInfo,
       plan: subscription.plan,
+      planName: subscription.plan === 'free' ? 'Free' : subscription.plan === 'base' ? 'Base' : 'Pro',
       status: subscription.status,
       features: {
-        aiActionsLimit: subscription.features?.aiActionsLimit || 200,
-        aiReview: subscription.features?.aiReview || false
+        aiActionsLimit: subscription.features?.aiActionsLimit || 'token-based',
+        aiReview: subscription.features?.aiReview || false,
+        prioritySupport: subscription.features?.prioritySupport || false,
+        customBranding: subscription.features?.customBranding || false,
+        unlimitedExports: subscription.features?.unlimitedExports || false,
       }
     };
 
@@ -352,22 +386,213 @@ router.post('/admin/reset-ai-cycle/:userId', protect, async (req, res) => {
   }
 });
 
-// @desc    Get user token balance
+// @desc    Get user token balance and usage
 // @route   GET /api/analytics/tokens
 // @access  Private
 router.get('/tokens', protect, async (req, res) => {
   try {
     const User = require('../models/User');
-    const user = await User.findById(req.user.id).select('tokens');
+    const user = await User.findById(req.user.id).select('tokens razorpayTransactions');
+    
+    // Calculate total available tokens using utility function
+    const tokenData = await calculateTotalTokens(req.user.id);
+    
+    const responseData = {
+      balance: tokenData.totalTokenBalance,
+      purchasedTokens: tokenData.purchasedTokens,
+      remainingFreeTokens: tokenData.remainingFreeTokens,
+      recentTransactions: user?.razorpayTransactions?.slice(0, 5) || [],
+      subscription: {
+        plan: tokenData.subscription.plan,
+        planName: tokenData.subscription.planName,
+        freeTokens: tokenData.freeTokens,
+        freeTokensUsed: tokenData.freeTokensUsed,
+        remainingFreeTokens: tokenData.remainingFreeTokens,
+        isTokenBased: tokenData.subscription.isTokenBased
+      }
+    };
+    
+    res.json({
+      success: true,
+      data: responseData
+    });
+  } catch (error) {
+    logger.error('Get token balance error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+});
+
+// @desc    Track AI action usage (token-based)
+// @route   POST /api/analytics/ai-action
+// @access  Private
+router.post('/ai-action', protect, async (req, res) => {
+  try {
+    const { actionType, tokensUsed = 1 } = req.body;
+    
+    const subscription = await Subscription.findOne({ user: req.user.id });
+    
+    if (!subscription) {
+      return res.status(404).json({
+        success: false,
+        error: 'No subscription found'
+      });
+    }
+    
+    // Check if user can use AI action
+    if (!(await subscription.canUseAIAction())) {
+      return res.status(403).json({
+        success: false,
+        error: 'No tokens available. Please purchase more tokens to use AI features.'
+      });
+    }
+    
+    // Increment usage (now properly handles token deduction)
+    await subscription.incrementUsage('aiAction');
+    
+    logger.info(`AI action tracked: ${actionType} (${tokensUsed} tokens) by user ${req.user.email}`);
     
     res.json({
       success: true,
       data: {
-        balance: user?.tokens || 0
-      }
+        actionType,
+        tokensUsed,
+        remainingTokens: subscription.features?.freeTokens - (subscription.usage?.freeTokensUsed || 0),
+        plan: subscription.plan
+      },
+      message: 'AI action tracked successfully'
     });
   } catch (error) {
-    logger.error('Get token balance error:', error);
+    logger.error('Track AI action error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+});
+
+// @desc    Get plan-specific analytics
+// @route   GET /api/analytics/plan-metrics
+// @access  Private
+router.get('/plan-metrics', protect, async (req, res) => {
+  try {
+    const subscription = await Subscription.findOne({ user: req.user.id });
+    
+    if (!subscription) {
+      return res.status(404).json({
+        success: false,
+        error: 'No subscription found'
+      });
+    }
+
+    const planMetrics = {
+      plan: subscription.plan,
+      planName: subscription.plan === 'free' ? 'Free' : subscription.plan === 'base' ? 'Base' : 'Pro',
+      features: {
+        aiReview: subscription.features?.aiReview || false,
+        prioritySupport: subscription.features?.prioritySupport || false,
+        customBranding: subscription.features?.customBranding || false,
+        unlimitedExports: subscription.features?.unlimitedExports || false,
+        cloudStorage: subscription.plan === 'pro'
+      },
+      usage: {
+        resumesCreated: subscription.usage?.resumesCreated || 0,
+        resumeLimit: subscription.features?.resumeLimit || 2,
+        aiActionsUsed: subscription.usage?.aiActionsThisCycle || 0,
+        freeTokensUsed: subscription.usage?.freeTokensUsed || 0,
+        freeTokens: subscription.features?.freeTokens || 0,
+        isTokenBased: subscription.features?.aiActionsLimit === 'token-based'
+      },
+      limits: {
+        resumeLimit: subscription.features?.resumeLimit || 2,
+        templateAccess: subscription.features?.templateAccess || ['free'],
+        exportFormats: subscription.features?.exportFormats || ['pdf'],
+        aiActionsLimit: subscription.features?.aiActionsLimit || 'token-based'
+      },
+      status: subscription.status,
+      trialInfo: subscription.status === 'trialing' ? {
+        isTrialActive: subscription.isTrialActive(),
+        trialType: subscription.billing?.trialType,
+        trialEnd: subscription.billing?.trialEnd,
+        trialRemainingDays: subscription.trialRemainingDays
+      } : null
+    };
+
+    res.json({
+      success: true,
+      data: planMetrics
+    });
+  } catch (error) {
+    logger.error('Get plan metrics error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+});
+
+// @desc    Track feature usage
+// @route   POST /api/analytics/feature-usage
+// @access  Private
+router.post('/feature-usage', protect, async (req, res) => {
+  try {
+    const { feature, action } = req.body;
+    
+    const subscription = await Subscription.findOne({ user: req.user.id });
+    
+    if (!subscription) {
+      return res.status(404).json({
+        success: false,
+        error: 'No subscription found'
+      });
+    }
+
+    // Check if user has access to the feature
+    let hasAccess = false;
+    switch (feature) {
+      case 'aiReview':
+        hasAccess = subscription.features?.aiReview || false;
+        break;
+      case 'prioritySupport':
+        hasAccess = subscription.features?.prioritySupport || false;
+        break;
+      case 'customBranding':
+        hasAccess = subscription.features?.customBranding || false;
+        break;
+      case 'unlimitedExports':
+        hasAccess = subscription.features?.unlimitedExports || false;
+        break;
+      case 'cloudStorage':
+        hasAccess = subscription.plan === 'pro';
+        break;
+      default:
+        hasAccess = false;
+    }
+
+    if (!hasAccess) {
+      return res.status(403).json({
+        success: false,
+        error: `Feature '${feature}' not available in your ${subscription.plan} plan. Please upgrade.`
+      });
+    }
+
+    // Log feature usage
+    logger.info(`Feature usage tracked: ${feature} - ${action} by user ${req.user.email} (${subscription.plan} plan)`);
+
+    res.json({
+      success: true,
+      data: {
+        feature,
+        action,
+        plan: subscription.plan,
+        hasAccess: true
+      },
+      message: 'Feature usage tracked successfully'
+    });
+  } catch (error) {
+    logger.error('Track feature usage error:', error);
     res.status(500).json({
       success: false,
       error: 'Server error'

@@ -323,6 +323,12 @@ export const analyticsAPI = {
     const response = await api.get('/analytics/summary', config);
     return response.data;
   },
+
+  getTokenBalance: async () => {
+    const config = createApiConfig('/analytics/tokens');
+    const response = await api.get('/analytics/tokens', config);
+    return response.data;
+  },
 };
 
 // Template API calls
@@ -722,6 +728,23 @@ export const apiHelpers = {
     window.dispatchEvent(new CustomEvent('tokenDataUpdated', { 
       detail: tokenData 
     }));
+  },
+
+  // Update user data with subscription information
+  updateUserData: (subscriptionData) => {
+    const currentUserData = apiHelpers.getCurrentUserData();
+    if (currentUserData) {
+      const updatedUserData = {
+        ...currentUserData,
+        subscription: subscriptionData
+      };
+      apiHelpers.setCurrentUserData(updatedUserData);
+      
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new CustomEvent('userDataUpdated', { 
+        detail: updatedUserData 
+      }));
+    }
   },
 };
 

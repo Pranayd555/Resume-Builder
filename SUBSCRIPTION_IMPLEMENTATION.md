@@ -7,39 +7,51 @@ This document outlines the complete implementation of the subscription system fo
 ## 🎯 Plan Structure
 
 ### 🆓 Free Plan (Entry Point)
-- **Resume Limit**: 1 resume
-- **AI Actions**: 2 per month
+- **Resume Limit**: 2 total
+- **AI Actions**: Token-based system
 - **Templates**: Free templates only
 - **Export**: PDF only (with watermark)
 - **Support**: Email support
 - **Price**: $0
 
-### 💼 Pro Plan - $9.99/month or $79/year (Save 34%)
-- **Resume Limit**: 50 resumes
-- **AI Actions**: 100 per month
-- **Templates**: All templates (free + pro)
-- **Export**: PDF + DOCX (no watermark)
+### 🏠 Base Plan - $4.99/month
+- **Resume Limit**: 5 total
+- **AI Actions**: 150 free tokens + token-based system
+- **Templates**: Free + Premium templates
+- **Export**: PDF only (no watermark)
 - **Features**: 
   - AI resume review
   - Resume feedback analysis (ATS score, grammar)
   - Priority support
-  - Custom branding
+  - Unlimited exports
+- **Trial**: 3-day free trial or 7-day paid trial
+
+### 💼 Pro Plan - $9.99/month
+- **Resume Limit**: 5 total
+- **AI Actions**: 300 free tokens + token-based system
+- **Templates**: Free + Premium templates
+- **Export**: PDF only (no watermark)
+- **Features**: 
+  - AI resume review
+  - Resume feedback analysis (ATS score, grammar)
+  - Priority support
   - Unlimited exports
   - Cloud resume history
-- **Trial**: 3-day free trial or $2.99 for 7-day trial
+- **Trial**: 3-day free trial or 7-day paid trial
 
 ## 🔧 Backend Implementation
 
 ### Updated Models
 
 #### `backend/models/Subscription.js`
-- **Plan Types**: `free`, `pro` (removed enterprise)
-- **Features Tracking**: AI actions, resume limits, export formats
-- **Trial Support**: Free and paid trial types
-- **Usage Tracking**: Monthly reset for AI actions and exports
+- **Plan Types**: `free`, `base`, `pro`
+- **Features Tracking**: AI actions, resume limits, export formats, token system
+- **Trial Support**: Free and paid trial types for Base and Pro plans
+- **Usage Tracking**: Monthly reset for AI actions and exports, token usage tracking
+- **Token System**: Free tokens included with Base (150) and Pro (300) plans
 - **Methods**: 
   - `canCreateResume()`
-  - `canUseAIAction()`
+  - `canUseAIAction()` (token-based)
   - `canAccessTemplate()`
   - `canExportFormat()`
   - `shouldAddWatermark()`

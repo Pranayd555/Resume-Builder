@@ -11,6 +11,7 @@ const Subscription = require('../models/Subscription');
 const { protect } = require('../middleware/auth');
 const logger = require('../utils/logger');
 const emailService = require('../utils/emailService');
+const { calculateTotalTokens } = require('../utils/tokenCalculator');
 
 const router = express.Router();
 
@@ -391,11 +392,42 @@ router.get('/email-status', protect, async (req, res) => {
 router.get('/me', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).populate('subscription');
+    let subscription = await Subscription.findOne({ user: req.user.id });
+
+    // Apply same subscription processing logic as /current endpoint
+    if (!subscription) {
+      // Create default free subscription
+      subscription = new Subscription({
+        user: req.user.id,
+        plan: 'free',
+        status: 'active'
+      });
+      await subscription.save();
+    } else {
+      // Check if trial has expired and update if necessary
+      if (subscription.status === 'trialing' && subscription.hasTrialExpired()) {
+        await subscription.expireTrial();
+        // Refresh the subscription data after expiration
+        subscription = await Subscription.findOne({ user: req.user.id });
+      }
+      
+      // Recalculate actual resume count since subscription started
+      await subscription.recalculateResumeCount();
+    }
+    
+    // Calculate total available tokens using utility function
+    const tokenData = await calculateTotalTokens(req.user.id);
     
     res.json({
       success: true,
       data: {
-        user
+        user: {
+          ...user.toObject(),
+          totalTokenBalance: tokenData.totalTokenBalance,
+          purchasedTokens: tokenData.purchasedTokens,
+          remainingFreeTokens: tokenData.remainingFreeTokens,
+          subscription
+        }
       }
     });
   } catch (error) {
