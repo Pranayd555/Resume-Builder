@@ -9,7 +9,7 @@ import { useTokenBalance } from '../hooks/useTokenBalance';
 import CKEditor from './CKEditor';
 import { ensureHtmlContent } from '../utils/htmlUtils';
 import AuthLoader from './AuthLoader';
-import AILoader from './AILoader';
+import AILoader from './annimations/AILoader';
 import CustomDatePicker from './DatePicker';
 import CustomDropdown from './CustomDropdown';
 

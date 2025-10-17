@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import { resumeAPI, analyticsAPI } from '../services/api';
 import TemplateStylingControls from './TemplateStylingControls';
 import PDFViewer from './PDFViewer';
-import ResumePreviewLoader from './ResumePreviewLoader';
+import ResumePreviewLoader from './annimations/ResumePreviewLoader';
 import { ArrowsRightLeftIcon, DocumentArrowDownIcon, DocumentTextIcon, PencilSquareIcon, PrinterIcon, ChartBarIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import ATSScoreModal from './ATSScoreModal';
 import ATSSummary from './ATSSummary';

@@ -64,6 +64,11 @@ const ColorCustomization = ({
         }
         
         toast.success(`${colorType.charAt(0).toUpperCase() + colorType.slice(1)} color updated!`);
+        
+        // Close the modal after successful color application
+        if (onClose) {
+          onClose();
+        }
       } else {
         throw new Error(response.error || 'Failed to update color');
       }

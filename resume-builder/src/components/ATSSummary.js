@@ -5,7 +5,7 @@ import { ChevronDownIcon, CheckCircleIcon, ExclamationTriangleIcon, LightBulbIco
 import { subscriptionAPI, apiHelpers } from '../services/api';
 import aiService from '../services/aiService';
 import { useTokenBalance } from '../hooks/useTokenBalance';
-import AILoader from './AILoader';
+import AILoader from './annimations/AILoader';
 
 const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, resume = null, resumeId = null }) => {
   const [isOpen, setIsOpen] = useState(false);

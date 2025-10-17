@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { ChartBarIcon, XMarkIcon, DocumentTextIcon, DocumentArrowDownIcon, XCircleIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import CKEditor from './CKEditor';
-import AILoader from './AILoader';
+import AILoader from './annimations/AILoader';
 import { subscriptionAPI, apiHelpers } from '../services/api';
 import aiService from '../services/aiService';
 import { useTokenBalance } from '../hooks/useTokenBalance';
