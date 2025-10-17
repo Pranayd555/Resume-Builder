@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import CKEditorComponent from './CKEditor';
 import AnimatedBackground from './AnimatedBackground';
+import AILoader from './annimations/AILoader';
+import ResumePreviewLoader from './annimations/ResumePreviewLoader';
 import api, { apiHelpers } from '../services/api';
 
 const CreateTemplate = () => {
@@ -70,6 +72,7 @@ const CreateTemplate = () => {
             <li>📚 <strong>Technical speaker</strong> at 3 major industry conferences</li>
           </ul>`);
 	const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+	const [isAILoading, setIsAILoading] = useState(false);
 
 	const handleGeneratePDF = async () => {
 		if (!templateContent || templateContent.trim() === '') {
@@ -107,6 +110,17 @@ const CreateTemplate = () => {
 		} finally {
 			setIsGeneratingPDF(false);
 		}
+	};
+
+	// Handle AI content changes
+	const handleAIContentChange = (newContent) => {
+		setTemplateContent(newContent);
+		setIsAILoading(false);
+	};
+
+	// Handle AI loading state
+	const handleAILoading = (loading) => {
+		setIsAILoading(loading);
 	};
 
 	// Back to dashboard function
@@ -147,6 +161,8 @@ const CreateTemplate = () => {
 						configType="pro"
 						showAIButton={true}
 						isProMode={true}
+						onAIContentChange={handleAIContentChange}
+						onAILoading={handleAILoading}
 					/>
 					</div>
 					
@@ -180,6 +196,27 @@ const CreateTemplate = () => {
 					</div>
 				</div>
 			</div>
+			
+			{/* AI Loader Modal */}
+			{isAILoading && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
+					<div className="bg-white dark:bg-orange-50/90 rounded-2xl shadow-2xl max-w-md w-full mx-4">
+						<AILoader 
+							title="AI is working on your template..."
+							subtitle="Our advanced AI is analyzing and enhancing your content to create the perfect resume template."
+							compact={false}
+						/>
+					</div>
+				</div>
+			)}
+			
+			{/* PDF Generation Loader */}
+			{isGeneratingPDF && (
+				<ResumePreviewLoader 
+					title="Generating Your PDF..."
+					subtitle="Our digital elves are crafting your professional resume document."
+				/>
+			)}
 		</div>
 	);
 };

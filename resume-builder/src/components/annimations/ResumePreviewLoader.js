@@ -1,7 +1,7 @@
 import React from 'react';
 import Lottie from "lottie-react";
-import manRobotWorkAnimation from '../assets/man_robot_work.json';
-import AnimatedBackground from './AnimatedBackground';
+import manRobotWorkAnimation from '../../assets/man_robot_work.json';
+import AnimatedBackground from '../AnimatedBackground';
 
 const ResumePreviewLoader = ({ 
   title = "Crafting Your Professional Story...", 

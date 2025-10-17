@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Lottie from "lottie-react";
-import craftingDocumentAnimation from '../assets/crafting_document.json';
+import craftingDocumentAnimation from '../../assets/crafting_document.json';
 
 const AILoader = ({ 
   title = "Analyzing your resume...", 
@@ -36,7 +36,7 @@ const AILoader = ({
   }, []);
 
   return (
-    <div className={`flex flex-col items-center justify-center text-center h-full w-full bg-white rounded-lg ${compact ? 'p-3' : 'p-4 sm:p-6'}`}>
+    <div className={`flex flex-col items-center justify-center text-center w-full ${compact ? 'p-3' : 'p-6 sm:p-8'}`}>
       {/* Lottie Animation */}
       <div className={`${compact ? 'mb-3 w-24 h-24' : 'mb-4 sm:mb-6 w-32 h-32 sm:w-40 sm:h-40'} flex items-center justify-center`}>
         <Lottie 

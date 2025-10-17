@@ -4,7 +4,7 @@ import { useTokenBalance } from '../hooks/useTokenBalance';
 import './AIButton.css';
 import { CurrencyDollarIcon } from '@heroicons/react/24/outline';
 
-const AIButton = ({ editorInstance, onContentChange, isProMode = false }) => {
+const AIButton = ({ editorInstance, onContentChange, isProMode = false, onAIContentChange = null, onAILoading = null }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const { tokenBalance, hasEnoughTokens, consumeTokens } = useTokenBalance();
@@ -33,8 +33,13 @@ const AIButton = ({ editorInstance, onContentChange, isProMode = false }) => {
       return;
     }
 
-    setIsLoading(true);
     setShowDropdown(false);
+    setIsLoading(true);
+    
+    // Notify parent component about AI loading state
+    if (onAILoading) {
+      onAILoading(true);
+    }
 
     try {
       let result;
@@ -76,6 +81,11 @@ const AIButton = ({ editorInstance, onContentChange, isProMode = false }) => {
       if (onContentChange) {
         onContentChange(processedText);
       }
+      
+      // Notify parent component about AI content change
+      if (onAIContentChange) {
+        onAIContentChange(processedText);
+      }
 
       showNotification('Content processed successfully!', 'success');
     } catch (error) {
@@ -85,6 +95,10 @@ const AIButton = ({ editorInstance, onContentChange, isProMode = false }) => {
       );
     } finally {
       setIsLoading(false);
+      // Notify parent component that AI loading is complete
+      if (onAILoading) {
+        onAILoading(false);
+      }
     }
   };
 

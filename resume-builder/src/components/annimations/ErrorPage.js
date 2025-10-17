@@ -1,9 +1,9 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Lottie from "lottie-react";
-import journey404Animation from '../assets/journey_404_animation.json';
+import journey404Animation from '../../assets/journey_404_animation.json';
 import { ArrowLeftIcon, HomeIcon } from '@heroicons/react/24/outline';
-import AnimatedBackground from './AnimatedBackground';
+import AnimatedBackground from '../AnimatedBackground';
 
 const ErrorPage = ({ 
   title = "Oops! Something went wrong",

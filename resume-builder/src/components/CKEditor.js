@@ -152,7 +152,9 @@ const CKEditorComponent = ({
   readOnly = false,
   configType = "base", // "base" or "pro"
   showAIButton = true, // Show AI button by default
-  isProMode = false // Pro mode for different AI button functionality
+  isProMode = false, // Pro mode for different AI button functionality
+  onAIContentChange = null, // Callback for AI content changes
+  onAILoading = null // Callback for AI loading state
 }) => {
   const [isLayoutReady, setIsLayoutReady] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -639,9 +641,11 @@ const CKEditorComponent = ({
         <div className="mt-2 ml-2" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
         <AIButton 
           editorInstance={editorInstance}
-            onContentChange={onChange}
-            isProMode={isProMode}
-          />
+          onContentChange={onChange}
+          isProMode={isProMode}
+          onAIContentChange={onAIContentChange}
+          onAILoading={onAILoading}
+        />
         <button
           onClick={() => {
             setShowTemplateDialog(true);

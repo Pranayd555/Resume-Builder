@@ -202,6 +202,11 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
     setPendingStyling(defaultValues);
     setStyling(defaultValues);
     setHasChanges(true);
+    
+    // Close the modal after reset
+    if (onClose) {
+      onClose();
+    }
   };
 
   const headerLevels = [

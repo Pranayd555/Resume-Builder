@@ -33,7 +33,7 @@ import ContactUs from './components/public/ContactUs';
 import ProtectedRoute, { UnauthorizedPage } from './components/ProtectedRoute';
 import AuthCallback from './components/AuthCallback';
 import ResumePreviewEnhanced from './components/ResumePreviewEnhanced';
-import ErrorPage from './components/ErrorPage';
+import ErrorPage from './components/annimations/ErrorPage';
 
 function AppContent() {
   const { isDarkMode } = useDarkMode();
