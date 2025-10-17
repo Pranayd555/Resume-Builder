@@ -470,7 +470,17 @@ const resumeSchema = new mongoose.Schema({
     default: false
   },
   
-
+  // Deletion Management
+  markedForDeletion: {
+    type: Boolean,
+    default: false
+  },
+  deletionDate: Date,
+  deletionReason: {
+    type: String,
+    enum: ['subscription_expired', 'user_request', 'admin_action'],
+    default: null
+  },
   
   // Analytics
   analytics: {

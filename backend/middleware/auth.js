@@ -164,19 +164,12 @@ const checkAIActionLimit = async (req, res, next) => {
       subscription = await Subscription.findOne({ user: req.user.id });
     }
 
-    if (!subscription.canUseAIAction()) {
-      const currentUsage = subscription.usage.aiActionsThisCycle || 0;
-      const limit = subscription.features?.aiActionsLimit || 200;
-      const planName = subscription.plan === 'free' ? 'Free' : 'Pro';
-      const cycleType = subscription.plan === 'free' ? 'month' : (subscription.billing?.cycle || 'month');
+    if (!(await subscription.canUseAIAction())) {
       return res.status(403).json({
         success: false,
-        error: `${cycleType.charAt(0).toUpperCase() + cycleType.slice(1)}ly AI action limit reached. You have used ${currentUsage}/${limit} AI actions this ${cycleType} on your ${planName} plan. Please upgrade to use more AI actions.`,
+        error: 'No tokens available. Please purchase more tokens to use AI features.',
         limitReached: true,
-        currentUsage,
-        limit,
-        plan: subscription.plan,
-        cycleType
+        plan: subscription.plan
       });
     }
 

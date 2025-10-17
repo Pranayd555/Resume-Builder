@@ -34,7 +34,6 @@ export const createSubscriptionModel = (data = {}) => ({
     aiReview: data.features?.aiReview || false,
     prioritySupport: data.features?.prioritySupport || false,
     customBranding: data.features?.customBranding || false,
-    watermark: data.features?.watermark || true,
     unlimitedExports: data.features?.unlimitedExports || false
   },
   usage: {

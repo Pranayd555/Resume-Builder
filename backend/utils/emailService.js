@@ -109,7 +109,7 @@ class EmailService {
   async sendEmail(to, subject, htmlContent, textContent = null) {
     if (!this.transporter) {
       logger.error('Email service not initialized');
-      throw new Error('Email service not available');
+      return { success: false, error: 'Email service not available' };
     }
 
     try {
@@ -126,10 +126,10 @@ class EmailService {
 
       const info = await this.transporter.sendMail(mailOptions);
       logger.info(`Email sent successfully to ${to}: ${info.messageId}`);
-      return info;
+      return { success: true, messageId: info.messageId, info };
     } catch (error) {
       logger.error(`Failed to send email to ${to}:`, error);
-      throw error;
+      return { success: false, error: error.message };
     }
   }
 
@@ -394,6 +394,93 @@ class EmailService {
     }
   }
 
+  async sendErrorNotification({ type, userEmail, userId, error, requestData, timestamp }) {
+    try {
+      // Check if email service is initialized
+      if (!this.transporter) {
+        logger.error('Email service not initialized - cannot send error notification');
+        return { success: false, error: 'Email service not initialized' };
+      }
+
+      const supportEmail = process.env.SUPPORT_EMAIL || process.env.EMAIL_USER;
+      const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
+      
+      // Validate email addresses
+      if (!adminEmail) {
+        logger.error('No admin email configured - cannot send error notification');
+        return { success: false, error: 'No admin email configured' };
+      }
+
+      logger.info(`Attempting to send error notification to: ${adminEmail}`);
+      
+      const errorDetails = {
+        type,
+        userEmail,
+        userId,
+        error: error.message || error,
+        requestData,
+        timestamp: timestamp || new Date(),
+        serverTime: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+      };
+
+      const htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #dc3545; border-bottom: 2px solid #dc3545; padding-bottom: 10px;">
+            🚨 Payment Processing Error
+          </h2>
+          
+          <div style="background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; padding: 15px; margin: 20px 0;">
+            <h3 style="color: #721c24; margin-top: 0;">Error Type: ${type}</h3>
+            <p style="color: #721c24; margin-bottom: 0;"><strong>Error Message:</strong> ${error}</p>
+          </div>
+          
+          <div style="background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin: 20px 0;">
+            <h3 style="color: #495057; margin-top: 0;">User Information</h3>
+            <p><strong>User Email:</strong> ${userEmail}</p>
+            <p><strong>User ID:</strong> ${userId}</p>
+            <p><strong>Timestamp:</strong> ${timestamp}</p>
+          </div>
+          
+          <div style="background-color: #e2e3e5; border: 1px solid #d6d8db; border-radius: 5px; padding: 15px; margin: 20px 0;">
+            <h3 style="color: #383d41; margin-top: 0;">Request Data</h3>
+            <pre style="background-color: #ffffff; padding: 10px; border-radius: 3px; overflow-x: auto; font-size: 12px;">${JSON.stringify(requestData, null, 2)}</pre>
+          </div>
+          
+          <div style="background-color: #d1ecf1; border: 1px solid #bee5eb; border-radius: 5px; padding: 15px; margin: 20px 0;">
+            <h3 style="color: #0c5460; margin-top: 0;">Action Required</h3>
+            <p style="color: #0c5460; margin-bottom: 0;">
+              Please manually verify the payment and add tokens to the user account if payment was successful.
+            </p>
+          </div>
+          
+          <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6;">
+            <p style="color: #6c757d; font-size: 12px;">
+              This is an automated error notification from Resume Builder System
+            </p>
+          </div>
+        </div>
+      `;
+
+      const emailResult = await this.sendEmail(
+        adminEmail,
+        `🚨 Payment Error: ${type} - ${userEmail}`,
+        htmlContent
+      );
+      
+      if (emailResult.success) {
+        logger.info(`Error notification sent successfully to admin for ${type} - User: ${userEmail}`);
+        return { success: true, message: 'Error notification sent successfully' };
+      } else {
+        logger.error(`Failed to send error notification: ${emailResult.error}`);
+        return { success: false, error: emailResult.error };
+      }
+    } catch (emailError) {
+      logger.error(`Failed to send error notification email:`, emailError);
+      return { success: false, error: emailError.message };
+    }
+  }
+
   stripHtml(html) {
     return html.replace(/<[^>]*>?/gm, '');
   }
@@ -409,6 +496,49 @@ class EmailService {
       return { success: true, message: 'Email service is working' };
     } catch (error) {
       return { success: false, message: error.message };
+    }
+  }
+
+  // Send resume deletion notification
+  async sendResumeDeletionNotification({ userEmail, userName, deletedResumes, totalDeleted }) {
+    try {
+      const upgradeUrl = `${process.env.CLIENT_URL}/subscription`;
+      const htmlContent = await this.loadTemplate('resume-deletion-notification', {
+        userName,
+        totalDeleted,
+        deletedResumes,
+        upgradeUrl
+      });
+
+      const textContent = `
+Hello ${userName},
+
+We're writing to inform you that ${totalDeleted} resume(s) have been automatically deleted from your account due to subscription expiration.
+
+Your subscription has expired, and you're now on the free plan which allows only 2 resumes. We kept your most important resumes and removed the excess ones after a 2-day grace period.
+
+Deleted Resumes:
+${deletedResumes.map(r => `- ${r.title} (${r.status})`).join('\n')}
+
+Want to restore your resumes? Simply upgrade your subscription and we'll restore all your deleted resumes automatically!
+
+Upgrade now: ${upgradeUrl}
+
+If you have any questions or need assistance, please don't hesitate to contact our support team.
+
+Best regards,
+Resume Builder Team
+      `;
+
+      return await this.sendEmail(
+        userEmail,
+        'Resume Deletion Notification - Action Required',
+        htmlContent,
+        textContent
+      );
+    } catch (error) {
+      logger.error('Failed to send resume deletion notification:', error);
+      return { success: false, error: error.message };
     }
   }
 }

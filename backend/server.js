@@ -23,6 +23,7 @@ const contactRoutes = require('./routes/contact');
 const analyticsRoutes = require('./routes/analytics');
 const aiRoutes = require('./routes/ai');
 const createTemplateRoutes = require('./routes/createTemplate');
+const paymentRoutes = require('./routes/payment');
 
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./utils/logger');
@@ -275,6 +276,7 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/createTemplate', createTemplateRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

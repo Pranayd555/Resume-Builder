@@ -1090,19 +1090,6 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
                 margin-bottom: 0 !important;
                 padding-bottom: 0 !important;
               }
-              
-              /* Also remove bottom spacing from last items within sections */
-              .resume .job-item:last-child,
-              .resume .edu-item:last-child,
-              .resume .project-item:last-child,
-              .resume .cert-item:last-child,
-              .resume .achievement-item:last-child,
-              .resume .skill-category:last-child,
-              .resume .language-item:last-child,
-              .resume .custom-field:last-child {
-                margin-bottom: 0 !important;
-                padding-bottom: 0 !important;
-              }
           </style>
       </head>
       <body>

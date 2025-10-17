@@ -3,20 +3,30 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { subscriptionAPI } from '../services/api';
 import AuthLoader from './AuthLoader';
 import { toast } from 'react-toastify';
+import { 
+  CreditCardIcon, 
+  CheckIcon,
+  SparklesIcon,
+  StarIcon,
+  BoltIcon,
+  ShieldCheckIcon
+} from '@heroicons/react/24/outline';
+import api, { apiHelpers } from '../services/api';
 
 function Subscription() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  // Always use monthly billing
-  const billingCycle = 'monthly';
   const [currentSubscription, setCurrentSubscription] = useState(null);
+  const [subscriptionPlans, setSubscriptionPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [trialLoading, setTrialLoading] = useState(false);
   const [successLoading, setSuccessLoading] = useState(false);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   
   // Use a single ref to track initialization
   const hasInitialized = useRef(false);
+
 
   // Single initialization effect
   useEffect(() => {
@@ -28,6 +38,54 @@ function Subscription() {
 
     const initializeComponent = async () => {
       try {
+        // Load Razorpay script
+        const loadRazorpay = () => {
+          if (window.Razorpay) {
+            setRazorpayLoaded(true);
+            return;
+          }
+
+          // Check if script is already being loaded
+          const existingScript = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+          if (existingScript) {
+            // Script is already being loaded, wait for it
+            existingScript.onload = () => setRazorpayLoaded(true);
+            return;
+          }
+
+          const script = document.createElement('script');
+          script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+          script.onload = () => {
+            setRazorpayLoaded(true);
+            console.log('Razorpay script loaded successfully');
+          };
+          script.onerror = () => {
+            console.error('Failed to load Razorpay script');
+            toast.error('Failed to load payment gateway. Please refresh the page and try again.');
+          };
+          document.body.appendChild(script);
+        };
+
+        loadRazorpay();
+
+        // Fetch subscription plans
+        const plansResponse = await subscriptionAPI.getPlans();
+        if (plansResponse.success) {
+          // Transform backend plans to frontend format
+          const transformedPlans = plansResponse.data.plans.map(plan => ({
+            id: plan.id,
+            name: plan.name,
+            price: plan.price.monthly, // Convert to cents
+            originalPrice: Math.round(plan.price.monthly * 1.3), // Add 30% markup for original price
+            tokens: plan.limits.freeTokens,
+            features: plan.features,
+            popular: plan.popular,
+            color: plan.id === 'free' ? 'gray' : plan.id === 'base' ? 'blue' : 'purple',
+            trial: plan.trial
+          }));
+          setSubscriptionPlans(transformedPlans);
+        }
+
         // Fetch subscription
         const subscriptionResponse = await subscriptionAPI.getCurrentSubscription();
 
@@ -59,6 +117,10 @@ function Subscription() {
         .then(response => {
           if (response.success) {
             setCurrentSubscription(response.data.subscription);
+            
+            // Update user data in localStorage with subscription details
+            apiHelpers.updateUserData(response.data.subscription);
+            
             toast.success('Subscription activated successfully! Welcome to Pro!');
             navigate('/dashboard');
           }
@@ -75,18 +137,17 @@ function Subscription() {
 
 
 
-  const handlePlanSelect = (plan) => {
-    setSelectedPlan(plan);
-  };
 
   const handleStartTrial = async (trialType) => {
-    if (!selectedPlan || selectedPlan.id === 'free') return;
-    
     setTrialLoading(true);
     try {
       const response = await subscriptionAPI.startTrial(trialType);
       if (response.success) {
         setCurrentSubscription(response.data.subscription);
+        
+        // Update user data in localStorage with subscription details
+        apiHelpers.updateUserData(response.data.subscription);
+        
         toast.success(`Trial started! You have ${trialType === 'free' ? '3' : '7'} days to try Pro features.`);
         navigate('/dashboard');
       }
@@ -99,17 +160,148 @@ function Subscription() {
     }
   };
 
-  const handleSubscribe = async () => {
-    if (!selectedPlan || selectedPlan.id === 'free') return;
-    
-    try {
-      const response = await subscriptionAPI.createCheckoutSession(selectedPlan.id, billingCycle);
-      if (response.success) {
-        window.location.href = response.data.url;
+  const handleSubscribe = async (plan) => {
+    await initiatePayment({
+      type: 'subscription',
+      amount: plan.price,
+      planId: plan.id,
+      description: `${plan.name} - ${plan.tokens} AI Tokens`
+    });
+  };
+
+  const initiatePayment = async (paymentData) => {
+    if (!razorpayLoaded || !window.Razorpay) {
+      toast.info('Loading payment gateway, please wait...');
+      // Try to reload the script if it's not loaded
+      if (!window.Razorpay) {
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.onload = () => {
+          setRazorpayLoaded(true);
+          toast.success('Payment gateway ready!');
+          // Retry payment after script loads
+          setTimeout(() => initiatePayment(paymentData), 1000);
+        };
+        script.onerror = () => {
+          toast.error('Failed to load payment gateway. Please refresh the page and try again.');
+        };
+        document.body.appendChild(script);
       }
+      return;
+    }
+
+    setPaymentLoading(true);
+    try {
+      // Create order on backend
+      const response = await api.post('/payment/create-order', {
+        amount: paymentData.amount,
+        currency: 'INR',
+        receipt: `${paymentData.type}_${Date.now()}`,
+        metadata: {
+          type: paymentData.type,
+          tokens: paymentData.tokens,
+          planId: paymentData.planId
+        }
+      });
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to create order');
+      }
+
+      const order = response.data.order;
+
+      // Get user data from localStorage
+      const userData = apiHelpers.getCurrentUserData();
+
+      // Configure Razorpay options
+      const options = {
+        key: process.env.REACT_APP_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: order.currency,
+        name: 'Resume Builder Pro',
+        description: paymentData.description,
+        order_id: order.id,
+        mode: process.env.NODE_ENV === 'production' ? 'live' : 'test',
+        handler: async (response) => {
+          try {
+            console.log('Razorpay payment response:', response);
+            
+            // Complete payment and activate subscription in one call
+            const completeResponse = await api.post('/payment/complete-payment', {
+              order_id: response.razorpay_order_id,
+              payment_id: response.razorpay_payment_id,
+              signature: response.razorpay_signature,
+              plan: paymentData.planId,
+              amount: paymentData.amount,
+              currency: 'INR',
+              payment_method: 'razorpay',
+              email: userData?.email || 'user@example.com',
+              contact: userData?.phone || userData?.contact || '+919876543210'
+            });
+
+            if (completeResponse.data.success) {
+              toast.success('Payment successful!');
+              toast.success('Subscription activated successfully!');
+              
+              // Update token balance with total available tokens
+              if (completeResponse.data.data?.tokens?.totalAvailable !== undefined) {
+                apiHelpers.updateTokenBalance(completeResponse.data.data.tokens.totalAvailable);
+              } else if (completeResponse.data.data?.totalTokenBalance !== undefined) {
+                // Fallback to old structure
+                apiHelpers.updateTokenBalance(completeResponse.data.data.totalTokenBalance);
+              } else {
+                // Final fallback: fetch latest token balance from API
+                try {
+                  const { analyticsAPI } = await import('../services/api');
+                  const tokenResponse = await analyticsAPI.getTokenBalance();
+                  if (tokenResponse.success && tokenResponse.data?.balance !== undefined) {
+                    apiHelpers.updateTokenBalance(tokenResponse.data.balance);
+                  }
+                } catch (error) {
+                  console.error('Failed to fetch updated token balance:', error);
+                }
+              }
+              
+              // Refresh subscription data
+              const subscriptionResponse = await subscriptionAPI.getCurrentSubscription();
+              if (subscriptionResponse.success) {
+                setCurrentSubscription(subscriptionResponse.data.subscription);
+                
+                // Update user data in localStorage with subscription details
+                apiHelpers.updateUserData(subscriptionResponse.data.subscription);
+              }
+              
+              navigate('/dashboard');
+            } else {
+              throw new Error(completeResponse.data.message || 'Payment completion failed');
+            }
+          } catch (error) {
+            console.error('Payment completion error:', error);
+            toast.error(error.response?.data?.message || 'Payment completion failed');
+          }
+        },
+        prefill: {
+          name: userData?.name || 'User Name',
+          email: userData?.email || 'user@example.com',
+        },
+        theme: {
+          color: '#3B82F6'
+        },
+        modal: {
+          ondismiss: () => {
+            setPaymentLoading(false);
+            toast.info('Payment cancelled');
+          }
+        }
+      };
+
+      // Open Razorpay modal
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
     } catch (error) {
-      console.error('Error creating checkout session:', error);
-      toast.error('Error creating checkout session. Please try again.');
+      console.error('Payment initiation error:', error);
+      toast.error(error.message || 'Failed to initiate payment');
+      setPaymentLoading(false);
     }
   };
 
@@ -125,24 +317,13 @@ function Subscription() {
   };
 
   const canStartTrial = (plan) => {
-    return plan.id === 'pro' && 
+    return plan.id === 'base' && 
            currentSubscription?.plan === 'free' && 
            currentSubscription?.status !== 'trialing' &&
            !currentSubscription?.hasHadTrial;
   };
 
 
-  // Define features for comparison table
-  const features = [
-    { name: 'Resume Creation', free: '2 total', pro: '5 total' },
-    { name: 'Template Access', free: 'Free templates only', pro: 'All templates' },
-    { name: 'AI Actions', free: '200 per month', pro: '200 per month' },
-    { name: 'Export Formats', free: 'PDF only', pro: 'PDF + DOCX' },
-    { name: 'Resume Feedback', free: 'Basic', pro: 'ATS score + grammar analysis' },
-    { name: 'Cloud Storage', free: 'No', pro: 'Unlimited cloud history' },
-    { name: 'Support', free: 'Email support', pro: 'Priority support' },
-    { name: 'Exports', free: 'Unlimited', pro: 'Unlimited exports' }
-  ];
 
   if (loading || successLoading) {
     return (
@@ -207,8 +388,14 @@ function Subscription() {
                     </div>
                   </div>
                 </div>
-                                 <div className="flex flex-col sm:flex-row gap-3">
-                   <div className="flex flex-col sm:flex-row gap-3">
+                   <div className="flex flex-col sm:flex-row gap-1">
+                    
+                   <button
+                      onClick={() => navigate('/payment')}
+                      className="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg font-medium hover:from-orange-600 hover:to-red-600 transition-all duration-200 text-sm sm:text-base shadow-md hover:shadow-lg"
+                    >
+                      Buy Tokens
+                    </button>
                      {(currentSubscription.status === 'trialing' || currentSubscription.plan === 'free') && (
                        <button
                          onClick={handleSubscribe}
@@ -224,194 +411,129 @@ function Subscription() {
                        Analytics
                      </button>
                    </div>
-                 </div>
               </div>
             </div>
-
           </div>
         )}
 
-
-                          {/* Pricing Table */}
-         <div className="max-w-4xl mx-auto mb-12">
-           {/* Desktop Table */}
-           <div className="hidden lg:block bg-white/80 dark:bg-orange-50/95 backdrop-blur-sm rounded-xl shadow-xl border border-gray-200 dark:border-orange-200/30 overflow-visible">
-             {/* Table Header */}
-             <div className="grid grid-cols-3 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-50/50 dark:to-blue-50/50 relative rounded-t-xl pt-8">
-               <div className="p-6 border-r border-gray-200">
-                 <h3 className="text-lg font-semibold text-gray-900">Features</h3>
-               </div>
-               <div className="p-6 border-r border-gray-200 text-center">
-                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Free</h3>
-                 <div className="text-3xl font-bold text-gray-900 mb-1">$0</div>
-                 <p className="text-sm text-gray-600">Forever free</p>
-               </div>
-               <div className="p-6 text-center relative">
-                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                   <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg border-2 border-white">
-                     Most Popular
-                   </span>
-                 </div>
-                 <div className="pt-2">
-                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Pro</h3>
-                   <div className="text-3xl font-bold text-gray-900 mb-1">
-                     $9.99
-                   </div>
-                   <p className="text-sm text-gray-600">
-                     /month
-                   </p>
-                 </div>
-               </div>
+        {/* Subscription Plans Cards */}
+        <div className="max-w-6xl mx-auto mb-12">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+              Choose Your Subscription
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300 text-lg pb-4">
+              Get unlimited access to all features with our subscription plans.
+            </p>
              </div>
 
-             {/* Table Body */}
-             <div className="divide-y divide-gray-200">
-               {features.map((feature, index) => (
-                 <div key={index} className="grid grid-cols-3">
-                   <div className="p-6 border-r border-gray-200 flex items-center">
-                     <span className="text-gray-900 font-medium">{feature.name}</span>
-                   </div>
-                   <div className="p-6 border-r border-gray-200 flex items-center justify-center">
-                     <span className="text-gray-600 text-sm">{feature.free}</span>
-                   </div>
-                   <div className="p-6 flex items-center justify-center">
-                     <span className="text-gray-900 font-medium text-sm">{feature.pro}</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {subscriptionPlans.map((plan) => (
+              <div
+                key={plan.id}
+                className={`relative bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border-2 ${
+                  plan.popular
+                    ? 'border-purple-500 ring-2 ring-purple-200 scale-105'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'
+                }`}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                    <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1">
+                      <StarIcon className="w-4 h-4" />
+                      Most Popular
                    </div>
                  </div>
-               ))}
-             </div>
+                )}
 
-             {/* Table Footer - Action Buttons */}
-             <div className="grid grid-cols-3 bg-gray-50 dark:bg-gray-50/50 border-t border-gray-200 dark:border-gray-200/50 rounded-b-xl">
-               <div className="p-6 border-r border-gray-200"></div>
-               <div className="p-6 border-r border-gray-200 text-center">
-                 {isCurrentPlan({ id: 'free' }) ? (
-                   <button className="w-full py-3 px-6 bg-gray-100 text-gray-700 rounded-lg font-medium cursor-not-allowed">
-                     Current Plan
-                   </button>
-                 ) : (
-                   <button className="w-full py-3 px-6 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all duration-200">
-                     Current Plan
-                   </button>
+                <div className="text-center mb-6">
+                  <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                    plan.color === 'gray' ? 'bg-gray-100' :
+                    plan.color === 'blue' ? 'bg-blue-100' :
+                    'bg-purple-100'
+                  }`}>
+                    {plan.color === 'gray' && <ShieldCheckIcon className="w-10 h-10 text-gray-600" />}
+                    {plan.color === 'blue' && <BoltIcon className="w-10 h-10 text-blue-600" />}
+                    {plan.color === 'purple' && <SparklesIcon className="w-10 h-10 text-purple-600" />}
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    {plan.name}
+                  </h3>
+                  <div className="flex items-center justify-center gap-2 mb-4">
+                    <span className="text-4xl font-bold text-gray-900 dark:text-white">
+                      ₹{plan.price}
+                    </span>
+                    {plan.originalPrice > 0 && (
+                      <span className="text-lg text-gray-500 line-through">
+                        ₹{plan.originalPrice}
+                      </span>
                  )}
                </div>
-               <div className="p-6 text-center space-y-3">
-                 {isCurrentPlan({ id: 'pro' }) ? (
-                   <button className="w-full py-3 px-6 bg-gray-100 text-gray-700 rounded-lg font-medium cursor-not-allowed">
-                     Current Plan
-                   </button>
-                 ) : (
-                   <>
-                     <button
-                       onClick={() => handlePlanSelect({ id: 'pro' })}
-                       className="w-full py-3 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
-                     >
-                       Select Plan
-                     </button>
-                     {canStartTrial({ id: 'pro' }) && (
-                       <button
-                         onClick={() => handleStartTrial('free')}
-                         disabled={trialLoading}
-                         className="w-full py-2 px-4 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-all duration-200 disabled:opacity-50"
-                       >
-                         {trialLoading ? 'Starting...' : 'Start Free Trial'}
-                       </button>
-                     )}
-                     {currentSubscription?.hasHadTrial && (
-                       <div className="text-center py-2 px-3 bg-amber-50 border border-amber-200 rounded-lg">
-                         <p className="text-amber-800 text-xs font-medium">
-                           ⏰ Trial used. Upgrade to continue.
-                         </p>
+                  {plan.tokens > 0 && (
+                    <div className="text-gray-600 dark:text-gray-300 mb-6">
+                      {plan.tokens} AI Tokens included
                        </div>
                      )}
-                   </>
-                 )}
-               </div>
-             </div>
            </div>
 
-                        {/* Mobile Cards */}
-             <div className="lg:hidden space-y-6 mt-4">
-               {/* Free Plan Card */}
-               <div className="bg-white/80 dark:bg-orange-50/95 backdrop-blur-sm rounded-xl shadow-xl border border-gray-200 dark:border-orange-200/30 p-6">
-               <div className="text-center mb-6">
-                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Free</h3>
-                 <div className="text-4xl font-bold text-gray-900 mb-1">$0</div>
-                 <p className="text-sm text-gray-600">Forever free</p>
-               </div>
-               
-               <div className="space-y-4 mb-6">
-                 {features.map((feature, index) => (
-                   <div key={index} className="flex items-center justify-between">
-                     <span className="text-gray-900 font-medium text-sm">{feature.name}</span>
-                     <span className="text-gray-600 text-sm">{feature.free}</span>
+                <div className="space-y-3 mb-8">
+                  {plan.features.map((feature, index) => (
+                    <div key={index} className="flex items-center gap-3">
+                      <CheckIcon className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <span className="text-gray-700 dark:text-gray-300">{feature}</span>
                    </div>
                  ))}
                </div>
                
-               <div className="text-center">
-                 {isCurrentPlan({ id: 'free' }) ? (
-                   <button className="w-full py-3 px-6 bg-gray-100 text-gray-700 rounded-lg font-medium cursor-not-allowed">
+                <div className="space-y-3">
+                  {isCurrentPlan(plan) ? (
+                    <button className="w-full py-4 rounded-xl font-semibold text-lg bg-gray-100 text-gray-700 cursor-not-allowed">
                      Current Plan
                    </button>
                  ) : (
-                   <button className="w-full py-3 px-6 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all duration-200">
-                     Current Plan
-                   </button>
-                 )}
-               </div>
-             </div>
-
-             {/* Pro Plan Card */}
-             <div className="bg-white/80 dark:bg-orange-50/95 backdrop-blur-sm rounded-xl shadow-xl border border-gray-200 dark:border-orange-200/30 p-6 relative">
-               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                 <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg border-2 border-white">
-                   Most Popular
-                 </span>
-               </div>
-               
-               <div className="text-center mb-6 pt-2">
-                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Pro</h3>
-                 <div className="text-4xl font-bold text-gray-900 mb-1">
-                   $9.99
-                 </div>
-                 <p className="text-sm text-gray-600">
-                   /month
-                 </p>
-               </div>
-               
-               <div className="space-y-4 mb-6">
-                 {features.map((feature, index) => (
-                   <div key={index} className="flex items-center justify-between">
-                     <span className="text-gray-900 font-medium text-sm">{feature.name}</span>
-                     <span className="text-gray-900 font-medium text-sm">{feature.pro}</span>
-                   </div>
-                 ))}
-               </div>
-               
-               <div className="text-center space-y-3">
-                 {isCurrentPlan({ id: 'pro' }) ? (
-                   <button className="w-full py-3 px-6 bg-gray-100 text-gray-700 rounded-lg font-medium cursor-not-allowed">
-                     Current Plan
+                    <>
+                      {plan.id === 'free' ? (
+                        <button className="w-full py-4 rounded-xl font-semibold text-lg bg-gray-100 text-gray-700 cursor-not-allowed">
+                     Free Plan
                    </button>
                  ) : (
-                   <>
                      <button
-                       onClick={() => handlePlanSelect({ id: 'pro' })}
-                       className="w-full py-3 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
-                     >
-                       Select Plan
+                          onClick={() => handleSubscribe(plan)}
+                          disabled={paymentLoading || !razorpayLoaded || currentSubscription?.plan === 'pro'}
+                          className={`w-full py-4 rounded-xl font-semibold text-lg transition-all duration-200 ${
+                            plan.popular
+                              ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg hover:shadow-xl'
+                              : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl'
+                          } flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed`}
+                        >
+                          {paymentLoading ? (
+                            <>
+                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                              Processing...
+                            </>
+                          ) : !razorpayLoaded ? (
+                            <>
+                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                              Loading...
+                            </>
+                          ) : (
+                            <>
+                              <CreditCardIcon className="w-5 h-5" />
+                              Subscribe Now
+                            </>
+                          )}
                      </button>
-                     {canStartTrial({ id: 'pro' }) && (
+                      )}
+                      {canStartTrial(plan) && (
                        <button
                          onClick={() => handleStartTrial('free')}
                          disabled={trialLoading}
-                         className="w-full py-2 px-4 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-all duration-200 disabled:opacity-50"
+                         className="w-full py-2 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg font-medium hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 disabled:opacity-50 shadow-md hover:shadow-lg"
                        >
                          {trialLoading ? 'Starting...' : 'Start Free Trial'}
                        </button>
                      )}
-                     {currentSubscription?.hasHadTrial && (
+                      {(currentSubscription?.hasHadTrial && plan.id === 'base' && currentSubscription?.plan !== 'pro') && (
                        <div className="text-center py-2 px-3 bg-amber-50 border border-amber-200 rounded-lg">
                          <p className="text-amber-800 text-xs font-medium">
                            ⏰ Trial used. Upgrade to continue.
@@ -422,6 +544,7 @@ function Subscription() {
                  )}
                </div>
              </div>
+            ))}
            </div>
          </div>
 

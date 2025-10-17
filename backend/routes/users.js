@@ -14,7 +14,28 @@ const router = express.Router();
 router.get('/profile', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    const subscription = await Subscription.findOne({ user: req.user.id });
+    let subscription = await Subscription.findOne({ user: req.user.id });
+
+    // Apply same subscription processing logic as /current endpoint
+    if (!subscription) {
+      // Create default free subscription
+      subscription = new Subscription({
+        user: req.user.id,
+        plan: 'free',
+        status: 'active'
+      });
+      await subscription.save();
+    } else {
+      // Check if trial has expired and update if necessary
+      if (subscription.status === 'trialing' && subscription.hasTrialExpired()) {
+        await subscription.expireTrial();
+        // Refresh the subscription data after expiration
+        subscription = await Subscription.findOne({ user: req.user.id });
+      }
+      
+      // Recalculate actual resume count since subscription started
+      await subscription.recalculateResumeCount();
+    }
     
     res.json({
       success: true,
@@ -90,7 +111,28 @@ router.put('/profile', [
 router.get('/dashboard', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    const subscription = await Subscription.findOne({ user: req.user.id });
+    let subscription = await Subscription.findOne({ user: req.user.id });
+
+    // Apply same subscription processing logic as /current endpoint
+    if (!subscription) {
+      // Create default free subscription
+      subscription = new Subscription({
+        user: req.user.id,
+        plan: 'free',
+        status: 'active'
+      });
+      await subscription.save();
+    } else {
+      // Check if trial has expired and update if necessary
+      if (subscription.status === 'trialing' && subscription.hasTrialExpired()) {
+        await subscription.expireTrial();
+        // Refresh the subscription data after expiration
+        subscription = await Subscription.findOne({ user: req.user.id });
+      }
+      
+      // Recalculate actual resume count since subscription started
+      await subscription.recalculateResumeCount();
+    }
     
     const resumeCount = await Resume.countDocuments({ user: req.user.id });
     const publishedResumeCount = await Resume.countDocuments({ 
@@ -420,6 +462,144 @@ router.put('/:id/status', [
     res.status(500).json({
       success: false,
       error: 'Server error'
+    });
+  }
+});
+
+// @desc    Add tokens to user account
+// @route   POST /api/users/add-tokens
+// @access  Private
+router.post('/add-tokens', protect, async (req, res) => {
+  try {
+    const { tokens, paymentId, orderId, amount, plan, source } = req.body;
+
+    // Validate required fields
+    if (!tokens || tokens <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Valid token amount is required'
+      });
+    }
+
+    if (!paymentId || !orderId || !amount) {
+      return res.status(400).json({
+        success: false,
+        error: 'Payment details are required'
+      });
+    }
+
+    // Find user
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    // Add tokens to user account
+    const previousTokens = user.tokens || 0;
+    user.tokens = (user.tokens || 0) + tokens;
+    await user.save();
+
+    // Log the transaction
+    logger.info(`Added ${tokens} tokens to user ${user.email}. Previous: ${previousTokens}, New total: ${user.tokens}`);
+
+    res.json({
+      success: true,
+      data: {
+        message: `Successfully added ${tokens} tokens`,
+        tokens: {
+          added: tokens,
+          previous: previousTokens,
+          current: user.tokens
+        },
+        payment: {
+          paymentId,
+          orderId,
+          amount,
+          plan: plan || 'token_purchase',
+          source: source || 'direct_purchase'
+        }
+      }
+    });
+
+  } catch (error) {
+    logger.error('Add tokens error:', error);
+    
+    // Send error notification email
+    try {
+      const emailService = require('../utils/emailService');
+      const emailResult = await emailService.sendErrorNotification({
+        type: 'TOKEN_ADDITION_FAILED',
+        userEmail: req.user.email,
+        userId: req.user.id,
+        error: error.message,
+        requestData: {
+          tokens: req.body.tokens,
+          paymentId: req.body.paymentId,
+          orderId: req.body.orderId,
+          amount: req.body.amount,
+          plan: req.body.plan
+        },
+        timestamp: new Date()
+      });
+      
+      if (emailResult.success) {
+        logger.info('Error notification email sent successfully');
+      } else {
+        logger.error('Failed to send error notification email:', emailResult.error);
+      }
+    } catch (emailError) {
+      logger.error('Failed to send error notification email:', emailError);
+    }
+
+    res.status(500).json({
+      success: false,
+      error: 'Failed to add tokens. Support has been notified.'
+    });
+  }
+});
+
+// @desc    Test error notification email
+// @route   POST /api/users/test-error-email
+// @access  Private
+router.post('/test-error-email', protect, async (req, res) => {
+  try {
+    const emailService = require('../utils/emailService');
+    
+    const result = await emailService.sendErrorNotification({
+      type: 'TEST_ERROR_NOTIFICATION',
+      userEmail: req.user.email,
+      userId: req.user.id,
+      error: 'This is a test error notification',
+      requestData: {
+        test: true,
+        timestamp: new Date(),
+        userAgent: req.headers['user-agent']
+      },
+      timestamp: new Date()
+    });
+
+    if (result.success) {
+      res.json({
+        success: true,
+        message: 'Test error notification sent successfully',
+        result
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to send test error notification',
+        error: result.error
+      });
+    }
+  } catch (error) {
+    logger.error('Test error notification failed:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Test error notification failed',
+      error: error.message
     });
   }
 });

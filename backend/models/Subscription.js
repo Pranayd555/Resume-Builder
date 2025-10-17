@@ -12,7 +12,7 @@ const subscriptionSchema = new mongoose.Schema({
   // Subscription Details
   plan: {
     type: String,
-    enum: ['free', 'pro'],
+    enum: ['free', 'base', 'pro'],
     required: [true, 'Subscription plan is required'],
     default: 'free'
   },
@@ -87,6 +87,14 @@ const subscriptionSchema = new mongoose.Schema({
   
   // Payment Integration - Removed Stripe integration
   
+  // Subscription Expiration Data
+  expiredResumeData: {
+    keptResumes: [mongoose.Schema.Types.ObjectId],
+    markedForDeletion: [mongoose.Schema.Types.ObjectId],
+    deletionDate: Date,
+    originalCount: Number
+  },
+  
   // Features and Limits
   features: {
     resumeLimit: {
@@ -94,6 +102,7 @@ const subscriptionSchema = new mongoose.Schema({
       default: function() {
         const limits = {
           free: 2,
+          base: 5,
           pro: 5
         };
         return limits[this.plan] || 2;
@@ -104,7 +113,8 @@ const subscriptionSchema = new mongoose.Schema({
       default: function() {
         const access = {
           free: ['free'],
-          pro: ['free', 'pro']
+          base: ['free', 'premium'],
+          pro: ['free', 'premium']
         };
         return access[this.plan] || ['free'];
       }
@@ -114,31 +124,44 @@ const subscriptionSchema = new mongoose.Schema({
       default: function() {
         const formats = {
           free: ['pdf'],
-          pro: ['pdf', 'docx']
+          base: ['pdf'],
+          pro: ['pdf']
         };
         return formats[this.plan] || ['pdf'];
       }
     },
     aiActionsLimit: {
-      type: Number,
+      type: String,
       default: function() {
         const limits = {
-          free: 10,
-          pro: 200
+          free: 'token-based',
+          base: 'token-based',
+          pro: 'token-based'
         };
-        return limits[this.plan] || 10;
+        return limits[this.plan] || 'token-based';
+      }
+    },
+    freeTokens: {
+      type: Number,
+      default: function() {
+        const tokens = {
+          free: 0,
+          base: 150,
+          pro: 300
+        };
+        return tokens[this.plan] || 0;
       }
     },
     aiReview: {
       type: Boolean,
       default: function() {
-        return this.plan === 'pro';
+        return this.plan === 'base' || this.plan === 'pro';
       }
     },
     prioritySupport: {
       type: Boolean,
       default: function() {
-        return this.plan === 'pro';
+        return this.plan === 'base' || this.plan === 'pro';
       }
     },
     customBranding: {
@@ -147,16 +170,10 @@ const subscriptionSchema = new mongoose.Schema({
         return this.plan === 'pro';
       }
     },
-    watermark: {
-      type: Boolean,
-      default: function() {
-        return this.plan === 'free';
-      }
-    },
     unlimitedExports: {
       type: Boolean,
       default: function() {
-        return this.plan === 'pro';
+        return this.plan === 'base' || this.plan === 'pro';
       }
     }
   },
@@ -168,6 +185,10 @@ const subscriptionSchema = new mongoose.Schema({
       default: 0
     },
     aiActionsThisCycle: {
+      type: Number,
+      default: 0
+    },
+    freeTokensUsed: {
       type: Number,
       default: 0
     },
@@ -190,7 +211,7 @@ const subscriptionSchema = new mongoose.Schema({
     currency: {
       type: String,
       required: true,
-      default: 'USD'
+      default: 'INR'
     },
     status: {
       type: String,
@@ -310,7 +331,7 @@ subscriptionSchema.index({ 'billing.nextBillingDate': 1 });
 
 // Method to check if trial is still active
 subscriptionSchema.methods.isTrialActive = function() {
-  if (this.status !== 'trialing' || this.plan !== 'pro') {
+  if (this.status !== 'trialing' || (this.plan !== 'base' && this.plan !== 'pro')) {
     return false;
   }
   
@@ -326,7 +347,7 @@ subscriptionSchema.methods.isTrialActive = function() {
 
 // Method to check if trial has expired
 subscriptionSchema.methods.hasTrialExpired = function() {
-  if (this.status !== 'trialing' || this.plan !== 'pro') {
+  if (this.status !== 'trialing' || (this.plan !== 'base' && this.plan !== 'pro')) {
     return false;
   }
   
@@ -342,7 +363,7 @@ subscriptionSchema.methods.hasTrialExpired = function() {
 
 // Method to expire trial
 subscriptionSchema.methods.expireTrial = function() {
-  if (this.status === 'trialing' && this.plan === 'pro') {
+  if (this.status === 'trialing' && (this.plan === 'base' || this.plan === 'pro')) {
     this.status = 'active';
     this.plan = 'free';
     this.billing.trialEnd = undefined;
@@ -352,11 +373,11 @@ subscriptionSchema.methods.expireTrial = function() {
     this.features.resumeLimit = 2;
     this.features.templateAccess = ['free'];
     this.features.exportFormats = ['pdf'];
-    this.features.aiActionsLimit = 200;
+    this.features.aiActionsLimit = 'token-based';
+    this.features.freeTokens = 0;
     this.features.aiReview = false;
     this.features.prioritySupport = false;
     this.features.customBranding = false;
-    this.features.watermark = true;
     this.features.unlimitedExports = false;
     
     return this.save();
@@ -367,7 +388,7 @@ subscriptionSchema.methods.expireTrial = function() {
 // Pre-save middleware to check trial expiration
 subscriptionSchema.pre('save', function(next) {
   // Check if trial has expired
-  if (this.status === 'trialing' && this.plan === 'pro' && this.hasTrialExpired()) {
+  if (this.status === 'trialing' && (this.plan === 'base' || this.plan === 'pro') && this.hasTrialExpired()) {
     this.status = 'active';
     this.plan = 'free';
     this.billing.trialEnd = undefined;
@@ -377,11 +398,11 @@ subscriptionSchema.pre('save', function(next) {
     this.features.resumeLimit = 2;
     this.features.templateAccess = ['free'];
     this.features.exportFormats = ['pdf'];
-    this.features.aiActionsLimit = 200;
+    this.features.aiActionsLimit = 'token-based';
+    this.features.freeTokens = 0;
     this.features.aiReview = false;
     this.features.prioritySupport = false;
     this.features.customBranding = false;
-    this.features.watermark = true;
     this.features.unlimitedExports = false;
   }
   
@@ -389,33 +410,43 @@ subscriptionSchema.pre('save', function(next) {
   if (this.isModified('plan')) {
     const limits = {
       free: 2,
+      base: 5,
       pro: 5
     };
     
     const templateAccess = {
       free: ['free'],
-      pro: ['free', 'pro']
+      base: ['free', 'premium'],
+      pro: ['free', 'premium']
     };
     
     const exportFormats = {
       free: ['pdf'],
-      pro: ['pdf', 'docx']
+      base: ['pdf'],
+      pro: ['pdf']
     };
     
     const aiLimits = {
-      free: 10,
-      pro: 200
+      free: 'token-based',
+      base: 'token-based',
+      pro: 'token-based'
+    };
+    
+    const freeTokens = {
+      free: 0,
+      base: 150,
+      pro: 300
     };
     
     this.features.resumeLimit = limits[this.plan] || 2;
     this.features.templateAccess = templateAccess[this.plan] || ['free'];
     this.features.exportFormats = exportFormats[this.plan] || ['pdf'];
-    this.features.aiActionsLimit = aiLimits[this.plan] || 10;
-    this.features.aiReview = this.plan === 'pro';
-    this.features.prioritySupport = this.plan === 'pro';
+    this.features.aiActionsLimit = aiLimits[this.plan] || 'token-based';
+    this.features.freeTokens = freeTokens[this.plan] || 0;
+    this.features.aiReview = this.plan === 'base' || this.plan === 'pro';
+    this.features.prioritySupport = this.plan === 'base' || this.plan === 'pro';
     this.features.customBranding = this.plan === 'pro';
-    this.features.watermark = this.plan === 'free';
-    this.features.unlimitedExports = this.plan === 'pro';
+    this.features.unlimitedExports = this.plan === 'base' || this.plan === 'pro';
   }
   next();
 });
@@ -497,11 +528,27 @@ subscriptionSchema.methods.canExportFormat = function(format) {
   return ['pdf'].includes(format);
 };
 
-// Method to check if user can use AI action (subscription cycle limits for both plans)
-subscriptionSchema.methods.canUseAIAction = function() {
+// Method to check if user can use AI action (token-based system)
+subscriptionSchema.methods.canUseAIAction = async function() {
   ensureSubscriptionCycleWindow(this);
   
-  // Check if user has exceeded subscription cycle AI action limit
+  // For token-based system, check if user has any tokens available (purchased + free)
+  if (this.features.aiActionsLimit === 'token-based') {
+    // Get user's purchased tokens
+    const User = require('./User');
+    const user = await User.findById(this.user).select('tokens');
+    const purchasedTokens = user?.tokens || 0;
+    
+    // Calculate remaining free tokens
+    const freeTokensUsed = this.usage.freeTokensUsed || 0;
+    const remainingFreeTokens = Math.max(0, (this.features.freeTokens || 0) - freeTokensUsed);
+    
+    // User can use AI if they have any tokens (purchased + remaining free)
+    const totalAvailableTokens = purchasedTokens + remainingFreeTokens;
+    return totalAvailableTokens > 0;
+  }
+  
+  // Fallback for non-token-based systems
   return this.usage.aiActionsThisCycle < this.features.aiActionsLimit;
 };
 
@@ -515,14 +562,6 @@ subscriptionSchema.methods.ensureSubscriptionCycleWindowAndSave = function() {
   return this.save();
 };
 
-// Method to check if export should have watermark
-subscriptionSchema.methods.shouldAddWatermark = function() {
-  // Trial users get no watermark
-  if (this.isTrialActive()) {
-    return false;
-  }
-  return this.features.watermark;
-};
 
 // Method to check if user can start a trial
 subscriptionSchema.methods.canStartTrial = function() {
@@ -530,14 +569,36 @@ subscriptionSchema.methods.canStartTrial = function() {
 };
 
 // Method to increment usage (subscription cycle-based)
-subscriptionSchema.methods.incrementUsage = function(type) {
+subscriptionSchema.methods.incrementUsage = async function(type) {
   switch (type) {
     case 'resume':
       this.usage.resumesCreated += 1;
       break;
     case 'aiAction':
       ensureSubscriptionCycleWindow(this);
-      this.usage.aiActionsThisCycle += 1;
+      if (this.features.aiActionsLimit === 'token-based') {
+        // For token-based system, handle token deduction properly
+        const User = require('./User');
+        const user = await User.findById(this.user).select('tokens');
+        
+        // Calculate remaining free tokens
+        const freeTokensUsed = this.usage.freeTokensUsed || 0;
+        const remainingFreeTokens = Math.max(0, (this.features.freeTokens || 0) - freeTokensUsed);
+        
+        if (remainingFreeTokens > 0) {
+          // Use free tokens first
+          this.usage.freeTokensUsed += 1;
+        } else if (user.tokens > 0) {
+          // Use purchased tokens when free tokens are exhausted
+          await user.consumeTokens(1);
+        } else {
+          // No tokens available
+          throw new Error('No tokens available');
+        }
+      } else {
+        // For traditional system, increment AI actions
+        this.usage.aiActionsThisCycle += 1;
+      }
       break;
   }
   return this.save();
@@ -583,7 +644,7 @@ subscriptionSchema.methods.recalculateResumeCount = async function() {
 subscriptionSchema.methods.addPayment = function(paymentData) {
   this.paymentHistory.push({
     amount: paymentData.amount,
-    currency: paymentData.currency || 'USD',
+    currency: paymentData.currency || 'INR',
     status: paymentData.status,
     paymentId: paymentData.paymentId,
     invoiceId: paymentData.invoiceId,
@@ -610,6 +671,7 @@ subscriptionSchema.methods.startTrial = function(trialType = 'free', days = 3) {
 // Method to manually reset AI action cycle (for admin/testing purposes)
 subscriptionSchema.methods.resetAIActionCycle = function() {
   this.usage.aiActionsThisCycle = 0;
+  this.usage.freeTokensUsed = 0; // Reset free tokens used
   this.usage.lastBillingCycleReset = new Date();
   this.usage.cycleStartDate = new Date();
   
@@ -623,11 +685,122 @@ subscriptionSchema.methods.resetAIActionCycle = function() {
   return this.save();
 };
 
+// Method to handle subscription expiration and resume management
+subscriptionSchema.methods.handleSubscriptionExpiration = async function() {
+  const Resume = require('./Resume');
+  
+  try {
+    // Get all resumes for this user
+    const allResumes = await Resume.find({ user: this.user }).sort({ updatedAt: -1 });
+    
+    if (allResumes.length <= 2) {
+      // User is within free plan limits, no action needed
+      return { action: 'none', message: 'User is within free plan limits' };
+    }
+    
+    // Count resumes by status
+    const publishedResumes = allResumes.filter(resume => resume.status === 'published');
+    const draftResumes = allResumes.filter(resume => resume.status === 'draft');
+    
+    // Priority: Keep published resumes first, then drafts
+    const resumesToKeep = [];
+    const resumesToMarkForDeletion = [];
+    
+    // First, keep all published resumes (up to 2)
+    for (let i = 0; i < Math.min(publishedResumes.length, 2); i++) {
+      resumesToKeep.push(publishedResumes[i]);
+    }
+    
+    // If we have space, keep some drafts
+    const remainingSlots = 2 - resumesToKeep.length;
+    if (remainingSlots > 0) {
+      for (let i = 0; i < Math.min(draftResumes.length, remainingSlots); i++) {
+        resumesToKeep.push(draftResumes[i]);
+      }
+    }
+    
+    // Mark remaining resumes for deletion (2 days from now)
+    const keepIds = resumesToKeep.map(r => r._id);
+    const resumesToDelete = allResumes.filter(resume => !keepIds.includes(resume._id));
+    
+    // Update resumes to mark them for deletion
+    const deletionDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000); // 2 days from now
+    
+    for (const resume of resumesToDelete) {
+      resume.markedForDeletion = true;
+      resume.deletionDate = deletionDate;
+      resume.deletionReason = 'subscription_expired';
+      await resume.save();
+    }
+    
+    // Store the kept resumes info for potential restoration
+    this.expiredResumeData = {
+      keptResumes: resumesToKeep.map(r => r._id),
+      markedForDeletion: resumesToDelete.map(r => r._id),
+      deletionDate: deletionDate,
+      originalCount: allResumes.length
+    };
+    
+    await this.save();
+    
+    return {
+      action: 'marked_for_deletion',
+      message: `${resumesToDelete.length} resumes marked for deletion in 2 days`,
+      keptResumes: resumesToKeep.length,
+      markedForDeletion: resumesToDelete.length,
+      deletionDate: deletionDate
+    };
+    
+  } catch (error) {
+    console.error('Error handling subscription expiration:', error);
+    throw error;
+  }
+};
+
+// Method to restore resumes when user resubscribes
+subscriptionSchema.methods.restoreExpiredResumes = async function() {
+  const Resume = require('./Resume');
+  
+  try {
+    if (!this.expiredResumeData || !this.expiredResumeData.markedForDeletion) {
+      return { action: 'none', message: 'No resumes to restore' };
+    }
+    
+    // Find resumes that were marked for deletion
+    const resumesToRestore = await Resume.find({
+      _id: { $in: this.expiredResumeData.markedForDeletion },
+      markedForDeletion: true
+    });
+    
+    // Restore the resumes
+    for (const resume of resumesToRestore) {
+      resume.markedForDeletion = false;
+      resume.deletionDate = undefined;
+      resume.deletionReason = undefined;
+      await resume.save();
+    }
+    
+    // Clear the expired resume data
+    this.expiredResumeData = undefined;
+    await this.save();
+    
+    return {
+      action: 'restored',
+      message: `${resumesToRestore.length} resumes restored`,
+      restoredCount: resumesToRestore.length
+    };
+    
+  } catch (error) {
+    console.error('Error restoring expired resumes:', error);
+    throw error;
+  }
+};
+
 // Static method to create trial subscription
-subscriptionSchema.statics.createTrial = function(userId, trialType = 'free', days = 3) {
+subscriptionSchema.statics.createTrial = function(userId, trialType = 'free', days = 3, planType = 'base') {
   return new this({
     user: userId,
-    plan: 'pro',
+    plan: planType, // Can be 'base' or 'pro'
     status: 'trialing',
     hasHadTrial: true,
     billing: {
@@ -636,8 +809,10 @@ subscriptionSchema.statics.createTrial = function(userId, trialType = 'free', da
     },
     usage: {
       resumesCreated: 0,
-      aiActionsThisMonth: 0,
-      monthStartAtUtc: new Date()
+      aiActionsThisCycle: 0,
+      freeTokensUsed: 0,
+      cycleStartDate: new Date(),
+      lastBillingCycleReset: new Date()
     }
   });
 };
