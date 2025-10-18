@@ -2,11 +2,34 @@ const express = require('express');
 const router = express.Router();
 const Razorpay = require('razorpay');
 const { protect } = require('../middleware/auth');
-
+const logger = require('../utils/logger');
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET
 });
+
+async function sendTokenAdditionErrorNotification(user, type, req, payment_id, order_id, amount, plan, subscription, tokenError) {
+  try {
+    const emailService = require('../utils/emailService');
+    await emailService.sendErrorNotification({
+      type: type,
+      userEmail: user.email,
+      userId: user._id,
+      error: tokenError.message,
+      requestData: {
+        tokens: req.body.tokens,
+        paymentId: payment_id,
+        orderId: order_id,
+        amount: amount,
+        plan: plan,
+        subscriptionId: subscription._id
+      },
+      timestamp: new Date()
+    });
+  } catch (emailError) {
+    logger.error('Failed to send token addition error notification:', emailError);
+  }
+}
 
 // Test Razorpay connection
 router.get('/test', (req, res) => {
@@ -175,6 +198,9 @@ router.post('/complete-payment', protect, async (req, res) => {
     const generatedSignature = hmac.digest('hex');
 
     if (generatedSignature !== signature) {
+      // Send error notification for payment verification failure
+      await sendPaymentVerificationErrorNotification(req.user, 'Payment verification failed', req, order_id, payment_id, signature, {message: 'error'});
+      
       return res.status(400).json({
         success: false,
         message: 'Payment verification failed'
@@ -276,26 +302,9 @@ router.post('/complete-payment', protect, async (req, res) => {
       } catch (tokenError) {
         logger.error('Token purchase failed:', tokenError);
         
-        // Send error notification
-        try {
-          const emailService = require('../utils/emailService');
-          await emailService.sendErrorNotification({
-            type: 'TOKEN_PURCHASE_FAILED',
-            userEmail: req.user.email,
-            userId: req.user.id,
-            error: tokenError.message,
-            requestData: {
-              tokens: tokens,
-              paymentId: payment_id,
-              orderId: order_id,
-              amount: amount,
-              currency: currency
-            },
-            timestamp: new Date()
-          });
-        } catch (emailError) {
-          logger.error('Failed to send token purchase error notification:', emailError);
-        }
+        
+      // Send error notification for token addition failure
+        await sendTokenAdditionErrorNotification(user, 'TOKEN_PURCHASE_FAILED', req, payment_id, order_id, amount, plan, subscription, tokenError);
 
         return res.status(500).json({
           success: false,
@@ -336,7 +345,7 @@ router.post('/complete-payment', protect, async (req, res) => {
         cycle: 'monthly',
         amount: amount,
         currency: 'INR',
-        nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        nextBillingDate: new Date(Math.max(Date.now(), subscription.billing.nextBillingDate.getTime()) + 30 * 24 * 60 * 60 * 1000)
       };
       
       // Reset usage for new billing cycle
@@ -437,26 +446,7 @@ router.post('/complete-payment', protect, async (req, res) => {
         logger.error('Failed to add tokens to user account:', tokenError);
         
         // Send error notification for token addition failure
-        try {
-          const emailService = require('../utils/emailService');
-          await emailService.sendErrorNotification({
-            type: 'TOKEN_ADDITION_FAILED_AFTER_PAYMENT',
-            userEmail: user.email,
-            userId: user._id,
-            error: tokenError.message,
-            requestData: {
-              tokens: req.body.tokens,
-              paymentId: payment_id,
-              orderId: order_id,
-              amount: amount,
-              plan: plan,
-              subscriptionId: subscription._id
-            },
-            timestamp: new Date()
-          });
-        } catch (emailError) {
-          logger.error('Failed to send token addition error notification:', emailError);
-        }
+        await sendTokenAdditionErrorNotification(user, 'TOKEN_ADDITION_FAILED_AFTER_PAYMENT', req, payment_id, order_id, amount, plan, subscription, tokenError);
       }
     }
     
@@ -498,27 +488,8 @@ router.post('/complete-payment', protect, async (req, res) => {
     });
   } catch (error) {
     console.error('Complete payment error:', error);
-    
-    // Send error notification for payment completion failure
-    try {
-      const emailService = require('../utils/emailService');
-      await emailService.sendErrorNotification({
-        type: 'PAYMENT_COMPLETION_FAILED',
-        userEmail: req.user?.email || 'unknown',
-        userId: req.user?.id || 'unknown',
-        error: error.message,
-        requestData: {
-          orderId: req.body.order_id,
-          paymentId: req.body.payment_id,
-          plan: req.body.plan,
-          amount: req.body.amount,
-          signature: req.body.signature
-        },
-        timestamp: new Date()
-      });
-    } catch (emailError) {
-      logger.error('Failed to send payment completion error notification:', emailError);
-    }
+      // Send error notification for token addition failure
+        await sendTokenAdditionErrorNotification(user, 'Order ID, Payment ID, and Signature are required', req, payment_id, order_id, amount, plan, subscription, tokenError);
     
     res.status(500).json({
       success: false,

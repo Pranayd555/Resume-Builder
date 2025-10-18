@@ -635,6 +635,10 @@
   vertical-align: top !important;
 }
 
+.ck.ck-dropdown.ck-heading-dropdown .ck-dropdown__panel .ck-list__item {
+    min-width: fit-content !important;
+}
+
 /* Override CKEditor's default table behavior for template tables with colspan */
 .ck-content table.template-table td[colspan="2"] {
   width: 33.33% !important;

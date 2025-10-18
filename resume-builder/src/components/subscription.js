@@ -12,6 +12,7 @@ import {
   ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 import api, { apiHelpers } from '../services/api';
+import { useScrollToId } from '../hooks/useAutoScroll';
 
 function Subscription() {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ function Subscription() {
   const [successLoading, setSuccessLoading] = useState(false);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const { scrollToId } = useScrollToId();
   
   // Use a single ref to track initialization
   const hasInitialized = useRef(false);
@@ -398,7 +400,7 @@ function Subscription() {
                     </button>
                      {(currentSubscription.status === 'trialing' || currentSubscription.plan === 'free') && (
                        <button
-                         onClick={handleSubscribe}
+                         onClick={() => scrollToId('subscribe-now')}
                          className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 text-sm sm:text-base"
                        >
                          Upgrade Now
@@ -427,7 +429,7 @@ function Subscription() {
             </p>
              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+           <div id="subscription-plans" className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {subscriptionPlans.map((plan) => (
               <div
                 key={plan.id}
@@ -518,7 +520,7 @@ function Subscription() {
                             </>
                           ) : (
                             <>
-                              <CreditCardIcon className="w-5 h-5" />
+                              <CreditCardIcon id="subscribe-now" className="w-5 h-5" />
                               Subscribe Now
                             </>
                           )}

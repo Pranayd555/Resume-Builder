@@ -541,7 +541,42 @@ Resume Builder Team
       return { success: false, error: error.message };
     }
   }
+
+  // Send cron job notification
+  async sendCronJobNotification({ jobName, status, details = null, error = null }) {
+    try {
+      const htmlContent = await this.loadTemplate('cron-notification', {
+        jobName,
+        status,
+        details: details ? JSON.stringify(details, null, 2) : 'N/A',
+        error: error ? JSON.stringify(error, null, 2) : 'N/A',
+        timestamp: new Date().toLocaleString(),
+        appName: process.env.APP_NAME || 'Resume Builder'
+      });
+
+      const notificationEmail = process.env.ADMIN_EMAIL || process.env.SUPPORT_EMAIL || process.env.EMAIL_USER;
+      
+      if (!notificationEmail) {
+        logger.warn(`No admin/support email configured for cron job notification for ${jobName}. Skipping.`);
+        return { success: false, error: 'No notification email configured' };
+      }
+
+      await this.sendEmail(
+        notificationEmail,
+        `Cron Job Status: ${jobName} - ${status}`,
+        htmlContent
+      );
+      
+      logger.info(`Cron job notification sent for ${jobName} with status ${status}`);
+      return { success: true, message: 'Cron job notification sent' };
+    } catch (err) {
+      logger.error(`Failed to send cron job notification for ${jobName}:`, err);
+      return { success: false, error: err.message };
+    }
+  }
+
 }
+
 
 // Create singleton instance
 const emailService = new EmailService();
