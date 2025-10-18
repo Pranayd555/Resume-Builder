@@ -15,7 +15,6 @@ const getLicenseKey = () => {
 
 const LICENSE_KEY = getLicenseKey();
 
-
 // Insert template into editor with type-around functionality
 const insertTemplate = (editor, templateContent) => {
   // Get the current selection
@@ -420,41 +419,59 @@ const CKEditorComponent = ({
           items: [
             'undo',
             'redo',
+            'selectAll',
             '|',
             'sourceEditing',
             'showBlocks',
-            'textPartLanguage',
-            '|',
             'heading',
-            'style',
-            '|',
-            'fontSize',
-            'fontFamily',
-            'fontColor',
-            'fontBackgroundColor',
             '|',
             'bold',
             'italic',
             'underline',
-            'strikethrough',
-            'subscript',
-            'superscript',
-            'code',
             '|',
-            'horizontalLine',
-            'link',
-            'insertTable',
-            'highlight',
-            'blockQuote',
-            '|',
-            'alignment',
-            '|',
-            'bulletedList',
-            'numberedList',
-            'outdent',
-            'indent',
-            '|',
-            'imageUpload'
+            {
+              label: 'Font',
+              icon: 'text',
+              items: [
+                'fontSize',
+                'fontFamily',
+                'fontColor',
+                'fontBackgroundColor'
+              ]
+            },
+            {
+              label: 'Basic Styles',
+              icon: 'paragraph',
+              items: [
+                'strikethrough',
+                'subscript',
+                'superscript',
+                'code'
+              ]
+            },
+            {
+              label: 'Alignment',
+              icon: 'alignLeft',
+              items: [
+                'bulletedList',
+                'numberedList',
+                'outdent',
+                'indent',
+                'alignment',
+                'blockQuote'
+              ]
+            },
+            {
+              label: 'Insert', 
+              icon: 'importExport',
+              items: [
+                'link',
+                'imageUpload',
+                'mediaEmbed',
+                'horizontalLine',
+                'insertTable'
+              ]
+            },
           ],
           shouldNotGroupWhenFull: true
         },
