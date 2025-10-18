@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Context
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { DarkModeProvider, useDarkMode } from './contexts/DarkModeContext';
 
 // Components
@@ -36,8 +36,19 @@ import AuthCallback from './components/AuthCallback';
 import ResumePreviewEnhanced from './components/ResumePreviewEnhanced';
 import ErrorPage from './components/annimations/ErrorPage';
 
-function AppContent() {
+const AppContent = () => {
   const { isDarkMode } = useDarkMode();
+  const { updateUser } = useAuth();
+
+  useEffect(() => {
+    const handleUserDataUpdate = (e) => {
+      updateUser(e.detail);
+    };
+    window.addEventListener('userDataUpdated', handleUserDataUpdate);
+    return () => {
+      window.removeEventListener('userDataUpdated', handleUserDataUpdate);
+    };
+  }, [updateUser]);
   
   return (
     <Router>

@@ -176,13 +176,23 @@ const Payment = () => {
           ondismiss: () => {
             setLoading(false);
             toast.info('Payment cancelled');
+          },
+          closed: () => {
+            // Ensure loading is set to false if the modal is closed for any reason
+            setLoading(false);
           }
         }
       };
 
-      // Open Razorpay modal
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
+      const rzp1 = new window.Razorpay(options);
+
+      rzp1.on('payment.failed', function (response) {
+        console.error('Razorpay payment failed:', response.error);
+        toast.error(response.error.description || 'Payment failed. Please try again.');
+        setLoading(false);
+      });
+
+      rzp1.open();
     } catch (error) {
       console.error('Payment initiation error:', error);
       toast.error(error.message || 'Failed to initiate payment');
@@ -203,7 +213,7 @@ const Payment = () => {
           <div className="flex items-center justify-center pt-6 pb-6">
             <button
               onClick={handleBack}
-              className="absolute left-6 flex items-center gap-2 text-gray-300 hover:text-white transition-colors font-medium group"
+              className="absolute left-6 flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:text-gray-300 hover:dark:text-white transition-colors font-medium group"
             >
               <ArrowLeftIcon className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" />
               <span>Back</span>
@@ -212,7 +222,7 @@ const Payment = () => {
           <h1 className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-purple-400 via-blue-500 to-purple-600 bg-clip-text text-transparent mb-4">
             Buy AI Tokens
           </h1>
-          <p className="text-gray-300 text-lg max-w-2xl mx-auto">
+          <p className="text-gray-500 dark:text-gray-300 text-lg max-w-2xl mx-auto">
             Purchase tokens to use AI features. Tokens are used for AI-powered resume optimization.
           </p>
         </div>

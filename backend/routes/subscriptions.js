@@ -249,7 +249,8 @@ router.post('/start-trial', [
 
     // Create new subscription if doesn't exist
     if (!subscription) {
-      subscription = Subscription.createTrial(req.user.id, trialType, trialType === 'free' ? 3 : 7);
+      subscription = await Subscription.createTrial(req.user.id, trialType, trialType === 'free' ? 3 : 7);
+      subscription.features.freeTokens = 0; // Ensure no free tokens are granted during trial
     } else {
       // Update existing subscription for trial
       subscription.plan = 'pro';
@@ -259,6 +260,7 @@ router.post('/start-trial', [
         trialType: trialType,
         trialEnd: new Date(Date.now() + (trialType === 'free' ? 3 : 7) * 24 * 60 * 60 * 1000)
       };
+      subscription.features.freeTokens = 0; // Ensure no free tokens are granted during trial
       
       // Reset usage for trial
       subscription.usage = {
@@ -941,4 +943,4 @@ router.get('/expired-resumes', protect, async (req, res) => {
 });
 
 
-module.exports = router; 
+module.exports = router;

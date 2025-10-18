@@ -300,6 +300,11 @@ export const AuthProvider = ({ children }) => {
     }
     
     dispatch({ type: AUTH_ACTIONS.UPDATE_USER, payload: updatedUser });
+
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent('userDataUpdated', {
+      detail: updatedUser
+    }));
   };
 
   // Change password
@@ -582,4 +587,4 @@ export const withAuth = (Component) => {
   };
 };
 
-export default AuthContext; 
+export default AuthContext;

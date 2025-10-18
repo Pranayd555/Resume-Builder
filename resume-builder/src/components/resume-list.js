@@ -900,7 +900,7 @@ function ResumeList() {
             <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg">Create and manage your professional resumes</p>
             
           </div>
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4 justify-end">
             {canCreateNewResume() && (
               <button
                 onClick={handleCreateNew}
