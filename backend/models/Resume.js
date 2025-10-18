@@ -478,7 +478,7 @@ const resumeSchema = new mongoose.Schema({
   deletionDate: Date,
   deletionReason: {
     type: String,
-    enum: ['subscription_expired', 'user_request', 'admin_action'],
+    enum: ['subscription_expired', 'user_request', 'admin_action', null],
     default: null
   },
   
@@ -717,4 +717,4 @@ resumeSchema.pre('save', function(next) {
   next();
 });
 
-module.exports = mongoose.model('Resume', resumeSchema); 
+module.exports = mongoose.model('Resume', resumeSchema);

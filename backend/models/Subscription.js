@@ -144,6 +144,9 @@ const subscriptionSchema = new mongoose.Schema({
     freeTokens: {
       type: Number,
       default: function() {
+        if (this.status === 'trialing') {
+          return 0;
+        }
         const tokens = {
           free: 0,
           base: 150,
@@ -437,12 +440,7 @@ subscriptionSchema.pre('save', function(next) {
       base: 150,
       pro: 300
     };
-    
-    this.features.resumeLimit = limits[this.plan] || 2;
-    this.features.templateAccess = templateAccess[this.plan] || ['free'];
-    this.features.exportFormats = exportFormats[this.plan] || ['pdf'];
-    this.features.aiActionsLimit = aiLimits[this.plan] || 'token-based';
-    this.features.freeTokens = freeTokens[this.plan] || 0;
+    this.features.freeTokens = this.status === 'trialing' ? 0 : freeTokens[this.plan] || 0;
     this.features.aiReview = this.plan === 'base' || this.plan === 'pro';
     this.features.prioritySupport = this.plan === 'base' || this.plan === 'pro';
     this.features.customBranding = this.plan === 'pro';
@@ -807,6 +805,9 @@ subscriptionSchema.statics.createTrial = function(userId, trialType = 'free', da
       trialType: trialType,
       trialEnd: new Date(Date.now() + days * 24 * 60 * 60 * 1000)
     },
+    features: {
+      freeTokens: 0 // Ensure no free tokens are granted during trial creation
+    },
     usage: {
       resumesCreated: 0,
       aiActionsThisCycle: 0,
@@ -817,4 +818,4 @@ subscriptionSchema.statics.createTrial = function(userId, trialType = 'free', da
   });
 };
 
-module.exports = mongoose.model('Subscription', subscriptionSchema); 
+module.exports = mongoose.model('Subscription', subscriptionSchema);

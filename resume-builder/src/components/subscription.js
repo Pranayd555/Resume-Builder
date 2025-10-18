@@ -297,9 +297,15 @@ function Subscription() {
         }
       };
 
-      // Open Razorpay modal
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
+      const rzp1 = new window.Razorpay(options);
+
+      rzp1.on('payment.failed', function (response) {
+        console.error('Razorpay payment failed:', response.error);
+        toast.error(response.error.description || 'Payment failed. Please try again.');
+        setPaymentLoading(false);
+      });
+
+      rzp1.open();
     } catch (error) {
       console.error('Payment initiation error:', error);
       toast.error(error.message || 'Failed to initiate payment');

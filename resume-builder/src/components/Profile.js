@@ -647,10 +647,10 @@ function Profile() {
       setShowEmailVerification(true);
       
       // Optionally send a new OTP if needed
-      // const response = await resendOtp();
-      // if (response.success) {
-      //   toast.success('New verification code sent to your email!');
-      // }
+      const response = await authAPI.resendOtp();
+      if (response.success) {
+        toast.success('New verification code sent to your email!');
+      }
     } catch (error) {
       console.error('Failed to show email verification modal:', error);
     }

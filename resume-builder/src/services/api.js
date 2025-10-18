@@ -741,11 +741,11 @@ export const apiHelpers = {
       apiHelpers.setCurrentUserData(updatedUserData);
       
       // Dispatch custom event to notify other components
-      window.dispatchEvent(new CustomEvent('userDataUpdated', { 
-        detail: updatedUserData 
+      window.dispatchEvent(new CustomEvent('userDataUpdated', {
+        detail: updatedUserData
       }));
     }
   },
 };
 
-export default api; 
+export default api;
