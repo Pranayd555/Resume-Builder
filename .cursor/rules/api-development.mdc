@@ -1,0 +1,249 @@
+---
+globs: backend/routes/**/*.js,backend/models/**/*.js,backend/middleware/**/*.js
+---
+
+# API Development Rules
+
+## 🔌 API Development Guidelines
+
+### **API Endpoint Structure**
+All API routes follow RESTful conventions with `/api` prefix:
+
+```
+GET    /api/auth/me              - Get current user
+POST   /api/auth/login           - User login
+POST   /api/auth/register        - User registration
+GET    /api/resumes              - List user resumes
+POST   /api/resumes              - Create resume
+PUT    /api/resumes/:id          - Update resume
+DELETE /api/resumes/:id          - Delete resume
+GET    /api/templates            - List templates
+POST   /api/uploads/parse-resume - Parse uploaded resume
+```
+
+### **Authentication Flow**
+- **JWT Tokens**: Access token (7 days) + Refresh token (30 days)
+- **OAuth Integration**: Google and LinkedIn social login
+- **Middleware**: [backend/middleware/auth.js](mdc:backend/middleware/auth.js) - JWT protection
+- **Token Refresh**: Automatic token renewal on expiration
+
+### **Request/Response Patterns**
+
+#### **Success Response Format**
+```javascript
+{
+  "success": true,
+  "data": {
+    // Response data
+  }
+}
+```
+
+#### **Error Response Format**
+```javascript
+{
+  "success": false,
+  "error": "Error message",
+  "details": "Additional error information"
+}
+```
+
+#### **Pagination Format**
+```javascript
+{
+  "success": true,
+  "data": {
+    "items": [...],
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 100,
+      "pages": 10
+    }
+  }
+}
+```
+
+### **Authentication Endpoints**
+- **POST** `/api/auth/register` - User registration with email verification
+- **POST** `/api/auth/login` - Email/password login
+- **GET** `/api/auth/me` - Get current user with subscription data
+- **POST** `/api/auth/refresh` - Refresh JWT token
+- **POST** `/api/auth/logout` - Logout and invalidate token
+- **GET** `/api/auth/google` - Google OAuth initiation
+- **GET** `/api/auth/linkedin` - LinkedIn OAuth initiation
+
+### **Resume Management Endpoints**
+- **GET** `/api/resumes` - List user's resumes with pagination
+- **POST** `/api/resumes` - Create new resume
+- **GET** `/api/resumes/:id` - Get specific resume
+- **PUT** `/api/resumes/:id` - Update resume
+- **DELETE** `/api/resumes/:id` - Delete resume
+- **POST** `/api/resumes/:id/export` - Export resume as PDF/DOCX
+
+### **Template System Endpoints**
+- **GET** `/api/templates` - List available templates
+- **GET** `/api/templates/:id` - Get template details
+- **POST** `/api/templates/:id/preview` - Generate template preview
+- **GET** `/api/templates/categories` - Get template categories
+
+### **File Upload Endpoints**
+- **POST** `/api/uploads/profile-picture` - Upload profile picture
+- **POST** `/api/uploads/parse-resume` - Parse uploaded resume with AI
+- **GET** `/api/uploads/:filename` - Serve uploaded files
+
+### **Subscription & Payment Endpoints**
+- **GET** `/api/subscriptions/plans` - Get subscription plans
+- **POST** `/api/subscriptions/create` - Create subscription
+- **GET** `/api/subscriptions/current` - Get current subscription
+- **POST** `/api/payment/razorpay` - Razorpay payment processing
+
+### **AI Integration Endpoints**
+- **POST** `/api/ai/parse-resume` - AI-powered resume parsing
+- **POST** `/api/ai/analyze-resume` - Resume analysis and feedback
+- **POST** `/api/ai/generate-content` - AI content generation
+- **GET** `/api/ai/tokens` - Get AI token balance
+
+### **Validation Patterns**
+```javascript
+// Input validation with express-validator
+const validateResume = [
+  body('personalInfo.firstName').notEmpty().withMessage('First name is required'),
+  body('personalInfo.email').isEmail().withMessage('Valid email is required'),
+  body('experience').isArray().withMessage('Experience must be an array'),
+  body('experience.*.company').notEmpty().withMessage('Company is required')
+];
+```
+
+### **Error Handling Patterns**
+```javascript
+// Route-level error handling
+router.post('/resumes', async (req, res) => {
+  try {
+    // Route logic
+    res.json({ success: true, data: result });
+  } catch (error) {
+    logger.error('Resume creation error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create resume'
+    });
+  }
+});
+```
+
+### **Middleware Usage**
+- **Authentication**: `protect` middleware for protected routes
+- **Authorization**: `authorize` middleware for admin routes
+- **Rate Limiting**: Applied to all routes except OAuth
+- **Validation**: `express-validator` for input validation
+- **Sanitization**: XSS and NoSQL injection protection
+
+### **Database Query Patterns**
+```javascript
+// Mongoose query with population
+const resume = await Resume.findById(req.params.id)
+  .populate('template')
+  .populate('user', 'name email');
+
+// Pagination
+const page = parseInt(req.query.page) || 1;
+const limit = parseInt(req.query.limit) || 10;
+const skip = (page - 1) * limit;
+
+const resumes = await Resume.find({ user: req.user.id })
+  .skip(skip)
+  .limit(limit)
+  .sort({ createdAt: -1 });
+```
+
+### **File Upload Handling**
+```javascript
+// Multer configuration for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type'), false);
+    }
+  }
+});
+```
+
+### **AI Integration Patterns**
+```javascript
+// AI service integration
+const parseResumeText = async (text) => {
+  try {
+    const geminiService = require('../services/geminiservice');
+    const result = await geminiService.parseResume(text);
+    return result;
+  } catch (error) {
+    logger.error('AI parsing failed:', error);
+    throw new Error('AI parsing service unavailable');
+  }
+};
+```
+
+### **Token Management**
+```javascript
+// Token calculation and usage tracking
+const calculateTotalTokens = async (userId) => {
+  const user = await User.findById(userId);
+  const subscription = await Subscription.findOne({ user: userId });
+  
+  return {
+    totalTokenBalance: user.tokens + subscription.freeTokens,
+    purchasedTokens: user.tokens,
+    remainingFreeTokens: subscription.remainingFreeTokens
+  };
+};
+```
+
+### **Security Headers**
+```javascript
+// Security middleware configuration
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https:"],
+      scriptSrc: ["'self'", "https:"],
+      imgSrc: ["'self'", "data:", "https:"]
+    }
+  }
+}));
+```
+
+### **CORS Configuration**
+```javascript
+// CORS for mobile and web clients
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'capacitor://localhost',
+      'ionic://localhost'
+    ];
+    
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+};
+```
+
+### **Testing Patterns**
+- **Unit Tests**: Test individual route handlers
+- **Integration Tests**: Test API endpoints with database
+- **Authentication Tests**: Test JWT token validation
+- **File Upload Tests**: Test multer configuration
+- **Error Handling Tests**: Test error response formats

@@ -8,15 +8,16 @@
  * 
  * This script will:
  * - Reset user subscription to 'free' plan
- * - Set tokens to 20 (free plan default)
- * - Clear all Razorpay transaction history
+ * - Set AI tokens to 20 (free plan default)
+ * - Set resume limit to 2 (free plan default)
+ * - Clear subscription history
  * - Reset subscription-related fields
  * - Keep other user details intact
  */
 
 const mongoose = require('mongoose');
 const User = require('../models/User');
-const Subscription = require('../models/Subscription');
+const Resume = require('../models/Resume');
 require('dotenv').config();
 
 // Connect to MongoDB
@@ -45,17 +46,19 @@ const clearUserSubscription = async (email, force = false) => {
     }
 
     console.log(`👤 Found user: ${user.firstName} ${user.lastName} (${user.email})`);
-    console.log(`📊 Current subscription: ${user.subscription.plan}`);
-    console.log(`🪙 Current tokens: ${user.tokens}`);
-    console.log(`💳 Transaction history entries: ${user.razorpayTransactions.length}`);
+    console.log(`📊 Current subscription: ${user.subscriptionType || 'Not set'}`);
+    console.log(`🪙 Current AI tokens: ${user.aiTokens || 'Not set'}`);
+    console.log(`📄 Current resume limit: ${user.resumeLimit || 'Not set'}`);
+    console.log(`📅 Subscription start: ${user.subscriptionStart || 'Not set'}`);
+    console.log(`📅 Subscription end: ${user.subscriptionEnd || 'Not set'}`);
 
     // Show what will happen
     console.log(`\n📋 Changes that will be made:`);
-    console.log(`   • Subscription plan: ${user.subscription.plan} → free`);
-    console.log(`   • Subscription status: ${user.subscription.isActive} → true`);
-    console.log(`   • Tokens: ${user.tokens} → 20`);
-    console.log(`   • Transaction history: ${user.razorpayTransactions.length} → 0`);
-    console.log(`   • Usage tracking will be reset`);
+    console.log(`   • Subscription type: ${user.subscriptionType || 'Not set'} → free`);
+    console.log(`   • AI tokens: ${user.aiTokens || 'Not set'} → 20`);
+    console.log(`   • Resume limit: ${user.resumeLimit || 'Not set'} → 2`);
+    console.log(`   • Subscription start: ${user.subscriptionStart || 'Not set'} → ${new Date().toISOString()}`);
+    console.log(`   • Subscription end: ${user.subscriptionEnd || 'Not set'} → null`);
     console.log(`   • All other user data will be preserved`);
 
     // Confirm action unless force flag is used
@@ -71,22 +74,16 @@ const clearUserSubscription = async (email, force = false) => {
     session.startTransaction();
 
     try {
-      // Update user subscription fields
+      // Update user subscription fields using the new simplified structure
       const userUpdateResult = await User.findByIdAndUpdate(
         user._id,
         {
           $set: {
-            'subscription.plan': 'free',
-            'subscription.isActive': true,
-            'subscription.startDate': new Date(),
-            'subscription.endDate': new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
-            'tokens': 20,
-            'usage.resumesCreated': 0,
-            'usage.templatesUsed': [],
-            'usage.loginCount': 0
-          },
-          $unset: {
-            'razorpayTransactions': 1
+            subscriptionType: 'free',
+            subscriptionStart: new Date(),
+            subscriptionEnd: null,
+            resumeLimit: 2,
+            aiTokens: 20
           }
         },
         { new: true, session }
@@ -96,90 +93,17 @@ const clearUserSubscription = async (email, force = false) => {
         throw new Error('Failed to update user subscription');
       }
 
-      // Handle subscription model - either update existing or create new
-      let subscription = await Subscription.findOne({ user: user._id }).session(session);
+      // Clean up extra resumes for free users (keep only the oldest 2)
+      const userResumes = await Resume.find({ user: user._id })
+        .sort({ createdAt: 1 })
+        .session(session);
       
-      if (subscription) {
-        // Update existing subscription
-        subscription.plan = 'free';
-        subscription.status = 'active';
-        subscription.startDate = new Date();
-        subscription.endDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
-        subscription.canceledAt = undefined;
-        subscription.cancelReason = undefined;
-        subscription.billing = {
-          cycle: 'monthly',
-          amount: 0,
-          currency: 'INR',
-          nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-          trialEnd: undefined,
-          trialType: null,
-          discountCode: undefined,
-          discountAmount: 0
-        };
-        subscription.features = {
-          resumeLimit: 2,
-          templateAccess: ['free'],
-          exportFormats: ['pdf'],
-          aiActionsLimit: 'token-based',
-          freeTokens: 0,
-          aiReview: false,
-          prioritySupport: false,
-          customBranding: false,
-          unlimitedExports: false
-        };
-        subscription.usage = {
-          resumesCreated: 0,
-          aiActionsThisCycle: 0,
-          freeTokensUsed: 0,
-          cycleStartDate: new Date(),
-          lastBillingCycleReset: new Date()
-        };
-        subscription.paymentHistory = [];
-        subscription.hasHadTrial = false;
+      if (userResumes.length > 2) {
+        const resumesToDelete = userResumes.slice(2);
+        const resumeIdsToDelete = resumesToDelete.map(resume => resume._id);
         
-        await subscription.save({ session });
-      } else {
-        // Create new subscription record
-        subscription = new Subscription({
-          user: user._id,
-          plan: 'free',
-          status: 'active',
-          startDate: new Date(),
-          endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-          billing: {
-            cycle: 'monthly',
-            amount: 0,
-            currency: 'INR',
-            nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-            trialEnd: undefined,
-            trialType: null,
-            discountCode: undefined,
-            discountAmount: 0
-          },
-          features: {
-            resumeLimit: 2,
-            templateAccess: ['free'],
-            exportFormats: ['pdf'],
-            aiActionsLimit: 'token-based',
-            freeTokens: 0,
-            aiReview: false,
-            prioritySupport: false,
-            customBranding: false,
-            unlimitedExports: false
-          },
-          usage: {
-            resumesCreated: 0,
-            aiActionsThisCycle: 0,
-            freeTokensUsed: 0,
-            cycleStartDate: new Date(),
-            lastBillingCycleReset: new Date()
-          },
-          paymentHistory: [],
-          hasHadTrial: false
-        });
-        
-        await subscription.save({ session });
+        await Resume.deleteMany({ _id: { $in: resumeIdsToDelete } }).session(session);
+        console.log(`🧹 Cleaned up ${resumesToDelete.length} extra resumes (kept oldest 2)`);
       }
 
       // Commit transaction
@@ -187,11 +111,12 @@ const clearUserSubscription = async (email, force = false) => {
       session.endSession();
 
       console.log(`\n✅ User subscription cleared successfully for "${email}"`);
-      console.log(`📊 Updated subscription: free`);
-      console.log(`🪙 Updated tokens: 20`);
-      console.log(`💳 Transaction history: cleared`);
-      console.log(`📈 Usage tracking: reset`);
-      console.log(`🎯 Subscription model: ${subscription ? 'updated' : 'created'}`);
+      console.log(`📊 Updated subscription type: free`);
+      console.log(`🪙 Updated AI tokens: 20`);
+      console.log(`📄 Updated resume limit: 2`);
+      console.log(`📅 Updated subscription start: ${new Date().toISOString()}`);
+      console.log(`📅 Updated subscription end: null`);
+      console.log(`🧹 Resume cleanup: completed`);
       
       return true;
 
@@ -217,15 +142,15 @@ const showUsage = () => {
   console.log('   --force    Skip confirmation prompt and clear subscription immediately');
   console.log('\n📋 What this script does:');
   console.log('   • Resets user subscription to free plan');
-  console.log('   • Sets tokens to 20 (free plan default)');
-  console.log('   • Clears all Razorpay transaction history');
-  console.log('   • Resets usage tracking and subscription fields');
-  console.log('   • Updates or creates subscription model record');
-  console.log('   • Preserves all other user data (profile, resumes, etc.)');
+  console.log('   • Sets AI tokens to 20 (free plan default)');
+  console.log('   • Sets resume limit to 2 (free plan default)');
+  console.log('   • Clears subscription history');
+  console.log('   • Removes extra resumes (keeps oldest 2)');
+  console.log('   • Preserves all other user data (profile, etc.)');
   console.log('\n⚠️  Note: This action cannot be undone!');
   console.log('\n💡 Free Plan Features:');
   console.log('   • 2 resume creation limit');
-  console.log('   • 20 tokens for AI actions');
+  console.log('   • 20 AI tokens for actions');
   console.log('   • Free templates only');
   console.log('   • PDF export only');
   console.log('   • No premium features');

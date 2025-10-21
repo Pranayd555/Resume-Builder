@@ -100,6 +100,10 @@ const subscriptionSchema = new mongoose.Schema({
     resumeLimit: {
       type: Number,
       default: function() {
+        // Trial users get Pro plan limits
+        if (this.status === 'trialing') {
+          return 5;
+        }
         const limits = {
           free: 2,
           pro_monthly: 5,
@@ -410,41 +414,59 @@ subscriptionSchema.pre('save', function(next) {
   }
   
   // Update features based on plan
-  if (this.isModified('plan')) {
-    const limits = {
-      free: 2,
-      pro_monthly: 5,
-      pro_yearly: 5
-    };
-    
-    const templateAccess = {
-      free: ['free'],
-      pro_monthly: ['free', 'premium'],
-      pro_yearly: ['free', 'premium']
-    };
-    
-    const exportFormats = {
-      free: ['pdf'],
-      pro_monthly: ['pdf'],
-      pro_yearly: ['pdf']
-    };
-    
-    const aiLimits = {
-      free: 'token-based',
-      pro_monthly: 'token-based',
-      pro_yearly: 'token-based'
-    };
-    
-    const freeTokens = {
-      free: 0,
-      pro_monthly: 150,
-      pro_yearly: 300
-    };
-    this.features.freeTokens = this.status === 'trialing' ? 0 : freeTokens[this.plan] || 0;
-    this.features.aiReview = this.plan === 'pro_monthly' || this.plan === 'pro_yearly';
-    this.features.prioritySupport = this.plan === 'pro_monthly' || this.plan === 'pro_yearly';
-    this.features.customBranding = this.plan === 'pro_yearly';
-    this.features.unlimitedExports = this.plan === 'pro_monthly' || this.plan === 'pro_yearly';
+  if (this.isModified('plan') || this.isModified('status')) {
+    // Trial users get Pro plan limits
+    if (this.status === 'trialing') {
+      this.features.resumeLimit = 5;
+      this.features.templateAccess = ['free', 'premium'];
+      this.features.exportFormats = ['pdf'];
+      this.features.aiActionsLimit = 'token-based';
+      this.features.freeTokens = 0; // No free tokens during trial
+      this.features.aiReview = true;
+      this.features.prioritySupport = true;
+      this.features.customBranding = this.plan === 'pro_yearly';
+      this.features.unlimitedExports = true;
+    } else {
+      const limits = {
+        free: 2,
+        pro_monthly: 5,
+        pro_yearly: 5
+      };
+      
+      const templateAccess = {
+        free: ['free'],
+        pro_monthly: ['free', 'premium'],
+        pro_yearly: ['free', 'premium']
+      };
+      
+      const exportFormats = {
+        free: ['pdf'],
+        pro_monthly: ['pdf'],
+        pro_yearly: ['pdf']
+      };
+      
+      const aiLimits = {
+        free: 'token-based',
+        pro_monthly: 'token-based',
+        pro_yearly: 'token-based'
+      };
+      
+      const freeTokens = {
+        free: 0,
+        pro_monthly: 150,
+        pro_yearly: 300
+      };
+      
+      this.features.resumeLimit = limits[this.plan] || 2;
+      this.features.templateAccess = templateAccess[this.plan] || ['free'];
+      this.features.exportFormats = exportFormats[this.plan] || ['pdf'];
+      this.features.aiActionsLimit = aiLimits[this.plan] || 'token-based';
+      this.features.freeTokens = freeTokens[this.plan] || 0;
+      this.features.aiReview = this.plan === 'pro_monthly' || this.plan === 'pro_yearly';
+      this.features.prioritySupport = this.plan === 'pro_monthly' || this.plan === 'pro_yearly';
+      this.features.customBranding = this.plan === 'pro_yearly';
+      this.features.unlimitedExports = this.plan === 'pro_monthly' || this.plan === 'pro_yearly';
+    }
   }
   next();
 });
@@ -521,7 +543,7 @@ subscriptionSchema.methods.canAccessTemplate = function(templateTier) {
 subscriptionSchema.methods.canExportFormat = function(format) {
   // Free: pdf only; Pro or trial: pdf + docx
   if (this.isTrialActive() || this.plan === 'pro_monthly' || this.plan === 'pro_yearly') {
-    return ['pdf', 'docx'].includes(format);
+    return ['pdf'].includes(format);
   }
   return ['pdf'].includes(format);
 };
@@ -683,6 +705,23 @@ subscriptionSchema.methods.resetAIActionCycle = function() {
   return this.save();
 };
 
+// Method to fix trial subscription features (for existing trial subscriptions)
+subscriptionSchema.methods.fixTrialFeatures = function() {
+  if (this.status === 'trialing') {
+    this.features.resumeLimit = 5;
+    this.features.templateAccess = ['free', 'premium'];
+    this.features.exportFormats = ['pdf'];
+    this.features.aiActionsLimit = 'token-based';
+    this.features.freeTokens = 0;
+    this.features.aiReview = true;
+    this.features.prioritySupport = true;
+    this.features.customBranding = this.plan === 'pro_yearly';
+    this.features.unlimitedExports = true;
+  }
+  return this.save();
+};
+
+
 
 
 // Static method to create trial subscription
@@ -697,7 +736,15 @@ subscriptionSchema.statics.createTrial = function(userId, trialType = 'free', da
       trialEnd: new Date(Date.now() + days * 24 * 60 * 60 * 1000)
     },
     features: {
-      freeTokens: 0 // Ensure no free tokens are granted during trial creation
+      resumeLimit: 5, // Trial users get Pro plan limits
+      templateAccess: ['free', 'premium'],
+      exportFormats: ['pdf'],
+      aiActionsLimit: 'token-based',
+      freeTokens: 0, // No free tokens during trial
+      aiReview: true,
+      prioritySupport: true,
+      customBranding: planType === 'pro_yearly',
+      unlimitedExports: true
     },
     usage: {
       resumesCreated: 0,

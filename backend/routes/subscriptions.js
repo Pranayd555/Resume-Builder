@@ -266,13 +266,25 @@ router.post('/start-trial', [
         trialType: trialType,
         trialEnd: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) // Always 3 days for free trial
       };
-      subscription.features.freeTokens = 0; // Ensure no free tokens are granted during trial
+      
+      // Set trial features properly
+      subscription.features.resumeLimit = 5;
+      subscription.features.templateAccess = ['free', 'premium'];
+      subscription.features.exportFormats = ['pdf'];
+      subscription.features.aiActionsLimit = 'token-based';
+      subscription.features.freeTokens = 0; // No free tokens during trial
+      subscription.features.aiReview = true;
+      subscription.features.prioritySupport = true;
+      subscription.features.customBranding = false; // Only for pro_yearly
+      subscription.features.unlimitedExports = true;
       
       // Reset usage for trial
       subscription.usage = {
         resumesCreated: 0,
-        aiActionsThisMonth: 0,
-        monthStartAtUtc: new Date()
+        aiActionsThisCycle: 0,
+        freeTokensUsed: 0,
+        cycleStartDate: new Date(),
+        lastBillingCycleReset: new Date()
       };
       
       // Clear any existing payment data for trial
@@ -280,6 +292,10 @@ router.post('/start-trial', [
     }
 
     await subscription.save();
+
+    // Reset isDBCleared flag when trial is started
+    const User = require('../models/User');
+    await User.findByIdAndUpdate(req.user.id, { isDBCleared: false });
 
     logger.info(`Trial started: ${trialType} trial for user ${req.user.email}`);
 

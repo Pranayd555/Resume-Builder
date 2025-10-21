@@ -1,0 +1,57 @@
+---
+alwaysApply: true
+---
+
+# Resume Builder Project Structure
+
+This is a full-stack Resume Builder application with React frontend and Node.js/Express backend, designed for both web and mobile deployment.
+
+## 🏗️ Project Architecture
+
+### **Core Structure**
+- **Frontend**: [resume-builder/](mdc:resume-builder/) - React application with Tailwind CSS
+- **Backend**: [backend/](mdc:backend/) - Node.js/Express API server
+- **Database**: MongoDB with Mongoose ODM
+- **Deployment**: Docker, Vercel (frontend), Render (backend)
+
+### **Key Entry Points**
+- **Frontend**: [resume-builder/src/App.js](mdc:resume-builder/src/App.js) - Main React application
+- **Backend**: [backend/server.js](mdc:backend/server.js) - Express server configuration
+- **Docker**: [docker-compose.yml](mdc:docker-compose.yml) - Development environment
+
+### **Technology Stack**
+- **Frontend**: React 19, Tailwind CSS, React Router, Axios
+- **Backend**: Node.js 22, Express, MongoDB, JWT Authentication
+- **AI Integration**: Google Gemini AI for resume parsing and analysis
+- **Payments**: Razorpay integration for subscriptions
+- **File Storage**: Cloudinary for profile pictures and uploads
+- **Security**: Helmet, CORS, Rate limiting, XSS protection
+
+### **Key Directories**
+- **API Routes**: [backend/routes/](mdc:backend/routes/) - All API endpoints
+- **Models**: [backend/models/](mdc:backend/models/) - Database schemas
+- **Components**: [resume-builder/src/components/](mdc:resume-builder/src/components/) - React components
+- **Templates**: [backend/assets/](mdc:backend/assets/) - Resume templates and styling
+- **Scripts**: [backend/scripts/](mdc:backend/scripts/) - Utility and build scripts
+
+### **Development Workflow**
+1. **Local Development**: Use `docker-compose up` for full stack
+2. **Backend Only**: `cd backend && npm run dev`
+3. **Frontend Only**: `cd resume-builder && npm start`
+4. **Database**: MongoDB with connection string in environment
+
+### **Environment Configuration**
+- **Backend**: [backend/env.template](mdc:backend/env.template) - Environment variables template
+- **Frontend**: React environment variables in build process
+- **Docker**: [docker-compose.yml](mdc:docker-compose.yml) - Container configuration
+
+### **Documentation Structure**
+- **Main Docs**: [PROJECT_DOCUMENTATION.md](mdc:PROJECT_DOCUMENTATION.md) - Central documentation index
+- **Setup**: [backend/SETUP.md](mdc:backend/SETUP.md) - Quick setup guide
+- **Templates**: [TEMPLATES_README.md](mdc:TEMPLATES_README.md) - Template system documentation
+- **Subscriptions**: [SUBSCRIPTION_IMPLEMENTATION.md](mdc:SUBSCRIPTION_IMPLEMENTATION.md) - Payment system
+
+### **Mobile Support**
+- CORS configured for mobile apps (`capacitor://localhost`, `ionic://localhost`)
+- API endpoints designed for mobile consumption
+- JWT authentication for mobile sessions

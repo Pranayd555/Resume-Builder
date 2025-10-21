@@ -337,6 +337,119 @@ const trackUsage = async (req, res, next) => {
   next();
 };
 
+// Check subscription and handle automatic cleanup
+const checkSubscription = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return next();
+    }
+
+    const User = require('../models/User');
+    const Subscription = require('../models/Subscription');
+    const Resume = require('../models/Resume');
+
+    // Get user with subscription details
+    let user = await User.findById(req.user.id);
+    if (!user) {
+      return next();
+    }
+
+    // Check if subscription or trial has expired
+    const now = new Date();
+    const subscriptionEndDate = user.subscription?.endDate;
+    
+    // Check for subscription expiration
+    const isSubscriptionExpired = subscriptionEndDate && new Date(subscriptionEndDate) < now;
+    
+    // Check for trial expiration
+    let subscription = await Subscription.findOne({ user: user._id });
+    const isTrialExpired = subscription && subscription.status === 'trialing' && subscription.hasTrialExpired();
+    
+    if (isSubscriptionExpired || isTrialExpired) {
+      const expirationType = isTrialExpired ? 'trial' : 'subscription';
+      logger.info(`${expirationType} expired for user ${user.email}, performing cleanup...`);
+      
+      // Only proceed if isDBCleared is false
+      if (!user.isDBCleared) {
+        // 1. Update subscription details to free
+        user.subscription.plan = 'free';
+        user.subscription.isActive = true;
+        user.subscription.startDate = new Date();
+        user.subscription.endDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year from now
+        
+        // 2. Update subscription model if it exists
+        if (subscription) {
+          subscription.plan = 'free';
+          subscription.status = 'active';
+          subscription.billing = {
+            cycle: 'monthly',
+            amount: 0,
+            currency: 'INR',
+            nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            trialEnd: undefined,
+            trialType: null,
+            discountCode: undefined,
+            discountAmount: 0
+          };
+          subscription.features = {
+            resumeLimit: 2,
+            templateAccess: ['free'],
+            exportFormats: ['pdf'],
+            aiActionsLimit: 'token-based',
+            freeTokens: 0,
+            aiReview: false,
+            prioritySupport: false,
+            customBranding: false,
+            unlimitedExports: false
+          };
+          subscription.usage = {
+            resumesCreated: 0,
+            aiActionsThisCycle: 0,
+            freeTokensUsed: 0,
+            cycleStartDate: new Date(),
+            lastBillingCycleReset: new Date()
+          };
+          subscription.paymentHistory = [];
+          // Don't reset hasHadTrial flag - keep it true if user had trial
+          await subscription.save();
+        }
+
+        // 3. Check resume count and cleanup if necessary
+        const freePlanLimit = 2;
+        const totalResumes = await Resume.countDocuments({ user: user._id });
+        
+        if (totalResumes > freePlanLimit) {
+          logger.info(`User ${user.email} has ${totalResumes} resumes, limit is ${freePlanLimit}. Cleaning up...`);
+          
+          // Get resumes sorted by creation date (oldest first)
+          const resumesToDelete = await Resume.find({ user: user._id })
+            .sort({ createdAt: 1 })
+            .limit(totalResumes - freePlanLimit)
+            .select('_id');
+          
+          // Delete excess resumes
+          const resumeIdsToDelete = resumesToDelete.map(resume => resume._id);
+          await Resume.deleteMany({ _id: { $in: resumeIdsToDelete } });
+          
+          logger.info(`Deleted ${resumeIdsToDelete.length} resumes for user ${user.email}`);
+        }
+
+        // 4. Update isDBCleared flag
+        user.isDBCleared = true;
+        await user.save();
+        
+        logger.info(`${expirationType} cleanup completed for user ${user.email}`);
+      }
+    }
+
+    next();
+  } catch (error) {
+    logger.error('Check subscription error:', error);
+    // Don't block the request if cleanup fails
+    next();
+  }
+};
+
 module.exports = {
   protect,
   authorize,
@@ -346,5 +459,6 @@ module.exports = {
   checkTemplateAccess,
   checkExportFormat,
   checkTokenLimit,
-  trackUsage
+  trackUsage,
+  checkSubscription
 }; 
