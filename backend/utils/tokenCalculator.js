@@ -31,7 +31,7 @@ async function calculateTotalTokens(userId) {
       subscription: {
         plan: subscription?.plan || 'free',
         planName: subscription?.plan === 'free' ? 'Free' : 
-                 subscription?.plan === 'base' ? 'Base' : 'Pro',
+                 subscription?.plan === 'pro_monthly' ? 'Pro Monthly' : 'Pro Yearly',
         isTokenBased: subscription?.features?.aiActionsLimit === 'token-based'
       }
     };

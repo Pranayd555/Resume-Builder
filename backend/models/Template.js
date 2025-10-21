@@ -198,7 +198,7 @@ const templateSchema = new mongoose.Schema({
   availability: {
     tier: {
       type: String,
-      enum: ['free', 'pro', 'enterprise'],
+      enum: ['free', 'pro_monthly', 'pro_yearly', 'enterprise'],
       required: [true, 'Availability tier is required'],
       default: 'free'
     },
@@ -387,4 +387,4 @@ templateSchema.methods.addReview = function(userId, rating, comment) {
   return this.save();
 };
 
-module.exports = mongoose.model('Template', templateSchema); 
+module.exports = mongoose.model('Template', templateSchema);

@@ -176,10 +176,10 @@ router.post('/complete-payment', protect, async (req, res) => {
     }
 
     // For subscription purchases, plan and amount are required
-    if (!tokenPurchase && (!plan || !amount)) {
+    if (!tokenPurchase && (!plan || !amount || !['pro_monthly', 'pro_yearly'].includes(plan))) {
       return res.status(400).json({
         success: false,
-        message: 'Plan and Amount are required for subscription purchases'
+        message: 'Valid Plan and Amount are required for subscription purchases'
       });
     }
 
@@ -317,6 +317,10 @@ router.post('/complete-payment', protect, async (req, res) => {
     // Handle subscription purchases
     let subscription = await Subscription.findOne({ user: userId });
     
+    const billingCycle = plan === 'pro_monthly' ? 'monthly' : 'yearly';
+    const nextBillingDate = plan === 'pro_monthly' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+    const freeTokens = plan === 'pro_monthly' ? 150 : 300;
+
     if (!subscription) {
       // Create new subscription
       subscription = new Subscription({
@@ -324,10 +328,13 @@ router.post('/complete-payment', protect, async (req, res) => {
         plan: plan,
         status: 'active',
         billing: {
-          cycle: 'monthly',
+          cycle: billingCycle,
           amount: amount,
           currency: 'INR',
-          nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
+          nextBillingDate: nextBillingDate
+        },
+        features: {
+          freeTokens: freeTokens
         },
         usage: {
           resumesCreated: 0,
@@ -342,11 +349,12 @@ router.post('/complete-payment', protect, async (req, res) => {
       subscription.plan = plan;
       subscription.status = 'active';
       subscription.billing = {
-        cycle: 'monthly',
+        cycle: billingCycle,
         amount: amount,
         currency: 'INR',
-        nextBillingDate: new Date(Math.max(Date.now(), subscription.billing.nextBillingDate.getTime()) + 30 * 24 * 60 * 60 * 1000)
+        nextBillingDate: nextBillingDate
       };
+      subscription.features.freeTokens = freeTokens;
       
       // Reset usage for new billing cycle
       subscription.usage.freeTokensUsed = 0;
@@ -361,7 +369,7 @@ router.post('/complete-payment', protect, async (req, res) => {
       status: 'succeeded',
       paymentId: payment_id,
       invoiceId: order_id, // Use order_id as invoice ID
-      description: `${plan.charAt(0).toUpperCase() + plan.slice(1)} plan subscription`,
+      description: `${plan === 'pro_monthly' ? 'Pro Monthly' : 'Pro Yearly'} plan subscription`,
       paidAt: new Date(),
       metadata: {
         orderId: order_id,
@@ -375,11 +383,11 @@ router.post('/complete-payment', protect, async (req, res) => {
         subscriptionId: subscription._id,
         userId: userId,
         planDetails: {
-          name: plan === 'base' ? 'Base Plan' : 'Pro Plan',
+          name: plan === 'pro_monthly' ? 'Pro Monthly Plan' : 'Pro Yearly Plan',
           price: amount,
-          features: plan === 'base' ? ['150 free tokens', 'Premium templates', 'ATS analysis'] : ['300 free tokens', 'All features', 'Priority support']
+          features: plan === 'pro_monthly' ? ['150 free tokens', 'Premium templates', 'ATS analysis', 'Priority support', 'Unlimited exports'] : ['300 free tokens', 'All features', 'Priority support', 'Unlimited exports', 'Custom branding']
         },
-        billingCycle: 'monthly',
+        billingCycle: billingCycle,
         nextBillingDate: subscription.billing.nextBillingDate,
         source: 'web_payment',
         campaign: req.headers.referer || 'direct',
@@ -400,7 +408,7 @@ router.post('/complete-payment', protect, async (req, res) => {
         signature: signature,
         method: 'razorpay',
         capturedAt: new Date(),
-        notes: `${plan.charAt(0).toUpperCase() + plan.slice(1)} plan subscription`,
+        notes: `${plan === 'pro_monthly' ? 'Pro Monthly' : 'Pro Yearly'} plan subscription`,
         metadata: {
           plan: plan,
           subscriptionId: subscription._id,
@@ -411,11 +419,11 @@ router.post('/complete-payment', protect, async (req, res) => {
           timestamp: new Date().toISOString(),
           userId: userId,
           planDetails: {
-            name: plan === 'base' ? 'Base Plan' : 'Pro Plan',
+            name: plan === 'pro_monthly' ? 'Pro Monthly Plan' : 'Pro Yearly Plan',
             price: amount,
-            features: plan === 'base' ? ['150 free tokens', 'Premium templates', 'ATS analysis'] : ['300 free tokens', 'All features', 'Priority support']
+            features: plan === 'pro_monthly' ? ['150 free tokens', 'Premium templates', 'ATS analysis', 'Priority support', 'Unlimited exports'] : ['300 free tokens', 'All features', 'Priority support', 'Unlimited exports', 'Custom branding']
           },
-          billingCycle: 'monthly',
+          billingCycle: billingCycle,
           nextBillingDate: subscription.billing.nextBillingDate,
           source: 'web_payment',
           campaign: req.headers.referer || 'direct',
@@ -489,7 +497,7 @@ router.post('/complete-payment', protect, async (req, res) => {
   } catch (error) {
     console.error('Complete payment error:', error);
       // Send error notification for token addition failure
-        await sendTokenAdditionErrorNotification(user, 'Order ID, Payment ID, and Signature are required', req, payment_id, order_id, amount, plan, subscription, tokenError);
+        await sendTokenAdditionErrorNotification(req.user, 'Complete payment error', req, payment_id, order_id, amount, plan, subscription, error);
     
     res.status(500).json({
       success: false,
