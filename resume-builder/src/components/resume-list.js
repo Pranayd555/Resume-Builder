@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import AuthLoader from './AuthLoader';
@@ -247,8 +247,6 @@ function ResumeList() {
   }, [user]);
 
   // Add refs to track state and prevent infinite loops
-  const isRefreshingRef = useRef(false);
-  const hasMountedRef = useRef(false);
   const userRef = useRef(user);
   const updateUserRef = useRef(updateUser);
 
@@ -300,22 +298,22 @@ function ResumeList() {
       const response = await subscriptionAPI.getSubscriptionStatus();
       
       if (response.success) {
-        const data = response.data;
+        const subscription = response.data.subscription;
         
         // Determine the plan type
         let plan = 'free';
-        if (data.subscriptionType === 'trial' && !data.isExpired) {
+        if (subscription.status === 'trialing') {
           plan = 'trial';
-        } else if (data.subscriptionType === 'pro_monthly' || data.subscriptionType === 'pro_yearly') {
+        } else if (subscription.plan === 'pro_monthly' || subscription.plan === 'pro_yearly') {
           plan = 'pro';
         }
         
         const info = {
           plan: plan,
-          isActive: !data.isExpired,
-          resumeLimit: data.resumeLimit || (plan === 'trial' ? 5 : plan === 'pro' ? 5 : 2),
-          aiTokens: data.aiTokens || 20,
-          trialRemainingDays: data.remainingDays || null
+          isActive: subscription.status === 'active' || subscription.status === 'trialing',
+          resumeLimit: subscription.features?.resumeLimit || (plan === 'trial' ? 5 : plan === 'pro' ? 5 : 2),
+          aiTokens: subscription.features?.freeTokens || 20,
+          trialRemainingDays: subscription.trialRemainingDays || null
         };
         
         setSubscriptionInfo(info);
@@ -975,6 +973,12 @@ function ResumeList() {
               {subscriptionInfo.plan === 'trial' && subscriptionInfo.trialRemainingDays && (
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
                   ⏰ {subscriptionInfo.trialRemainingDays} days left
+                </span>
+              )}
+              {/* Pro Subscription Days Remaining */}
+              {subscriptionInfo.plan === 'pro' && subscriptionInfo.remainingDays && subscriptionInfo.remainingDays <= 3 && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">
+                  ⚠️ {subscriptionInfo.remainingDays} days left
                 </span>
               )}
             </div>

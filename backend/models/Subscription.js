@@ -325,7 +325,9 @@ subscriptionSchema.virtual('trialRemainingDays').get(function() {
   const now = new Date();
   const trialEnd = new Date(this.billing.trialEnd);
   const diffTime = trialEnd - now;
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  // Use Math.floor to get complete days remaining, not partial days
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
   
   return Math.max(0, diffDays);
 });
@@ -633,7 +635,7 @@ subscriptionSchema.methods.getActualResumeCount = async function() {
   
   if (this.status === 'trialing' && this.billing?.trialEnd) {
     // For trial users, count from trial start (trialEnd - trial duration)
-    const trialDuration = this.billing.trialType === 'free' ? 3 : 7; // days
+    const trialDuration = this.billing.trialType === 'free' ? 3 : 3; // days
     startDate = new Date(this.billing.trialEnd);
     startDate.setDate(startDate.getDate() - trialDuration);
   } else if (this.createdAt) {

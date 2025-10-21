@@ -318,7 +318,33 @@ router.post('/complete-payment', protect, async (req, res) => {
     let subscription = await Subscription.findOne({ user: userId });
     
     const billingCycle = plan === 'pro_monthly' ? 'monthly' : 'yearly';
-    const nextBillingDate = plan === 'pro_monthly' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+    
+    // Calculate next billing date considering remaining trial days
+    let nextBillingDate;
+    if (subscription && subscription.status === 'trialing' && subscription.billing?.trialEnd) {
+      // User is converting from trial - add remaining trial days to billing period
+      const now = new Date();
+      const trialEnd = new Date(subscription.billing.trialEnd);
+      const remainingTrialDays = Math.max(0, Math.floor((trialEnd - now) / (1000 * 60 * 60 * 24)));
+      
+      if (plan === 'pro_monthly') {
+        // Monthly: remaining trial days + 30 days
+        nextBillingDate = new Date(trialEnd.getTime() + 30 * 24 * 60 * 60 * 1000);
+      } else {
+        // Yearly: remaining trial days + 365 days
+        nextBillingDate = new Date(trialEnd.getTime() + 365 * 24 * 60 * 60 * 1000);
+      }
+      
+      logger.info(`Trial conversion billing calculation: User ${userId}, Remaining trial days: ${remainingTrialDays}, Plan: ${plan}, Next billing: ${nextBillingDate.toISOString()}`);
+    } else {
+      // New subscription or non-trial conversion - standard billing
+      nextBillingDate = plan === 'pro_monthly' 
+        ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) 
+        : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+      
+      logger.info(`Standard billing calculation: User ${userId}, Plan: ${plan}, Next billing: ${nextBillingDate.toISOString()}`);
+    }
+    
     const freeTokens = plan === 'pro_monthly' ? 150 : 300;
 
     if (!subscription) {
