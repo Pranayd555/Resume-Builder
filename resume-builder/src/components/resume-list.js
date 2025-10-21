@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import AuthLoader from './AuthLoader';
@@ -32,6 +32,7 @@ import { toast } from 'react-toastify';
 import ATSScoreModal from './ATSScoreModal';
 import EmailVerification from './EmailVerification';
 import { useAuth } from '../contexts/AuthContext';
+import { subscriptionAPI } from '../services/api';
 
 // ATS Score Display Component
 const ATSScoreDisplay = ({ resume, isCardHovered }) => {
@@ -245,28 +246,17 @@ function ResumeList() {
     }
   }, [user]);
 
-  // Refresh user data when page becomes visible (e.g., returning from profile)
+  // Add refs to track state and prevent infinite loops
+  const isRefreshingRef = useRef(false);
+  const hasMountedRef = useRef(false);
+  const userRef = useRef(user);
+  const updateUserRef = useRef(updateUser);
+
+  // Update refs when values change
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden && user) {
-        apiHelpers.setCurrentUserData(user);
-      }
-    };
-
-    const handleFocus = () => {
-      if (user) {
-        apiHelpers.setCurrentUserData(user);
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [user]);
+    userRef.current = user;
+    updateUserRef.current = updateUser;
+  }, [user, updateUser]);
 
   const [pagination, setPagination] = useState({
     page: 1,
@@ -295,51 +285,118 @@ function ResumeList() {
   const cardRefs = useRef({});
   const observerRef = useRef(null);
 
-  // Get subscription info from localStorage
-  const getSubscriptionInfo = () => {
+  // State for subscription info
+  const [subscriptionInfo, setSubscriptionInfo] = useState({
+    plan: 'free',
+    isActive: true,
+    resumeLimit: 2,
+    aiTokens: 20,
+    trialRemainingDays: null
+  });
+
+  // Fetch subscription data from backend
+  const fetchSubscriptionData = useCallback(async () => {
     try {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        const user = JSON.parse(userData);
-        return user.subscription || { plan: 'free', isActive: false };
+      const response = await subscriptionAPI.getSubscriptionStatus();
+      
+      if (response.success) {
+        const data = response.data;
+        
+        // Determine the plan type
+        let plan = 'free';
+        if (data.subscriptionType === 'trial' && !data.isExpired) {
+          plan = 'trial';
+        } else if (data.subscriptionType === 'pro_monthly' || data.subscriptionType === 'pro_yearly') {
+          plan = 'pro';
+        }
+        
+        const info = {
+          plan: plan,
+          isActive: !data.isExpired,
+          resumeLimit: data.resumeLimit || (plan === 'trial' ? 5 : plan === 'pro' ? 5 : 2),
+          aiTokens: data.aiTokens || 20,
+          trialRemainingDays: data.remainingDays || null
+        };
+        
+        setSubscriptionInfo(info);
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Subscription data fetched from backend:', info);
+        }
+      } else {
+        console.warn('Failed to fetch subscription data:', response.error);
       }
     } catch (error) {
-      console.error('Error parsing user data from localStorage:', error);
+      console.error('Error fetching subscription data:', error);
     }
-    return { plan: 'free', isActive: false };
-  };
+  }, []);
+
+  // Fetch subscription data on component mount
+  useEffect(() => {
+    if (user) {
+      fetchSubscriptionData();
+    }
+  }, [user, fetchSubscriptionData]);
+
+  // Refresh subscription data when page becomes visible (e.g., returning from profile)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && user) {
+        // Only refresh subscription data if it's been more than 5 minutes since last refresh
+        const lastRefresh = localStorage.getItem('lastSubscriptionRefresh');
+        const now = Date.now();
+        if (!lastRefresh || (now - parseInt(lastRefresh)) > 5 * 60 * 1000) {
+          fetchSubscriptionData();
+          localStorage.setItem('lastSubscriptionRefresh', now.toString());
+        }
+      }
+    };
+
+    const handleFocus = () => {
+      if (user) {
+        // Only refresh subscription data if it's been more than 5 minutes since last refresh
+        const lastRefresh = localStorage.getItem('lastSubscriptionRefresh');
+        const now = Date.now();
+        if (!lastRefresh || (now - parseInt(lastRefresh)) > 5 * 60 * 1000) {
+          fetchSubscriptionData();
+          localStorage.setItem('lastSubscriptionRefresh', now.toString());
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [fetchSubscriptionData, user]);
 
   // Check if user can create new resume based on subscription and current count
   const canCreateNewResume = () => {
-    const subscription = getSubscriptionInfo();
     const currentResumeCount = resumes.length;
-    
-    if (subscription.plan === 'free') {
-      return currentResumeCount < 2;
-    } else if (subscription.plan === "pro_yearly" || subscription.plan === "pro_monthly") {
-      return currentResumeCount < 5;
-    }
-    
-    return true; // Default fallback
+    return currentResumeCount < subscriptionInfo.resumeLimit;
   };
 
   // Get subscription limit message
   const getSubscriptionLimitMessage = () => {
-    const subscription = getSubscriptionInfo();
     const currentResumeCount = resumes.length;
     
-    if (subscription.plan === 'free' && currentResumeCount >= 2) {
-      return {
-        type: 'warning',
-        message: 'Free plan limit reached! Delete old resumes or upgrade to Pro to create more resumes.',
-        action: 'Upgrade to Pro'
-      };
-    } else if (subscription.plan === 'pro' && currentResumeCount >= 5) {
-      return {
-        type: 'info',
-        message: 'Total resume limit reached! Please delete some old resumes to create new ones.',
-        action: null
-      };
+    if (currentResumeCount >= subscriptionInfo.resumeLimit) {
+      if (subscriptionInfo.plan === 'free') {
+        return {
+          type: 'warning',
+          message: 'Free plan limit reached! Delete old resumes or upgrade to Pro to create more resumes.',
+          action: 'Upgrade to Pro'
+        };
+      } else {
+        return {
+          type: 'info',
+          message: 'Resume limit reached! Please delete some old resumes to create new ones.',
+          action: null
+        };
+      }
     }
     
     return null;
@@ -485,8 +542,9 @@ function ResumeList() {
   // Update subscription info when resumes change (for reactive UI updates)
   useEffect(() => {
     // This effect ensures the UI updates when resume count changes
-    // The subscription info is read from localStorage on each render
+    // The subscription info is now managed by state
   }, [resumes.length]);
+
 
   // Handle error navigation - must be at top level to avoid hook rules violation
   useEffect(() => {
@@ -735,9 +793,13 @@ function ResumeList() {
         const downloadAnalytics = await analyticsAPI.trackResumeDownload(resumeId, 'pdf');
         resume.analytics.downloads = downloadAnalytics.data.downloads;
         resume.analytics.lastDownloaded = downloadAnalytics.data.lastDownloaded;
-        console.log('Download analytics:', downloadAnalytics);
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Download analytics:', downloadAnalytics);
+        }
       } catch (analyticsError) {
-        console.warn('Failed to track download:', analyticsError);
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Failed to track download:', analyticsError);
+        }
       }
       
       toast.success('Resume downloaded successfully!');
@@ -894,11 +956,36 @@ function ResumeList() {
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-              My Resumes
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg">Create and manage your professional resumes</p>
-            
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                My Resumes
+              </h1>
+              {/* Subscription Status Badge */}
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                subscriptionInfo.plan === 'trial' 
+                  ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
+                  : subscriptionInfo.plan === 'pro'
+                  ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                  : 'bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-300'
+              }`}>
+                {subscriptionInfo.plan === 'trial' ? 'Trial' : 
+                 subscriptionInfo.plan === 'pro' ? 'Pro' : 'Free'}
+              </span>
+              {/* Trial Days Remaining */}
+              {subscriptionInfo.plan === 'trial' && subscriptionInfo.trialRemainingDays && (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                  ⏰ {subscriptionInfo.trialRemainingDays} days left
+                </span>
+              )}
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg">
+              Create and manage your professional resumes
+              {subscriptionInfo.plan !== 'pro' && (
+                <span className="ml-2 text-sm text-gray-500 dark:text-gray-500">
+                  ({resumes.length}/{subscriptionInfo.resumeLimit} limit)
+                </span>
+              )}
+            </p>
           </div>
           <div className="flex flex-wrap items-center gap-4 justify-end">
             {canCreateNewResume() && (
@@ -953,8 +1040,8 @@ function ResumeList() {
           </div>
         )}
 
-        {/* Subscription Limit Banner */}
-        {!canCreateNewResume() && !isEmailVerificationRequired() && getSubscriptionInfo().plan === 'free' && (
+        {/* Free Plan Limit Banner */}
+        {!canCreateNewResume() && !isEmailVerificationRequired() && subscriptionInfo.plan === 'free' && (
           <div className="backdrop-blur-md bg-orange-50/80 border border-orange-200 rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-start gap-3">
@@ -979,8 +1066,36 @@ function ResumeList() {
             </div>
           </div>
         )}
+
+        {/* Trial Plan Limit Banner */}
+        {!canCreateNewResume() && !isEmailVerificationRequired() && subscriptionInfo.plan === 'trial' && (
+          <div className="backdrop-blur-md bg-purple-50/80 border border-purple-200 rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                  <SparklesIcon className="w-6 h-6 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-purple-800 mb-1">
+                    Trial Limit Reached
+                  </h3>
+                  <p className="text-purple-700 text-sm sm:text-base">
+                  Resume limit reached! Please delete some old resumes to create new ones.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate('/subscription')}
+                className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-6 py-3 rounded-xl hover:from-purple-600 hover:to-indigo-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold text-sm sm:text-base whitespace-nowrap"
+              >
+                Upgrade to Pro
+              </button>
+            </div>
+          </div>
+        )}
         
-        {!canCreateNewResume() && !isEmailVerificationRequired() && getSubscriptionInfo().plan === 'pro' && (
+        {/* Pro Plan Limit Banner */}
+        {!canCreateNewResume() && !isEmailVerificationRequired() && subscriptionInfo.plan === 'pro' && (
           <div className="backdrop-blur-md bg-blue-50/80 border border-blue-200 rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-start gap-3">
@@ -989,13 +1104,19 @@ function ResumeList() {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-blue-800 mb-1">
-                    Total Resume Limit Reached
+                    Pro Plan Limit Reached
                   </h3>
                   <p className="text-blue-700 text-sm sm:text-base">
-                    You can create up to 5 resumes. Please delete some old resumes to create new ones.
+                    You can create up to 5 resumes on your Pro plan. Please delete some old resumes to create new ones.
                   </p>
                 </div>
               </div>
+              <button
+                onClick={() => navigate('/subscription')}
+                className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-cyan-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold text-sm sm:text-base whitespace-nowrap"
+              >
+                Manage Subscription
+              </button>
             </div>
           </div>
         )}

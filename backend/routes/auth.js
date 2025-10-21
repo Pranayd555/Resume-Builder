@@ -391,7 +391,7 @@ router.get('/email-status', protect, async (req, res) => {
 // @access  Private
 router.get('/me', protect, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).populate('subscription');
+    const user = await User.findById(req.user.id);
     let subscription = await Subscription.findOne({ user: req.user.id });
 
     // Apply same subscription processing logic as /current endpoint

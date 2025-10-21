@@ -27,7 +27,7 @@ export const createSubscriptionModel = (data = {}) => ({
   plan: data.plan || 'free',
   status: data.status || 'active',
   features: {
-    resumeLimit: data.features?.resumeLimit || 2,
+    resumeLimit: data.features?.resumeLimit || (data.plan === 'trial' ? 5 : 2),
     templateAccess: data.features?.templateAccess || ['free'],
     exportFormats: data.features?.exportFormats || ['pdf'],
     aiActionsLimit: data.features?.aiActionsLimit || 10,

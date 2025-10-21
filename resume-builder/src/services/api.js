@@ -364,36 +364,81 @@ export const templateAPI = {
   },
 };
 
-// Subscription API calls
+// New Subscription API calls (aligned with new backend)
 export const subscriptionAPI = {
-  getCurrentSubscription: async () => {
-    const config = createApiConfig('/subscriptions/current');
-    const response = await api.get('/subscriptions/current', config);
+  // Get current subscription status
+  getSubscriptionStatus: async () => {
+    const config = createApiConfig('/subscription/status');
+    const response = await api.get('/subscription/status', config);
     return response.data;
   },
 
+  // Get available plans
   getPlans: async () => {
-    const config = createApiConfig('/subscriptions/plans');
-    const response = await api.get('/subscriptions/plans', config);
+    const config = createApiConfig('/subscription/plans');
+    const response = await api.get('/subscription/plans', config);
     return response.data;
+  },
+
+  // Start 7-day trial
+  startTrial: async () => {
+    const config = createApiConfig('/subscription/start-trial');
+    const response = await api.post('/subscription/start-trial', {}, config);
+    return response.data;
+  },
+
+  // Activate pro plan
+  activatePro: async (planType) => {
+    const config = createApiConfig('/subscription/activate-pro');
+    const response = await api.post('/subscription/activate-pro', { planType }, config);
+    return response.data;
+  },
+
+  // Legacy methods for backward compatibility
+  getCurrentSubscription: async () => {
+    const status = await subscriptionAPI.getSubscriptionStatus();
+    if (status.success) {
+      return {
+        success: true,
+        data: {
+          subscription: {
+            plan: status.data.subscriptionType,
+            status: status.data.isExpired ? 'expired' : 'active',
+            isTrial: status.data.subscriptionType === 'trial',
+            trialRemainingDays: status.data.remainingDays,
+            hasHadTrial: status.data.subscriptionType !== 'free',
+            resumeLimit: status.data.resumeLimit,
+            aiTokens: status.data.aiTokens,
+            subscriptionStart: status.data.subscriptionStart,
+            subscriptionEnd: status.data.subscriptionEnd
+          }
+        }
+      };
+    }
+    return status;
   },
 
   getTrialInfo: async () => {
-    const config = createApiConfig('/subscriptions/trial-info');
-    const response = await api.get('/subscriptions/trial-info', config);
-    return response.data;
+    const status = await subscriptionAPI.getSubscriptionStatus();
+    if (status.success) {
+      return {
+        success: true,
+        data: {
+          trialInfo: {
+            isTrialActive: status.data.subscriptionType === 'trial' && !status.data.isExpired,
+            hasTrialExpired: status.data.isExpired,
+            trialRemainingDays: status.data.remainingDays,
+            plan: status.data.subscriptionType,
+            status: status.data.subscriptionType
+          }
+        }
+      };
+    }
+    return status;
   },
 
   getTrialEligibility: async () => {
-    const config = createApiConfig('/subscriptions/current');
-    const response = await api.get('/subscriptions/current', config);
-    return response.data;
-  },
-
-  startTrial: async (trialType) => {
-    const config = createApiConfig('/subscriptions/start-trial');
-    const response = await api.post('/subscriptions/start-trial', { trialType }, config);
-    return response.data;
+    return await subscriptionAPI.getSubscriptionStatus();
   },
 
   createCheckoutSession: async (planId, billingCycle) => {

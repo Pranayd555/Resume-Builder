@@ -500,16 +500,36 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user has active subscription
   const hasActiveSubscription = () => {
-    if (!state.user || !state.user.subscription) return false;
+    if (!state.user) return false;
     
-    const { subscription } = state.user;
-    return subscription.isActive && new Date(subscription.endDate) > new Date();
+    // Check new subscription fields
+    if (state.user.subscriptionType === 'free') return true; // Free is always active
+    if (state.user.subscriptionType === 'trial' || state.user.subscriptionType === 'pro') {
+      if (!state.user.subscriptionEnd) return true; // No end date means active
+      return new Date(state.user.subscriptionEnd) > new Date();
+    }
+    return false;
   };
 
   // Get subscription plan
   const getSubscriptionPlan = () => {
-    if (!state.user || !state.user.subscription) return 'free';
-    return state.user.subscription.plan;
+    if (!state.user) return 'free';
+    return state.user.subscriptionType || 'free';
+  };
+
+  // Get subscription details
+  const getSubscriptionDetails = () => {
+    if (!state.user) return null;
+    
+    return {
+      plan: state.user.subscriptionType || 'free',
+      isActive: hasActiveSubscription(),
+      isTrial: state.user.subscriptionType === 'trial',
+      resumeLimit: state.user.resumeLimit || (state.user.subscriptionType === 'trial' ? 5 : 2),
+      aiTokens: state.user.aiTokens || 20,
+      subscriptionStart: state.user.subscriptionStart,
+      subscriptionEnd: state.user.subscriptionEnd
+    };
   };
 
   // Context value
@@ -539,6 +559,7 @@ export const AuthProvider = ({ children }) => {
     hasPermission,
     hasActiveSubscription,
     getSubscriptionPlan,
+    getSubscriptionDetails,
   };
 
   return (

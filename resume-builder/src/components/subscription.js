@@ -77,25 +77,33 @@ function Subscription() {
           const transformedPlans = plansResponse.data.plans.map(plan => ({
             id: plan.id,
             name: plan.name,
-            price: plan.id === 'pro_yearly' ? plan.price.yearly : plan.price.monthly, // Dynamically select price based on plan ID
-            originalPrice: plan.id === 'pro_yearly' ? Math.round(plan.price.yearly * 1.3) : Math.round(plan.price.monthly * 1.3), // Add 30% markup for original price
-            tokens: plan.limits.freeTokens,
+            price: plan.price, // Use direct price from backend
+            originalPrice: plan.id === 'pro_yearly' ? Math.round(plan.price * 1.3) : plan.id === 'pro_monthly' ? Math.round(plan.price * 1.3) : 0, // Add 30% markup for original price
+            tokens: plan.limits.aiTokens,
             features: plan.features,
-            popular: plan.popular,
+            popular: plan.id === 'pro_yearly', // Mark yearly as popular
             color: plan.id === 'free' ? 'gray' : plan.id === 'pro_monthly' ? 'blue' : (plan.id === 'pro_yearly') ? 'purple' : 'gray',
-            trial: plan.trial
+            trial: plan.id === 'free' // Only free plan has trial option
           }));
           setSubscriptionPlans(transformedPlans);
         }
 
-        // Fetch subscription
-        const subscriptionResponse = await subscriptionAPI.getCurrentSubscription();
+        // Fetch subscription status
+        const subscriptionResponse = await subscriptionAPI.getSubscriptionStatus();
 
         if (subscriptionResponse.success) {
-          // Store subscription plus weekly usage summary (if provided by backend)
+          // Transform new subscription data to match frontend expectations
+          const subscriptionData = subscriptionResponse.data;
           setCurrentSubscription({
-            ...subscriptionResponse.data.subscription,
-            weekly: subscriptionResponse.data.weekly || null,
+            plan: subscriptionData.subscriptionType,
+            status: subscriptionData.isExpired ? 'expired' : 'active',
+            isTrial: subscriptionData.subscriptionType === 'trial',
+            trialRemainingDays: subscriptionData.remainingDays,
+            hasHadTrial: subscriptionData.subscriptionType !== 'free',
+            resumeLimit: subscriptionData.resumeLimit,
+            aiTokens: subscriptionData.aiTokens,
+            subscriptionStart: subscriptionData.subscriptionStart,
+            subscriptionEnd: subscriptionData.subscriptionEnd
           });
         }
 
@@ -140,17 +148,37 @@ function Subscription() {
 
 
 
-  const handleStartTrial = async (trialType) => {
+  const handleStartTrial = async () => {
     setTrialLoading(true);
     try {
-      const response = await subscriptionAPI.startTrial(trialType);
+      const response = await subscriptionAPI.startTrial();
       if (response.success) {
-        setCurrentSubscription(response.data.subscription);
+        // Transform response data to match frontend expectations
+        const subscriptionData = response.data;
+        setCurrentSubscription({
+          plan: subscriptionData.subscriptionType,
+          status: 'active',
+          isTrial: true,
+          trialRemainingDays: 3,
+          hasHadTrial: true,
+          resumeLimit: subscriptionData.resumeLimit,
+          aiTokens: subscriptionData.aiTokens,
+          subscriptionStart: subscriptionData.subscriptionStart,
+          subscriptionEnd: subscriptionData.subscriptionEnd
+        });
         
         // Update user data in localStorage with subscription details
-        apiHelpers.updateUserData(response.data.subscription);
+        apiHelpers.updateUserData({
+          plan: subscriptionData.subscriptionType,
+          status: 'active',
+          isTrial: true,
+          trialRemainingDays: 3,
+          hasHadTrial: true,
+          resumeLimit: subscriptionData.resumeLimit,
+          aiTokens: subscriptionData.aiTokens
+        });
         
-        toast.success(`Trial started! You have ${trialType === 'free' ? '3' : '7'} days to try Pro features.`);
+        toast.success('Trial started! You have 3 days to try Pro features.');
         navigate('/dashboard');
       }
     } catch (error) {
@@ -329,7 +357,7 @@ function Subscription() {
   };
 
   const canStartTrial = (plan) => {
-    return plan.id === 'pro_monthly' && 
+    return plan.id === 'trial' && 
            currentSubscription?.plan === 'free' && 
            currentSubscription?.status !== 'trialing' &&
            !currentSubscription?.hasHadTrial;
@@ -472,15 +500,33 @@ function Subscription() {
                     {plan.name}
                   </h3>
                   <div className="flex items-center justify-center gap-2 mb-4">
-                    <span className="text-4xl font-bold text-gray-900 dark:text-white">
-                      ₹{plan.price}
-                    </span>
-                    {plan.originalPrice > 0 && (
-                      <span className="text-lg text-gray-500 line-through">
-                        ₹{plan.originalPrice}
+                    {plan.price === 0 ? (
+                      <span className="text-4xl font-bold text-gray-900 dark:text-white">
+                        Free
                       </span>
-                 )}
-               </div>
+                    ) : (
+                      <>
+                        <span className="text-4xl font-bold text-gray-900 dark:text-white">
+                          ₹{plan.price}
+                        </span>
+                        {plan.originalPrice > 0 && (
+                          <span className="text-lg text-gray-500 line-through">
+                            ₹{plan.originalPrice}
+                          </span>
+                        )}
+                        {plan.id === 'pro_yearly' && (
+                          <span className="text-sm text-gray-500">
+                            /year
+                          </span>
+                        )}
+                        {plan.id === 'pro_monthly' && (
+                          <span className="text-sm text-gray-500">
+                            /month
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </div>
                   {plan.tokens > 0 && (
                     <div className="text-gray-600 dark:text-gray-300 mb-6">
                       {plan.tokens} AI Tokens included
@@ -508,7 +554,7 @@ function Subscription() {
                         <button className="w-full py-4 rounded-xl font-semibold text-lg bg-gray-100 text-gray-700 cursor-not-allowed">
                      Free Plan
                    </button>
-                 ) : (
+                 ) : ( !canStartTrial(plan) && (
                      <button
                           onClick={() => handleSubscribe(plan)}
                           disabled={paymentLoading || !razorpayLoaded || currentSubscription?.plan === 'pro'}
@@ -535,10 +581,10 @@ function Subscription() {
                             </>
                           )}
                      </button>
-                      )}
+                      ))}
                       {canStartTrial(plan) && (
                        <button
-                         onClick={() => handleStartTrial('free')}
+                         onClick={() => handleStartTrial()}
                          disabled={trialLoading}
                          className="w-full py-2 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg font-medium hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 disabled:opacity-50 shadow-md hover:shadow-lg"
                        >
