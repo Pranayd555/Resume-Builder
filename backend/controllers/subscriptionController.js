@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Subscription = require('../models/Subscription');
 const logger = require('../utils/logger');
 
 /**
@@ -7,7 +8,7 @@ const logger = require('../utils/logger');
  */
 
 /**
- * Start a 7-day trial for the user
+ * Start a 3-day trial for the user
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
@@ -22,42 +23,87 @@ const startTrial = async (req, res) => {
       });
     }
 
-    // Check if user already has an active trial or pro subscription
-    if (user.subscriptionType === 'trial' && !user.isSubscriptionExpired()) {
+    // Check if user already has a subscription record
+    let subscription = await Subscription.findOne({ user: req.user.id });
+
+    // Check if user already has an active trial
+    if (subscription && subscription.status === 'trialing' && subscription.billing?.trialEnd) {
+      const trialEnd = new Date(subscription.billing.trialEnd);
+      const now = new Date();
+      
+      if (trialEnd > now) {
+        return res.status(400).json({
+          success: false,
+          error: 'Trial already active'
+        });
+      }
+    }
+
+    // Check if user has already had a trial before
+    if (subscription && subscription.hasHadTrial) {
       return res.status(400).json({
         success: false,
-        error: 'Trial already active'
+        error: 'You have already used your free trial'
       });
     }
 
-    if (user.subscriptionType === 'pro' && !user.isSubscriptionExpired()) {
-      return res.status(400).json({
-        success: false,
-        error: 'Pro subscription already active'
-      });
+    // Create new subscription if doesn't exist
+    if (!subscription) {
+      subscription = await Subscription.createTrial(req.user.id, 'free', 3); // Always 3 days for free trial
+      subscription.features.freeTokens = 0; // Ensure no free tokens are granted during trial
+    } else {
+      // Update existing subscription for trial
+      subscription.plan = 'pro_monthly';
+      subscription.status = 'trialing';
+      subscription.hasHadTrial = true;
+      subscription.billing = {
+        trialType: 'free',
+        trialEnd: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) // Always 3 days for free trial
+      };
+      
+      // Set trial features properly
+      subscription.features.resumeLimit = 5;
+      subscription.features.templateAccess = ['free', 'premium'];
+      subscription.features.exportFormats = ['pdf'];
+      subscription.features.aiActionsLimit = 'token-based';
+      subscription.features.freeTokens = 0; // No free tokens during trial
+      subscription.features.aiReview = true;
+      subscription.features.prioritySupport = true;
+      subscription.features.customBranding = false; // Only for pro_yearly
+      subscription.features.unlimitedExports = true;
+      
+      // Reset usage for trial
+      subscription.usage = {
+        resumesCreated: 0,
+        aiActionsThisCycle: 0,
+        freeTokensUsed: 0,
+        cycleStartDate: new Date(),
+        lastBillingCycleReset: new Date()
+      };
     }
 
-    // Start trial
-    try {
-      await user.startTrial();
-      logger.info(`Trial started for user ${user.email}`);
-    } catch (trialError) {
-      logger.error('Error starting trial:', trialError);
-      return res.status(500).json({
-        success: false,
-        error: 'Error starting trial'
-      });
-    }
+    await subscription.save();
+
+    // Also update User model for backward compatibility
+    user.subscriptionType = 'trial';
+    user.subscriptionStart = new Date();
+    user.subscriptionEnd = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+    user.resumeLimit = 5;
+    user.aiTokens = 0; // No free tokens during trial
+    await user.save();
+
+    logger.info(`Trial started for user ${user.email}`);
     
     res.json({
       success: true,
       message: 'Trial started successfully',
       data: {
-        subscriptionType: user.subscriptionType,
+        subscriptionType: 'trial',
         subscriptionStart: user.subscriptionStart,
         subscriptionEnd: user.subscriptionEnd,
         resumeLimit: user.resumeLimit,
-        aiTokens: user.aiTokens
+        aiTokens: user.aiTokens,
+        trialRemainingDays: 3
       }
     });
   } catch (error) {

@@ -24,7 +24,7 @@ This document outlines the complete implementation of the subscription system fo
   - Resume feedback analysis (ATS score, grammar)
   - Priority support
   - Unlimited exports
-- **Trial**: 3-day free trial or 7-day paid trial
+- **Trial**: 3-day free trial
 
 ### 💼 Pro Monthly Plan - $9.99/month
 - **Resume Limit**: 5 total
@@ -37,7 +37,7 @@ This document outlines the complete implementation of the subscription system fo
   - Priority support
   - Unlimited exports
   - Cloud resume history
-- **Trial**: 3-day free trial or 7-day paid trial
+- **Trial**: 3-day free trial
 
 ### 🚀 Pro Yearly Plan - $79/year (Save 34%)
 - **Resume Limit**: 5 total
@@ -50,7 +50,7 @@ This document outlines the complete implementation of the subscription system fo
   - Priority support
   - Unlimited exports
   - Cloud resume history
-- **Trial**: 3-day free trial or 7-day paid trial
+- **Trial**: 3-day free trial
 
 ## 🔧 Backend Implementation
 
@@ -168,7 +168,7 @@ This document outlines the complete implementation of the subscription system fo
 ### Price Structure
 - **Pro Monthly Plan**: $9.99/month
 - **Pro Yearly Plan**: $79/year (Save 34%)
-- **Trial Options**: Free (3 days) or Paid ($2.99 for 7 days)
+- **Trial Options**: Free (3 days)
 ```
 
 ## 📊 Subscription Management

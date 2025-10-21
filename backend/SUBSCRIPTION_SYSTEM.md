@@ -21,12 +21,12 @@ This document describes the completely rebuilt subscription system for the Resum
 - **Features**: Basic templates, PDF export, email support
 - **Duration**: Permanent
 
-### 2. Trial Plan (7 Days)
+### 2. Trial Plan (3 Days)
 - **Resume Limit**: 5 resumes
 - **AI Tokens**: 0 (full AI features through trial)
 - **Features**: All premium templates, full AI features, priority support
-- **Duration**: 7 days from activation
-- **Auto-expiry**: Automatically downgrades to free plan after 7 days
+- **Duration**: 3 days from activation
+- **Auto-expiry**: Automatically downgrades to free plan after 3 days
 
 ### 3. Pro Plan
 - **Monthly**: 30 days from activation
@@ -185,11 +185,11 @@ GET /api/subscription/plans
       },
       {
         "id": "trial",
-        "name": "7-Day Trial",
+        "name": "3-Day Trial",
         "price": 0,
         "features": ["5 resume projects", "All premium templates"],
         "limits": { "resumes": 5, "aiTokens": 0 },
-        "duration": "7 days"
+        "duration": "3 days"
       }
     ]
   }
@@ -210,7 +210,7 @@ user.isSubscriptionActive
 // Reset to free plan (used by middleware)
 await user.resetToFreePlan()
 
-// Start 7-day trial
+// Start 3-day trial
 await user.startTrial()
 
 // Activate pro plan
@@ -262,7 +262,7 @@ const validateSubscription = async (req, res, next) => {
 ### 2. Trial Activation
 - User calls `/api/subscription/start-trial`
 - System sets `subscriptionType: 'trial'`
-- Sets `subscriptionEnd` to 7 days from now
+- Sets `subscriptionEnd` to 3 days from now
 - Sets `resumeLimit: 5`, `aiTokens: 0`
 
 ### 3. Pro Activation

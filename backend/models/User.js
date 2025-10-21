@@ -492,7 +492,7 @@ userSchema.methods.startTrial = async function() {
   try {
     this.subscriptionType = 'trial';
     this.subscriptionStart = new Date();
-    this.subscriptionEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    this.subscriptionEnd = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days
     this.resumeLimit = 5;
     this.aiTokens = 0; // No free tokens during trial
     

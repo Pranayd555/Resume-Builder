@@ -11,7 +11,7 @@ const {
 const router = express.Router();
 
 /**
- * @desc    Start a 7-day trial
+ * @desc    Start a 3-day trial
  * @route   POST /api/subscription/start-trial
  * @access  Private
  */

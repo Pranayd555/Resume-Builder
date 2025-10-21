@@ -368,8 +368,8 @@ export const templateAPI = {
 export const subscriptionAPI = {
   // Get current subscription status
   getSubscriptionStatus: async () => {
-    const config = createApiConfig('/subscription/status');
-    const response = await api.get('/subscription/status', config);
+    const config = createApiConfig('/subscriptions/current');
+    const response = await api.get('/subscriptions/current', config);
     return response.data;
   },
 
@@ -380,7 +380,7 @@ export const subscriptionAPI = {
     return response.data;
   },
 
-  // Start 7-day trial
+  // Start 3-day trial
   startTrial: async () => {
     const config = createApiConfig('/subscription/start-trial');
     const response = await api.post('/subscription/start-trial', {}, config);

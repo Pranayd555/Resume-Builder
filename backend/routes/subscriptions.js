@@ -349,6 +349,41 @@ router.post('/activate', [
     
     let subscription = await Subscription.findOne({ user: req.user.id });
     
+    // Calculate next billing date considering remaining trial days
+    let nextBillingDate;
+    if (subscription && subscription.status === 'trialing' && subscription.billing?.trialEnd) {
+      // User is converting from trial - add remaining trial days to billing period
+      const now = new Date();
+      const trialEnd = new Date(subscription.billing.trialEnd);
+      const remainingTrialDays = Math.max(0, Math.floor((trialEnd - now) / (1000 * 60 * 60 * 24)));
+      
+      if (plan === 'pro_monthly') {
+        // Monthly: remaining trial days + 30 days
+        nextBillingDate = new Date(trialEnd.getTime() + 30 * 24 * 60 * 60 * 1000);
+      } else {
+        // Yearly: remaining trial days + 365 days
+        nextBillingDate = new Date(trialEnd.getTime() + 365 * 24 * 60 * 60 * 1000);
+      }
+      
+      logger.info(`Trial conversion billing calculation: User ${req.user.id}, Remaining trial days: ${remainingTrialDays}, Plan: ${plan}, Next billing: ${nextBillingDate.toISOString()}`);
+    } else if (subscription && subscription.billing?.nextBillingDate) {
+      // User has existing subscription - add remaining days to new plan
+      const now = new Date();
+      const currentBilling = new Date(subscription.billing.nextBillingDate);
+      const remainingDays = Math.max(0, Math.floor((currentBilling - now) / (1000 * 60 * 60 * 24)));
+      
+      const newPlanDays = plan === 'pro_monthly' ? 30 : 365;
+      const totalDays = remainingDays + newPlanDays;
+      nextBillingDate = new Date(now.getTime() + totalDays * 24 * 60 * 60 * 1000);
+      
+      logger.info(`Existing subscription conversion: User ${req.user.id}, Remaining days: ${remainingDays}, Plan: ${plan}, Total days: ${totalDays}, Next billing: ${nextBillingDate.toISOString()}`);
+    } else {
+      // New subscription - standard billing
+      nextBillingDate = new Date(Date.now() + (plan === 'pro_monthly' ? 30 : 365) * 24 * 60 * 60 * 1000);
+      
+      logger.info(`New subscription billing calculation: User ${req.user.id}, Plan: ${plan}, Next billing: ${nextBillingDate.toISOString()}`);
+    }
+    
     if (!subscription) {
       // Create new subscription
       subscription = new Subscription({
@@ -359,7 +394,7 @@ router.post('/activate', [
           cycle: plan === 'pro_monthly' ? 'monthly' : 'yearly',
           amount: amount,
           currency: 'INR',
-          nextBillingDate: new Date(Date.now() + (plan === 'pro_monthly' ? 30 : 365) * 24 * 60 * 60 * 1000) // 30 days for monthly, 365 for yearly
+          nextBillingDate: nextBillingDate
         },
         usage: {
           resumesCreated: 0,
@@ -382,7 +417,7 @@ router.post('/activate', [
         cycle: plan === 'pro_monthly' ? 'monthly' : 'yearly',
         amount: amount,
         currency: 'INR',
-        nextBillingDate: new Date(Date.now() + (plan === 'pro_monthly' ? 30 : 365) * 24 * 60 * 60 * 1000)
+        nextBillingDate: nextBillingDate
       };
       
       // Reset usage for new billing cycle
@@ -513,9 +548,28 @@ router.post('/upgrade', [
     subscription.billing.cycle = plan === 'pro_monthly' ? 'monthly' : 'yearly';
     subscription.billing.amount = amount;
     
-    // Extend subscription end date based on plan type
-    const currentNextBilling = subscription.billing.nextBillingDate || new Date();
-    subscription.billing.nextBillingDate = new Date(currentNextBilling.getTime() + (plan === 'pro_monthly' ? 30 : 365) * 24 * 60 * 60 * 1000);
+    // Calculate remaining days from current subscription and add to new plan
+    let remainingDays = 0;
+    const now = new Date();
+    
+    if (subscription.status === 'trialing' && subscription.billing?.trialEnd) {
+      // If user is in trial, calculate remaining trial days
+      const trialEnd = new Date(subscription.billing.trialEnd);
+      if (trialEnd > now) {
+        remainingDays = Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24));
+      }
+    } else if (subscription.billing?.nextBillingDate) {
+      // If user has an active subscription, calculate remaining days
+      const nextBilling = new Date(subscription.billing.nextBillingDate);
+      if (nextBilling > now) {
+        remainingDays = Math.ceil((nextBilling - now) / (1000 * 60 * 60 * 24));
+      }
+    }
+    
+    // Calculate new billing date: start from now + remaining days + new plan period
+    const newPlanDays = plan === 'pro_monthly' ? 30 : 365;
+    const totalDays = remainingDays + newPlanDays;
+    subscription.billing.nextBillingDate = new Date(now.getTime() + totalDays * 24 * 60 * 60 * 1000);
     
     subscription.features.freeTokens = mergedFreeTokens;
     
@@ -574,7 +628,7 @@ router.post('/upgrade', [
       await subscription.save(); // Save again with merged tokens
     }
 
-    logger.info(`Subscription upgraded: ${plan} plan for user ${req.user.email}, Payment ID: ${paymentId}. Free tokens: ${mergedFreeTokens} (${remainingFreeTokens > 0 ? `merged: ${remainingFreeTokens} remaining + ${subscription.features.freeTokens - remainingFreeTokens} new` : 'new'})`);
+    logger.info(`Subscription upgraded: ${plan} plan for user ${req.user.email}, Payment ID: ${paymentId}. Free tokens: ${mergedFreeTokens} (${remainingFreeTokens > 0 ? `merged: ${remainingFreeTokens} remaining + ${subscription.features.freeTokens - remainingFreeTokens} new` : 'new'}). Remaining days added: ${remainingDays}, New billing date: ${subscription.billing.nextBillingDate.toISOString()}`);
 
     // Send confirmation email
     await emailService.sendSubscriptionConfirmationEmail(req.user.email, {
