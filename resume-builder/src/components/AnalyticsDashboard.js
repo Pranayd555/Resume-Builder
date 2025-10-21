@@ -280,8 +280,8 @@ function AnalyticsDashboard() {
                 <p className="text-lg font-semibold text-gray-900 capitalize">{subscription.planName || subscription.plan}</p>
                 <p className="text-xs text-gray-500">
                   {subscription.plan === 'free' && 'Free'}
-                  {subscription.plan === 'base' && 'Premium templates + AI review'}
-                  {subscription.plan === 'pro' && 'All features + cloud storage'}
+                  {subscription.plan === 'pro_monthly' && 'Premium templates + AI review'}
+                  {subscription.plan === 'pro_yearly' && 'All features + cloud storage'}
                 </p>
                 {(subscription.nextBillingDate && subscription.plan !== 'free') && (
                   <p className="text-xs text-blue-600 mt-1">

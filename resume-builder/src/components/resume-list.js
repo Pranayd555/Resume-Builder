@@ -316,7 +316,7 @@ function ResumeList() {
     
     if (subscription.plan === 'free') {
       return currentResumeCount < 2;
-    } else if (subscription.plan === "pro" || subscription.plan === "base") {
+    } else if (subscription.plan === "pro_yearly" || subscription.plan === "pro_monthly") {
       return currentResumeCount < 5;
     }
     

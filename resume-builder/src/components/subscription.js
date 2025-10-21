@@ -77,12 +77,12 @@ function Subscription() {
           const transformedPlans = plansResponse.data.plans.map(plan => ({
             id: plan.id,
             name: plan.name,
-            price: plan.price.monthly, // Convert to cents
-            originalPrice: Math.round(plan.price.monthly * 1.3), // Add 30% markup for original price
+            price: plan.id === 'pro_yearly' ? plan.price.yearly : plan.price.monthly, // Dynamically select price based on plan ID
+            originalPrice: plan.id === 'pro_yearly' ? Math.round(plan.price.yearly * 1.3) : Math.round(plan.price.monthly * 1.3), // Add 30% markup for original price
             tokens: plan.limits.freeTokens,
             features: plan.features,
             popular: plan.popular,
-            color: plan.id === 'free' ? 'gray' : plan.id === 'base' ? 'blue' : 'purple',
+            color: plan.id === 'free' ? 'gray' : plan.id === 'pro_monthly' ? 'blue' : (plan.id === 'pro_yearly') ? 'purple' : 'gray',
             trial: plan.trial
           }));
           setSubscriptionPlans(transformedPlans);
@@ -163,11 +163,13 @@ function Subscription() {
   };
 
   const handleSubscribe = async (plan) => {
+    const billingCycle = plan.id === 'pro_yearly' ? 'yearly' : 'monthly';
     await initiatePayment({
       type: 'subscription',
       amount: plan.price,
       planId: plan.id,
-      description: `${plan.name} - ${plan.tokens} AI Tokens`
+      description: `${plan.name} - ${plan.tokens} AI Tokens`,
+      billingCycle: billingCycle
     });
   };
 
@@ -202,7 +204,8 @@ function Subscription() {
         metadata: {
           type: paymentData.type,
           tokens: paymentData.tokens,
-          planId: paymentData.planId
+          planId: paymentData.planId,
+          billingCycle: paymentData.billingCycle
         }
       });
 
@@ -238,7 +241,8 @@ function Subscription() {
               currency: 'INR',
               payment_method: 'razorpay',
               email: userData?.email || 'user@example.com',
-              contact: userData?.phone || userData?.contact || '+919876543210'
+              contact: userData?.phone || userData?.contact || '+919876543210',
+              billingCycle: paymentData.billingCycle
             });
 
             if (completeResponse.data.success) {
@@ -325,7 +329,7 @@ function Subscription() {
   };
 
   const canStartTrial = (plan) => {
-    return plan.id === 'base' && 
+    return plan.id === 'pro_monthly' && 
            currentSubscription?.plan === 'free' && 
            currentSubscription?.status !== 'trialing' &&
            !currentSubscription?.hasHadTrial;
@@ -541,7 +545,7 @@ function Subscription() {
                          {trialLoading ? 'Starting...' : 'Start Free Trial'}
                        </button>
                      )}
-                      {(currentSubscription?.hasHadTrial && plan.id === 'base' && currentSubscription?.plan !== 'pro') && (
+                      {(currentSubscription?.hasHadTrial && plan.id === 'pro_monthly' && currentSubscription?.plan !== 'pro_yearly') && (
                        <div className="text-center py-2 px-3 bg-amber-50 border border-amber-200 rounded-lg">
                          <p className="text-amber-800 text-xs font-medium">
                            ⏰ Trial used. Upgrade to continue.

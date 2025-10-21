@@ -108,7 +108,7 @@ const userSchema = new mongoose.Schema({
   subscription: {
     plan: {
       type: String,
-      enum: ['free', 'pro', 'enterprise'],
+      enum: ['free', 'pro_monthly', 'pro_yearly', 'enterprise'],
       default: 'free'
     },
     isActive: {
@@ -464,4 +464,4 @@ userSchema.index({ 'razorpayTransactions.transactionId': 1 });
 userSchema.index({ 'razorpayTransactions.orderId': 1 });
 // Stripe indexes removed
 
-module.exports = mongoose.model('User', userSchema); 
+module.exports = mongoose.model('User', userSchema);

@@ -312,7 +312,8 @@ const testTemplates = async () => {
             font-size: 0.75rem;
             font-weight: 500;
         }
-        .tier-badge.pro {
+        .tier-badge.pro_monthly,
+    .tier-badge.pro_yearly {
             background: #f59e0b;
         }
         .tier-badge.enterprise {
@@ -378,7 +379,7 @@ const testTemplates = async () => {
                 <div class="stat-label">Free Templates</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">${templates.filter(t => t.availability.tier === 'pro').length}</div>
+                <div class="stat-number">${templates.filter(t => t.availability.tier === 'pro_monthly' || t.availability.tier === 'pro_yearly').length}</div>
                 <div class="stat-label">Pro Templates</div>
             </div>
             <div class="stat-card">
@@ -441,4 +442,4 @@ const testTemplates = async () => {
 };
 
 // Run the test
-testTemplates(); 
+testTemplates();

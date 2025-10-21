@@ -12,7 +12,7 @@ const subscriptionSchema = new mongoose.Schema({
   // Subscription Details
   plan: {
     type: String,
-    enum: ['free', 'base', 'pro'],
+    enum: ['free', 'pro_monthly', 'pro_yearly'],
     required: [true, 'Subscription plan is required'],
     default: 'free'
   },
@@ -21,7 +21,7 @@ const subscriptionSchema = new mongoose.Schema({
   billing: {
     cycle: {
       type: String,
-      enum: ['monthly'],
+      enum: ['monthly', 'yearly'],
       required: function() {
         return this.plan !== 'free' && this.status !== 'trialing';
       },
@@ -48,7 +48,7 @@ const subscriptionSchema = new mongoose.Schema({
     trialEnd: Date,
     trialType: {
       type: String,
-      enum: ['free', 'paid', null],
+      enum: ['free', null],
       default: null
     },
     discountCode: String,
@@ -102,8 +102,8 @@ const subscriptionSchema = new mongoose.Schema({
       default: function() {
         const limits = {
           free: 2,
-          base: 5,
-          pro: 5
+          pro_monthly: 5,
+          pro_yearly: 5
         };
         return limits[this.plan] || 2;
       }
@@ -113,8 +113,8 @@ const subscriptionSchema = new mongoose.Schema({
       default: function() {
         const access = {
           free: ['free'],
-          base: ['free', 'premium'],
-          pro: ['free', 'premium']
+          pro_monthly: ['free', 'premium'],
+          pro_yearly: ['free', 'premium']
         };
         return access[this.plan] || ['free'];
       }
@@ -124,8 +124,8 @@ const subscriptionSchema = new mongoose.Schema({
       default: function() {
         const formats = {
           free: ['pdf'],
-          base: ['pdf'],
-          pro: ['pdf']
+          pro_monthly: ['pdf'],
+          pro_yearly: ['pdf']
         };
         return formats[this.plan] || ['pdf'];
       }
@@ -135,8 +135,8 @@ const subscriptionSchema = new mongoose.Schema({
       default: function() {
         const limits = {
           free: 'token-based',
-          base: 'token-based',
-          pro: 'token-based'
+          pro_monthly: 'token-based',
+          pro_yearly: 'token-based'
         };
         return limits[this.plan] || 'token-based';
       }
@@ -149,8 +149,8 @@ const subscriptionSchema = new mongoose.Schema({
         }
         const tokens = {
           free: 0,
-          base: 150,
-          pro: 300
+          pro_monthly: 150,
+          pro_yearly: 300
         };
         return tokens[this.plan] || 0;
       }
@@ -158,25 +158,25 @@ const subscriptionSchema = new mongoose.Schema({
     aiReview: {
       type: Boolean,
       default: function() {
-        return this.plan === 'base' || this.plan === 'pro';
+        return this.plan === 'pro_monthly' || this.plan === 'pro_yearly';
       }
     },
     prioritySupport: {
       type: Boolean,
       default: function() {
-        return this.plan === 'base' || this.plan === 'pro';
+        return this.plan === 'pro_monthly' || this.plan === 'pro_yearly';
       }
     },
     customBranding: {
       type: Boolean,
       default: function() {
-        return this.plan === 'pro';
+        return this.plan === 'pro_yearly';
       }
     },
     unlimitedExports: {
       type: Boolean,
       default: function() {
-        return this.plan === 'base' || this.plan === 'pro';
+        return this.plan === 'pro_monthly' || this.plan === 'pro_yearly';
       }
     }
   },
@@ -334,7 +334,7 @@ subscriptionSchema.index({ 'billing.nextBillingDate': 1 });
 
 // Method to check if trial is still active
 subscriptionSchema.methods.isTrialActive = function() {
-  if (this.status !== 'trialing' || (this.plan !== 'base' && this.plan !== 'pro')) {
+  if (this.status !== 'trialing' || (this.plan !== 'pro_monthly' && this.plan !== 'pro_yearly')) {
     return false;
   }
   
@@ -350,7 +350,7 @@ subscriptionSchema.methods.isTrialActive = function() {
 
 // Method to check if trial has expired
 subscriptionSchema.methods.hasTrialExpired = function() {
-  if (this.status !== 'trialing' || (this.plan !== 'base' && this.plan !== 'pro')) {
+  if (this.status !== 'trialing' || (this.plan !== 'pro_monthly' && this.plan !== 'pro_yearly')) {
     return false;
   }
   
@@ -366,7 +366,7 @@ subscriptionSchema.methods.hasTrialExpired = function() {
 
 // Method to expire trial
 subscriptionSchema.methods.expireTrial = function() {
-  if (this.status === 'trialing' && (this.plan === 'base' || this.plan === 'pro')) {
+  if (this.status === 'trialing' && (this.plan === 'pro_monthly' || this.plan === 'pro_yearly')) {
     this.status = 'active';
     this.plan = 'free';
     this.billing.trialEnd = undefined;
@@ -391,7 +391,7 @@ subscriptionSchema.methods.expireTrial = function() {
 // Pre-save middleware to check trial expiration
 subscriptionSchema.pre('save', function(next) {
   // Check if trial has expired
-  if (this.status === 'trialing' && (this.plan === 'base' || this.plan === 'pro') && this.hasTrialExpired()) {
+  if (this.status === 'trialing' && (this.plan === 'pro_monthly' || this.plan === 'pro_yearly') && this.hasTrialExpired()) {
     this.status = 'active';
     this.plan = 'free';
     this.billing.trialEnd = undefined;
@@ -413,38 +413,38 @@ subscriptionSchema.pre('save', function(next) {
   if (this.isModified('plan')) {
     const limits = {
       free: 2,
-      base: 5,
-      pro: 5
+      pro_monthly: 5,
+      pro_yearly: 5
     };
     
     const templateAccess = {
       free: ['free'],
-      base: ['free', 'premium'],
-      pro: ['free', 'premium']
+      pro_monthly: ['free', 'premium'],
+      pro_yearly: ['free', 'premium']
     };
     
     const exportFormats = {
       free: ['pdf'],
-      base: ['pdf'],
-      pro: ['pdf']
+      pro_monthly: ['pdf'],
+      pro_yearly: ['pdf']
     };
     
     const aiLimits = {
       free: 'token-based',
-      base: 'token-based',
-      pro: 'token-based'
+      pro_monthly: 'token-based',
+      pro_yearly: 'token-based'
     };
     
     const freeTokens = {
       free: 0,
-      base: 150,
-      pro: 300
+      pro_monthly: 150,
+      pro_yearly: 300
     };
     this.features.freeTokens = this.status === 'trialing' ? 0 : freeTokens[this.plan] || 0;
-    this.features.aiReview = this.plan === 'base' || this.plan === 'pro';
-    this.features.prioritySupport = this.plan === 'base' || this.plan === 'pro';
-    this.features.customBranding = this.plan === 'pro';
-    this.features.unlimitedExports = this.plan === 'base' || this.plan === 'pro';
+    this.features.aiReview = this.plan === 'pro_monthly' || this.plan === 'pro_yearly';
+    this.features.prioritySupport = this.plan === 'pro_monthly' || this.plan === 'pro_yearly';
+    this.features.customBranding = this.plan === 'pro_yearly';
+    this.features.unlimitedExports = this.plan === 'pro_monthly' || this.plan === 'pro_yearly';
   }
   next();
 });
@@ -520,7 +520,7 @@ subscriptionSchema.methods.canAccessTemplate = function(templateTier) {
 // Method to check if user can export in format (unlimited exports for both tiers)
 subscriptionSchema.methods.canExportFormat = function(format) {
   // Free: pdf only; Pro or trial: pdf + docx
-  if (this.isTrialActive() || this.plan === 'pro') {
+  if (this.isTrialActive() || this.plan === 'pro_monthly' || this.plan === 'pro_yearly') {
     return ['pdf', 'docx'].includes(format);
   }
   return ['pdf'].includes(format);
@@ -656,9 +656,9 @@ subscriptionSchema.methods.addPayment = function(paymentData) {
 };
 
 // Method to start trial
-subscriptionSchema.methods.startTrial = function(trialType = 'free', days = 3) {
+subscriptionSchema.methods.startTrial = function(trialType = 'free', days = 3, planType = 'pro_monthly') {
   this.status = 'trialing';
-  this.plan = 'pro';
+  this.plan = planType;
   this.billing.trialType = trialType;
   this.billing.trialEnd = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
   this.hasHadTrial = true;
@@ -683,122 +683,13 @@ subscriptionSchema.methods.resetAIActionCycle = function() {
   return this.save();
 };
 
-// Method to handle subscription expiration and resume management
-subscriptionSchema.methods.handleSubscriptionExpiration = async function() {
-  const Resume = require('./Resume');
-  
-  try {
-    // Get all resumes for this user
-    const allResumes = await Resume.find({ user: this.user }).sort({ updatedAt: -1 });
-    
-    if (allResumes.length <= 2) {
-      // User is within free plan limits, no action needed
-      return { action: 'none', message: 'User is within free plan limits' };
-    }
-    
-    // Count resumes by status
-    const publishedResumes = allResumes.filter(resume => resume.status === 'published');
-    const draftResumes = allResumes.filter(resume => resume.status === 'draft');
-    
-    // Priority: Keep published resumes first, then drafts
-    const resumesToKeep = [];
-    const resumesToMarkForDeletion = [];
-    
-    // First, keep all published resumes (up to 2)
-    for (let i = 0; i < Math.min(publishedResumes.length, 2); i++) {
-      resumesToKeep.push(publishedResumes[i]);
-    }
-    
-    // If we have space, keep some drafts
-    const remainingSlots = 2 - resumesToKeep.length;
-    if (remainingSlots > 0) {
-      for (let i = 0; i < Math.min(draftResumes.length, remainingSlots); i++) {
-        resumesToKeep.push(draftResumes[i]);
-      }
-    }
-    
-    // Mark remaining resumes for deletion (2 days from now)
-    const keepIds = resumesToKeep.map(r => r._id);
-    const resumesToDelete = allResumes.filter(resume => !keepIds.includes(resume._id));
-    
-    // Update resumes to mark them for deletion
-    const deletionDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000); // 2 days from now
-    
-    for (const resume of resumesToDelete) {
-      resume.markedForDeletion = true;
-      resume.deletionDate = deletionDate;
-      resume.deletionReason = 'subscription_expired';
-      await resume.save();
-    }
-    
-    // Store the kept resumes info for potential restoration
-    this.expiredResumeData = {
-      keptResumes: resumesToKeep.map(r => r._id),
-      markedForDeletion: resumesToDelete.map(r => r._id),
-      deletionDate: deletionDate,
-      originalCount: allResumes.length
-    };
-    
-    await this.save();
-    
-    return {
-      action: 'marked_for_deletion',
-      message: `${resumesToDelete.length} resumes marked for deletion in 2 days`,
-      keptResumes: resumesToKeep.length,
-      markedForDeletion: resumesToDelete.length,
-      deletionDate: deletionDate
-    };
-    
-  } catch (error) {
-    console.error('Error handling subscription expiration:', error);
-    throw error;
-  }
-};
 
-// Method to restore resumes when user resubscribes
-subscriptionSchema.methods.restoreExpiredResumes = async function() {
-  const Resume = require('./Resume');
-  
-  try {
-    if (!this.expiredResumeData || !this.expiredResumeData.markedForDeletion) {
-      return { action: 'none', message: 'No resumes to restore' };
-    }
-    
-    // Find resumes that were marked for deletion
-    const resumesToRestore = await Resume.find({
-      _id: { $in: this.expiredResumeData.markedForDeletion },
-      markedForDeletion: true
-    });
-    
-    // Restore the resumes
-    for (const resume of resumesToRestore) {
-      resume.markedForDeletion = false;
-      resume.deletionDate = undefined;
-      resume.deletionReason = undefined;
-      await resume.save();
-    }
-    
-    // Clear the expired resume data
-    this.expiredResumeData = undefined;
-    await this.save();
-    
-    return {
-      action: 'restored',
-      message: `${resumesToRestore.length} resumes restored`,
-      restoredCount: resumesToRestore.length
-    };
-    
-  } catch (error) {
-    console.error('Error restoring expired resumes:', error);
-    throw error;
-  }
-};
 
 // Static method to create trial subscription
-subscriptionSchema.statics.createTrial = function(userId, trialType = 'free', days = 3, planType = 'base') {
+subscriptionSchema.statics.createTrial = function(userId, trialType = 'free', days = 3, planType = 'pro_monthly') {
   return new this({
     user: userId,
-    plan: planType, // Can be 'base' or 'pro'
+    plan: planType, // Can be 'pro_monthly' or 'pro_yearly'
     status: 'trialing',
     hasHadTrial: true,
     billing: {

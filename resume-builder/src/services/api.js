@@ -417,11 +417,7 @@ export const subscriptionAPI = {
     return response.data;
   },
 
-  reactivateSubscription: async () => {
-    const config = createApiConfig('/subscriptions/reactivate');
-    const response = await api.post('/subscriptions/reactivate', {}, config);
-    return response.data;
-  },
+
 
   getBillingHistory: async () => {
     const config = createApiConfig('/subscriptions/billing-history');

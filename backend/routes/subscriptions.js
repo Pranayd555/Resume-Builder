@@ -38,9 +38,9 @@ router.get('/plans', async (req, res) => {
         popular: false
       },
       {
-        id: 'base',
-        name: 'Base',
-        price: { monthly: 299 },
+        id: 'pro_monthly',
+        name: 'Pro Monthly',
+        price: { monthly: 499 },
         features: [
           '5 resume projects total',
           'Free + Premium templates',
@@ -53,20 +53,22 @@ router.get('/plans', async (req, res) => {
         limits: {
           resumes: 5,
           templates: ['free', 'premium'],
-          exports: ['pdf'],
+          exports: ['pdf', 'docx'],
           aiActions: 'token-based',
-          freeTokens: 150
+          freeTokens: 150,
+          aiReview: true,
+          prioritySupport: true,
+          unlimitedExports: true
         },
         popular: true,
         trial: {
-          free: 3,
-          paid: 7
+          free: 3
         }
       },
       {
-        id: 'pro',
-        name: 'Pro',
-        price: { monthly: 499 },
+        id: 'pro_yearly',
+        name: 'Pro Yearly',
+        price: { yearly: 4999 },
         features: [
           '5 resume projects total',
           'Full access to all premium templates',
@@ -75,19 +77,23 @@ router.get('/plans', async (req, res) => {
           'PDF export',
           'Priority support',
           'Unlimited exports',
-          'Cloud resume history'
+          'Cloud resume history',
+          'Custom branding'
         ],
         limits: {
           resumes: 5,
           templates: ['free', 'premium'],
-          exports: ['pdf'],
+          exports: ['pdf', 'docx'],
           aiActions: 'token-based',
-          freeTokens: 300
+          freeTokens: 300,
+          aiReview: true,
+          prioritySupport: true,
+          unlimitedExports: true,
+          customBranding: true
         },
         popular: false,
         trial: {
-          free: 3,
-          paid: 7
+          free: 3
         }
       }
     ];
@@ -212,7 +218,7 @@ router.get('/current', protect, async (req, res) => {
 // @access  Private
 router.post('/start-trial', [
   protect,
-  body('trialType').isIn(['free', 'paid']).withMessage('Valid trial type is required')
+  body('trialType').isIn(['free']).withMessage('Valid trial type is required')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -249,16 +255,16 @@ router.post('/start-trial', [
 
     // Create new subscription if doesn't exist
     if (!subscription) {
-      subscription = await Subscription.createTrial(req.user.id, trialType, trialType === 'free' ? 3 : 7);
+      subscription = await Subscription.createTrial(req.user.id, trialType, 3); // Always 3 days for free trial
       subscription.features.freeTokens = 0; // Ensure no free tokens are granted during trial
     } else {
       // Update existing subscription for trial
-      subscription.plan = 'pro';
+      subscription.plan = 'pro_monthly';
       subscription.status = 'trialing';
       subscription.hasHadTrial = true;
       subscription.billing = {
         trialType: trialType,
-        trialEnd: new Date(Date.now() + (trialType === 'free' ? 3 : 7) * 24 * 60 * 60 * 1000)
+        trialEnd: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) // Always 3 days for free trial
       };
       subscription.features.freeTokens = 0; // Ensure no free tokens are granted during trial
       
@@ -310,7 +316,7 @@ router.post('/start-trial', [
 // @access  Private
 router.post('/activate', [
   protect,
-  body('plan').isIn(['base', 'pro']).withMessage('Valid plan is required'),
+  body('plan').isIn(['pro_monthly', 'pro_yearly']).withMessage('Valid plan is required'),
   body('paymentId').notEmpty().withMessage('Payment ID is required'),
   body('amount').isNumeric().withMessage('Amount is required')
 ], async (req, res) => {
@@ -334,10 +340,10 @@ router.post('/activate', [
         plan: plan,
         status: 'active',
         billing: {
-          cycle: 'monthly',
+          cycle: plan === 'pro_monthly' ? 'monthly' : 'yearly',
           amount: amount,
           currency: 'INR',
-          nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
+          nextBillingDate: new Date(Date.now() + (plan === 'pro_monthly' ? 30 : 365) * 24 * 60 * 60 * 1000) // 30 days for monthly, 365 for yearly
         },
         usage: {
           resumesCreated: 0,
@@ -357,10 +363,10 @@ router.post('/activate', [
       subscription.plan = plan;
       subscription.status = 'active';
       subscription.billing = {
-        cycle: 'monthly',
+        cycle: plan === 'pro_monthly' ? 'monthly' : 'yearly',
         amount: amount,
         currency: 'INR',
-        nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+        nextBillingDate: new Date(Date.now() + (plan === 'pro_monthly' ? 30 : 365) * 24 * 60 * 60 * 1000)
       };
       
       // Reset usage for new billing cycle
@@ -376,7 +382,7 @@ router.post('/activate', [
       status: 'succeeded',
       paymentId: paymentId,
       invoiceId: `invoice_${Date.now()}`, // Generate invoice ID
-      description: `${plan.charAt(0).toUpperCase() + plan.slice(1)} plan subscription`,
+      description: `${plan === 'pro_monthly' ? 'Pro Monthly' : 'Pro Yearly'} plan subscription`,
       paidAt: new Date(),
       metadata: {
         plan: plan,
@@ -390,11 +396,11 @@ router.post('/activate', [
         userId: req.user.id,
         userEmail: req.user.email,
         planDetails: {
-          name: plan === 'base' ? 'Base Plan' : 'Pro Plan',
+          name: plan === 'pro_monthly' ? 'Pro Monthly Plan' : 'Pro Yearly Plan',
           price: amount,
-          features: plan === 'base' ? ['150 free tokens', 'Premium templates', 'ATS analysis'] : ['300 free tokens', 'All features', 'Priority support']
+          features: plan === 'pro_monthly' ? ['150 free tokens', 'Premium templates', 'ATS analysis', 'Priority support', 'Unlimited exports'] : ['300 free tokens', 'All features', 'Priority support', 'Unlimited exports', 'Custom branding']
         },
-        billingCycle: 'monthly',
+        billingCycle: plan === 'pro_monthly' ? 'monthly' : 'yearly',
         nextBillingDate: subscription.billing.nextBillingDate,
         source: 'admin_activation',
         campaign: req.headers.referer || 'direct',
@@ -407,39 +413,27 @@ router.post('/activate', [
     await subscription.save(); // This triggers the pre-save middleware to set freeTokens
     
     // Merge free tokens if updating existing subscription
-    let mergedFreeTokens = subscription.features.freeTokens || 0;
-    if (subscription.plan !== 'free' && remainingFreeTokens > 0) {
-      const newPlanFreeTokens = subscription.features.freeTokens || 0;
-      mergedFreeTokens = newPlanFreeTokens + remainingFreeTokens;
-      subscription.features.freeTokens = mergedFreeTokens;
-      await subscription.save(); // Save again with merged tokens
-    }
+
     
     logger.info(`Subscription activated: ${plan} plan for user ${req.user.email}, Payment ID: ${paymentId}. Free tokens: ${mergedFreeTokens} (${remainingFreeTokens > 0 ? `merged: ${remainingFreeTokens} remaining + ${subscription.features.freeTokens - remainingFreeTokens} new` : 'new'})`);
     
-    // Restore any expired resumes when user resubscribes
-    let restoreResult = null;
-    try {
-      restoreResult = await subscription.restoreExpiredResumes();
-      if (restoreResult.action === 'restored') {
-        logger.info(`Restored ${restoreResult.restoredCount} resumes for user ${req.user.email}`);
-      }
-    } catch (restoreError) {
-      logger.error('Failed to restore expired resumes:', restoreError);
-      // Don't fail the activation if resume restoration fails
-    }
-    
-    // Calculate total available tokens using utility function
-    const tokenData = await calculateTotalTokens(req.user.id);
-    
-    res.json({
+    // Send confirmation email
+    await emailService.sendSubscriptionConfirmationEmail(req.user.email, {
+      name: req.user.name,
+      planName: plan === 'pro_monthly' ? 'Pro Monthly' : 'Pro Yearly',
+      amount: (amount / 100).toFixed(2),
+      currency: 'INR',
+      nextBillingDate: subscription.billing.nextBillingDate.toLocaleDateString(),
+      appName: process.env.APP_NAME || 'Resume Builder Pro'
+    });
+
+    res.status(200).json({
       success: true,
       data: {
         subscription,
-        message: `${plan.charAt(0).toUpperCase() + plan.slice(1)} plan activated successfully`,
-        totalTokenBalance: tokenData.totalTokenBalance,
-        nextBillingDate: subscription.billing.nextBillingDate,
-        resumeRestoration: restoreResult
+        tokens: {
+          totalAvailable: calculateTotalTokens(subscription)
+        }
       }
     });
   } catch (error) {
@@ -456,7 +450,7 @@ router.post('/activate', [
 // @access  Private
 router.post('/upgrade', [
   protect,
-  body('plan').isIn(['base', 'pro']).withMessage('Valid plan is required'),
+  body('plan').isIn(['pro_monthly', 'pro_yearly']).withMessage('Valid plan is required'),
   body('paymentId').notEmpty().withMessage('Payment ID is required'),
   body('amount').isNumeric().withMessage('Amount is required')
 ], async (req, res) => {
@@ -481,7 +475,7 @@ router.post('/upgrade', [
     }
 
     // Check if already on the same or higher plan
-    const planHierarchy = { free: 0, base: 1, pro: 2 };
+    const planHierarchy = { free: 0, pro_monthly: 1, pro_yearly: 2 };
     if (planHierarchy[subscription.plan] >= planHierarchy[plan]) {
       return res.status(400).json({
         success: false,
@@ -495,20 +489,18 @@ router.post('/upgrade', [
     const remainingFreeTokens = Math.max(0, currentFreeTokens - currentFreeTokensUsed);
     
     // Calculate new plan's free tokens
-    const newPlanFreeTokens = plan === 'base' ? 150 : plan === 'pro' ? 300 : 0;
+    const newPlanFreeTokens = plan === 'pro_monthly' ? 150 : plan === 'pro_yearly' ? 300 : 0;
     
     // Update subscription
     subscription.plan = plan;
     subscription.status = 'active';
-    subscription.billing.cycle = 'monthly';
+    subscription.billing.cycle = plan === 'pro_monthly' ? 'monthly' : 'yearly';
     subscription.billing.amount = amount;
     
-    // Extend subscription end date by 30 days from current nextBillingDate or now
+    // Extend subscription end date based on plan type
     const currentNextBilling = subscription.billing.nextBillingDate || new Date();
-    subscription.billing.nextBillingDate = new Date(currentNextBilling.getTime() + 30 * 24 * 60 * 60 * 1000);
+    subscription.billing.nextBillingDate = new Date(currentNextBilling.getTime() + (plan === 'pro_monthly' ? 30 : 365) * 24 * 60 * 60 * 1000);
     
-    // Merge tokens: remaining tokens from old plan + new plan tokens
-    const mergedFreeTokens = remainingFreeTokens + newPlanFreeTokens;
     subscription.features.freeTokens = mergedFreeTokens;
     
     // Keep existing usage but reset cycle for new billing period
@@ -522,7 +514,7 @@ router.post('/upgrade', [
       status: 'succeeded',
       paymentId: paymentId,
       invoiceId: `invoice_${Date.now()}`, // Generate invoice ID
-      description: `Upgraded to ${plan.charAt(0).toUpperCase() + plan.slice(1)} plan`,
+      description: `Upgraded to ${plan === 'pro_monthly' ? 'Pro Monthly' : 'Pro Yearly'} plan`,
       paidAt: new Date(),
       metadata: {
         plan: plan,
@@ -537,43 +529,53 @@ router.post('/upgrade', [
         userId: req.user.id,
         userEmail: req.user.email,
         planDetails: {
-          name: plan === 'base' ? 'Base Plan' : 'Pro Plan',
+          name: plan === 'pro_monthly' ? 'Pro Monthly Plan' : 'Pro Yearly Plan',
           price: amount,
-          features: plan === 'base' ? ['150 free tokens', 'Premium templates', 'ATS analysis'] : ['300 free tokens', 'All features', 'Priority support']
+          features: plan === 'pro_monthly' ? ['150 free tokens', 'Premium templates', 'ATS analysis', 'Priority support', 'Unlimited exports'] : ['300 free tokens', 'All features', 'Priority support', 'Unlimited exports', 'Custom branding']
         },
         previousPlanDetails: {
-          name: subscription.plan === 'free' ? 'Free Plan' : subscription.plan === 'base' ? 'Base Plan' : 'Pro Plan',
-          features: subscription.plan === 'free' ? ['Basic templates', 'Limited features'] : subscription.plan === 'base' ? ['150 free tokens', 'Premium templates'] : ['300 free tokens', 'All features']
+          name: subscription.plan === 'free' ? 'Free Plan' : (subscription.plan === 'pro_monthly' ? 'Pro Monthly Plan' : 'Pro Yearly Plan'),
+          features: subscription.plan === 'free' ? ['Basic templates', 'Limited features'] : (subscription.plan === 'pro_monthly' ? ['150 free tokens', 'Premium templates'] : ['300 free tokens', 'All features'])
         },
-        billingCycle: 'monthly',
+        billingCycle: plan === 'pro_monthly' ? 'monthly' : 'yearly',
         nextBillingDate: subscription.billing.nextBillingDate,
         source: 'admin_upgrade',
         campaign: req.headers.referer || 'direct',
         sessionId: req.sessionID || 'no_session',
-        upgradeType: 'manual',
-        upgradeReason: 'admin_initiated'
+        activationType: 'manual',
+        previousPlan: subscription.plan || 'free'
       }
     });
-    
-    await subscription.save();
-    
-    logger.info(`Subscription upgraded: ${plan} plan for user ${req.user.email}, Payment ID: ${paymentId}. Free tokens merged: ${remainingFreeTokens} (remaining) + ${newPlanFreeTokens} (new) = ${mergedFreeTokens} total`);
-    
-    // Calculate total available tokens using utility function
-    const tokenData = await calculateTotalTokens(req.user.id);
-    
-    res.json({
+
+    await subscription.save(); // This triggers the pre-save middleware to set freeTokens
+
+    // Merge free tokens if updating existing subscription
+    let mergedFreeTokens = subscription.features.freeTokens || 0;
+    if (subscription.plan !== 'free' && remainingFreeTokens > 0) {
+      const newPlanFreeTokens = subscription.features.freeTokens || 0;
+      mergedFreeTokens = newPlanFreeTokens + remainingFreeTokens;
+      subscription.features.freeTokens = mergedFreeTokens;
+      await subscription.save(); // Save again with merged tokens
+    }
+
+    logger.info(`Subscription upgraded: ${plan} plan for user ${req.user.email}, Payment ID: ${paymentId}. Free tokens: ${mergedFreeTokens} (${remainingFreeTokens > 0 ? `merged: ${remainingFreeTokens} remaining + ${subscription.features.freeTokens - remainingFreeTokens} new` : 'new'})`);
+
+    // Send confirmation email
+    await emailService.sendSubscriptionConfirmationEmail(req.user.email, {
+      name: req.user.name,
+      planName: plan === 'pro_monthly' ? 'Pro Monthly' : 'Pro Yearly',
+      amount: (amount / 100).toFixed(2),
+      currency: 'INR',
+      nextBillingDate: subscription.billing.nextBillingDate.toLocaleDateString(),
+      appName: process.env.APP_NAME || 'Resume Builder Pro'
+    });
+
+    res.status(200).json({
       success: true,
       data: {
         subscription,
-        message: `Successfully upgraded to ${plan.charAt(0).toUpperCase() + plan.slice(1)} plan`,
-        totalTokenBalance: tokenData.totalTokenBalance,
-        nextBillingDate: subscription.billing.nextBillingDate,
-        tokenMerge: {
-          previousRemainingTokens: remainingFreeTokens,
-          newPlanTokens: newPlanFreeTokens,
-          mergedTokens: mergedFreeTokens,
-          totalAvailable: tokenData.totalTokenBalance
+        tokens: {
+          totalAvailable: calculateTotalTokens(subscription)
         }
       }
     });
@@ -603,6 +605,13 @@ router.post('/cancel', [
       });
     }
 
+    if (subscription.status === 'canceled') {
+      return res.status(400).json({
+        success: false,
+        error: 'Subscription is already canceled'
+      });
+    }
+
     if (subscription.plan === 'free') {
       return res.status(400).json({
         success: false,
@@ -610,13 +619,11 @@ router.post('/cancel', [
       });
     }
 
-    // Stripe integration removed
-
     // Update subscription
     subscription.status = 'canceled';
     subscription.canceledAt = new Date();
     subscription.cancelReason = req.body.reason;
-    subscription.endDate = subscription.billing.nextBillingDate;
+    subscription.endDate = subscription.billing.nextBillingDate; // Set end date to current billing period end
 
     await subscription.save();
 
@@ -638,53 +645,7 @@ router.post('/cancel', [
   }
 });
 
-// @desc    Reactivate subscription
-// @route   POST /api/subscriptions/reactivate
-// @access  Private
-router.post('/reactivate', protect, async (req, res) => {
-  try {
-    const subscription = await Subscription.findOne({ user: req.user.id });
 
-    if (!subscription) {
-      return res.status(404).json({
-        success: false,
-        error: 'No subscription found'
-      });
-    }
-
-    if (subscription.status !== 'canceled') {
-      return res.status(400).json({
-        success: false,
-        error: 'Subscription is not canceled'
-      });
-    }
-
-    // Stripe integration removed
-
-    // Update subscription
-    subscription.status = 'active';
-    subscription.canceledAt = undefined;
-    subscription.cancelReason = undefined;
-    subscription.endDate = undefined;
-
-    await subscription.save();
-
-    logger.info(`Subscription reactivated for user ${req.user.email}`);
-
-    res.json({
-      success: true,
-      data: {
-        subscription
-      }
-    });
-  } catch (error) {
-    logger.error('Reactivate subscription error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Error reactivating subscription'
-    });
-  }
-});
 
 // @desc    Get billing history
 // @route   GET /api/subscriptions/billing-history
@@ -719,228 +680,13 @@ router.get('/billing-history', protect, async (req, res) => {
   }
 });
 
-// @desc    Get detailed payment analytics
-// @route   GET /api/subscriptions/payment-analytics
-// @access  Private
-router.get('/payment-analytics', protect, async (req, res) => {
-  try {
-    const subscription = await Subscription.findOne({ user: req.user.id });
-    const User = require('../models/User');
-    const user = await User.findById(req.user.id);
 
-    if (!subscription) {
-      return res.status(404).json({
-        success: false,
-        error: 'No subscription found'
-      });
-    }
 
-    // Calculate analytics
-    const totalPayments = subscription.paymentHistory.length;
-    const totalAmount = subscription.paymentHistory.reduce((sum, payment) => sum + payment.amount, 0);
-    const successfulPayments = subscription.paymentHistory.filter(p => p.status === 'succeeded').length;
-    const failedPayments = subscription.paymentHistory.filter(p => p.status === 'failed').length;
-    
-    // Plan distribution
-    const planDistribution = subscription.paymentHistory.reduce((acc, payment) => {
-      const plan = payment.metadata?.plan || 'unknown';
-      acc[plan] = (acc[plan] || 0) + 1;
-      return acc;
-    }, {});
 
-    // Payment method distribution
-    const paymentMethodDistribution = subscription.paymentHistory.reduce((acc, payment) => {
-      const method = payment.metadata?.paymentMethod || 'unknown';
-      acc[method] = (acc[method] || 0) + 1;
-      return acc;
-    }, {});
 
-    // Monthly revenue
-    const monthlyRevenue = subscription.paymentHistory.reduce((acc, payment) => {
-      const month = new Date(payment.paidAt).toISOString().substring(0, 7); // YYYY-MM
-      acc[month] = (acc[month] || 0) + payment.amount;
-      return acc;
-    }, {});
 
-    // Recent activity (last 30 days)
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const recentActivity = subscription.paymentHistory.filter(p => new Date(p.paidAt) >= thirtyDaysAgo);
 
-    // User Razorpay transactions
-    const razorpayTransactions = user?.razorpayTransactions || [];
 
-    res.json({
-      success: true,
-      data: {
-        summary: {
-          totalPayments,
-          totalAmount,
-          successfulPayments,
-          failedPayments,
-          successRate: totalPayments > 0 ? Math.round((successfulPayments / totalPayments) * 100) : 0,
-          averagePaymentAmount: totalPayments > 0 ? Math.round(totalAmount / totalPayments) : 0
-        },
-        distribution: {
-          plans: planDistribution,
-          paymentMethods: paymentMethodDistribution
-        },
-        revenue: {
-          monthly: monthlyRevenue,
-          total: totalAmount
-        },
-        activity: {
-          recent: recentActivity.length,
-          last30Days: recentActivity
-        },
-        subscription: {
-          currentPlan: subscription.plan,
-          status: subscription.status,
-          nextBillingDate: subscription.billing?.nextBillingDate,
-          freeTokens: subscription.features?.freeTokens || 0,
-          freeTokensUsed: subscription.usage?.freeTokensUsed || 0
-        },
-        tracking: {
-          totalRazorpayTransactions: razorpayTransactions.length,
-          lastTransaction: razorpayTransactions[0] || null
-        }
-      }
-    });
-  } catch (error) {
-    logger.error('Get payment analytics error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error'
-    });
-  }
-});
-
-// @desc    Handle subscription expiration
-// @route   POST /api/subscriptions/handle-expiration
-// @access  Private
-router.post('/handle-expiration', protect, async (req, res) => {
-  try {
-    const subscription = await Subscription.findOne({ user: req.user.id });
-    
-    if (!subscription) {
-      return res.status(404).json({
-        success: false,
-        error: 'No subscription found'
-      });
-    }
-
-    // Check if user is downgrading from paid to free
-    if (subscription.plan === 'free') {
-      return res.status(400).json({
-        success: false,
-        error: 'User is already on free plan'
-      });
-    }
-
-    // Handle subscription expiration
-    const result = await subscription.handleSubscriptionExpiration();
-    
-    // Update subscription to free plan
-    subscription.plan = 'free';
-    subscription.status = 'active';
-    subscription.endDate = new Date();
-    subscription.canceledAt = new Date();
-    subscription.cancelReason = 'subscription_expired';
-    
-    // Clear billing information
-    subscription.billing = {
-      currency: 'USD'
-    };
-    
-    await subscription.save();
-
-    logger.info(`Subscription expired for user ${req.user.email}: ${result.message}`);
-
-    res.json({
-      success: true,
-      data: {
-        message: 'Subscription expiration handled successfully',
-        result
-      }
-    });
-  } catch (error) {
-    logger.error('Handle subscription expiration error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Error handling subscription expiration'
-    });
-  }
-});
-
-// @desc    Restore expired resumes when resubscribing
-// @route   POST /api/subscriptions/restore-resumes
-// @access  Private
-router.post('/restore-resumes', protect, async (req, res) => {
-  try {
-    const subscription = await Subscription.findOne({ user: req.user.id });
-    
-    if (!subscription) {
-      return res.status(404).json({
-        success: false,
-        error: 'No subscription found'
-      });
-    }
-
-    // Check if user has upgraded to a paid plan
-    if (subscription.plan === 'free') {
-      return res.status(400).json({
-        success: false,
-        error: 'User must be on a paid plan to restore resumes'
-      });
-    }
-
-    // Restore expired resumes
-    const result = await subscription.restoreExpiredResumes();
-
-    logger.info(`Resumes restored for user ${req.user.email}: ${result.message}`);
-
-    res.json({
-      success: true,
-      data: {
-        message: 'Resumes restored successfully',
-        result
-      }
-    });
-  } catch (error) {
-    logger.error('Restore resumes error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Error restoring resumes'
-    });
-  }
-});
-
-// @desc    Get resumes marked for deletion
-// @route   GET /api/subscriptions/expired-resumes
-// @access  Private
-router.get('/expired-resumes', protect, async (req, res) => {
-  try {
-    const Resume = require('../models/Resume');
-    
-    const resumes = await Resume.find({
-      user: req.user.id,
-      markedForDeletion: true
-    }).sort({ deletionDate: 1 });
-
-    res.json({
-      success: true,
-      data: {
-        resumes,
-        count: resumes.length
-      }
-    });
-  } catch (error) {
-    logger.error('Get expired resumes error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Error fetching expired resumes'
-    });
-  }
-});
 
 
 module.exports = router;

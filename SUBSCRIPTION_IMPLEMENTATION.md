@@ -26,7 +26,20 @@ This document outlines the complete implementation of the subscription system fo
   - Unlimited exports
 - **Trial**: 3-day free trial or 7-day paid trial
 
-### 💼 Pro Plan - $9.99/month
+### 💼 Pro Monthly Plan - $9.99/month
+- **Resume Limit**: 5 total
+- **AI Actions**: 300 free tokens + token-based system
+- **Templates**: Free + Premium templates
+- **Export**: PDF only (no watermark)
+- **Features**: 
+  - AI resume review
+  - Resume feedback analysis (ATS score, grammar)
+  - Priority support
+  - Unlimited exports
+  - Cloud resume history
+- **Trial**: 3-day free trial or 7-day paid trial
+
+### 🚀 Pro Yearly Plan - $79/year (Save 34%)
 - **Resume Limit**: 5 total
 - **AI Actions**: 300 free tokens + token-based system
 - **Templates**: Free + Premium templates
@@ -151,10 +164,12 @@ This document outlines the complete implementation of the subscription system fo
 - **Customer Management**: Automatic customer creation
 - **Payment History**: Complete transaction tracking
 
+```
 ### Price Structure
-- **Pro Monthly**: $9.99
-- **Pro Yearly**: $79 (34% savings)
+- **Pro Monthly Plan**: $9.99/month
+- **Pro Yearly Plan**: $79/year (Save 34%)
 - **Trial Options**: Free (3 days) or Paid ($2.99 for 7 days)
+```
 
 ## 📊 Subscription Management
 
@@ -307,4 +322,4 @@ Content-Type: application/json
 - **Customer Lifetime Value**: $XXX
 - **Payback Period**: <6 months
 
-This implementation provides a comprehensive subscription system that balances user value with business sustainability, featuring clear upgrade paths, generous trials, and robust usage tracking. 
+This implementation provides a comprehensive subscription system that balances user value with business sustainability, featuring clear upgrade paths, generous trials, and robust usage tracking.
