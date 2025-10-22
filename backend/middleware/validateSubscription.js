@@ -26,7 +26,17 @@ const validateSubscription = async (req, res, next) => {
     }
 
     // Get or create subscription
-    let subscription = await Subscription.getOrCreateSubscription(req.user.id);
+    let subscription = await Subscription.findOne({ user: req.user.id });
+
+    if (!subscription) {
+      // Create default free subscription
+      subscription = new Subscription({
+        user: req.user.id,
+        plan: 'free',
+        status: 'active'
+      });
+      await subscription.save();
+    }
 
     // Check if subscription is expired
     if (subscription.isExpired) {
@@ -37,10 +47,10 @@ const validateSubscription = async (req, res, next) => {
       
       // Get user's resumes and delete extra ones beyond free limit (2)
       const userResumes = await Resume.find({ user: user._id })
-        .sort({ createdAt: 1 }); // Sort by creation date (oldest first)
+        .sort({ createdAt: -1 }); // Sort by creation date (newest first)
       
       if (userResumes.length > 2) {
-        const resumesToDelete = userResumes.slice(2); // Keep oldest 2, delete the rest
+        const resumesToDelete = userResumes.slice(2); // Keep latest 2, delete the rest
         
         logger.info(`Deleting ${resumesToDelete.length} extra resumes for user ${user.email}`);
         

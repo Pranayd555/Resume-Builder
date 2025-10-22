@@ -24,7 +24,17 @@ const startTrial = async (req, res) => {
     }
 
     // Get or create subscription
-    let subscription = await Subscription.getOrCreateSubscription(req.user.id);
+    let subscription = await Subscription.findOne({ user: req.user.id });
+
+    if (!subscription) {
+      // Create default free subscription
+      subscription = new Subscription({
+        user: req.user.id,
+        plan: 'free',
+        status: 'active'
+      });
+      await subscription.save();
+    }
 
     // Check if user already has an active trial
     if (subscription.status === 'trialing' && subscription.billing?.trialEnd) {
@@ -40,6 +50,8 @@ const startTrial = async (req, res) => {
     }
 
     // Check if user has already had a trial before
+    logger.info(`Trial check for user ${user.email}: hasHadTrial=${subscription.hasHadTrial}, plan=${subscription.plan}, status=${subscription.status}`);
+    
     if (subscription.hasHadTrial) {
       return res.status(400).json({
         success: false,
@@ -92,7 +104,17 @@ const activatePro = async (req, res) => {
     }
 
     // Get or create subscription
-    let subscription = await Subscription.getOrCreateSubscription(req.user.id);
+    let subscription = await Subscription.findOne({ user: req.user.id });
+
+    if (!subscription) {
+      // Create default free subscription
+      subscription = new Subscription({
+        user: req.user.id,
+        plan: 'free',
+        status: 'active'
+      });
+      await subscription.save();
+    }
 
     // Activate pro plan
     try {
@@ -137,7 +159,17 @@ const getSubscriptionStatus = async (req, res) => {
     }
 
     // Get or create subscription
-    let subscription = await Subscription.getOrCreateSubscription(req.user.id);
+    let subscription = await Subscription.findOne({ user: req.user.id });
+
+    if (!subscription) {
+      // Create default free subscription
+      subscription = new Subscription({
+        user: req.user.id,
+        plan: 'free',
+        status: 'active'
+      });
+      await subscription.save();
+    }
 
     // Check if subscription is expired and handle cleanup
     try {
@@ -201,7 +233,14 @@ const cancelSubscription = async (req, res) => {
     }
 
     // Get subscription
-    let subscription = await Subscription.getOrCreateSubscription(req.user.id);
+    let subscription = await Subscription.findOne({ user: req.user.id });
+
+    if (!subscription) {
+      return res.status(404).json({
+        success: false,
+        error: 'No subscription found'
+      });
+    }
 
     // Cancel subscription
     await subscription.cancelSubscription(reason);
@@ -239,7 +278,29 @@ const getSubscriptionForLocalStorage = async (req, res) => {
     }
 
     // Get or create subscription
-    let subscription = await Subscription.getOrCreateSubscription(req.user.id);
+    let subscription = await Subscription.findOne({ user: req.user.id });
+
+    if (!subscription) {
+      // Create default free subscription
+      subscription = new Subscription({
+        user: req.user.id,
+        plan: 'free',
+        status: 'active'
+      });
+      await subscription.save();
+    }
+
+    // Check if trial has been used
+    const hasUsedTrial = subscription.hasHadTrial || false;
+    
+    // Check if trial is currently active
+    const isTrialActive = subscription.isTrialActive();
+    
+    // Check if trial has expired
+    const hasTrialExpired = subscription.hasTrialExpired();
+
+    // Debug logging
+    logger.info(`localStorage API for user ${user.email}: hasHadTrial=${subscription.hasHadTrial}, hasUsedTrial=${hasUsedTrial}, isTrialActive=${isTrialActive}, hasTrialExpired=${hasTrialExpired}`);
 
     // Return data optimized for localStorage
     const localStorageData = {
@@ -250,6 +311,19 @@ const getSubscriptionForLocalStorage = async (req, res) => {
       isExpired: subscription.isExpired,
       remainingDays: subscription.remainingDays,
       trialRemainingDays: subscription.trialRemainingDays,
+      // Direct trial usage information for frontend compatibility
+      hasHadTrial: hasUsedTrial,
+      // Trial usage information
+      trialUsage: {
+        hasUsedTrial: hasUsedTrial,
+        isTrialActive: isTrialActive,
+        hasTrialExpired: hasTrialExpired,
+        canStartTrial: subscription.canStartTrial(),
+        trialEnd: subscription.billing?.trialEnd,
+        trialType: subscription.billing?.trialType
+      },
+      // Debug field to verify server is using updated code
+      debugVersion: 'v2.0',
       features: {
         resumeLimit: subscription.features.resumeLimit,
         templateAccess: subscription.features.templateAccess,

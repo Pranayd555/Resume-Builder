@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useSubscription } from '../hooks/useSubscription';
 import AuthLoader from './AuthLoader';
 
 const ProtectedRoute = ({ children, requireAuth = true, redirectTo = '/' }) => {
@@ -57,7 +58,8 @@ export const SubscriptionProtectedRoute = ({
   requiredPlan = 'pro', 
   redirectTo = '/subscription' 
 }) => {
-  const { isAuthenticated, isLoading, hasActiveSubscription, getSubscriptionPlan } = useAuth();
+  const { isAuthenticated, isLoading, hasActiveSubscription } = useAuth();
+  const { subscription } = useSubscription();
   const location = useLocation();
 
   // Show loading spinner while auth status is being determined
@@ -92,12 +94,14 @@ export const SubscriptionProtectedRoute = ({
   }
 
   // Check subscription requirements
-  const userPlan = getSubscriptionPlan();
+  const userPlan = subscription?.plan || 'free';
   const hasValidSubscription = hasActiveSubscription();
   
   const planHierarchy = {
     free: 0,
-    pro: 1,
+    pro_monthly: 1,
+    pro_yearly: 1,
+    trialing: 1,
     enterprise: 2,
   };
 

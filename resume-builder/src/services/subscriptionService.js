@@ -1,4 +1,4 @@
-import api from './api';
+import api, { subscriptionAPI } from './api';
 
 /**
  * Subscription Service
@@ -128,12 +128,12 @@ class SubscriptionService {
    */
   async startTrial() {
     try {
-      const response = await api.post('/subscriptions/start-trial-new');
-      this.subscriptionData = response.data.data;
+      const response = await subscriptionAPI.startTrial();
+      this.subscriptionData = response.data;
       this.lastUpdate = Date.now();
       this.saveToLocalStorage();
       this.notifyListeners();
-      return response.data;
+      return response;
     } catch (error) {
       console.error('Error starting trial:', error);
       throw error;
@@ -145,12 +145,12 @@ class SubscriptionService {
    */
   async activatePro(planType) {
     try {
-      const response = await api.post('/subscriptions/activate-pro', { planType });
-      this.subscriptionData = response.data.data;
+      const response = await subscriptionAPI.activatePro(planType);
+      this.subscriptionData = response.data;
       this.lastUpdate = Date.now();
       this.saveToLocalStorage();
       this.notifyListeners();
-      return response.data;
+      return response;
     } catch (error) {
       console.error('Error activating pro plan:', error);
       throw error;
@@ -162,14 +162,31 @@ class SubscriptionService {
    */
   async cancelSubscription(reason = '') {
     try {
-      const response = await api.post('/subscriptions/cancel-new', { reason });
-      this.subscriptionData = response.data.data;
+      const response = await subscriptionAPI.cancelSubscription(reason);
+      this.subscriptionData = response.data;
       this.lastUpdate = Date.now();
       this.saveToLocalStorage();
       this.notifyListeners();
-      return response.data;
+      return response;
     } catch (error) {
       console.error('Error canceling subscription:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Reset subscription to free plan
+   */
+  async resetToFreePlan() {
+    try {
+      const response = await subscriptionAPI.resetToFreePlan();
+      this.subscriptionData = response.data;
+      this.lastUpdate = Date.now();
+      this.saveToLocalStorage();
+      this.notifyListeners();
+      return response;
+    } catch (error) {
+      console.error('Error resetting subscription:', error);
       throw error;
     }
   }

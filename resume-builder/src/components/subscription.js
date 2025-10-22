@@ -4,6 +4,7 @@ import { subscriptionAPI } from '../services/api';
 import { useSubscription } from '../hooks/useSubscription';
 import AuthLoader from './AuthLoader';
 import { toast } from 'react-toastify';
+import SubscriptionCountdown from './SubscriptionCountdown';
 import { 
   CreditCardIcon, 
   CheckIcon,
@@ -35,6 +36,7 @@ function Subscription() {
   
   // Use a single ref to track initialization
   const hasInitialized = useRef(false);
+  const sessionProcessed = useRef(false);
 
 
   // Single initialization effect
@@ -115,7 +117,8 @@ function Subscription() {
   // Handle subscription success separately
   useEffect(() => {
     const sessionId = searchParams.get('session_id');
-    if (sessionId && !successLoading) {
+    if (sessionId && !successLoading && !sessionProcessed.current) {
+      sessionProcessed.current = true; // Mark as processed to prevent re-processing
       setSuccessLoading(true);
       
       subscriptionAPI.handleSubscriptionSuccess(sessionId)
@@ -125,12 +128,21 @@ function Subscription() {
             refreshSubscription();
             
             toast.success('Subscription activated successfully! Welcome to Pro!');
+            // Clear session_id from URL to prevent re-processing
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.delete('session_id');
+            window.history.replaceState({}, '', newUrl.pathname + newUrl.search);
+            // Only redirect if subscription was actually successful
             navigate('/dashboard');
+          } else {
+            // If session_id exists but subscription failed, show error and stay on page
+            toast.error(response.error || 'Subscription activation failed. Please try again.');
           }
         })
         .catch(error => {
           console.error('Error handling subscription success:', error);
           toast.error('Error activating subscription. Please contact support.');
+          // Don't redirect on error - let user stay on subscription page
         })
         .finally(() => {
           setSuccessLoading(false);
@@ -370,16 +382,16 @@ function Subscription() {
         {/* Current Subscription Status */}
         {subscription && subscription.plan && (
           <div className="mb-8">
-            <div className="bg-white/80 dark:bg-orange-50/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 dark:border-orange-200/30 p-6">
+            <div className="bg-white dark:bg-gray-800 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 dark:border-grey-200/30 p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                     <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-600">
+                    <h3 className="text-lg font-bold text-grey-900 dark:text-grey-400">
                       {subscription?.plan ? 
                         subscription?.status === 'trialing' ? 'Trial Plan' :
                         subscription.plan === 'pro_monthly' ? 'Pro Monthly Plan' :
@@ -388,26 +400,24 @@ function Subscription() {
                         'Loading...'
                       }
                     </h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        subscription?.status === 'trialing' 
-                          ? 'bg-orange-100 text-orange-800'
-                          : subscription?.status === 'active'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {subscription?.status === 'trialing' ? 'Trial Active' : subscription?.status || 'Loading'}
-                      </span>
-                      {subscription?.isTrial && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                          ⏰ {subscription.trialRemainingDays} days left
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-1">
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          subscription?.status === 'trialing' 
+                            ? 'bg-orange-100 text-orange-800'
+                            : subscription?.status === 'active'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {subscription?.status === 'trialing' ? 'Trial Active' : subscription?.status || 'Loading'}
                         </span>
-                      )}
-                      {(subscription?.plan === 'pro_monthly' || subscription?.plan === 'pro_yearly') && subscription?.remainingDays && subscription?.remainingDays <= 3 && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                          ⚠️ {subscription.remainingDays} days left
-                        </span>
-                      )}
+                      </div>
+                      {/* Subscription Countdown Timer */}
+                      <SubscriptionCountdown 
+                        variant="compact" 
+                        className="flex-shrink-0"
+                        urgencyLevel="medium"
+                      />
                     </div>
                   </div>
                 </div>

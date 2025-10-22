@@ -380,12 +380,16 @@ subscriptionSchema.methods.expireTrial = function() {
     this.billing.trialEnd = undefined;
     this.billing.trialType = undefined;
     
+    // Mark that user has had a trial to prevent future trials
+    this.hasHadTrial = true;
+    
     // Reset to free plan features
     this.features.resumeLimit = 2;
     this.features.templateAccess = ['free'];
     this.features.exportFormats = ['pdf'];
     this.features.aiActionsLimit = 'token-based';
-    this.features.freeTokens = 0;
+    // Preserve existing tokens - don't reset to 0
+    // this.features.freeTokens = 0; // REMOVED - preserve user's existing tokens
     this.features.aiReview = false;
     this.features.prioritySupport = false;
     this.features.customBranding = false;
@@ -405,12 +409,16 @@ subscriptionSchema.pre('save', function(next) {
     this.billing.trialEnd = undefined;
     this.billing.trialType = undefined;
     
+    // Mark that user has had a trial to prevent future trials
+    this.hasHadTrial = true;
+    
     // Reset to free plan features
     this.features.resumeLimit = 2;
     this.features.templateAccess = ['free'];
     this.features.exportFormats = ['pdf'];
     this.features.aiActionsLimit = 'token-based';
-    this.features.freeTokens = 0;
+    // Preserve existing tokens - don't reset to 0
+    // this.features.freeTokens = 0; // REMOVED - preserve user's existing tokens
     this.features.aiReview = false;
     this.features.prioritySupport = false;
     this.features.customBranding = false;
@@ -425,7 +433,8 @@ subscriptionSchema.pre('save', function(next) {
       this.features.templateAccess = ['free', 'premium'];
       this.features.exportFormats = ['pdf'];
       this.features.aiActionsLimit = 'token-based';
-      this.features.freeTokens = 0; // No free tokens during trial
+      // Preserve existing tokens - don't reset to 0
+    // this.features.freeTokens = 0; // REMOVED - preserve user's existing tokens // No free tokens during trial
       this.features.aiReview = true;
       this.features.prioritySupport = true;
       this.features.customBranding = this.plan === 'pro_yearly';
@@ -709,21 +718,6 @@ subscriptionSchema.methods.resetAIActionCycle = function() {
   return this.save();
 };
 
-// Method to fix trial subscription features (for existing trial subscriptions)
-subscriptionSchema.methods.fixTrialFeatures = function() {
-  if (this.status === 'trialing') {
-    this.features.resumeLimit = 5;
-    this.features.templateAccess = ['free', 'premium'];
-    this.features.exportFormats = ['pdf'];
-    this.features.aiActionsLimit = 'token-based';
-    this.features.freeTokens = 0;
-    this.features.aiReview = true;
-    this.features.prioritySupport = true;
-    this.features.customBranding = this.plan === 'pro_yearly';
-    this.features.unlimitedExports = true;
-  }
-  return this.save();
-};
 
 // Method to get subscription status for API responses
 subscriptionSchema.methods.getSubscriptionStatus = function() {
@@ -776,10 +770,39 @@ subscriptionSchema.methods.cancelSubscription = function(reason = '') {
   return this.save();
 };
 
-// Method to reset to free plan
-subscriptionSchema.methods.resetToFreePlan = function() {
+
+// Method to calculate remaining days from current subscription/trial
+subscriptionSchema.methods.calculateRemainingDays = function() {
+  const now = new Date();
+  let remainingDays = 0;
+  
+  if (this.status === 'trialing' && this.billing?.trialEnd) {
+    // If user is in trial, calculate remaining trial days
+    const trialEnd = new Date(this.billing.trialEnd);
+    if (trialEnd > now) {
+      remainingDays = Math.max(0, Math.floor((trialEnd - now) / (1000 * 60 * 60 * 24)));
+    }
+  } else if (this.billing?.nextBillingDate) {
+    // If user has an active subscription, calculate remaining days
+    const nextBilling = new Date(this.billing.nextBillingDate);
+    if (nextBilling > now) {
+      remainingDays = Math.max(0, Math.floor((nextBilling - now) / (1000 * 60 * 60 * 24)));
+    }
+  }
+  
+  return remainingDays;
+};
+
+// Method to reset subscription to free plan
+subscriptionSchema.methods.resetToFreePlan = async function() {
+  // Reset to free plan
   this.plan = 'free';
   this.status = 'active';
+  this.endDate = undefined;
+  this.canceledAt = undefined;
+  this.cancelReason = undefined;
+  
+  // Reset billing information
   this.billing = {
     cycle: undefined,
     amount: undefined,
@@ -788,93 +811,47 @@ subscriptionSchema.methods.resetToFreePlan = function() {
     trialEnd: undefined,
     trialType: undefined
   };
-  this.endDate = undefined;
-  this.canceledAt = undefined;
-  this.cancelReason = undefined;
   
-  // Reset features to free plan
+  // Reset features to free plan (preserve existing tokens)
   this.features.resumeLimit = 2;
   this.features.templateAccess = ['free'];
   this.features.exportFormats = ['pdf'];
   this.features.aiActionsLimit = 'token-based';
-  this.features.freeTokens = 0;
+  // Preserve existing tokens - don't reset to 0
+  // this.features.freeTokens = 0; // REMOVED - preserve user's existing tokens
   this.features.aiReview = false;
   this.features.prioritySupport = false;
   this.features.customBranding = false;
   this.features.unlimitedExports = false;
   
-  return this.save();
-};
-
-
-
-
-// Static method to create trial subscription
-subscriptionSchema.statics.createTrial = function(userId, trialType = 'free', days = 3, planType = 'pro_monthly') {
-  return new this({
-    user: userId,
-    plan: planType, // Can be 'pro_monthly' or 'pro_yearly'
-    status: 'trialing',
-    hasHadTrial: true,
-    billing: {
-      trialType: trialType,
-      trialEnd: new Date(Date.now() + days * 24 * 60 * 60 * 1000)
-    },
-    features: {
-      resumeLimit: 5, // Trial users get Pro plan limits
-      templateAccess: ['free', 'premium'],
-      exportFormats: ['pdf'],
-      aiActionsLimit: 'token-based',
-      freeTokens: 0, // No free tokens during trial
-      aiReview: true,
-      prioritySupport: true,
-      customBranding: planType === 'pro_yearly',
-      unlimitedExports: true
-    },
-    usage: {
-      resumesCreated: 0,
-      aiActionsThisCycle: 0,
-      freeTokensUsed: 0,
-      cycleStartDate: new Date(),
-      lastBillingCycleReset: new Date()
-    }
-  });
-};
-
-// Static method to get or create subscription for user
-subscriptionSchema.statics.getOrCreateSubscription = async function(userId) {
-  let subscription = await this.findOne({ user: userId });
+  // Reset usage
+  this.usage.freeTokensUsed = 0;
+  this.usage.cycleStartDate = new Date();
+  this.usage.lastBillingCycleReset = new Date();
   
-  if (!subscription) {
-    // Create default free subscription
-    subscription = new this({
-      user: userId,
-      plan: 'free',
-      status: 'active',
-      features: {
-        resumeLimit: 2,
-        templateAccess: ['free'],
-        exportFormats: ['pdf'],
-        aiActionsLimit: 'token-based',
-        freeTokens: 0,
-        aiReview: false,
-        prioritySupport: false,
-        customBranding: false,
-        unlimitedExports: false
-      },
-      usage: {
-        resumesCreated: 0,
-        aiActionsThisCycle: 0,
-        freeTokensUsed: 0,
-        cycleStartDate: new Date(),
-        lastBillingCycleReset: new Date()
-      }
-    });
+  // Save subscription first
+  await this.save();
+  
+  // Handle resume limit - keep only the latest 2 resumes
+  const Resume = require('./Resume');
+  const userResumes = await Resume.find({ user: this.user })
+    .sort({ createdAt: -1 }); // Sort by creation date (newest first)
+  
+  if (userResumes.length > 2) {
+    const resumesToDelete = userResumes.slice(2); // Keep latest 2, delete the rest
     
-    await subscription.save();
+    // Delete extra resumes
+    const resumeIdsToDelete = resumesToDelete.map(resume => resume._id);
+    await Resume.deleteMany({ _id: { $in: resumeIdsToDelete } });
   }
   
-  return subscription;
+  return this;
 };
+
+
+
+
+
+
 
 module.exports = mongoose.model('Subscription', subscriptionSchema);

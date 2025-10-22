@@ -32,6 +32,7 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
     };
 
     fetchSubscription();
+    // Token balance is automatically fetched by useTokenBalance hook
   }, []);
 
   // Auto-open when new analysis is available

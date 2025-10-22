@@ -38,6 +38,7 @@ const ATSScoreModal = ({
 
     if (isOpen) {
       fetchSubscription();
+      // Token balance is automatically fetched by useTokenBalance hook
     }
   }, [isOpen]);
 
