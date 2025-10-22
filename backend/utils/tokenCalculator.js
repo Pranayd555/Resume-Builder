@@ -3,13 +3,22 @@ const Subscription = require('../models/Subscription');
 
 /**
  * Calculate total available tokens for a user
- * @param {string} userId - User ID
+ * @param {string|Object} userIdOrSubscription - User ID or Subscription object
  * @returns {Promise<Object>} Token calculation result
  */
-async function calculateTotalTokens(userId) {
+async function calculateTotalTokens(userIdOrSubscription) {
   try {
-    const user = await User.findById(userId).select('tokens');
-    const subscription = await Subscription.findOne({ user: userId });
+    let user, subscription;
+    
+    // Handle both user ID and subscription object inputs
+    if (typeof userIdOrSubscription === 'string') {
+      user = await User.findById(userIdOrSubscription).select('tokens');
+      subscription = await Subscription.findOne({ user: userIdOrSubscription });
+    } else {
+      // If subscription object is passed, get user data
+      user = await User.findById(userIdOrSubscription.user).select('tokens');
+      subscription = userIdOrSubscription;
+    }
     
     // Calculate purchased tokens
     const purchasedTokens = user?.tokens || 0;
@@ -32,7 +41,11 @@ async function calculateTotalTokens(userId) {
         plan: subscription?.plan || 'free',
         planName: subscription?.plan === 'free' ? 'Free' : 
                  subscription?.plan === 'pro_monthly' ? 'Pro Monthly' : 'Pro Yearly',
-        isTokenBased: subscription?.features?.aiActionsLimit === 'token-based'
+        isTokenBased: subscription?.features?.aiActionsLimit === 'token-based',
+        status: subscription?.status || 'active',
+        isTrial: subscription?.status === 'trialing',
+        remainingDays: subscription?.remainingDays || 0,
+        trialRemainingDays: subscription?.trialRemainingDays || 0
       }
     };
   } catch (error) {
@@ -46,7 +59,11 @@ async function calculateTotalTokens(userId) {
       subscription: {
         plan: 'free',
         planName: 'Free',
-        isTokenBased: true
+        isTokenBased: true,
+        status: 'active',
+        isTrial: false,
+        remainingDays: 0,
+        trialRemainingDays: 0
       }
     };
   }

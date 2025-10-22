@@ -33,6 +33,7 @@ import ATSScoreModal from './ATSScoreModal';
 import EmailVerification from './EmailVerification';
 import { useAuth } from '../contexts/AuthContext';
 import { useSubscription } from '../hooks/useSubscription';
+import SubscriptionCountdown from './SubscriptionCountdown';
 
 // ATS Score Display Component
 const ATSScoreDisplay = ({ resume, isCardHovered }) => {
@@ -200,7 +201,7 @@ const ATSScoreDisplay = ({ resume, isCardHovered }) => {
 function ResumeList() {
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
-  const { subscription, canCreateResume, isOnTrial, getRemainingDays, getTrialRemainingDays } = useSubscription();
+  const { subscription, canCreateResume, isOnTrial } = useSubscription();
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [hoveredCardId, setHoveredCardId] = useState(null);
   const [focusedCardId, setFocusedCardId] = useState(null);
@@ -297,6 +298,8 @@ function ResumeList() {
 
   // Get subscription limit message
   const getSubscriptionLimitMessage = () => {
+    if (!subscription) return null;
+    
     const currentResumeCount = resumes.length;
     
     if (currentResumeCount >= subscription.features.resumeLimit) {
@@ -842,7 +845,7 @@ function ResumeList() {
   };
 
   // Loading state - || true Always show for testing
-  if (loading) {
+  if (loading || !subscription) {
     return (
       <AuthLoader 
         title="Loading Resumes..."
@@ -871,41 +874,40 @@ function ResumeList() {
       <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                My Resumes
-              </h1>
-              {/* Subscription Status Badge */}
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                isOnTrial() 
-                  ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
-                  : subscription.plan === 'pro_monthly' || subscription.plan === 'pro_yearly'
-                  ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-                  : 'bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-300'
-              }`}>
-                {isOnTrial() ? 'Trial' : 
-                 subscription.plan === 'pro_monthly' ? 'Pro Monthly' : 
-                 subscription.plan === 'pro_yearly' ? 'Pro Yearly' : 'Free'}
-              </span>
-              {/* Trial Days Remaining */}
-              {isOnTrial() && getTrialRemainingDays() > 0 && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
-                  ⏰ {getTrialRemainingDays()} days left
+          <div className="flex-1">
+            <div className="flex flex-col sm:flex-column sm:items-left gap-1 mb-2">
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  My Resumes
+                </h1>
+                {/* Subscription Status Badge */}
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                  isOnTrial() 
+                    ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
+                    : subscription?.plan === 'pro_monthly' || subscription?.plan === 'pro_yearly'
+                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+                    : 'bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-300'
+                }`}>
+                  {isOnTrial() ? 'Trial' : 
+                   subscription?.plan === 'pro_monthly' ? 'Pro Monthly' : 
+                   subscription?.plan === 'pro_yearly' ? 'Pro Yearly' : 'Free'}
                 </span>
-              )}
-              {/* Pro Subscription Days Remaining */}
-              {(subscription.plan === 'pro_monthly' || subscription.plan === 'pro_yearly') && subscription.status !== 'trialing' && getRemainingDays() <= 3 && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">
-                  ⚠️ expires in {getRemainingDays()} days
-                </span>
-              )}
+              </div>
+              
+              {/* Subscription Countdown Timer */}
+              <div className="flex flex-wrap items-center gap-2">
+                <SubscriptionCountdown 
+                  variant="compact" 
+                  className="flex-shrink-0"
+                  urgencyLevel="medium"
+                />
+              </div>
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg">
               Create and manage your professional resumes
-              {subscription.plan === 'free' && (
+              {subscription?.plan === 'free' && (
                 <span className="ml-2 text-sm text-gray-500 dark:text-gray-500">
-                  ({resumes.length}/{subscription.features.resumeLimit} limit)
+                  ({resumes.length}/{subscription?.features?.resumeLimit || 2} limit)
                 </span>
               )}
             </p>
@@ -964,7 +966,7 @@ function ResumeList() {
         )}
 
         {/* Free Plan Limit Banner */}
-        {!canCreateNewResume() && !isEmailVerificationRequired() && subscription.plan === 'free' && (
+        {!canCreateNewResume() && !isEmailVerificationRequired() && subscription?.plan === 'free' && (
           <div className="backdrop-blur-md bg-orange-50/80 border border-orange-200 rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-start gap-3">
@@ -1018,7 +1020,7 @@ function ResumeList() {
         )}
         
         {/* Pro Plan Limit Banner */}
-        {!canCreateNewResume() && !isEmailVerificationRequired() && (subscription.plan === 'pro_monthly' || subscription.plan === 'pro_yearly') && (
+        {!canCreateNewResume() && !isEmailVerificationRequired() && (subscription?.plan === 'pro_monthly' || subscription?.plan === 'pro_yearly') && (
           <div className="backdrop-blur-md bg-blue-50/80 border border-blue-200 rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-start gap-3">

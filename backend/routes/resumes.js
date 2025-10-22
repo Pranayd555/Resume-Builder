@@ -487,7 +487,6 @@ router.get('/:id/preview', protect, async (req, res) => {
     // Handle missing template case - automatically assign Classic Traditional template
     let templateAssigned = false;
     if (!resume.template) {
-      console.log('Resume has no template, assigning Classic Traditional template as default');
       
       // Find the Classic Traditional template
       const classicTemplate = await Template.findOne({
@@ -515,9 +514,7 @@ router.get('/:id/preview', protect, async (req, res) => {
         await resume.populate('template');
         
         templateAssigned = true;
-        console.log('Classic Traditional template assigned successfully');
       } else {
-        console.log('Classic Traditional template not found, returning placeholder');
         
         // Fallback to placeholder if template doesn't exist
         const placeholderHtml = `
@@ -556,7 +553,6 @@ router.get('/:id/preview', protect, async (req, res) => {
 
     // Ensure template styling is initialized for existing resumes
     if (resume.template && (!resume.styling || !resume.styling.template)) {
-      console.log('Resume has template but no template styling, initializing defaults');
       if (!resume.styling) {
         resume.styling = {};
       }
@@ -949,7 +945,6 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
 
     // Handle missing template - automatically assign Classic Traditional template
     if (!resume.template) {
-      console.log('Resume has no template for PDF download, assigning Classic Traditional template as default');
       
       // Find the Classic Traditional template
       const classicTemplate = await Template.findOne({
@@ -976,7 +971,6 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
         // Re-populate the template for rendering
         await resume.populate('template');
         
-        console.log('Classic Traditional template assigned successfully for PDF download');
       } else {
         return res.status(400).json({
           success: false,
@@ -1214,7 +1208,6 @@ router.get('/:id/download/docx', protect, async (req, res) => {
 
     // Handle missing template - automatically assign Classic Traditional template
     if (!resume.template) {
-      console.log('Resume has no template for DOCX download, assigning Classic Traditional template as default');
       
       // Find the Classic Traditional template
       const classicTemplate = await Template.findOne({
@@ -1241,7 +1234,6 @@ router.get('/:id/download/docx', protect, async (req, res) => {
         // Re-populate the template for rendering
         await resume.populate('template');
         
-        console.log('Classic Traditional template assigned successfully for DOCX download');
       } else {
         return res.status(400).json({
           success: false,
@@ -1252,7 +1244,6 @@ router.get('/:id/download/docx', protect, async (req, res) => {
 
     // Ensure template styling is initialized for existing resumes
     if (resume.template && (!resume.styling || !resume.styling.template)) {
-      console.log('Resume has template but no template styling, initializing defaults');
       if (!resume.styling) {
         resume.styling = {};
       }
@@ -1981,7 +1972,6 @@ router.get('/:id', protect, async (req, res) => {
 
     // Handle missing template - automatically assign Classic Traditional template
     if (!resume.template) {
-      console.log('Resume has no template, assigning Classic Traditional template as default');
       
       // Find the Classic Traditional template
       const classicTemplate = await Template.findOne({
@@ -2008,7 +1998,6 @@ router.get('/:id', protect, async (req, res) => {
         // Re-populate the template for rendering
         await resume.populate('template', 'name category styling templateCode');
         
-        console.log('Classic Traditional template assigned successfully');
       } else {
         return res.status(400).json({
           success: false,

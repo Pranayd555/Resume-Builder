@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { resumeAPI, apiHelpers, uploadAPI, subscriptionAPI } from '../services/api';
+import { resumeAPI, apiHelpers, uploadAPI } from '../services/api';
 import { toast } from 'react-toastify';
 import { validators } from '../models/dataModels';
 import { useFormScroll, useScrollToTop } from '../hooks/useAutoScroll';
 import { useAuth } from '../contexts/AuthContext';
 import { useTokenBalance } from '../hooks/useTokenBalance';
+import { useSubscription } from '../hooks/useSubscription';
 import CKEditor from './CKEditor';
 import { ensureHtmlContent } from '../utils/htmlUtils';
 import AuthLoader from './AuthLoader';
@@ -136,19 +137,19 @@ const saveToLocalStorage = (formData, currentStep, isEditMode) => {
 function ResumeForm() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, getSubscriptionPlan } = useAuth();
+  const { user } = useAuth();
   const { tokenBalance, hasEnoughTokens } = useTokenBalance();
+  const { subscription } = useSubscription();
   const [loading, setLoading] = useState(false);
   
   // Check if user has pro subscription
-  const isProMode = getSubscriptionPlan() === 'pro';
+  const isProMode = subscription?.plan === 'pro_monthly' || subscription?.plan === 'pro_yearly' || subscription?.status === 'trialing';
   const [currentStep, setCurrentStep] = useState(1);
   const [validationErrors, setValidationErrors] = useState({});
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingResumeId, setEditingResumeId] = useState(null);
   const [showClearModal, setShowClearModal] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
-  const [subscription, setSubscription] = useState(null);
   
   const hasInitializedRef = useRef(false);
   
@@ -196,22 +197,8 @@ function ResumeForm() {
 
   // Fetch subscription status
   useEffect(() => {
-    const fetchSubscription = async () => {
-      try {
-        const response = await subscriptionAPI.getCurrentSubscription();
-        if (response.success) {
-          setSubscription(response.data.subscription);
-        }
-      } catch (error) {
-        console.error('Failed to fetch subscription:', error);
-        // Default to free plan if fetch fails
-        setSubscription({ plan: 'free', status: 'active' });
-      }
-    };
-
-    if (user) {
-      fetchSubscription();
-    }
+    // Subscription is now handled by useSubscription hook
+    // Token balance is automatically fetched by useTokenBalance hook
   }, [user]);
 
   // Check if user can upload resume based on plan and tokens
@@ -219,7 +206,7 @@ function ResumeForm() {
     if (!subscription) return false;
     
     // Premium users can upload unlimited
-    if (subscription.plan === 'pro') {
+    if (subscription.plan === 'pro_monthly' || subscription.plan === 'pro_yearly' || subscription.status === 'trialing') {
       return true;
     }
     

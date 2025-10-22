@@ -9,6 +9,8 @@ const AIButton = ({ editorInstance, onContentChange, isProMode = false, onAICont
   const [showDropdown, setShowDropdown] = useState(false);
   const { tokenBalance, hasEnoughTokens, consumeTokens } = useTokenBalance();
 
+  // Token balance is automatically fetched by useTokenBalance hook
+
   const handleAIAction = async (action) => {
     if (!editorInstance) {
       showNotification('Editor not available. Please wait for the editor to load or refresh the page.', 'warning');

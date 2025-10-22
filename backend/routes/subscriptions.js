@@ -787,4 +787,54 @@ router.post('/cancel-new', protect, subscriptionController.cancelSubscription);
 // @access  Private
 router.get('/localstorage', protect, subscriptionController.getSubscriptionForLocalStorage);
 
+// @desc    Handle OPTIONS request for reset-to-free endpoint
+// @route   OPTIONS /api/subscriptions/reset-to-free
+// @access  Public
+router.options('/reset-to-free', (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.status(200).end();
+});
+
+// @desc    Reset subscription to free plan
+// @route   POST /api/subscriptions/reset-to-free
+// @access  Private
+router.post('/reset-to-free', protect, async (req, res) => {
+  try {
+    // Set CORS headers explicitly
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+
+    const subscription = await Subscription.findOne({ user: req.user.id });
+    
+    if (!subscription) {
+      return res.status(404).json({
+        success: false,
+        error: 'No subscription found'
+      });
+    }
+
+    // Reset subscription to free plan (includes resume cleanup)
+    await subscription.resetToFreePlan();
+    
+    logger.info(`Subscription reset to free plan for user ${req.user.email} (resume limit enforced)`);
+    
+    res.json({
+      success: true,
+      message: 'Subscription reset to free plan successfully',
+      data: subscription.getSubscriptionStatus()
+    });
+  } catch (error) {
+    logger.error('Reset subscription error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error resetting subscription'
+    });
+  }
+});
+
 module.exports = router;

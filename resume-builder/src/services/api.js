@@ -408,6 +408,13 @@ export const subscriptionAPI = {
     return response.data;
   },
 
+  // Reset subscription to free plan
+  resetToFreePlan: async () => {
+    const config = createApiConfig('/subscriptions/reset-to-free');
+    const response = await api.post('/subscriptions/reset-to-free', {}, config);
+    return response.data;
+  },
+
   // Legacy methods for backward compatibility
   getCurrentSubscription: async () => {
     const status = await subscriptionAPI.getSubscriptionStatus();
