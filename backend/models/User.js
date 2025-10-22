@@ -104,29 +104,7 @@ const userSchema = new mongoose.Schema({
     default: 'user'
   },
   
-  // Subscription - Simplified structure
-  subscriptionType: {
-    type: String,
-    enum: ['free', 'trial', 'pro'],
-    default: 'free'
-  },
-  subscriptionStart: {
-    type: Date,
-    default: Date.now
-  },
-  subscriptionEnd: {
-    type: Date,
-    default: null
-  },
-  resumeLimit: {
-    type: Number,
-    default: 2
-  },
-  aiTokens: {
-    type: Number,
-    default: 20,
-    min: 0
-  },
+  // Subscription data moved to separate Subscription model
   
   // Usage Limits
   usage: {
@@ -250,12 +228,7 @@ userSchema.virtual('fullName').get(function() {
   return `${this.firstName} ${this.lastName}`;
 });
 
-// Virtual for subscription status
-userSchema.virtual('isSubscriptionActive').get(function() {
-  if (this.subscriptionType === 'free') return true;
-  if (!this.subscriptionEnd) return false;
-  return new Date() < this.subscriptionEnd;
-});
+// Subscription status now handled by separate Subscription model
 
 // Virtual for account lock status
 userSchema.virtual('isLocked').get(function() {
@@ -316,17 +289,7 @@ userSchema.methods.getRefreshToken = function() {
   );
 };
 
-// Method to check subscription limits
-userSchema.methods.canCreateResume = function() {
-  try {
-    const resumesCreated = this.usage?.resumesCreated || 0;
-    const resumeLimit = this.resumeLimit || 2;
-    return resumesCreated < resumeLimit;
-  } catch (error) {
-    console.error('Error checking resume creation limits:', error);
-    return false; // Default to not allowing creation if there's an error
-  }
-};
+// Resume creation limits now handled by Subscription model
 
 // Method to increment login attempts
 userSchema.methods.incLoginAttempts = function() {
@@ -459,71 +422,7 @@ userSchema.methods.getTransactionById = function(transactionId) {
   return this.razorpayTransactions.find(t => t.transactionId === transactionId);
 };
 
-// Method to check if subscription is expired
-userSchema.methods.isSubscriptionExpired = function() {
-  try {
-    if (this.subscriptionType === 'free') return false;
-    if (!this.subscriptionEnd) return false;
-    return new Date() > new Date(this.subscriptionEnd);
-  } catch (error) {
-    console.error('Error checking subscription expiration:', error);
-    return false; // Default to not expired if there's an error
-  }
-};
-
-// Method to reset to free plan
-userSchema.methods.resetToFreePlan = async function() {
-  try {
-    this.subscriptionType = 'free';
-    this.subscriptionStart = new Date();
-    this.subscriptionEnd = null;
-    this.resumeLimit = 2;
-    this.aiTokens = 20; // Reset to default free tokens
-    
-    return await this.save();
-  } catch (error) {
-    console.error('Error resetting to free plan:', error);
-    throw error; // Re-throw to be handled by calling function
-  }
-};
-
-// Method to start trial
-userSchema.methods.startTrial = async function() {
-  try {
-    this.subscriptionType = 'trial';
-    this.subscriptionStart = new Date();
-    this.subscriptionEnd = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days
-    this.resumeLimit = 5;
-    this.aiTokens = 0; // No free tokens during trial
-    
-    return await this.save();
-  } catch (error) {
-    console.error('Error starting trial:', error);
-    throw error; // Re-throw to be handled by calling function
-  }
-};
-
-// Method to activate pro plan
-userSchema.methods.activatePro = async function(planType) {
-  try {
-    this.subscriptionType = 'pro';
-    this.subscriptionStart = new Date();
-    
-    if (planType === 'monthly') {
-      this.subscriptionEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-    } else if (planType === 'yearly') {
-      this.subscriptionEnd = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 365 days
-    }
-    
-    this.resumeLimit = 5;
-    this.aiTokens = 0; // Pro users get tokens through subscription features
-    
-    return await this.save();
-  } catch (error) {
-    console.error('Error activating pro plan:', error);
-    throw error; // Re-throw to be handled by calling function
-  }
-};
+// Subscription methods moved to separate Subscription model
 
 // Index for performance
 userSchema.index({ email: 1 });

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { subscriptionAPI } from '../services/api';
+import { useSubscription } from '../hooks/useSubscription';
 import AuthLoader from './AuthLoader';
 import { toast } from 'react-toastify';
 import { 
@@ -17,7 +18,13 @@ import { useScrollToId } from '../hooks/useAutoScroll';
 function Subscription() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [currentSubscription, setCurrentSubscription] = useState(null);
+  const {
+    subscription,
+    loading: subscriptionLoading,
+    startTrial,
+    refreshSubscription
+  } = useSubscription();
+  
   const [subscriptionPlans, setSubscriptionPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [trialLoading, setTrialLoading] = useState(false);
@@ -77,8 +84,8 @@ function Subscription() {
           const transformedPlans = plansResponse.data.plans.map(plan => ({
             id: plan.id,
             name: plan.id === 'pro_monthly' ? 'Pro Monthly' : plan.id === 'pro_yearly' ? 'Pro Yearly' : plan.name,
-            price: plan.price, // Use direct price from backend
-            originalPrice: plan.id === 'pro_yearly' ? Math.round(plan.price * 1.3) : plan.id === 'pro_monthly' ? Math.round(plan.price * 1.3) : 0, // Add 30% markup for original price
+            price: typeof plan.price === 'object' ? (plan.id === 'pro_yearly' ? plan.price.yearly : plan.price.monthly) : plan.price, // Extract monthly price from backend
+            originalPrice: plan.id === 'pro_yearly' ? Math.round((typeof plan.price === 'object' ? plan.price.yearly : plan.price) * 1.3) : plan.id === 'pro_monthly' ? Math.round((typeof plan.price === 'object' ? plan.price.monthly : plan.price) * 1.3) : 0, // Add 30% markup for original price
             tokens: plan.limits.aiTokens,
             features: plan.features,
             popular: plan.id === 'pro_yearly', // Mark yearly as popular
@@ -88,39 +95,9 @@ function Subscription() {
           setSubscriptionPlans(transformedPlans);
         }
 
-        // Fetch subscription status
-        const subscriptionResponse = await subscriptionAPI.getSubscriptionStatus();
-
-        if (subscriptionResponse.success && subscriptionResponse.data?.subscription) {
-          // Transform new subscription data to match frontend expectations
-          const subscription = subscriptionResponse.data.subscription;
-          setCurrentSubscription({
-            plan: subscription.plan || 'free',
-            status: subscription.status || 'active',
-            isTrial: subscription.status === 'trialing',
-            trialRemainingDays: subscription.trialRemainingDays || 0,
-            remainingDays: subscription.remainingDays || 0,
-            hasHadTrial: subscription.hasHadTrial || false,
-            resumeLimit: subscription.features?.resumeLimit || 2,
-            aiTokens: subscription.features?.freeTokens || 20,
-            subscriptionStart: subscription.startDate,
-            subscriptionEnd: subscription.billing?.nextBillingDate
-          });
-        } else {
-          // Set default values if subscription data is not available
-          setCurrentSubscription({
-            plan: 'free',
-            status: 'active',
-            isTrial: false,
-            trialRemainingDays: 0,
-            remainingDays: 0,
-            hasHadTrial: false,
-            resumeLimit: 2,
-            aiTokens: 20,
-            subscriptionStart: new Date(),
-            subscriptionEnd: null
-          });
-        }
+               
+        // Subscription data is now handled by the useSubscription hook
+        // No need to set local state as it's managed by the hook
 
         setLoading(false);
       } catch (error) {
@@ -130,7 +107,10 @@ function Subscription() {
     };
 
     initializeComponent();
-  }, []); // Empty dependency array - only run once
+  }, [refreshSubscription]); // Add refreshSubscription dependency
+
+  // Subscription data is automatically managed by the useSubscription hook
+  // No need for additional useEffect as the hook handles all subscription state
 
   // Handle subscription success separately
   useEffect(() => {
@@ -141,10 +121,8 @@ function Subscription() {
       subscriptionAPI.handleSubscriptionSuccess(sessionId)
         .then(response => {
           if (response.success) {
-            setCurrentSubscription(response.data.subscription);
-            
-            // Update user data in localStorage with subscription details
-            apiHelpers.updateUserData(response.data.subscription);
+            // Refresh subscription data to get updated information
+            refreshSubscription();
             
             toast.success('Subscription activated successfully! Welcome to Pro!');
             navigate('/dashboard');
@@ -158,7 +136,7 @@ function Subscription() {
           setSuccessLoading(false);
         });
     }
-  }, [searchParams, navigate, successLoading]);
+  }, [searchParams, navigate, successLoading, refreshSubscription]);
 
 
 
@@ -166,35 +144,15 @@ function Subscription() {
   const handleStartTrial = async () => {
     setTrialLoading(true);
     try {
-      const response = await subscriptionAPI.startTrial();
+      const response = await startTrial();
       if (response.success) {
-        // Transform response data to match frontend expectations
-        const subscriptionData = response.data;
-        setCurrentSubscription({
-          plan: subscriptionData.subscriptionType,
-          status: 'active',
-          isTrial: true,
-          trialRemainingDays: subscriptionData.trialRemainingDays || 3,
-          hasHadTrial: true,
-          resumeLimit: subscriptionData.resumeLimit,
-          aiTokens: subscriptionData.aiTokens,
-          subscriptionStart: subscriptionData.subscriptionStart,
-          subscriptionEnd: subscriptionData.subscriptionEnd
-        });
-        
-        // Update user data in localStorage with subscription details
-        apiHelpers.updateUserData({
-          plan: subscriptionData.subscriptionType,
-          status: 'active',
-          isTrial: true,
-          trialRemainingDays: subscriptionData.trialRemainingDays || 3,
-          hasHadTrial: true,
-          resumeLimit: subscriptionData.resumeLimit,
-          aiTokens: subscriptionData.aiTokens
-        });
+        // Refresh subscription data to get updated information
+        await refreshSubscription();
         
         toast.success('Trial started! You have 3 days to try Pro features.');
         navigate('/dashboard');
+      } else {
+        toast.error(response.error || 'Error starting trial. Please try again.');
       }
     } catch (error) {
       console.error('Error starting trial:', error);
@@ -312,13 +270,8 @@ function Subscription() {
               }
               
               // Refresh subscription data
-              const subscriptionResponse = await subscriptionAPI.getCurrentSubscription();
-              if (subscriptionResponse.success) {
-                setCurrentSubscription(subscriptionResponse.data.subscription);
-                
-                // Update user data in localStorage with subscription details
-                apiHelpers.updateUserData(subscriptionResponse.data.subscription);
-              }
+              // Refresh subscription data to get updated information
+              await refreshSubscription();
               
               navigate('/dashboard');
             } else {
@@ -368,23 +321,23 @@ function Subscription() {
 
 
   const isCurrentPlan = (plan) => {
-    // If user is trialing pro_monthly, don't show "Current Plan" - show "Subscribe Now" instead
-    if (currentSubscription?.status === 'trialing' && currentSubscription?.plan === 'pro_monthly' && plan.id === 'pro_monthly') {
+    // If user is trialing, don't show "Current Plan" - show "Subscribe Now" instead
+    if (subscription?.status === 'trialing') {
       return false;
     }
-    return currentSubscription?.plan === plan.id;
+    return subscription?.plan === plan.id;
   };
 
   const canStartTrial = (plan) => {
     return plan.id === 'pro_monthly' && 
-           currentSubscription?.plan === 'free' && 
-           currentSubscription?.status !== 'trialing' &&
-           !currentSubscription?.hasHadTrial;
+           subscription?.plan === 'free' && 
+           subscription?.status !== 'trialing' &&
+           !subscription?.hasHadTrial;
   };
 
 
 
-  if (loading || successLoading) {
+  if (loading || successLoading || subscriptionLoading) {
     return (
       <AuthLoader 
         title={successLoading ? 'Activating your subscription...' : 'Loading subscription plans...'}
@@ -415,7 +368,7 @@ function Subscription() {
         </div>
 
         {/* Current Subscription Status */}
-        {currentSubscription && currentSubscription.plan && (
+        {subscription && subscription.plan && (
           <div className="mb-8">
             <div className="bg-white/80 dark:bg-orange-50/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 dark:border-orange-200/30 p-6">
               <div className="flex items-center justify-between">
@@ -427,31 +380,32 @@ function Subscription() {
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-gray-900 dark:text-gray-600">
-                      {currentSubscription?.plan ? 
-                        currentSubscription.plan === 'pro_monthly' ? 'Pro Monthly Plan' :
-                        currentSubscription.plan === 'pro_yearly' ? 'Pro Yearly Plan' :
-                        currentSubscription.plan.charAt(0).toUpperCase() + currentSubscription.plan.slice(1) + ' Plan' :
+                      {subscription?.plan ? 
+                        subscription?.status === 'trialing' ? 'Trial Plan' :
+                        subscription.plan === 'pro_monthly' ? 'Pro Monthly Plan' :
+                        subscription.plan === 'pro_yearly' ? 'Pro Yearly Plan' :
+                        subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1) + ' Plan' :
                         'Loading...'
                       }
                     </h3>
                     <div className="flex items-center gap-2 mt-1">
                       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        currentSubscription?.status === 'trialing' 
+                        subscription?.status === 'trialing' 
                           ? 'bg-orange-100 text-orange-800'
-                          : currentSubscription?.status === 'active'
+                          : subscription?.status === 'active'
                           ? 'bg-green-100 text-green-800'
                           : 'bg-gray-100 text-gray-800'
                       }`}>
-                        {currentSubscription?.status === 'trialing' ? 'Trial Active' : currentSubscription?.status || 'Loading'}
+                        {subscription?.status === 'trialing' ? 'Trial Active' : subscription?.status || 'Loading'}
                       </span>
-                      {currentSubscription?.isTrial && (
+                      {subscription?.isTrial && (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                          ⏰ {currentSubscription.trialRemainingDays} days left
+                          ⏰ {subscription.trialRemainingDays} days left
                         </span>
                       )}
-                      {currentSubscription?.plan === 'pro' && currentSubscription?.remainingDays && currentSubscription?.remainingDays <= 3 && (
+                      {(subscription?.plan === 'pro_monthly' || subscription?.plan === 'pro_yearly') && subscription?.remainingDays && subscription?.remainingDays <= 3 && (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                          ⚠️ {currentSubscription.remainingDays} days left
+                          ⚠️ {subscription.remainingDays} days left
                         </span>
                       )}
                     </div>
@@ -465,7 +419,7 @@ function Subscription() {
                     >
                       Buy Tokens
                     </button>
-                     {(currentSubscription?.status === 'trialing' || currentSubscription?.plan === 'free') && (
+                     {(subscription?.status === 'trialing' || subscription?.plan === 'free') && (
                        <button
                          onClick={() => scrollToId('subscribe-now')}
                          className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 text-sm sm:text-base"
@@ -586,7 +540,11 @@ function Subscription() {
                  ) : (
                      <button
                           onClick={() => handleSubscribe(plan)}
-                          disabled={paymentLoading || !razorpayLoaded || currentSubscription?.plan === 'pro' || (currentSubscription?.plan === 'pro_yearly' && plan.id === 'pro_monthly')}
+                          disabled={paymentLoading || !razorpayLoaded || 
+                            (subscription?.status === 'active' && subscription?.plan === 'pro_yearly' && plan.id === 'pro_monthly') || // Can't downgrade from yearly to monthly
+                            (subscription?.status === 'active' && subscription?.plan === 'pro_yearly' && plan.id === 'pro_yearly') || // Can't buy yearly if already yearly
+                            (subscription?.status === 'active' && subscription?.plan === 'pro_monthly' && plan.id === 'pro_monthly') // Can't buy monthly if already monthly
+                          }
                           className={`w-full py-4 rounded-xl font-semibold text-lg transition-all duration-200 ${
                             plan.popular
                               ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg hover:shadow-xl'
@@ -620,17 +578,31 @@ function Subscription() {
                          {trialLoading ? 'Starting...' : 'Start Free Trial'}
                        </button>
                      )}
-                      {(currentSubscription?.hasHadTrial && plan.id === 'pro_monthly' && currentSubscription?.plan !== 'pro_yearly') && (
+                      {(subscription?.hasHadTrial && plan.id === 'pro_monthly' && subscription?.plan !== 'pro_yearly') && (
                        <div className="text-center py-2 px-3 bg-amber-50 border border-amber-200 rounded-lg">
                          <p className="text-amber-800 text-xs font-medium">
                            ⏰ Trial used. Upgrade to continue.
                          </p>
                        </div>
                      )}
-                      {(currentSubscription?.plan === 'pro_yearly' && plan.id === 'pro_monthly') && (
+                      {(subscription?.plan === 'pro_yearly' && plan.id === 'pro_monthly') && (
                        <div className="text-center py-2 px-3 bg-blue-50 border border-blue-200 rounded-lg">
                          <p className="text-blue-800 text-xs font-medium">
                            ✅ You already have Pro Yearly (higher tier)
+                         </p>
+                       </div>
+                     )}
+                      {(subscription?.plan === 'pro_monthly' && plan.id === 'pro_yearly') && (
+                       <div className="text-center py-2 px-3 bg-green-50 border border-green-200 rounded-lg">
+                         <p className="text-green-800 text-xs font-medium">
+                           🚀 Upgrade to Yearly for better savings!
+                         </p>
+                       </div>
+                     )}
+                      {(subscription?.status === 'trialing' && (plan.id === 'pro_monthly' || plan.id === 'pro_yearly')) && (
+                       <div className="text-center py-2 px-3 bg-orange-50 border border-orange-200 rounded-lg">
+                         <p className="text-orange-800 text-xs font-medium">
+                           🎯 Subscribe now to continue after trial
                          </p>
                        </div>
                      )}

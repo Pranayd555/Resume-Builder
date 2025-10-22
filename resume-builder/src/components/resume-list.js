@@ -32,7 +32,7 @@ import { toast } from 'react-toastify';
 import ATSScoreModal from './ATSScoreModal';
 import EmailVerification from './EmailVerification';
 import { useAuth } from '../contexts/AuthContext';
-import { subscriptionAPI } from '../services/api';
+import { useSubscription } from '../hooks/useSubscription';
 
 // ATS Score Display Component
 const ATSScoreDisplay = ({ resume, isCardHovered }) => {
@@ -200,6 +200,7 @@ const ATSScoreDisplay = ({ resume, isCardHovered }) => {
 function ResumeList() {
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
+  const { subscription, canCreateResume, isOnTrial, getRemainingDays, getTrialRemainingDays } = useSubscription();
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [hoveredCardId, setHoveredCardId] = useState(null);
   const [focusedCardId, setFocusedCardId] = useState(null);
@@ -283,106 +284,23 @@ function ResumeList() {
   const cardRefs = useRef({});
   const observerRef = useRef(null);
 
-  // State for subscription info
-  const [subscriptionInfo, setSubscriptionInfo] = useState({
-    plan: 'free',
-    isActive: true,
-    resumeLimit: 2,
-    aiTokens: 20,
-    trialRemainingDays: null
-  });
+  // Subscription data is now handled by the useSubscription hook
 
-  // Fetch subscription data from backend
-  const fetchSubscriptionData = useCallback(async () => {
-    try {
-      const response = await subscriptionAPI.getSubscriptionStatus();
-      
-      if (response.success) {
-        const subscription = response.data.subscription;
-        
-        // Determine the plan type
-        let plan = 'free';
-        if (subscription.status === 'trialing') {
-          plan = 'trial';
-        } else if (subscription.plan === 'pro_monthly' || subscription.plan === 'pro_yearly') {
-          plan = 'pro';
-        }
-        
-        const info = {
-          plan: plan,
-          isActive: subscription.status === 'active' || subscription.status === 'trialing',
-          resumeLimit: subscription.features?.resumeLimit || (plan === 'trial' ? 5 : plan === 'pro' ? 5 : 2),
-          aiTokens: subscription.features?.freeTokens || 20,
-          trialRemainingDays: subscription.trialRemainingDays || null
-        };
-        
-        setSubscriptionInfo(info);
-        
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Subscription data fetched from backend:', info);
-        }
-      } else {
-        console.warn('Failed to fetch subscription data:', response.error);
-      }
-    } catch (error) {
-      console.error('Error fetching subscription data:', error);
-    }
-  }, []);
+  // Subscription data is automatically loaded by the useSubscription hook
 
-  // Fetch subscription data on component mount
-  useEffect(() => {
-    if (user) {
-      fetchSubscriptionData();
-    }
-  }, [user, fetchSubscriptionData]);
-
-  // Refresh subscription data when page becomes visible (e.g., returning from profile)
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden && user) {
-        // Only refresh subscription data if it's been more than 5 minutes since last refresh
-        const lastRefresh = localStorage.getItem('lastSubscriptionRefresh');
-        const now = Date.now();
-        if (!lastRefresh || (now - parseInt(lastRefresh)) > 5 * 60 * 1000) {
-          fetchSubscriptionData();
-          localStorage.setItem('lastSubscriptionRefresh', now.toString());
-        }
-      }
-    };
-
-    const handleFocus = () => {
-      if (user) {
-        // Only refresh subscription data if it's been more than 5 minutes since last refresh
-        const lastRefresh = localStorage.getItem('lastSubscriptionRefresh');
-        const now = Date.now();
-        if (!lastRefresh || (now - parseInt(lastRefresh)) > 5 * 60 * 1000) {
-          fetchSubscriptionData();
-          localStorage.setItem('lastSubscriptionRefresh', now.toString());
-        }
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [fetchSubscriptionData, user]);
+  // Subscription data is automatically refreshed by the useSubscription hook
 
   // Check if user can create new resume based on subscription and current count
   const canCreateNewResume = () => {
-    const currentResumeCount = resumes.length;
-    return currentResumeCount < subscriptionInfo.resumeLimit;
+    return canCreateResume();
   };
 
   // Get subscription limit message
   const getSubscriptionLimitMessage = () => {
     const currentResumeCount = resumes.length;
     
-    if (currentResumeCount >= subscriptionInfo.resumeLimit) {
-      if (subscriptionInfo.plan === 'free') {
+    if (currentResumeCount >= subscription.features.resumeLimit) {
+      if (subscription.plan === 'free') {
         return {
           type: 'warning',
           message: 'Free plan limit reached! Delete old resumes or upgrade to Pro to create more resumes.',
@@ -960,33 +878,34 @@ function ResumeList() {
               </h1>
               {/* Subscription Status Badge */}
               <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                subscriptionInfo.plan === 'trial' 
+                isOnTrial() 
                   ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
-                  : subscriptionInfo.plan === 'pro'
+                  : subscription.plan === 'pro_monthly' || subscription.plan === 'pro_yearly'
                   ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
                   : 'bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-300'
               }`}>
-                {subscriptionInfo.plan === 'trial' ? 'Trial' : 
-                 subscriptionInfo.plan === 'pro' ? 'Pro' : 'Free'}
+                {isOnTrial() ? 'Trial' : 
+                 subscription.plan === 'pro_monthly' ? 'Pro Monthly' : 
+                 subscription.plan === 'pro_yearly' ? 'Pro Yearly' : 'Free'}
               </span>
               {/* Trial Days Remaining */}
-              {subscriptionInfo.plan === 'trial' && subscriptionInfo.trialRemainingDays && (
+              {isOnTrial() && getTrialRemainingDays() > 0 && (
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
-                  ⏰ {subscriptionInfo.trialRemainingDays} days left
+                  ⏰ {getTrialRemainingDays()} days left
                 </span>
               )}
               {/* Pro Subscription Days Remaining */}
-              {subscriptionInfo.plan === 'pro' && subscriptionInfo.remainingDays && subscriptionInfo.remainingDays <= 3 && (
+              {(subscription.plan === 'pro_monthly' || subscription.plan === 'pro_yearly') && subscription.status !== 'trialing' && getRemainingDays() <= 3 && (
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">
-                  ⚠️ {subscriptionInfo.remainingDays} days left
+                  ⚠️ expires in {getRemainingDays()} days
                 </span>
               )}
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg">
               Create and manage your professional resumes
-              {subscriptionInfo.plan !== 'pro' && (
+              {subscription.plan === 'free' && (
                 <span className="ml-2 text-sm text-gray-500 dark:text-gray-500">
-                  ({resumes.length}/{subscriptionInfo.resumeLimit} limit)
+                  ({resumes.length}/{subscription.features.resumeLimit} limit)
                 </span>
               )}
             </p>
@@ -1045,7 +964,7 @@ function ResumeList() {
         )}
 
         {/* Free Plan Limit Banner */}
-        {!canCreateNewResume() && !isEmailVerificationRequired() && subscriptionInfo.plan === 'free' && (
+        {!canCreateNewResume() && !isEmailVerificationRequired() && subscription.plan === 'free' && (
           <div className="backdrop-blur-md bg-orange-50/80 border border-orange-200 rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-start gap-3">
@@ -1072,7 +991,7 @@ function ResumeList() {
         )}
 
         {/* Trial Plan Limit Banner */}
-        {!canCreateNewResume() && !isEmailVerificationRequired() && subscriptionInfo.plan === 'trial' && (
+        {!canCreateNewResume() && !isEmailVerificationRequired() && isOnTrial() && (
           <div className="backdrop-blur-md bg-purple-50/80 border border-purple-200 rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-start gap-3">
@@ -1099,7 +1018,7 @@ function ResumeList() {
         )}
         
         {/* Pro Plan Limit Banner */}
-        {!canCreateNewResume() && !isEmailVerificationRequired() && subscriptionInfo.plan === 'pro' && (
+        {!canCreateNewResume() && !isEmailVerificationRequired() && (subscription.plan === 'pro_monthly' || subscription.plan === 'pro_yearly') && (
           <div className="backdrop-blur-md bg-blue-50/80 border border-blue-200 rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-start gap-3">
