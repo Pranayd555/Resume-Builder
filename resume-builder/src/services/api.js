@@ -366,31 +366,45 @@ export const templateAPI = {
 
 // New Subscription API calls (aligned with new backend)
 export const subscriptionAPI = {
-  // Get current subscription status
+  // Get current subscription status (new unified endpoint)
   getSubscriptionStatus: async () => {
-    const config = createApiConfig('/subscriptions/current');
-    const response = await api.get('/subscriptions/current', config);
+    const config = createApiConfig('/subscriptions/status');
+    const response = await api.get('/subscriptions/status', config);
+    return response.data;
+  },
+
+  // Get subscription data for localStorage
+  getSubscriptionForLocalStorage: async () => {
+    const config = createApiConfig('/subscriptions/localstorage');
+    const response = await api.get('/subscriptions/localstorage', config);
     return response.data;
   },
 
   // Get available plans
   getPlans: async () => {
-    const config = createApiConfig('/subscription/plans');
-    const response = await api.get('/subscription/plans', config);
+    const config = createApiConfig('/subscriptions/plans');
+    const response = await api.get('/subscriptions/plans', config);
     return response.data;
   },
 
-  // Start 3-day trial
+  // Start 3-day trial (new unified endpoint)
   startTrial: async () => {
-    const config = createApiConfig('/subscription/start-trial');
-    const response = await api.post('/subscription/start-trial', {}, config);
+    const config = createApiConfig('/subscriptions/start-trial-new');
+    const response = await api.post('/subscriptions/start-trial-new', {}, config);
     return response.data;
   },
 
-  // Activate pro plan
+  // Activate pro plan (new unified endpoint)
   activatePro: async (planType) => {
-    const config = createApiConfig('/subscription/activate-pro');
-    const response = await api.post('/subscription/activate-pro', { planType }, config);
+    const config = createApiConfig('/subscriptions/activate-pro');
+    const response = await api.post('/subscriptions/activate-pro', { planType }, config);
+    return response.data;
+  },
+
+  // Cancel subscription (new unified endpoint)
+  cancelSubscription: async (reason = '') => {
+    const config = createApiConfig('/subscriptions/cancel-new');
+    const response = await api.post('/subscriptions/cancel-new', { reason }, config);
     return response.data;
   },
 
@@ -402,15 +416,15 @@ export const subscriptionAPI = {
         success: true,
         data: {
           subscription: {
-            plan: status.data.subscriptionType,
-            status: status.data.isExpired ? 'expired' : 'active',
-            isTrial: status.data.subscriptionType === 'trial',
-            trialRemainingDays: status.data.remainingDays,
-            hasHadTrial: status.data.subscriptionType !== 'free',
-            resumeLimit: status.data.resumeLimit,
-            aiTokens: status.data.aiTokens,
-            subscriptionStart: status.data.subscriptionStart,
-            subscriptionEnd: status.data.subscriptionEnd
+            plan: status.data.plan,
+            status: status.data.isExpired ? 'expired' : status.data.status,
+            isTrial: status.data.isTrial,
+            trialRemainingDays: status.data.trialRemainingDays,
+            hasHadTrial: status.data.plan !== 'free',
+            resumeLimit: status.data.features.resumeLimit,
+            aiTokens: status.data.features.freeTokens,
+            subscriptionStart: status.data.startDate,
+            subscriptionEnd: status.data.endDate
           }
         }
       };
@@ -425,11 +439,11 @@ export const subscriptionAPI = {
         success: true,
         data: {
           trialInfo: {
-            isTrialActive: status.data.subscriptionType === 'trial' && !status.data.isExpired,
+            isTrialActive: status.data.isTrial && !status.data.isExpired,
             hasTrialExpired: status.data.isExpired,
-            trialRemainingDays: status.data.remainingDays,
-            plan: status.data.subscriptionType,
-            status: status.data.subscriptionType
+            trialRemainingDays: status.data.trialRemainingDays,
+            plan: status.data.plan,
+            status: status.data.status
           }
         }
       };
@@ -456,11 +470,6 @@ export const subscriptionAPI = {
     return response.data;
   },
 
-  cancelSubscription: async (reason) => {
-    const config = createApiConfig('/subscriptions/cancel');
-    const response = await api.post('/subscriptions/cancel', { reason }, config);
-    return response.data;
-  },
 
 
 

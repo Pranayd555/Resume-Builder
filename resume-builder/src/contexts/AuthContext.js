@@ -498,39 +498,8 @@ export const AuthProvider = ({ children }) => {
     return userPermissions.includes(requiredPermission);
   };
 
-  // Check if user has active subscription
-  const hasActiveSubscription = () => {
-    if (!state.user) return false;
-    
-    // Check new subscription fields
-    if (state.user.subscriptionType === 'free') return true; // Free is always active
-    if (state.user.subscriptionType === 'trial' || state.user.subscriptionType === 'pro') {
-      if (!state.user.subscriptionEnd) return true; // No end date means active
-      return new Date(state.user.subscriptionEnd) > new Date();
-    }
-    return false;
-  };
-
-  // Get subscription plan
-  const getSubscriptionPlan = () => {
-    if (!state.user) return 'free';
-    return state.user.subscriptionType || 'free';
-  };
-
-  // Get subscription details
-  const getSubscriptionDetails = () => {
-    if (!state.user) return null;
-    
-    return {
-      plan: state.user.subscriptionType || 'free',
-      isActive: hasActiveSubscription(),
-      isTrial: state.user.subscriptionType === 'trial',
-      resumeLimit: state.user.resumeLimit || (state.user.subscriptionType === 'trial' ? 5 : 2),
-      aiTokens: state.user.aiTokens || 20,
-      subscriptionStart: state.user.subscriptionStart,
-      subscriptionEnd: state.user.subscriptionEnd
-    };
-  };
+  // Subscription-related methods have been moved to the subscription service
+  // Use the useSubscription hook instead for subscription functionality
 
   // Context value
   const contextValue = {
@@ -557,9 +526,6 @@ export const AuthProvider = ({ children }) => {
     
     // Utilities
     hasPermission,
-    hasActiveSubscription,
-    getSubscriptionPlan,
-    getSubscriptionDetails,
   };
 
   return (

@@ -6,6 +6,7 @@ const User = require('../models/User');
 const logger = require('../utils/logger');
 const emailService = require('../utils/emailService');
 const { calculateTotalTokens } = require('../utils/tokenCalculator');
+const subscriptionController = require('../controllers/subscriptionController');
 
 // Stripe integration removed
 
@@ -556,13 +557,13 @@ router.post('/upgrade', [
       // If user is in trial, calculate remaining trial days
       const trialEnd = new Date(subscription.billing.trialEnd);
       if (trialEnd > now) {
-        remainingDays = Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24));
+        remainingDays = Math.floor((trialEnd - now) / (1000 * 60 * 60 * 24));
       }
     } else if (subscription.billing?.nextBillingDate) {
       // If user has an active subscription, calculate remaining days
       const nextBilling = new Date(subscription.billing.nextBillingDate);
       if (nextBilling > now) {
-        remainingDays = Math.ceil((nextBilling - now) / (1000 * 60 * 60 * 24));
+        remainingDays = Math.floor((nextBilling - now) / (1000 * 60 * 60 * 24));
       }
     }
     
@@ -758,5 +759,32 @@ router.get('/billing-history', protect, async (req, res) => {
 
 
 
+
+// New subscription management routes using Subscription model as primary source
+
+// @desc    Get subscription status (new unified endpoint)
+// @route   GET /api/subscriptions/status
+// @access  Private
+router.get('/status', protect, subscriptionController.getSubscriptionStatus);
+
+// @desc    Start trial (new unified endpoint)
+// @route   POST /api/subscriptions/start-trial-new
+// @access  Private
+router.post('/start-trial-new', protect, subscriptionController.startTrial);
+
+// @desc    Activate pro plan (new unified endpoint)
+// @route   POST /api/subscriptions/activate-pro
+// @access  Private
+router.post('/activate-pro', protect, subscriptionController.activatePro);
+
+// @desc    Cancel subscription (new unified endpoint)
+// @route   POST /api/subscriptions/cancel
+// @access  Private
+router.post('/cancel-new', protect, subscriptionController.cancelSubscription);
+
+// @desc    Get subscription data for localStorage
+// @route   GET /api/subscriptions/localstorage
+// @access  Private
+router.get('/localstorage', protect, subscriptionController.getSubscriptionForLocalStorage);
 
 module.exports = router;

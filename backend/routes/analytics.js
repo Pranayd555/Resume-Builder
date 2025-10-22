@@ -283,7 +283,7 @@ router.get('/ai-usage', protect, async (req, res) => {
       const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
       cycleInfo.currentCycle = 'monthly';
       cycleInfo.nextResetDate = nextMonthStart;
-      cycleInfo.daysUntilReset = Math.ceil((nextMonthStart - now) / (1000 * 60 * 60 * 24));
+      cycleInfo.daysUntilReset = Math.floor((nextMonthStart - now) / (1000 * 60 * 60 * 24));
       cycleInfo.cycleProgress = ((now - currentMonthStart) / (nextMonthStart - currentMonthStart)) * 100;
     } else if (subscription.billing?.nextBillingDate) {
       // For paid users, reset on billing cycle
@@ -291,7 +291,7 @@ router.get('/ai-usage', protect, async (req, res) => {
       const lastReset = new Date(usage.lastBillingCycleReset || subscription.startDate);
       cycleInfo.currentCycle = subscription.billing.cycle || 'monthly';
       cycleInfo.nextResetDate = nextBilling;
-      cycleInfo.daysUntilReset = Math.ceil((nextBilling - now) / (1000 * 60 * 60 * 24));
+      cycleInfo.daysUntilReset = Math.floor((nextBilling - now) / (1000 * 60 * 60 * 24));
       cycleInfo.cycleProgress = ((now - lastReset) / (nextBilling - lastReset)) * 100;
     }
 

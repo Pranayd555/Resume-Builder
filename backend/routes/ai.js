@@ -363,7 +363,7 @@ router.get('/usage', protect, async (req, res) => {
         nextBillingDate: subscription.billing?.nextBillingDate || null,
         billingCycle: subscription.billing?.cycle || 'monthly',
         daysUntilReset: subscription.billing?.nextBillingDate ? 
-          Math.ceil((new Date(subscription.billing.nextBillingDate) - new Date()) / (1000 * 60 * 60 * 24)) : null
+          Math.floor((new Date(subscription.billing.nextBillingDate) - new Date()) / (1000 * 60 * 60 * 24)) : null
       }
     });
   } catch (error) {

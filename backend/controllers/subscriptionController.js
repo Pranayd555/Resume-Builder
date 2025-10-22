@@ -4,7 +4,7 @@ const logger = require('../utils/logger');
 
 /**
  * Subscription Controller
- * Handles subscription-related operations for the new simplified system
+ * Handles subscription-related operations using Subscription model as primary source
  */
 
 /**
@@ -23,11 +23,11 @@ const startTrial = async (req, res) => {
       });
     }
 
-    // Check if user already has a subscription record
-    let subscription = await Subscription.findOne({ user: req.user.id });
+    // Get or create subscription
+    let subscription = await Subscription.getOrCreateSubscription(req.user.id);
 
     // Check if user already has an active trial
-    if (subscription && subscription.status === 'trialing' && subscription.billing?.trialEnd) {
+    if (subscription.status === 'trialing' && subscription.billing?.trialEnd) {
       const trialEnd = new Date(subscription.billing.trialEnd);
       const now = new Date();
       
@@ -40,71 +40,22 @@ const startTrial = async (req, res) => {
     }
 
     // Check if user has already had a trial before
-    if (subscription && subscription.hasHadTrial) {
+    if (subscription.hasHadTrial) {
       return res.status(400).json({
         success: false,
         error: 'You have already used your free trial'
       });
     }
 
-    // Create new subscription if doesn't exist
-    if (!subscription) {
-      subscription = await Subscription.createTrial(req.user.id, 'free', 3); // Always 3 days for free trial
-      subscription.features.freeTokens = 0; // Ensure no free tokens are granted during trial
-    } else {
-      // Update existing subscription for trial
-      subscription.plan = 'pro_monthly';
-      subscription.status = 'trialing';
-      subscription.hasHadTrial = true;
-      subscription.billing = {
-        trialType: 'free',
-        trialEnd: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) // Always 3 days for free trial
-      };
-      
-      // Set trial features properly
-      subscription.features.resumeLimit = 5;
-      subscription.features.templateAccess = ['free', 'premium'];
-      subscription.features.exportFormats = ['pdf'];
-      subscription.features.aiActionsLimit = 'token-based';
-      subscription.features.freeTokens = 0; // No free tokens during trial
-      subscription.features.aiReview = true;
-      subscription.features.prioritySupport = true;
-      subscription.features.customBranding = false; // Only for pro_yearly
-      subscription.features.unlimitedExports = true;
-      
-      // Reset usage for trial
-      subscription.usage = {
-        resumesCreated: 0,
-        aiActionsThisCycle: 0,
-        freeTokensUsed: 0,
-        cycleStartDate: new Date(),
-        lastBillingCycleReset: new Date()
-      };
-    }
-
-    await subscription.save();
-
-    // Also update User model for backward compatibility
-    user.subscriptionType = 'trial';
-    user.subscriptionStart = new Date();
-    user.subscriptionEnd = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
-    user.resumeLimit = 5;
-    user.aiTokens = 0; // No free tokens during trial
-    await user.save();
-
+    // Start trial
+    await subscription.startTrial('free', 3, 'pro_monthly');
+    
     logger.info(`Trial started for user ${user.email}`);
     
     res.json({
       success: true,
       message: 'Trial started successfully',
-      data: {
-        subscriptionType: 'trial',
-        subscriptionStart: user.subscriptionStart,
-        subscriptionEnd: user.subscriptionEnd,
-        resumeLimit: user.resumeLimit,
-        aiTokens: user.aiTokens,
-        trialRemainingDays: 3
-      }
+      data: subscription.getSubscriptionStatus()
     });
   } catch (error) {
     logger.error('Start trial error:', error);
@@ -140,9 +91,12 @@ const activatePro = async (req, res) => {
       });
     }
 
+    // Get or create subscription
+    let subscription = await Subscription.getOrCreateSubscription(req.user.id);
+
     // Activate pro plan
     try {
-      await user.activatePro(planType);
+      await subscription.activatePro(planType);
       logger.info(`Pro plan activated for user ${user.email}: ${planType}`);
     } catch (proError) {
       logger.error('Error activating pro plan:', proError);
@@ -155,14 +109,7 @@ const activatePro = async (req, res) => {
     res.json({
       success: true,
       message: 'Pro plan activated successfully',
-      data: {
-        subscriptionType: user.subscriptionType,
-        subscriptionStart: user.subscriptionStart,
-        subscriptionEnd: user.subscriptionEnd,
-        resumeLimit: user.resumeLimit,
-        aiTokens: user.aiTokens,
-        planType: planType
-      }
+      data: subscription.getSubscriptionStatus()
     });
   } catch (error) {
     logger.error('Activate pro error:', error);
@@ -189,10 +136,13 @@ const getSubscriptionStatus = async (req, res) => {
       });
     }
 
-    // Safely check if subscription is expired and handle cleanup
+    // Get or create subscription
+    let subscription = await Subscription.getOrCreateSubscription(req.user.id);
+
+    // Check if subscription is expired and handle cleanup
     try {
-      if (user.isSubscriptionExpired && user.isSubscriptionExpired()) {
-        await user.resetToFreePlan();
+      if (subscription.isExpired) {
+        await subscription.resetToFreePlan();
         logger.info(`Subscription expired for user ${user.email}, reset to free plan`);
       }
     } catch (expiredError) {
@@ -200,60 +150,12 @@ const getSubscriptionStatus = async (req, res) => {
       // Continue with the request even if expiration check fails
     }
 
-    // Calculate remaining days safely
-    let remainingDays = null;
-    try {
-      if (user.subscriptionEnd && user.subscriptionType !== 'free') {
-        const now = new Date();
-        const endDate = new Date(user.subscriptionEnd);
-        const diffTime = endDate - now;
-        remainingDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        remainingDays = Math.max(0, remainingDays);
-      }
-    } catch (dateError) {
-      logger.error('Error calculating remaining days:', dateError);
-      remainingDays = null;
-    }
-
-    // Safely get usage data
-    let usageData = {
-      resumesCreated: 0,
-      canCreateResume: false
-    };
-    
-    try {
-      usageData = {
-        resumesCreated: user.usage?.resumesCreated || 0,
-        canCreateResume: user.canCreateResume ? user.canCreateResume() : false
-      };
-    } catch (usageError) {
-      logger.error('Error getting usage data:', usageError);
-    }
-
-    // Safely get subscription status
-    let isActive = false;
-    let isExpired = false;
-    
-    try {
-      isActive = user.isSubscriptionActive || false;
-      isExpired = user.isSubscriptionExpired ? user.isSubscriptionExpired() : false;
-    } catch (statusError) {
-      logger.error('Error getting subscription status:', statusError);
-    }
+    // Get subscription status
+    const subscriptionStatus = subscription.getSubscriptionStatus();
 
     res.json({
       success: true,
-      data: {
-        subscriptionType: user.subscriptionType || 'free',
-        subscriptionStart: user.subscriptionStart || new Date(),
-        subscriptionEnd: user.subscriptionEnd || null,
-        resumeLimit: user.resumeLimit || 2,
-        aiTokens: user.aiTokens || 20,
-        isActive: isActive,
-        isExpired: isExpired,
-        remainingDays: remainingDays,
-        usage: usageData
-      }
+      data: subscriptionStatus
     });
   } catch (error) {
     logger.error('Get subscription status error:', error);
@@ -281,6 +183,115 @@ const getSubscriptionStatus = async (req, res) => {
 };
 
 /**
+ * Cancel subscription
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+const cancelSubscription = async (req, res) => {
+  try {
+    const { reason } = req.body;
+    
+    const user = await User.findById(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    // Get subscription
+    let subscription = await Subscription.getOrCreateSubscription(req.user.id);
+
+    // Cancel subscription
+    await subscription.cancelSubscription(reason);
+    
+    logger.info(`Subscription canceled for user ${user.email}`);
+    
+    res.json({
+      success: true,
+      message: 'Subscription canceled successfully',
+      data: subscription.getSubscriptionStatus()
+    });
+  } catch (error) {
+    logger.error('Cancel subscription error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error canceling subscription'
+    });
+  }
+};
+
+/**
+ * Get subscription details for localStorage
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+const getSubscriptionForLocalStorage = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    // Get or create subscription
+    let subscription = await Subscription.getOrCreateSubscription(req.user.id);
+
+    // Return data optimized for localStorage
+    const localStorageData = {
+      plan: subscription.plan,
+      status: subscription.status,
+      isActive: subscription.status === 'active' || subscription.status === 'trialing',
+      isTrial: subscription.isTrial,
+      isExpired: subscription.isExpired,
+      remainingDays: subscription.remainingDays,
+      trialRemainingDays: subscription.trialRemainingDays,
+      features: {
+        resumeLimit: subscription.features.resumeLimit,
+        templateAccess: subscription.features.templateAccess,
+        exportFormats: subscription.features.exportFormats,
+        aiActionsLimit: subscription.features.aiActionsLimit,
+        freeTokens: subscription.features.freeTokens,
+        aiReview: subscription.features.aiReview,
+        prioritySupport: subscription.features.prioritySupport,
+        customBranding: subscription.features.customBranding,
+        unlimitedExports: subscription.features.unlimitedExports
+      },
+      usage: {
+        resumesCreated: subscription.usage.resumesCreated,
+        aiActionsThisCycle: subscription.usage.aiActionsThisCycle,
+        freeTokensUsed: subscription.usage.freeTokensUsed
+      },
+      billing: {
+        cycle: subscription.billing.cycle,
+        amount: subscription.billing.amount,
+        currency: subscription.billing.currency,
+        nextBillingDate: subscription.billing.nextBillingDate,
+        trialEnd: subscription.billing.trialEnd
+      },
+      startDate: subscription.startDate,
+      endDate: subscription.endDate,
+      lastUpdated: new Date().toISOString()
+    };
+
+    res.json({
+      success: true,
+      data: localStorageData
+    });
+  } catch (error) {
+    logger.error('Get subscription for localStorage error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error getting subscription data'
+    });
+  }
+};
+
+/**
  * Helper function to check if a plan is valid
  * @param {String} subscriptionType - The subscription type to check
  * @param {Date} subscriptionEnd - The subscription end date
@@ -296,5 +307,7 @@ module.exports = {
   startTrial,
   activatePro,
   getSubscriptionStatus,
+  cancelSubscription,
+  getSubscriptionForLocalStorage,
   isPlanValid
 };

@@ -286,7 +286,9 @@ subscriptionSchema.virtual('remainingDays').get(function() {
   const now = new Date();
   const nextBilling = new Date(this.billing.nextBillingDate);
   const diffTime = nextBilling - now;
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  // Use Math.floor to get complete days remaining, not partial days
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
   
   return Math.max(0, diffDays);
 });
@@ -723,6 +725,87 @@ subscriptionSchema.methods.fixTrialFeatures = function() {
   return this.save();
 };
 
+// Method to get subscription status for API responses
+subscriptionSchema.methods.getSubscriptionStatus = function() {
+  return {
+    plan: this.plan,
+    status: this.status,
+    isActive: this.status === 'active' || this.status === 'trialing',
+    isTrial: this.isTrial,
+    isExpired: this.isExpired,
+    remainingDays: this.remainingDays,
+    trialRemainingDays: this.trialRemainingDays,
+    features: this.features,
+    usage: this.usage,
+    billing: this.billing,
+    startDate: this.startDate,
+    endDate: this.endDate
+  };
+};
+
+// Method to activate pro plan
+subscriptionSchema.methods.activatePro = function(planType, billingCycle = 'monthly') {
+  this.plan = planType === 'monthly' ? 'pro_monthly' : 'pro_yearly';
+  this.status = 'active';
+  this.billing.cycle = billingCycle;
+  this.billing.amount = planType === 'monthly' ? 999 : 9999; // Example amounts in paise
+  this.billing.currency = 'INR';
+  
+  // Set next billing date
+  const now = new Date();
+  if (billingCycle === 'monthly') {
+    this.billing.nextBillingDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  } else {
+    this.billing.nextBillingDate = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+  }
+  
+  // Clear trial data
+  this.billing.trialEnd = undefined;
+  this.billing.trialType = undefined;
+  
+  return this.save();
+};
+
+// Method to cancel subscription
+subscriptionSchema.methods.cancelSubscription = function(reason = '') {
+  this.status = 'canceled';
+  this.endDate = new Date();
+  this.canceledAt = new Date();
+  this.cancelReason = reason;
+  
+  return this.save();
+};
+
+// Method to reset to free plan
+subscriptionSchema.methods.resetToFreePlan = function() {
+  this.plan = 'free';
+  this.status = 'active';
+  this.billing = {
+    cycle: undefined,
+    amount: undefined,
+    currency: 'INR',
+    nextBillingDate: undefined,
+    trialEnd: undefined,
+    trialType: undefined
+  };
+  this.endDate = undefined;
+  this.canceledAt = undefined;
+  this.cancelReason = undefined;
+  
+  // Reset features to free plan
+  this.features.resumeLimit = 2;
+  this.features.templateAccess = ['free'];
+  this.features.exportFormats = ['pdf'];
+  this.features.aiActionsLimit = 'token-based';
+  this.features.freeTokens = 0;
+  this.features.aiReview = false;
+  this.features.prioritySupport = false;
+  this.features.customBranding = false;
+  this.features.unlimitedExports = false;
+  
+  return this.save();
+};
+
 
 
 
@@ -756,6 +839,42 @@ subscriptionSchema.statics.createTrial = function(userId, trialType = 'free', da
       lastBillingCycleReset: new Date()
     }
   });
+};
+
+// Static method to get or create subscription for user
+subscriptionSchema.statics.getOrCreateSubscription = async function(userId) {
+  let subscription = await this.findOne({ user: userId });
+  
+  if (!subscription) {
+    // Create default free subscription
+    subscription = new this({
+      user: userId,
+      plan: 'free',
+      status: 'active',
+      features: {
+        resumeLimit: 2,
+        templateAccess: ['free'],
+        exportFormats: ['pdf'],
+        aiActionsLimit: 'token-based',
+        freeTokens: 0,
+        aiReview: false,
+        prioritySupport: false,
+        customBranding: false,
+        unlimitedExports: false
+      },
+      usage: {
+        resumesCreated: 0,
+        aiActionsThisCycle: 0,
+        freeTokensUsed: 0,
+        cycleStartDate: new Date(),
+        lastBillingCycleReset: new Date()
+      }
+    });
+    
+    await subscription.save();
+  }
+  
+  return subscription;
 };
 
 module.exports = mongoose.model('Subscription', subscriptionSchema);

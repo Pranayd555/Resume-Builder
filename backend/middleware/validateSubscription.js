@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Subscription = require('../models/Subscription');
 const Resume = require('../models/Resume');
 const logger = require('../utils/logger');
 
@@ -6,6 +7,7 @@ const logger = require('../utils/logger');
  * Middleware to validate subscription and handle expiration cleanup
  * Runs on every authenticated API request to check subscription status
  * and automatically downgrade expired users to free plan
+ * Now uses Subscription model as primary source
  */
 const validateSubscription = async (req, res, next) => {
   try {
@@ -23,12 +25,15 @@ const validateSubscription = async (req, res, next) => {
       });
     }
 
+    // Get or create subscription
+    let subscription = await Subscription.getOrCreateSubscription(req.user.id);
+
     // Check if subscription is expired
-    if (user.isSubscriptionExpired()) {
+    if (subscription.isExpired) {
       logger.info(`Subscription expired for user ${user.email}, downgrading to free plan`);
       
       // Reset to free plan
-      await user.resetToFreePlan();
+      await subscription.resetToFreePlan();
       
       // Get user's resumes and delete extra ones beyond free limit (2)
       const userResumes = await Resume.find({ user: user._id })
@@ -48,8 +53,12 @@ const validateSubscription = async (req, res, next) => {
       
       // Update user object in request for consistency
       req.user = user;
+      req.subscription = subscription;
       
       logger.info(`Successfully downgraded user ${user.email} to free plan`);
+    } else {
+      // Add subscription to request for use in routes
+      req.subscription = subscription;
     }
 
     // Continue to next middleware/route
