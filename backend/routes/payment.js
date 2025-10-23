@@ -4,6 +4,7 @@ const User = require('../models/User');
 const logger = require('../utils/logger');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
+const emailService = require('../utils/emailService');
 
 const router = express.Router();
 
@@ -186,6 +187,32 @@ router.post('/complete-token-purchase', protect, async (req, res) => {
 
     logger.info(`Token purchase completed for user ${user.email}: ${tokens} tokens for ₹${amount}`);
 
+    // Send payment invoice email
+    try {
+      logger.info(`Attempting to send payment invoice email to ${user.email} for transaction ${payment_id}`);
+      
+      const emailResult = await emailService.sendPaymentInvoice({
+        email: user.email,
+        name: user.name || user.email.split('@')[0],
+        transactionId: order_id,
+        paymentId: payment_id,
+        amount: amount,
+        tokensAdded: tokens,
+        paymentMethod: 'Razorpay',
+        paymentDate: new Date()
+      });
+
+      if (emailResult.success) {
+        logger.info(`✅ Payment invoice email sent successfully to ${user.email} - Message ID: ${emailResult.messageId || 'N/A'}`);
+      } else {
+        logger.warn(`❌ Failed to send payment invoice email to ${user.email}: ${emailResult.error}`);
+        // Don't fail the payment process if email fails
+      }
+    } catch (emailError) {
+      logger.error(`💥 Error sending payment invoice email to ${user.email}:`, emailError);
+      // Don't fail the payment process if email fails
+    }
+    
     res.json({
       success: true,
       message: 'Token purchase completed successfully',

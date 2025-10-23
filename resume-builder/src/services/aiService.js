@@ -23,6 +23,12 @@ class AIService {
 
     if (!response.ok) {
       const errorData = await response.json();
+      
+      // Handle specific token exhaustion errors
+      if (response.status === 402 || (errorData.error && errorData.error.includes('tokens'))) {
+        throw new Error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
+      }
+      
       throw new Error(errorData.error || `Request failed with status ${response.status}`);
     }
 
@@ -153,6 +159,12 @@ class AIService {
 
     if (!response.ok) {
       const errorData = await response.json();
+      
+      // Handle specific token exhaustion errors
+      if (response.status === 402 || (errorData.error && errorData.error.includes('tokens'))) {
+        throw new Error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
+      }
+      
       throw new Error(errorData.error || 'Failed to generate ATS score');
     }
 

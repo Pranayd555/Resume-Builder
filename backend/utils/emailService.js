@@ -575,6 +575,96 @@ Resume Builder Team
     }
   }
 
+  // Send payment invoice email
+  async sendPaymentInvoice({ 
+    email, 
+    name, 
+    transactionId, 
+    paymentId, 
+    amount, 
+    tokensAdded, 
+    paymentMethod = 'Razorpay',
+    paymentDate = null 
+  }) {
+    try {
+      const formattedDate = paymentDate || new Date().toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+
+      const htmlContent = await this.loadTemplate('payment-invoice', {
+        name,
+        transactionId,
+        paymentId,
+        amount: amount.toLocaleString('en-IN'),
+        tokensAdded: tokensAdded.toLocaleString('en-IN'),
+        paymentMethod,
+        paymentDate: formattedDate,
+        appName: process.env.APP_NAME || 'Resume Builder',
+        dashboardUrl: `${process.env.CLIENT_URL}/dashboard`,
+        supportEmail: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER
+      });
+
+      const textContent = `
+Hello ${name},
+
+Thank you for your purchase! Your payment has been processed successfully.
+
+PAYMENT DETAILS:
+- Transaction ID: ${transactionId}
+- Payment ID: ${paymentId}
+- Amount Paid: ₹${amount.toLocaleString('en-IN')}
+- Payment Method: ${paymentMethod}
+- Date & Time: ${formattedDate}
+- Status: ✅ Completed
+
+TOKENS ADDED:
+🎉 ${tokensAdded.toLocaleString('en-IN')} AI Tokens have been added to your account!
+
+You can now use these tokens for AI-powered resume features like:
+- Resume parsing and auto-population
+- Content enhancement and optimization
+- ATS score analysis
+- Professional tone adjustment
+
+Next Steps:
+1. Your tokens are now available in your account
+2. Use AI features from your dashboard
+3. Each AI action typically costs 1 token
+4. Purchase more tokens anytime from your dashboard
+
+Dashboard: ${process.env.CLIENT_URL}/dashboard
+
+Need Help?
+If you have any questions about your purchase or need assistance with AI features, 
+please contact our support team at ${process.env.SUPPORT_EMAIL || process.env.EMAIL_USER}
+
+Thank you for choosing ${process.env.APP_NAME || 'Resume Builder'}!
+
+Best regards,
+The Resume Builder Team
+      `;
+
+      await this.sendEmail(
+        email,
+        `Payment Successful - ${tokensAdded} AI Tokens Added`,
+        htmlContent,
+        textContent
+      );
+      
+      logger.info(`Payment invoice sent to ${email} for transaction ${transactionId}`);
+      return { success: true, message: 'Payment invoice sent successfully' };
+    } catch (error) {
+      logger.error(`Failed to send payment invoice to ${email}:`, error);
+      return { success: false, error: error.message };
+    }
+  }
+
 }
 
 

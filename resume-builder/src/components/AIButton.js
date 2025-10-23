@@ -1,16 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import AIService from '../services/aiService';
+import { useAuth } from '../contexts/AuthContext';
+import { apiHelpers } from '../services/api';
 import './AIButton.css';
 
 const AIButton = ({ editorInstance, onContentChange, isProMode = false, onAIContentChange = null, onAILoading = null }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [tokenBalance, setTokenBalance] = useState(0);
+  const [isTokenExhausted, setIsTokenExhausted] = useState(false);
+  const { user } = useAuth();
 
-  // Token balance is automatically fetched by useTokenBalance hook
+  // Get initial token balance
+  useEffect(() => {
+    const balance = apiHelpers.getTokenBalance();
+    setTokenBalance(balance);
+    setIsTokenExhausted(balance <= 0);
+  }, []);
+
+  // Listen for token balance updates
+  useEffect(() => {
+    const handleTokenBalanceUpdate = (event) => {
+      const { balance } = event.detail;
+      setTokenBalance(balance);
+      setIsTokenExhausted(balance <= 0);
+    };
+
+    window.addEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
+    return () => window.removeEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
+  }, []);
+
+  // Update token balance from user data if available
+  useEffect(() => {
+    if (user && user.tokens !== undefined) {
+      setTokenBalance(user.tokens);
+      setIsTokenExhausted(user.tokens <= 0);
+    }
+  }, [user]);
 
   const handleAIAction = async (action) => {
     if (!editorInstance) {
       showNotification('Editor not available. Please wait for the editor to load or refresh the page.', 'warning');
+      return;
+    }
+
+    if (isTokenExhausted || tokenBalance <= 0) {
+      showNotification('AI tokens exhausted! Please purchase more tokens to continue using AI features.', 'error');
       return;
     }
 
@@ -151,15 +187,26 @@ const AIButton = ({ editorInstance, onContentChange, isProMode = false, onAICont
     <div className="ai-button-container">
       <div className="ai-button-wrapper">
         <button
-          className={`ai-button ${isLoading ? 'loading' : ''} ${!editorInstance ? 'disabled' : ''}`}
+          className={`ai-button ${isLoading ? 'loading' : ''} ${!editorInstance ? 'disabled' : ''} ${isTokenExhausted ? 'token-exhausted' : ''}`}
           onClick={() => setShowDropdown(!showDropdown)}
-          disabled={isLoading || !editorInstance}
-          title={!editorInstance ? 'Editor not available' : ''}
+          disabled={isLoading || !editorInstance || isTokenExhausted}
+          title={
+            !editorInstance 
+              ? 'Editor not available' 
+              : isTokenExhausted 
+                ? 'AI tokens exhausted - Buy more tokens to continue'
+                : ''
+          }
         >
           {isLoading ? (
             <>
               <span className="ai-spinner"></span>
               Processing...
+            </>
+          ) : isTokenExhausted ? (
+            <>
+              <span className="ai-icon">⚠️</span>
+              Tokens Exhausted
             </>
           ) : (
             <>
@@ -174,9 +221,10 @@ const AIButton = ({ editorInstance, onContentChange, isProMode = false, onAICont
             {menuItems.map((item, index) => (
               <button
                 key={index}
-                className="ai-dropdown-item"
+                className={`ai-dropdown-item ${isTokenExhausted ? 'token-exhausted' : ''}`}
                 onClick={() => handleAIAction(item.action)}
-                disabled={isLoading}
+                disabled={isLoading || isTokenExhausted}
+                title={isTokenExhausted ? 'AI tokens exhausted - Buy more tokens to continue' : ''}
               >
                 <span className="ai-item-icon">{item.icon}</span>
                 {item.label}
@@ -190,7 +238,18 @@ const AIButton = ({ editorInstance, onContentChange, isProMode = false, onAICont
       {!isProMode && (
         <div className="ai-info-text">
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            <span className='text-red-500'>*</span>AI generated responses are not saved until you submit the form or save a draft.
+            {isTokenExhausted ? (
+                <>
+                  <span className='text-red-500'>⚠️</span>AI tokens exhausted! 
+                  <Link to="/payment" className="text-blue-500 hover:text-blue-700 underline ml-1">
+                    Buy more tokens
+                  </Link> to continue using AI features.
+                </>
+            ) : (
+              <>
+                <span className='text-red-500'>*</span>AI generated responses are not saved until you submit the form or save a draft.
+              </>
+            )}
           </span>
         </div>
       )}
