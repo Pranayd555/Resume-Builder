@@ -9,7 +9,6 @@
 
 const mongoose = require('mongoose');
 const User = require('../models/User');
-const Subscription = require('../models/Subscription');
 require('dotenv').config();
 
 // Connect to MongoDB
@@ -39,25 +38,13 @@ const resetAIActions = async (email, force = false) => {
 
     console.log(`👤 Found user: ${user.firstName} ${user.lastName} (${user.email})`);
 
-    // Find user's subscription
-    const subscription = await Subscription.findOne({ user: user._id });
-    
-    if (!subscription) {
-      console.log(`❌ No subscription found for user "${email}"`);
-      return false;
-    }
+    console.log(`📊 Current user details:`);
+    console.log(`   Tokens: ${user.tokens}`);
+    console.log(`   Usage: ${JSON.stringify(user.usage, null, 2)}`);
 
-    console.log(`📊 Current subscription details:`);
-    console.log(`   Plan: ${subscription.plan}`);
-    console.log(`   Status: ${subscription.status}`);
-    console.log(`   AI Actions Limit: ${subscription.features.aiActionsLimit}`);
-    console.log(`   AI Actions Used This Cycle: ${subscription.usage.aiActionsThisCycle}`);
-    console.log(`   Last Reset: ${subscription.usage.lastBillingCycleReset}`);
-    console.log(`   Cycle Start: ${subscription.usage.cycleStartDate}`);
-
-    // Check if user has any AI actions to reset
-    if (subscription.usage.aiActionsThisCycle === 0) {
-      console.log(`ℹ️ User "${email}" has no AI actions to reset (already at 0)`);
+    // Check if user has any usage to reset
+    if (!user.usage || Object.keys(user.usage).length === 0) {
+      console.log(`ℹ️ User "${email}" has no usage data to reset`);
       if (!force) {
         console.log(`💡 Use --force flag to reset anyway`);
         return true;
@@ -66,32 +53,28 @@ const resetAIActions = async (email, force = false) => {
 
     // Confirm action unless force flag is used
     if (!force) {
-      console.log(`\n⚠️  This will reset AI actions for user "${email}"`);
-      console.log(`   Current usage: ${subscription.usage.aiActionsThisCycle}/${subscription.features.aiActionsLimit}`);
+      console.log(`\n⚠️  This will reset usage data for user "${email}"`);
+      console.log(`   Current usage: ${JSON.stringify(user.usage, null, 2)}`);
       console.log(`   This action cannot be undone!`);
       console.log(`\n💡 Use --force flag to skip this confirmation`);
       return false;
     }
 
-    // Reset AI actions using the built-in method
-    const result = await subscription.resetAIActionCycle();
+    // Reset usage data
+    user.usage = {
+      resumesCreated: 0,
+      aiActionsUsed: 0,
+      lastReset: new Date()
+    };
+    
+    await user.save();
 
-    if (result) {
-      console.log(`\n✅ AI actions reset successfully for "${email}"`);
-      console.log(`📊 Updated subscription details:`);
-      console.log(`   AI Actions Used This Cycle: ${result.usage.aiActionsThisCycle}`);
-      console.log(`   Last Reset: ${result.usage.lastBillingCycleReset}`);
-      console.log(`   Cycle Start: ${result.usage.cycleStartDate}`);
-      
-      if (result.billing?.nextBillingDate) {
-        console.log(`   Next Billing Date: ${result.billing.nextBillingDate}`);
-      }
-      
-      return true;
-    } else {
-      console.log(`❌ Failed to reset AI actions for "${email}"`);
-      return false;
-    }
+    console.log(`\n✅ Usage data reset successfully for "${email}"`);
+    console.log(`📊 Updated user details:`);
+    console.log(`   Tokens: ${user.tokens}`);
+    console.log(`   Usage: ${JSON.stringify(user.usage, null, 2)}`);
+    
+    return true;
 
   } catch (error) {
     console.error('❌ Error resetting AI actions:', error.message);
@@ -107,10 +90,9 @@ const showUsage = () => {
   console.log('\n📋 Options:');
   console.log('   --force    Skip confirmation prompt and reset immediately');
   console.log('\n📋 What this script does:');
-  console.log('   • Resets AI action usage counter to 0');
-  console.log('   • Updates cycle start date to current time');
-  console.log('   • Updates last billing cycle reset date');
-  console.log('   • For paid users: recalculates next billing date');
+  console.log('   • Resets user usage data to 0');
+  console.log('   • Updates last reset timestamp');
+  console.log('   • Clears AI actions and resume creation counters');
   console.log('\n⚠️  Note: This action cannot be undone!');
 };
 

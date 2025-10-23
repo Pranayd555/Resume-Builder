@@ -364,134 +364,6 @@ export const templateAPI = {
   },
 };
 
-// New Subscription API calls (aligned with new backend)
-export const subscriptionAPI = {
-  // Get current subscription status (new unified endpoint)
-  getSubscriptionStatus: async () => {
-    const config = createApiConfig('/subscriptions/status');
-    const response = await api.get('/subscriptions/status', config);
-    return response.data;
-  },
-
-  // Get subscription data for localStorage
-  getSubscriptionForLocalStorage: async () => {
-    const config = createApiConfig('/subscriptions/localstorage');
-    const response = await api.get('/subscriptions/localstorage', config);
-    return response.data;
-  },
-
-  // Get available plans
-  getPlans: async () => {
-    const config = createApiConfig('/subscriptions/plans');
-    const response = await api.get('/subscriptions/plans', config);
-    return response.data;
-  },
-
-  // Start 3-day trial (new unified endpoint)
-  startTrial: async () => {
-    const config = createApiConfig('/subscriptions/start-trial-new');
-    const response = await api.post('/subscriptions/start-trial-new', {}, config);
-    return response.data;
-  },
-
-  // Activate pro plan (new unified endpoint)
-  activatePro: async (planType) => {
-    const config = createApiConfig('/subscriptions/activate-pro');
-    const response = await api.post('/subscriptions/activate-pro', { planType }, config);
-    return response.data;
-  },
-
-  // Cancel subscription (new unified endpoint)
-  cancelSubscription: async (reason = '') => {
-    const config = createApiConfig('/subscriptions/cancel-new');
-    const response = await api.post('/subscriptions/cancel-new', { reason }, config);
-    return response.data;
-  },
-
-  // Reset subscription to free plan
-  resetToFreePlan: async () => {
-    const config = createApiConfig('/subscriptions/reset-to-free');
-    const response = await api.post('/subscriptions/reset-to-free', {}, config);
-    return response.data;
-  },
-
-  // Legacy methods for backward compatibility
-  getCurrentSubscription: async () => {
-    const status = await subscriptionAPI.getSubscriptionStatus();
-    if (status.success) {
-      return {
-        success: true,
-        data: {
-          subscription: {
-            plan: status.data.plan,
-            status: status.data.isExpired ? 'expired' : status.data.status,
-            isTrial: status.data.isTrial,
-            trialRemainingDays: status.data.trialRemainingDays,
-            hasHadTrial: status.data.plan !== 'free',
-            resumeLimit: status.data.features.resumeLimit,
-            aiTokens: status.data.features.freeTokens,
-            subscriptionStart: status.data.startDate,
-            subscriptionEnd: status.data.endDate
-          }
-        }
-      };
-    }
-    return status;
-  },
-
-  getTrialInfo: async () => {
-    const status = await subscriptionAPI.getSubscriptionStatus();
-    if (status.success) {
-      return {
-        success: true,
-        data: {
-          trialInfo: {
-            isTrialActive: status.data.isTrial && !status.data.isExpired,
-            hasTrialExpired: status.data.isExpired,
-            trialRemainingDays: status.data.trialRemainingDays,
-            plan: status.data.plan,
-            status: status.data.status
-          }
-        }
-      };
-    }
-    return status;
-  },
-
-  getTrialEligibility: async () => {
-    return await subscriptionAPI.getSubscriptionStatus();
-  },
-
-  createCheckoutSession: async (planId, billingCycle) => {
-    const config = createApiConfig('/subscriptions/create-checkout-session');
-    const response = await api.post('/subscriptions/create-checkout-session', { 
-      plan: planId, 
-      billing: billingCycle 
-    }, config);
-    return response.data;
-  },
-
-  handleSubscriptionSuccess: async (sessionId) => {
-    const config = createApiConfig('/subscriptions/success');
-    const response = await api.post('/subscriptions/success', { sessionId }, config);
-    return response.data;
-  },
-
-
-
-
-  getBillingHistory: async () => {
-    const config = createApiConfig('/subscriptions/billing-history');
-    const response = await api.get('/subscriptions/billing-history', config);
-    return response.data;
-  },
-
-  updatePaymentMethod: async (paymentMethodId) => {
-    const config = createApiConfig('/subscriptions/update-payment-method');
-    const response = await api.post('/subscriptions/update-payment-method', { paymentMethodId }, config);
-    return response.data;
-  },
-};
 
 // Upload API calls
 export const uploadAPI = {
@@ -674,6 +546,44 @@ export const contactAPI = {
   }
 };
 
+// Payment API
+export const paymentAPI = {
+  // Create Razorpay order
+  createOrder: async (orderData) => {
+    const config = createApiConfig('/payment/create-order');
+    const response = await api.post('/payment/create-order', orderData, config);
+    return response.data;
+  },
+
+  // Complete token purchase
+  completeTokenPurchase: async (paymentData) => {
+    const config = createApiConfig('/payment/complete-token-purchase');
+    const response = await api.post('/payment/complete-token-purchase', paymentData, config);
+    return response.data;
+  },
+
+  // Get payment history
+  getPaymentHistory: async () => {
+    const config = createApiConfig('/payment/history');
+    const response = await api.get('/payment/history', config);
+    return response.data;
+  },
+
+  // Get Razorpay key
+  getRazorpayKey: async () => {
+    const config = createApiConfig('/payment/razorpay-key');
+    const response = await api.get('/payment/razorpay-key', config);
+    return response.data;
+  },
+
+  // Verify payment signature
+  verifySignature: async (signatureData) => {
+    const config = createApiConfig('/payment/verify-signature');
+    const response = await api.post('/payment/verify-signature', signatureData, config);
+    return response.data;
+  }
+};
+
 // Helper functions
 export const apiHelpers = {
   //normalize url
@@ -787,21 +697,14 @@ export const apiHelpers = {
     }));
   },
 
-  // Update user data with subscription information
-  updateUserData: (subscriptionData) => {
-    const currentUserData = apiHelpers.getCurrentUserData();
-    if (currentUserData) {
-      const updatedUserData = {
-        ...currentUserData,
-        subscription: subscriptionData
-      };
-      apiHelpers.setCurrentUserData(updatedUserData);
-      
-      // Dispatch custom event to notify other components
-      window.dispatchEvent(new CustomEvent('userDataUpdated', {
-        detail: updatedUserData
-      }));
-    }
+  // Update user data
+  updateUserData: (userData) => {
+    apiHelpers.setCurrentUserData(userData);
+    
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent('userDataUpdated', {
+      detail: userData
+    }));
   },
 };
 

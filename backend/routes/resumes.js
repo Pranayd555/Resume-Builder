@@ -3,15 +3,11 @@ const { body, validationResult } = require('express-validator');
 const { protect, checkTemplateAccess, checkExportFormat, trackUsage } = require('../middleware/auth');
 const Resume = require('../models/Resume');
 const Template = require('../models/Template');
-const Subscription = require('../models/Subscription');
 const OptimizedTemplateRenderer = require('../utils/templateRenderer');
 const logger = require('../utils/logger');
 const puppeteer = require('puppeteer');
 const chromium = require('@sparticuz/chromium');
 const { withPage } = require('../utils/browserManager');
-const officegen = require('officegen');
-const fs = require('fs');
-const path = require('path');
 const sharp = require('sharp');
 
 const router = express.Router();
