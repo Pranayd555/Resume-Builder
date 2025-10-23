@@ -93,7 +93,7 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       }
     } catch (error) {
       console.error('Adjust tone error:', error);
-      toast.error(error.message || 'Failed to adjust resume tone');
+      toast.error(apiHelpers.formatError(error));
     } finally {
       setIsProcessing(false);
       setProcessingType(null);
@@ -142,7 +142,7 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       }
     } catch (error) {
       console.error('Enhance keywords error:', error);
-      toast.error(error.message || 'Failed to enhance keywords');
+      toast.error(apiHelpers.formatError(error));
     } finally {
       setIsProcessing(false);
       setProcessingType(null);

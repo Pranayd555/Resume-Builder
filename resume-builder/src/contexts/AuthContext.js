@@ -117,6 +117,35 @@ export const AuthProvider = ({ children }) => {
     initializeAuth();
   }, []);
 
+  // Listen for token balance updates
+  useEffect(() => {
+    const handleTokenBalanceUpdate = (event) => {
+      const { balance } = event.detail;
+      if (state.user && balance !== undefined) {
+        const updatedUser = { ...state.user, tokens: balance };
+        apiHelpers.setCurrentUserData(updatedUser);
+        dispatch({ type: AUTH_ACTIONS.UPDATE_USER, payload: updatedUser });
+      }
+    };
+
+    const handleUserDataUpdate = (event) => {
+      const userData = event.detail;
+      if (userData) {
+        const updatedUser = createUserModel(userData);
+        apiHelpers.setCurrentUserData(updatedUser);
+        dispatch({ type: AUTH_ACTIONS.UPDATE_USER, payload: updatedUser });
+      }
+    };
+
+    window.addEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
+    window.addEventListener('userDataUpdated', handleUserDataUpdate);
+
+    return () => {
+      window.removeEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
+      window.removeEventListener('userDataUpdated', handleUserDataUpdate);
+    };
+  }, [state.user]);
+
   // Login function
   const login = async (credentials) => {
     try {
@@ -138,6 +167,7 @@ export const AuthProvider = ({ children }) => {
         apiHelpers.setAuthToken(token);
         const userData = createUserModel(user);
         apiHelpers.setCurrentUserData(userData);
+        apiHelpers.setTokenBalance(userData.tokens);
         
         dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: userData });
         toast.success('Login successful!');

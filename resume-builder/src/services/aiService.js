@@ -1,3 +1,4 @@
+import { apiHelpers } from "./api";
 
 class AIService {
   constructor() {
@@ -25,7 +26,19 @@ class AIService {
       throw new Error(errorData.error || `Request failed with status ${response.status}`);
     }
 
-    return await response.json();
+     const responseData = await response.json();
+     
+     // Update token balance if present in response
+     if (responseData && responseData.data && responseData.data.tokens !== undefined) {
+       apiHelpers.updateTokenBalance(responseData.data.tokens);
+     }
+     
+     // Also check for tokens at root level
+     if (responseData && responseData.tokens !== undefined) {
+       apiHelpers.updateTokenBalance(responseData.tokens);
+     }
+
+     return responseData;
   }
 
   /**
@@ -143,21 +156,31 @@ class AIService {
       throw new Error(errorData.error || 'Failed to generate ATS score');
     }
 
-    const result = await response.json();
-    
-    // Backend returns { success: true, data: { atsAnalysis, ... } }
-    return {
-      success: true,
-      data: {
-        resumeId: result.data.resumeId,
-        resumeTitle: result.data.resumeTitle,
-        templateName: result.data.templateName,
-        jobDescriptionLength: result.data.jobDescriptionLength,
-        inputType: result.data.inputType,
-        atsAnalysis: result.data.atsAnalysis,
-        message: result.data.message
-      }
-    };
+     const result = await response.json();
+     
+     // Update token balance if present in response
+     if (result && result.data && result.data.tokens !== undefined) {
+       apiHelpers.updateTokenBalance(result.data.tokens);
+     }
+     
+     // Also check for tokens at root level
+     if (result && result.tokens !== undefined) {
+       apiHelpers.updateTokenBalance(result.tokens);
+     }
+     
+     // Backend returns { success: true, data: { atsAnalysis, ... } }
+     return {
+       success: true,
+       data: {
+         resumeId: result.data.resumeId,
+         resumeTitle: result.data.resumeTitle,
+         templateName: result.data.templateName,
+         jobDescriptionLength: result.data.jobDescriptionLength,
+         inputType: result.data.inputType,
+         atsAnalysis: result.data.atsAnalysis,
+         message: result.data.message
+       }
+     };
   }
 
   /**

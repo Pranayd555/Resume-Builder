@@ -6,7 +6,8 @@ import {
   Bars3Icon,
   ArrowRightOnRectangleIcon,
   SunIcon,
-  MoonIcon
+  MoonIcon,
+  CurrencyDollarIcon
 } from '@heroicons/react/24/outline';
 import { apiHelpers } from '../services/api';
 
@@ -17,6 +18,7 @@ function Header() {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [showMenu, setShowMenu] = useState(false);
   const [profilePictureVersion, setProfilePictureVersion] = useState(0);
+  const [tokenBalance, setTokenBalance] = useState(0);
   const mobileMenuRef = useRef(null);
   const mobileMenuButtonRef = useRef(null);
 
@@ -59,6 +61,42 @@ function Header() {
     // Increment version to force re-render when user data changes
     setProfilePictureVersion(prev => prev + 1);
   }, [user?.profilePicture]);
+
+  // Load token balance from localStorage
+  useEffect(() => {
+    const balance = apiHelpers.getTokenBalance();
+    setTokenBalance(balance);
+  }, []);
+
+  // Update token balance when page becomes visible (to catch updates from other tabs)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        const balance = apiHelpers.getTokenBalance();
+        setTokenBalance(balance);
+      }
+    };
+
+    const handleFocus = () => {
+      const balance = apiHelpers.getTokenBalance();
+      setTokenBalance(balance);
+    };
+
+    // Listen for token balance updates from API responses
+    const handleTokenBalanceUpdate = (event) => {
+      setTokenBalance(event.detail.balance);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
+    };
+  }, []);
 
   // Handle click outside to close mobile menu
   useEffect(() => {
@@ -189,6 +227,16 @@ function Header() {
 
             <div className="h-5 w-px bg-gray-300 dark:bg-gray-600"></div>
             
+            {/* Token Balance */}
+            <div className="flex items-center space-x-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-700/30 rounded-lg px-3 py-1.5">
+              <CurrencyDollarIcon className="w-4 h-4 text-green-600 dark:text-green-400" />
+              <span className="text-green-700 dark:text-green-300 text-xs font-semibold">
+                {tokenBalance}
+              </span>
+            </div>
+            
+            <div className="h-5 w-px bg-gray-300 dark:bg-gray-600"></div>
+            
             {/* Dark Mode Toggle */}
             <button
               onClick={toggleDarkMode}
@@ -287,6 +335,18 @@ function Header() {
                 </div>
               )}
 
+              {/* Token Balance - Mobile */}
+              <div className="flex items-center space-x-3 px-2 py-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-700/30 rounded-lg mb-2">
+                <CurrencyDollarIcon className="w-5 h-5 text-green-600 dark:text-green-400" />
+                <div>
+                  <div className="text-green-700 dark:text-green-300 text-sm font-semibold">
+                    {tokenBalance} Tokens
+                  </div>
+                  <div className="text-green-600 dark:text-green-400 text-xs">
+                    Available Balance
+                  </div>
+                </div>
+              </div>
               
               {/* Dark Mode Toggle - Mobile */}
               <button
