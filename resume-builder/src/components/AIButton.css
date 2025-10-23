@@ -40,6 +40,19 @@
   opacity: 0.6;
 }
 
+.ai-button.token-exhausted {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+}
+
+.ai-button.token-exhausted:hover {
+  background: linear-gradient(135deg, #ff5252 0%, #e53935 100%);
+  transform: none;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+}
+
 .ai-icon {
   font-size: 16px;
 }
@@ -101,6 +114,17 @@
 .ai-dropdown-item:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.ai-dropdown-item.token-exhausted {
+  background: #ffebee;
+  color: #c62828;
+  cursor: not-allowed;
+}
+
+.ai-dropdown-item.token-exhausted:hover {
+  background: #ffebee;
+  color: #c62828;
 }
 
 .ai-item-icon {

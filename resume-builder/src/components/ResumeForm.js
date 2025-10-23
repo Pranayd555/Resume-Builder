@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { resumeAPI, apiHelpers, uploadAPI } from '../services/api';
 import { toast } from 'react-toastify';
 import { validators } from '../models/dataModels';
@@ -174,6 +174,8 @@ function ResumeForm() {
   const [isDragOver, setIsDragOver] = useState(false);
   // eslint-disable-next-line no-unused-vars
   const [dragCounter, setDragCounter] = useState(0);
+  const [tokenBalance, setTokenBalance] = useState(0);
+  const [isTokenExhausted, setIsTokenExhausted] = useState(false);
   const fileInputRef = useRef(null);
 
   const totalSteps = 8;
@@ -186,6 +188,33 @@ function ResumeForm() {
   
   const { scrollToFirstError } = useFormScroll(validationErrors, fieldOrder);
   const { scrollToTop } = useScrollToTop();
+
+  // Get initial token balance
+  useEffect(() => {
+    const balance = apiHelpers.getTokenBalance();
+    setTokenBalance(balance);
+    setIsTokenExhausted(balance <= 0);
+  }, []);
+
+  // Listen for token balance updates
+  useEffect(() => {
+    const handleTokenBalanceUpdate = (event) => {
+      const { balance } = event.detail;
+      setTokenBalance(balance);
+      setIsTokenExhausted(balance <= 0);
+    };
+
+    window.addEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
+    return () => window.removeEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
+  }, []);
+
+  // Update token balance from user data if available
+  useEffect(() => {
+    if (user && user.tokens !== undefined) {
+      setTokenBalance(user.tokens);
+      setIsTokenExhausted(user.tokens <= 0);
+    }
+  }, [user]);
 
 
 
@@ -212,6 +241,13 @@ function ResumeForm() {
     if (!file) return;
     
     if (!validateResumeFile(file)) {
+      event.target.value = '';
+      return;
+    }
+
+    // Check if tokens are exhausted
+    if (isTokenExhausted || tokenBalance <= 0) {
+      toast.error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
       event.target.value = '';
       return;
     }
@@ -279,10 +315,18 @@ function ResumeForm() {
       }
     } catch (error) {
       console.error('Resume upload error:', error);
-      const errorMessage = apiHelpers.formatError(error);
       
-      // Handle token-related errors specifically
-      toast.error(errorMessage);
+      // Handle token exhaustion specifically
+      if (error.message && error.message.includes('tokens') && error.message.includes('exhausted')) {
+        setIsTokenExhausted(true);
+        toast.error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
+      } else if (error.message && error.message.includes('insufficient tokens')) {
+        setIsTokenExhausted(true);
+        toast.error('Insufficient AI tokens! Please purchase more tokens to continue using AI features.');
+      } else {
+        const errorMessage = apiHelpers.formatError(error);
+        toast.error(errorMessage);
+      }
       
       setUploadedFileName('');
     } finally {
@@ -341,6 +385,12 @@ function ResumeForm() {
       const file = e.dataTransfer.files[0];
       
       if (validateResumeFile(file)) {
+        // Check if tokens are exhausted before processing
+        if (isTokenExhausted || tokenBalance <= 0) {
+          toast.error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
+          return;
+        }
+        
         // Create a synthetic event to reuse existing handleResumeUpload logic
         const syntheticEvent = {
           target: {
@@ -1308,22 +1358,30 @@ function ResumeForm() {
               onDragOver={handleDragOver}
               onDrop={handleDrop}
               className={`w-full px-3 py-4 border-2 border-dashed rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-center ${
-                true 
+                !isTokenExhausted 
                   ? 'cursor-pointer' 
                   : 'cursor-not-allowed opacity-50'
               } ${
-                isDragOver 
+                isDragOver && !isTokenExhausted
                   ? 'border-blue-500 bg-blue-100 text-blue-700' 
-                  : true
-                  ? 'border-blue-300 hover:border-blue-400 hover:bg-blue-50 text-blue-600'
-                  : 'border-gray-300 bg-gray-50 text-gray-500'
+                  : isTokenExhausted
+                  ? 'border-red-300 bg-red-50 text-red-500'
+                  : 'border-blue-300 hover:border-blue-400 hover:bg-blue-50 text-blue-600'
               }`}
-              onClick={true ? triggerFileUpload : undefined}
+              onClick={!isTokenExhausted ? triggerFileUpload : undefined}
+              title={isTokenExhausted ? 'AI tokens exhausted - Buy more tokens to continue' : ''}
             >
               {uploadingResume ? (
                 <>
                   <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                   <span className="font-medium text-sm">Processing...</span>
+                </>
+              ) : isTokenExhausted ? (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                  <span className="font-medium text-sm">Tokens Exhausted</span>
                 </>
               ) : (
                 <>
@@ -1359,6 +1417,18 @@ function ResumeForm() {
         <p className="text-xs text-gray-500 text-center mt-2">
           PDF, DOCX, DOC (Max 10MB)
         </p>
+        
+        {/* Token exhaustion message */}
+        {isTokenExhausted && (
+          <div className="mt-2 text-center">
+            <span className="text-xs text-red-500">
+              ⚠️ AI tokens exhausted! 
+              <Link to="/payment" className="text-blue-500 hover:text-blue-700 underline ml-1">
+                Buy more tokens
+              </Link> to continue using AI features.
+            </span>
+          </div>
+        )}
       </div>
       
       {/* Basic Information Section */}
