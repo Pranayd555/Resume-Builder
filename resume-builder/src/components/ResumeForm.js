@@ -1078,11 +1078,6 @@ function ResumeForm() {
         }
         setLastSaved(new Date());
         toast.success('Draft saved successfully!');
-        
-        // Route to resume list page after successful draft save
-        setTimeout(() => {
-          navigate('/resumes-list');
-        }, 1500);
       }
     } catch (error) {
       console.error('Save failed:', error);

@@ -113,9 +113,7 @@ const Payment = () => {
           }
         },
         handler: async (response) => {
-          try {
-            console.log('Razorpay payment response:', response);
-            
+          try {            
             // Complete payment and add tokens in one call
             const completeResponse = await paymentAPI.completeTokenPurchase({
               order_id: response.razorpay_order_id,

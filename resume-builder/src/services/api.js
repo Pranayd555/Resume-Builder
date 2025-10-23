@@ -26,7 +26,31 @@ api.interceptors.request.use(
 
 // Normalize API error responses in one place and avoid duplicate UI toasts
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Check if response contains token balance and update it
+    if (response.data) {
+      // Check for tokens in multiple possible locations
+      let tokenBalance = null;
+      
+      // Check direct tokens field
+      if (response.data.tokens !== undefined) {
+        tokenBalance = response.data.tokens;
+      }
+      // Check nested user.tokens
+      else if (response.data.data?.user?.tokens !== undefined) {
+        tokenBalance = response.data.data.user.tokens;
+      }
+      // Check data.tokens
+      else if (response.data.data?.tokens !== undefined) {
+        tokenBalance = response.data.data.tokens?.balance;
+      }
+      
+      if (tokenBalance !== null) {
+        apiHelpers.updateTokenBalance(tokenBalance);
+      }
+    }
+    return response;
+  },
   async (error) => {
     // If the backend returned a Blob (e.g., when responseType is 'blob'), try to parse JSON error
     if (error?.response?.data instanceof Blob) {

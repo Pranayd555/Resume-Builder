@@ -53,7 +53,10 @@ const ATSScoreModal = ({
 
   // Handle API error
   const handleError = (error) => {
-    toast.error(error.userMessage || 'Failed to generate ATS score');
+    console.error('ATS Score Error:', error);
+    // Use the standard error formatting from apiHelpers
+    const errorMessage = apiHelpers.formatError(error);
+    toast.error(errorMessage);
     setAtsGenerating(false);
     // Modal stays open for retry
   };

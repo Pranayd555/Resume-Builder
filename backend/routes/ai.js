@@ -1,7 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const multer = require('multer');
-const { protect, checkAIActionLimit, checkTokenLimit, trackUsage } = require('../middleware/auth');
+const { protect, checkAIActionLimit, checkTokenLimit, trackUsage, refundTokenOnError } = require('../middleware/auth');
 const Resume = require('../models/Resume');
 const Template = require('../models/Template');
 const logger = require('../utils/logger');
@@ -135,6 +135,7 @@ router.post('/rewrite', [
   protect,
   checkAIActionLimit,
   checkTokenLimit,
+  refundTokenOnError,
   body('content').trim().isLength({ min: 10 }).withMessage('Content must be at least 10 characters'),
   body('tone').optional().isIn(['professional', 'casual', 'formal', 'creative']).withMessage('Invalid tone'),
   body('style').optional().isIn(['concise', 'detailed', 'action-oriented', 'achievement-focused']).withMessage('Invalid style')
@@ -212,7 +213,8 @@ Return the final ATS-optimized, keyword-rich text as clean HTML only.
           rewrittenContent,
           tone,
           style,
-          message: 'Content enhanced successfully'
+          message: 'Content enhanced successfully',
+          tokens: req.tokens || 0
         }
       });
 
@@ -239,6 +241,7 @@ router.post('/summarize', [
   protect,
   checkAIActionLimit,
   checkTokenLimit,
+  refundTokenOnError,
   body('content').trim().isLength({ min: 20 }).withMessage('Content must be at least 20 characters')
 ], trackUsage, async (req, res) => {
   try {
@@ -314,7 +317,8 @@ Return the final summarized text as clean HTML paragraphs only.
         data: {
           originalContent: content,
           summary: enhancedText,
-          message: 'Content enhanced successfully'
+          message: 'Content enhanced successfully',
+          tokens: req.tokens || 0
         }
       });
 
@@ -378,6 +382,7 @@ router.post('/ats-score', [
   protect,
   checkAIActionLimit,
   checkTokenLimit,
+  refundTokenOnError,
   upload.single('jobDescriptionFile'), // Handle file upload for job description
   body('resumeId').isMongoId().withMessage('Valid resume ID is required'),
   body('jobDescription').optional().trim().isLength({ min: 10 }).withMessage('Job description must be at least 10 characters'),
@@ -523,27 +528,14 @@ router.post('/ats-score', [
 
       const rawResponse = response.text;
       
-      // Parse the JSON response from Gemini
-      let atsAnalysis;
-      try {
-        // Clean the response to extract JSON
-        const cleanedResponse = rawResponse
-          .replace(/```json\n?/g, '')
-          .replace(/```\n?/g, '')
-          .trim();
-        
-        atsAnalysis = JSON.parse(cleanedResponse);
-        
-        // Validate the response structure
-        if (!atsAnalysis.overall_score || !atsAnalysis.category_scores) {
-          throw new Error('Invalid response structure from Gemini');
-        }
-        
-      } catch (parseError) {
-        logger.error('Failed to parse Gemini response:', parseError);
-        logger.error('Raw response:', rawResponse);
-        
-        // Fallback to raw response if JSON parsing fails
+      // Parse the JSON response from Gemini using robust parsing
+      const { parseAIResponse, validateResumeJSON } = require('../utils/jsonParser');
+      
+      let atsAnalysis = parseAIResponse(rawResponse, 'analyze-resume');
+      
+      // Validate the response structure
+      if (!atsAnalysis.overall_score || !atsAnalysis.category_scores) {
+        logger.warn('ATS analysis structure validation failed, using fallback');
         atsAnalysis = {
           overall_score: 0,
           category_scores: {
@@ -586,7 +578,8 @@ router.post('/ats-score', [
           jobDescriptionLength: jobDescriptionText.length,
           inputType: inputType,
           atsAnalysis: atsAnalysis,
-          message: 'ATS score analysis completed and saved successfully'
+          message: 'ATS score analysis completed and saved successfully',
+          tokens: req.tokens || 0
         }
       });
 
@@ -661,6 +654,7 @@ router.post('/adjust-tone', [
   protect,
   checkAIActionLimit,
   checkTokenLimit,
+  refundTokenOnError,
   body('resumeId').isMongoId().withMessage('Valid resume ID is required'),
   body('resume_json').isObject().withMessage('Resume JSON is required'),
   body('ats_analysis').isObject().withMessage('ATS analysis is required'),
@@ -774,26 +768,22 @@ router.post('/adjust-tone', [
 
     const text = response.text;
 
-    // Parse the response
-    let updatedResumeData;
-    try {
-      // Clean the response to extract JSON
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        updatedResumeData = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error('No valid JSON found in response');
-      }
-    } catch (parseError) {
-      logger.error('Failed to parse adjust-tone response:', parseError);
-      logger.error('Raw response:', text);
-      throw new Error('Failed to parse AI response');
+    // Parse the response using robust JSON parsing utility
+    const { parseAIResponse, validateResumeJSON } = require('../utils/jsonParser');
+    
+    const updatedResumeData = parseAIResponse(text, 'adjust-tone');
+    
+    // Validate the parsed data
+    if (!validateResumeJSON(updatedResumeData, 'adjust-tone')) {
+      logger.warn('Parsed data failed validation, using fallback structure');
+      // The parseAIResponse function already provides a fallback structure
     }
 
     res.json({
       success: true,
       data: updatedResumeData,
-      message: 'Resume tone adjusted successfully'
+      message: 'Resume tone adjusted successfully',
+      tokens: req.tokens || 0
     });
 
   } catch (error) {
@@ -812,6 +802,7 @@ router.post('/adjust-tone', [
       protect,
       checkAIActionLimit,
       checkTokenLimit,
+      refundTokenOnError,
       body('resumeId').isMongoId().withMessage('Valid resume ID is required'),
       body('resume_json').isObject().withMessage('Resume JSON is required'),
       body('ats_analysis').isObject().withMessage('ATS analysis is required'),
@@ -929,26 +920,22 @@ router.post('/adjust-tone', [
 
     const text = response.text;
 
-    // Parse the response
-    let updatedResumeData;
-    try {
-      // Clean the response to extract JSON
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        updatedResumeData = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error('No valid JSON found in response');
-      }
-    } catch (parseError) {
-      logger.error('Failed to parse enhance-keywords response:', parseError);
-      logger.error('Raw response:', text);
-      throw new Error('Failed to parse AI response');
+    // Parse the response using robust JSON parsing utility
+    const { parseAIResponse, validateResumeJSON } = require('../utils/jsonParser');
+    
+    const updatedResumeData = parseAIResponse(text, 'enhance-keywords');
+    
+    // Validate the parsed data
+    if (!validateResumeJSON(updatedResumeData, 'enhance-keywords')) {
+      logger.warn('Parsed data failed validation, using fallback structure');
+      // The parseAIResponse function already provides a fallback structure
     }
 
     res.json({
       success: true,
       data: updatedResumeData,
-      message: 'Keywords enhanced successfully'
+      message: 'Keywords enhanced successfully',
+      tokens: req.tokens || 0
     });
 
   } catch (error) {
@@ -967,6 +954,7 @@ router.post('/generate-pdf-template', [
   protect,
   checkAIActionLimit,
   checkTokenLimit,
+  refundTokenOnError,
   body('content').trim().isLength({ min: 20 }).withMessage('Content must be at least 20 characters')
 ], trackUsage, async (req, res) => {
   try {
@@ -1041,7 +1029,8 @@ Return a complete, professional resume template as clean HTML only.
           originalContent: content,
           templateContent,
           templateType: 'PDF Template',
-          message: 'PDF template generated successfully'
+          message: 'PDF template generated successfully',
+          tokens: req.tokens || 0
         }
       });
 
@@ -1068,6 +1057,7 @@ router.post('/restructure-template', [
   protect,
   checkAIActionLimit,
   checkTokenLimit,
+  refundTokenOnError,
   body('content').trim().isLength({ min: 50 }).withMessage('Content must be at least 50 characters for restructuring')
 ], trackUsage, async (req, res) => {
   try {
@@ -1144,7 +1134,8 @@ Return the restructured and improved template as clean HTML only.
           restructuredContent,
           structureType: 'Restructured Template',
           improvements: ['Enhanced formatting', 'Improved ATS compatibility', 'Better visual hierarchy', 'Professional styling'],
-          message: 'Template restructured successfully'
+          message: 'Template restructured successfully',
+          tokens: req.tokens || 0
         }
       });
 

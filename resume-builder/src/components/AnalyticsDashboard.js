@@ -98,7 +98,10 @@ function AnalyticsDashboard() {
     );
   }
 
-  const { resumes, templates, tokens } = analytics;
+  // Safely destructure with defaults to prevent rendering objects directly
+  const resumes = analytics?.resumes || { total: 0, totalViews: 0, totalDownloads: 0, averageViews: 0, averageDownloads: 0 };
+  const templates = analytics?.templates || { totalUsed: 0, templates: [] };
+  const tokens = analytics?.tokens || { balance: 0, purchasedTokens: 0, remainingFreeTokens: 0, recentTransactions: [] };
 
   return (
     <div className="min-h-screen pt-16">
@@ -333,7 +336,7 @@ function AnalyticsDashboard() {
                   scrollbarColor: '#d1d5db #f3f4f6'
                 }}
               >
-                {tokens?.recentTransactions && tokens.recentTransactions.length > 0 ? (
+                {tokens?.recentTransactions && Array.isArray(tokens.recentTransactions) && tokens.recentTransactions.length > 0 ? (
                   <div className="space-y-4">
                     {tokens.recentTransactions.map((transaction, index) => (
                       <div key={transaction.transactionId || index} className="border border-gray-200 dark:border-orange-700/30 rounded-lg p-4 hover:shadow-md transition-shadow">
@@ -358,6 +361,11 @@ function AnalyticsDashboard() {
                                   +{transaction.metadata.tokensAdded} tokens added
                                 </p>
                               )}
+                              {transaction.metadata?.planDetails && (
+                                <p className="text-xs text-purple-600 dark:text-purple-400">
+                                  {transaction.metadata.planDetails.name}
+                                </p>
+                              )}
                             </div>
                           </div>
                           <div className="text-right">
@@ -365,11 +373,18 @@ function AnalyticsDashboard() {
                               ₹{(transaction.amount / 100).toFixed(2)}
                             </p>
                             <p className="text-xs text-gray-400 dark:text-gray-700">
-                              {new Date(transaction.createdAt).toLocaleDateString()}
+                              {transaction.createdAt ? new Date(transaction.createdAt).toLocaleDateString() : 
+                               transaction.capturedAt ? new Date(transaction.capturedAt).toLocaleDateString() : 
+                               'N/A'}
                             </p>
                             {transaction.metadata?.newTokenBalance && (
                               <p className="text-xs text-green-600 dark:text-green-400">
                                 Balance: {transaction.metadata.newTokenBalance} tokens
+                              </p>
+                            )}
+                            {transaction.metadata?.billingCycle && (
+                              <p className="text-xs text-orange-600 dark:text-orange-400">
+                                {transaction.metadata.billingCycle} billing
                               </p>
                             )}
                           </div>
@@ -395,6 +410,18 @@ function AnalyticsDashboard() {
                                 <div>
                                   <span className="font-medium">Contact:</span>
                                   <p>{transaction.contact}</p>
+                                </div>
+                              )}
+                              {transaction.metadata.plan && (
+                                <div>
+                                  <span className="font-medium">Plan:</span>
+                                  <p className="capitalize">{transaction.metadata.plan.replace('_', ' ')}</p>
+                                </div>
+                              )}
+                              {transaction.metadata.transactionType && (
+                                <div>
+                                  <span className="font-medium">Type:</span>
+                                  <p className="capitalize">{transaction.metadata.transactionType.replace('_', ' ')}</p>
                                 </div>
                               )}
                             </div>

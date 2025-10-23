@@ -281,9 +281,9 @@ function ResumeList() {
   const cardRefs = useRef({});
   const observerRef = useRef(null);
 
-  // Check if user can create new resume - always allow for free plan
+  // Check if user can create new resume - limit to 3 resumes
   const canCreateNewResume = () => {
-    return true; // Always allow resume creation
+    return resumes.length < 3; // Allow only 3 resumes maximum
   };
 
   // No subscription limits for free plan
@@ -507,6 +507,12 @@ function ResumeList() {
         autoClose: 5000
       });
       return;
+    } else if (resumes.length >= 3) {
+      toast.error('You have reached the maximum limit of 3 resumes. Please delete an existing resume to create a new one.', {
+        closeButton: true,
+        autoClose: 8000
+      });
+      return;
     }
     
     // Clear any existing form data from localStorage to ensure fresh form
@@ -539,6 +545,16 @@ function ResumeList() {
   };
 
   const handleDuplicateResume = async (resumeId) => {
+    // Check resume limit before duplication
+    if (resumes.length >= 3) {
+      toast.error('You have reached the maximum limit of 3 resumes. Please delete an existing resume to duplicate this one.', {
+        closeButton: true,
+        autoClose: 8000
+      });
+      setOpenDropdownId(null);
+      return;
+    }
+
     try {
       const response = await resumeAPI.duplicateResume(resumeId);
       if (response.success) {
@@ -657,9 +673,6 @@ function ResumeList() {
         const downloadAnalytics = await analyticsAPI.trackResumeDownload(resumeId, 'pdf');
         resume.analytics.downloads = downloadAnalytics.data.downloads;
         resume.analytics.lastDownloaded = downloadAnalytics.data.lastDownloaded;
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Download analytics:', downloadAnalytics);
-        }
       } catch (analyticsError) {
         if (process.env.NODE_ENV === 'development') {
           console.warn('Failed to track download:', analyticsError);
@@ -794,10 +807,6 @@ function ResumeList() {
                 <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   My Resumes
                 </h1>
-                {/* Free Plan Badge */}
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-300">
-                  Free Plan
-                </span>
               </div>
               
             </div>
@@ -809,6 +818,7 @@ function ResumeList() {
             {canCreateNewResume() && (
               <button
                 onClick={handleCreateNew}
+                disabled={isEmailVerificationRequired()}
                 className={`flex items-center gap-2 px-6 py-3 rounded-xl transition-all duration-200 shadow-lg font-semibold text-sm sm:text-base min-w-[140px] sm:min-w-auto ${
                   isEmailVerificationRequired()
                     ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 cursor-not-allowed opacity-75'
@@ -854,6 +864,25 @@ function ResumeList() {
               >
                 Verify Email
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Resume Limit Banner */}
+        {!canCreateNewResume() && (
+          <div className="backdrop-blur-md bg-orange-50/80 border border-orange-200 rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <ExclamationTriangleIcon className="w-6 h-6 text-orange-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-orange-800 mb-1">
+                  Resume Limit Reached
+                </h3>
+                <p className="text-orange-700 text-sm sm:text-base">
+                  You have reached the maximum limit of 3 resumes. Please delete an existing resume to create a new one.
+                </p>
+              </div>
             </div>
           </div>
         )}
@@ -969,9 +998,16 @@ function ResumeList() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Total Resumes</p>
-                <p className="text-3xl font-bold text-gray-900">{resumes.length}</p>
+                <p className="text-3xl font-bold text-gray-900">{resumes.length}/3</p>
+                {resumes.length >= 3 && (
+                  <p className="text-xs text-red-600 font-medium mt-1">Limit Reached</p>
+                )}
               </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg ${
+                resumes.length >= 3 
+                  ? 'bg-gradient-to-br from-red-400 to-red-600' 
+                  : 'bg-gradient-to-br from-blue-400 to-blue-600'
+              }`}>
                 <DocumentTextIcon className="w-6 h-6 text-white" />
               </div>
             </div>
@@ -1106,19 +1142,20 @@ function ResumeList() {
                                </button>
 
                                <button
-                                 disabled={resume.status === 'draft'}
+                                 disabled={resume.status === 'draft' || !canCreateNewResume()}
                                  onClick={(e) => {
                                    e.stopPropagation();
                                    handleDuplicateResume(resume.id);
                                  }}
                                  className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
-                                  resume.status === 'draft'
+                                  resume.status === 'draft' || !canCreateNewResume()
                                     ? 'text-gray-400 cursor-not-allowed'
                                     : 'text-gray-700 hover:bg-gray-100'
                                 }`}
+                                 title={!canCreateNewResume() ? 'Maximum of 3 resumes allowed. Delete an existing resume to duplicate this one.' : ''}
                                >
                                  <DocumentDuplicateIcon className="w-4 h-4" />
-                                 Duplicate
+                                 {!canCreateNewResume() ? 'Duplicate (Limit Reached)' : 'Duplicate'}
                                </button>
                                
                                <button
@@ -1280,16 +1317,19 @@ function ResumeList() {
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No resumes found</h3>
                 <p className="text-gray-600 mb-6">Get started by creating your first professional resume.</p>
-                <button
-                  onClick={handleCreateNew}
-                  className={`px-6 py-3 rounded-lg transition-all duration-200 ${
-                    isEmailVerificationRequired()
-                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 cursor-not-allowed opacity-75'
-                      : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
-                  }`}
-                >
-                  {isEmailVerificationRequired() ? 'Verify Email First' : 'Create Your First Resume'}
-                </button>
+                {canCreateNewResume() && (
+                  <button
+                    onClick={handleCreateNew}
+                    disabled={isEmailVerificationRequired()}
+                    className={`px-6 py-3 rounded-lg transition-all duration-200 ${
+                      isEmailVerificationRequired()
+                        ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 cursor-not-allowed opacity-75'
+                        : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
+                    }`}
+                  >
+                    {isEmailVerificationRequired() ? 'Verify Email First' : 'Create Your First Resume'}
+                  </button>
+                )}
               </div>
             </div>
           )}

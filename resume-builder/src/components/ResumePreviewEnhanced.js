@@ -171,19 +171,7 @@ function ResumePreviewEnhanced() {
     const fetchResumePreview = async () => {
       try {
         setLoading(true);
-        
-        // Check if we have resume data from navigation state (template change)
-        // const state = location.state;
-        
         let resumeData;
-        // if (state?.resume && state?.templateChanged) {
-        //   // Use resume data from template selection
-        //   resumeData = state.resume;
-        //   setResume(resumeData);
-        //   setHasTemplate(!!resumeData?.template);
-        //   console.log('resumeData', resumeData);
-        // } else {
-          // Fetch resume data from API
           const resumeResp = await resumeAPI.getResumeById(resumeId);
           if (resumeResp?.success !== false && resumeResp?.data) {
             resumeData = resumeResp.data.resume || resumeResp.data;
