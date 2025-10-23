@@ -1,6 +1,6 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const { protect, checkResumeLimit, checkTemplateAccess, checkExportFormat, trackUsage } = require('../middleware/auth');
+const { protect, checkTemplateAccess, checkExportFormat, trackUsage } = require('../middleware/auth');
 const Resume = require('../models/Resume');
 const Template = require('../models/Template');
 const Subscription = require('../models/Subscription');
@@ -53,7 +53,6 @@ const handleValidationError = (error, res) => {
 // @access  Private
 router.post('/form-data', [
   protect,
-  checkResumeLimit,
   body('title').trim().isLength({ min: 1, max: 100 }).withMessage('Title is required and must be less than 100 characters'),
   body('personalInfo.fullName').trim().isLength({ min: 1, max: 100 }).withMessage('Full name is required'),
   body('personalInfo.email').isEmail().withMessage('Valid email is required')
@@ -164,32 +163,7 @@ router.post('/auto-save', [
 
       resume.status = 'draft'; // Keep as draft during auto-save
     } else {
-      // Create new draft resume - check limits
-      const subscription = await Subscription.findOne({ user: req.user.id });
-      
-      if (!subscription) {
-        return res.status(403).json({
-          success: false,
-          error: 'No active subscription found. Please subscribe to create resumes.',
-          limitReached: true
-        });
-      }
-
-      const canCreate = await subscription.canCreateResume();
-      if (!canCreate) {
-        const currentUsage = subscription.usage.resumesCreated || 0;
-        const limit = subscription.features?.resumeLimit || 2;
-        const planName = subscription.plan === 'free' ? 'Free' : 'Pro';
-        return res.status(403).json({
-          success: false,
-          error: `Resume creation limit reached. You have created ${currentUsage}/${limit} resumes on your ${planName} plan. Please upgrade to create more resumes.`,
-          limitReached: true,
-          currentUsage,
-          limit,
-          plan: subscription.plan
-        });
-      }
-
+      // Create new draft resume - no limits
       const resumeData = {
         user: req.user.id,
         title: req.body.title || 'Untitled Resume',
@@ -247,23 +221,11 @@ router.put('/:id/complete', protect, async (req, res) => {
     // Check if this is a draft being published (first time completion)
     const isFirstTimePublishing = resume.status === 'draft';
 
-    // If this is first time publishing, check subscription limits
-    if (isFirstTimePublishing) {
-      const subscription = await Subscription.findOne({ user: req.user.id });
-      
-      if (!subscription) {
-        return res.status(403).json({
-          success: false,
-          error: 'No active subscription found. Please subscribe to create resumes.'
-        });
-      }
-    }
-
     // Mark as completed (published)
     resume.status = 'published';
     await resume.save();
 
-    // Update user analytics and subscription usage if this is the first time publishing
+    // Update user analytics if this is the first time publishing
     if (isFirstTimePublishing) {
       const User = require('../models/User');
       await User.findByIdAndUpdate(
@@ -272,8 +234,6 @@ router.put('/:id/complete', protect, async (req, res) => {
           $inc: { 'usage.resumesCreated': 1 }
         }
       );
-      
-      // Note: Resume count is now tracked automatically by counting actual resumes in database
       
       logger.info(`Resume created and published: ${resume.title} by user ${req.user.email} (resumesCreated: +1)`);
     } else {
@@ -330,13 +290,7 @@ router.put('/:id/template', [
       });
     }
 
-    const subscription = await Subscription.findOne({ user: req.user.id });
-    if (!subscription.canAccessTemplate(template.availability.tier)) {
-      return res.status(403).json({
-        success: false,
-        error: 'Template not available in your subscription plan'
-      });
-    }
+    // All templates are now accessible to all users
 
     // Check if this is the same template (preserve custom colors) or a new template (reset to defaults)
     const isSameTemplate = resume.template && resume.template.toString() === req.body.templateId;
@@ -912,24 +866,7 @@ router.get('/:id/preview/pdf-images', protect, async (req, res) => {
 // @access  Private
 router.get('/:id/download/pdf', protect, async (req, res) => {
   try {
-    // Check subscription and export limits
-    const subscription = await Subscription.findOne({ user: req.user.id });
-    if (!subscription) {
-      return res.status(403).json({
-        success: false,
-        error: 'Subscription not found. Please contact support.'
-      });
-    }
-
-  // Check if user can export PDF (format access based on tier)
-    if (!subscription.canExportFormat('pdf')) {
-      return res.status(403).json({
-        success: false,
-        error: 'PDF export not available in your subscription plan. Please upgrade to Pro.'
-      });
-    }
-
-  // Unlimited exports for both tiers per requirements (no weekly export limit)
+    // PDF export is now available to all users
 
     let resume = await Resume.findOne({
       _id: req.params.id,
@@ -1146,7 +1083,7 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
 
     res.send(pdfBuffer);
 
-    logger.info(`Resume downloaded as PDF: ${resume.title} by user ${req.user.email} (Subscription: ${subscription.plan}, Status: ${subscription.status})`);
+    logger.info(`Resume downloaded as PDF: ${resume.title} by user ${req.user.email}`);
   } catch (error) {
     logger.error('Download PDF error:', error);
     logger.error('Error stack:', error.stack);
@@ -1169,30 +1106,7 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
 // @access  Private
 router.get('/:id/download/docx', protect, async (req, res) => {
   try {
-    // Check subscription and export limits
-    const subscription = await Subscription.findOne({ user: req.user.id });
-    if (!subscription) {
-      return res.status(403).json({
-        success: false,
-        error: 'Subscription not found. Please contact support.'
-      });
-    }
-
-    // Check if user can export DOCX
-    if (!subscription.canExportFormat('docx')) {
-      return res.status(403).json({
-        success: false,
-        error: 'DOCX export not available in your subscription plan. Please upgrade to Pro.'
-      });
-    }
-
-    // Check export limits for non-unlimited plans
-    if (!subscription.features.unlimitedExports && subscription.usage.exportsThisMonth >= 10) {
-      return res.status(403).json({
-        success: false,
-        error: 'Export limit reached for this month. Please upgrade to Pro for unlimited exports.'
-      });
-    }
+    // DOCX export is now available to all users
 
     let resume = await Resume.findOne({
       _id: req.params.id,
@@ -1428,7 +1342,7 @@ router.get('/:id/download/docx', protect, async (req, res) => {
     
     res.send(pdfBuffer);
     
-    logger.info(`Resume downloaded as PDF (DOCX conversion in progress): ${resume.title} by user ${req.user.email} (Subscription: ${subscription.plan}, Status: ${subscription.status})`);
+    logger.info(`Resume downloaded as PDF (DOCX conversion in progress): ${resume.title} by user ${req.user.email}`);
   } catch (error) {
     logger.error('Download DOCX error:', error);
     res.status(500).json({
@@ -2059,33 +1973,9 @@ router.post('/', [
       });
     }
 
-    // Check subscription limits
-    const subscription = await Subscription.findOne({ user: req.user.id });
-    
-    if (!subscription) {
-      return res.status(403).json({
-        success: false,
-        error: 'No active subscription found. Please subscribe to create resumes.',
-        limitReached: true
-      });
-    }
-    
-    const canCreate = await subscription.canCreateResume();
-    if (!canCreate) {
-      const currentUsage = subscription.usage.resumesCreated || 0;
-      const limit = subscription.features?.resumeLimit || 2;
-      const planName = subscription.plan === 'free' ? 'Free' : 'Pro';
-      return res.status(403).json({
-        success: false,
-        error: `Resume creation limit reached. You have created ${currentUsage}/${limit} resumes on your ${planName} plan. Please upgrade to create more resumes.`,
-        limitReached: true,
-        currentUsage,
-        limit,
-        plan: subscription.plan
-      });
-    }
+    // No subscription limits - users can create unlimited resumes
 
-    // Verify template exists and user has access
+    // Verify template exists and is active
     const template = await Template.findById(req.body.templateId);
     if (!template || !template.availability.isActive) {
       return res.status(400).json({
@@ -2094,12 +1984,7 @@ router.post('/', [
       });
     }
 
-    if (!subscription.canAccessTemplate(template.availability.tier)) {
-      return res.status(403).json({
-        success: false,
-        error: 'Template not available in your subscription plan'
-      });
-    }
+    // All templates are now accessible to all users
 
     const resumeData = {
       user: req.user.id,
@@ -2248,31 +2133,7 @@ router.post('/:id/duplicate', protect, async (req, res) => {
       });
     }
 
-    // Check subscription limits
-    const subscription = await Subscription.findOne({ user: req.user.id });
-    
-    if (!subscription) {
-      return res.status(403).json({
-        success: false,
-        error: 'No active subscription found. Please subscribe to create resumes.',
-        limitReached: true
-      });
-    }
-    
-    const canCreate = await subscription.canCreateResume();
-    if (!canCreate) {
-      const currentUsage = subscription.usage.resumesCreated || 0;
-      const limit = subscription.features?.resumeLimit || 2;
-      const planName = subscription.plan === 'free' ? 'Free' : 'Pro';
-      return res.status(403).json({
-        success: false,
-        error: `Resume creation limit reached. You have created ${currentUsage}/${limit} resumes on your ${planName} plan. Please upgrade to create more resumes.`,
-        limitReached: true,
-        currentUsage,
-        limit,
-        plan: subscription.plan
-      });
-    }
+    // No subscription limits - users can create unlimited resumes
 
     // Create duplicate - use a more robust approach
     const duplicateData = JSON.parse(JSON.stringify(originalResume.toObject()));
@@ -2388,14 +2249,7 @@ router.post('/:id/export', [
 
     const { format } = req.body;
 
-    // Check if user can export in this format
-    const subscription = await Subscription.findOne({ user: req.user.id });
-    if (!subscription.canExportFormat(format)) {
-      return res.status(403).json({
-        success: false,
-        error: `${format.toUpperCase()} export not available in your subscription plan`
-      });
-    }
+    // All export formats are now available to all users
 
     await resume.save();
 

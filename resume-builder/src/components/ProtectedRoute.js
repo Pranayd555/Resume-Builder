@@ -1,7 +1,6 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useSubscription } from '../hooks/useSubscription';
 import AuthLoader from './AuthLoader';
 
 const ProtectedRoute = ({ children, requireAuth = true, redirectTo = '/' }) => {
@@ -52,79 +51,6 @@ export const withProtectedRoute = (Component, options = {}) => {
   };
 };
 
-// Subscription-based protection
-export const SubscriptionProtectedRoute = ({ 
-  children, 
-  requiredPlan = 'pro', 
-  redirectTo = '/subscription' 
-}) => {
-  const { isAuthenticated, isLoading, hasActiveSubscription } = useAuth();
-  const { subscription } = useSubscription();
-  const location = useLocation();
-
-  // Show loading spinner while auth status is being determined
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-8 h-8 bg-purple-600 rounded-full animate-pulse"></div>
-            </div>
-          </div>
-          <div className="text-center">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Checking Subscription...</h3>
-            <p className="text-gray-600">Please wait while we verify your access.</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // If not authenticated, redirect to login
-  if (!isAuthenticated) {
-    return (
-      <Navigate 
-        to="/" 
-        state={{ from: location }} 
-        replace 
-      />
-    );
-  }
-
-  // Check subscription requirements
-  const userPlan = subscription?.plan || 'free';
-  const hasValidSubscription = hasActiveSubscription();
-  
-  const planHierarchy = {
-    free: 0,
-    pro_monthly: 1,
-    pro_yearly: 1,
-    trialing: 1,
-    enterprise: 2,
-  };
-
-  const hasRequiredPlan = planHierarchy[userPlan] >= planHierarchy[requiredPlan];
-
-  if (!hasValidSubscription || !hasRequiredPlan) {
-    return (
-      <Navigate 
-        to={redirectTo} 
-        state={{ 
-          from: location, 
-          requiredPlan,
-          currentPlan: userPlan,
-          hasValidSubscription
-        }} 
-        replace 
-      />
-    );
-  }
-
-  // Render the protected content
-  return children;
-};
 
 // Role-based protection
 export const RoleProtectedRoute = ({ 

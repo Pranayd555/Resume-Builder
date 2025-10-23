@@ -5,8 +5,6 @@ import { toast } from 'react-toastify';
 import { validators } from '../models/dataModels';
 import { useFormScroll, useScrollToTop } from '../hooks/useAutoScroll';
 import { useAuth } from '../contexts/AuthContext';
-import { useTokenBalance } from '../hooks/useTokenBalance';
-import { useSubscription } from '../hooks/useSubscription';
 import CKEditor from './CKEditor';
 import { ensureHtmlContent } from '../utils/htmlUtils';
 import AuthLoader from './AuthLoader';
@@ -93,7 +91,6 @@ const TextAreaField = ({
       onChange={onChange}
       placeholder={placeholder}
       showAIButton={true}
-      isProMode={isProMode}
       className={className}
     />
   </div>
@@ -138,12 +135,7 @@ function ResumeForm() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const { tokenBalance, hasEnoughTokens } = useTokenBalance();
-  const { subscription } = useSubscription();
   const [loading, setLoading] = useState(false);
-  
-  // Check if user has pro subscription
-  const isProMode = subscription?.plan === 'pro_monthly' || subscription?.plan === 'pro_yearly' || subscription?.status === 'trialing';
   const [currentStep, setCurrentStep] = useState(1);
   const [validationErrors, setValidationErrors] = useState({});
   const [isEditMode, setIsEditMode] = useState(false);
@@ -195,50 +187,7 @@ function ResumeForm() {
   const { scrollToFirstError } = useFormScroll(validationErrors, fieldOrder);
   const { scrollToTop } = useScrollToTop();
 
-  // Fetch subscription status
-  useEffect(() => {
-    // Subscription is now handled by useSubscription hook
-    // Token balance is automatically fetched by useTokenBalance hook
-  }, [user]);
 
-  // Check if user can upload resume based on plan and tokens
-  const canUploadResume = () => {
-    if (!subscription) return false;
-    
-    // Premium users can upload unlimited
-    if (subscription.plan === 'pro_monthly' || subscription.plan === 'pro_yearly' || subscription.status === 'trialing') {
-      return true;
-    }
-    
-    // Free users need tokens
-    if (subscription.plan === 'free') {
-      return hasEnoughTokens(1); // 1 token required for resume parsing
-    }
-    
-    return false;
-  };
-
-  // Get upload restriction message
-  const getUploadRestrictionMessage = () => {
-    if (!subscription) return null;
-    
-    if (subscription.plan === 'free') {
-      if (!hasEnoughTokens(1)) {
-        return {
-          type: 'error',
-          message: 'You need tokens to parse resume files. You have 0 tokens remaining.',
-          action: 'Buy Tokens'
-        };
-      }
-      return {
-        type: 'info',
-        message: `You have ${tokenBalance} tokens remaining. Resume parsing costs 1 token.`,
-        action: null
-      };
-    }
-    
-    return null; // Premium users have no restrictions
-  };
 
   // Resume upload functions
   const validateResumeFile = (file) => {
@@ -262,20 +211,6 @@ function ResumeForm() {
     const file = event.target.files[0];
     if (!file) return;
     
-    // Check if user can upload resume
-    if (!canUploadResume()) {
-      const restrictionMessage = getUploadRestrictionMessage();
-      if (restrictionMessage) {
-        toast.error(restrictionMessage.message);
-        if (restrictionMessage.action === 'Buy Tokens') {
-          // Navigate to subscription page or show buy tokens modal
-          navigate('/subscription');
-        }
-      }
-      event.target.value = '';
-      return;
-    }
-    
     if (!validateResumeFile(file)) {
       event.target.value = '';
       return;
@@ -292,12 +227,6 @@ function ResumeForm() {
       const response = await uploadAPI.uploadResume(formData);
       
       if (response.success) {
-        // Update token balance after successful operation (for free users)
-        if (subscription && subscription.plan === 'free') {
-          const currentBalance = apiHelpers.getTokenBalance();
-          const newBalance = Math.max(0, currentBalance - 1);
-          apiHelpers.updateTokenBalance(newBalance);
-        }
         
         // Store the extracted text data
         const extractedText = response.data.originalText;
@@ -353,14 +282,7 @@ function ResumeForm() {
       const errorMessage = apiHelpers.formatError(error);
       
       // Handle token-related errors specifically
-      if (error.response?.data?.action === 'buy_tokens') {
-        toast.error('You need tokens to parse resume files. Redirecting to subscription page...');
-        setTimeout(() => {
-          navigate('/subscription');
-        }, 2000);
-      } else {
-        toast.error(errorMessage);
-      }
+      toast.error(errorMessage);
       
       setUploadedFileName('');
     } finally {
@@ -417,18 +339,6 @@ function ResumeForm() {
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0];
-      
-      // Check if user can upload resume
-      if (!canUploadResume()) {
-        const restrictionMessage = getUploadRestrictionMessage();
-        if (restrictionMessage) {
-          toast.error(restrictionMessage.message);
-          if (restrictionMessage.action === 'Buy Tokens') {
-            navigate('/subscription');
-          }
-        }
-        return;
-      }
       
       if (validateResumeFile(file)) {
         // Create a synthetic event to reuse existing handleResumeUpload logic
@@ -1177,17 +1087,6 @@ function ResumeForm() {
     } catch (error) {
       console.error('Save failed:', error);
       
-      // Handle subscription limit exceeded error
-      if (error?.response?.data?.limitReached) {
-        const errorData = error.response.data;
-        toast.error(errorData.error);
-        
-        // Navigate to subscription page if limit is reached
-        setTimeout(() => {
-          navigate('/subscription');
-        }, 2000);
-        return;
-      }
       
       // Handle validation errors
       if (error?.response?.data?.errors) {
@@ -1255,17 +1154,6 @@ function ResumeForm() {
         } catch (error) {
           console.error('Failed to mark resume as completed:', error);
           
-          // Handle subscription limit exceeded error
-          if (error?.response?.data?.limitReached) {
-            const errorData = error.response.data;
-            toast.error(errorData.error);
-            
-            // Navigate to subscription page if limit is reached
-            setTimeout(() => {
-              navigate('/subscription');
-            }, 2000);
-            return;
-          }
           
           // Continue anyway as the main save was successful for other errors
         }
@@ -1418,36 +1306,6 @@ function ResumeForm() {
         {/* Upload button or file info */}
         {!uploadedFileName ? (
           <div className="space-y-3">
-            {/* Token restriction message for free users */}
-            {subscription && subscription.plan === 'free' && (
-              <div className={`p-3 rounded-lg border ${
-                hasEnoughTokens(1) 
-                  ? 'bg-blue-50 border-blue-200 text-blue-800' 
-                  : 'bg-red-50 border-red-200 text-red-800'
-              }`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="text-sm font-medium">
-                      {hasEnoughTokens(1) 
-                        ? `You have ${tokenBalance} tokens. Resume parsing costs 1 token.`
-                        : 'You need tokens to parse resume files.'
-                      }
-                    </span>
-                  </div>
-                  {!hasEnoughTokens(1) && (
-                    <button
-                      onClick={() => navigate('/subscription')}
-                      className="px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
-                    >
-                      Buy Tokens
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
             
             <div
               onDragEnter={handleDragEnter}
@@ -1455,17 +1313,17 @@ function ResumeForm() {
               onDragOver={handleDragOver}
               onDrop={handleDrop}
               className={`w-full px-3 py-4 border-2 border-dashed rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-center ${
-                canUploadResume() 
+                true 
                   ? 'cursor-pointer' 
                   : 'cursor-not-allowed opacity-50'
               } ${
                 isDragOver 
                   ? 'border-blue-500 bg-blue-100 text-blue-700' 
-                  : canUploadResume()
+                  : true
                   ? 'border-blue-300 hover:border-blue-400 hover:bg-blue-50 text-blue-600'
                   : 'border-gray-300 bg-gray-50 text-gray-500'
               }`}
-              onClick={canUploadResume() ? triggerFileUpload : undefined}
+              onClick={true ? triggerFileUpload : undefined}
             >
               {uploadingResume ? (
                 <>
@@ -1478,9 +1336,7 @@ function ResumeForm() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
                   <span className="font-medium text-sm">
-                    {isDragOver ? 'Drop resume here' : 
-                     canUploadResume() ? 'Choose File or Drag & Drop' : 
-                     'Upload disabled - No tokens available'}
+                    {isDragOver ? 'Drop resume here' : 'Choose File or Drag & Drop'}
                   </span>
                 </>
               )}
@@ -1507,14 +1363,6 @@ function ResumeForm() {
         
         <p className="text-xs text-gray-500 text-center mt-2">
           PDF, DOCX, DOC (Max 10MB)
-          {subscription && subscription.plan === 'free' && (
-            <span className="block mt-1">
-              {hasEnoughTokens(1) 
-                ? 'Resume parsing costs 1 token' 
-                : 'Resume parsing requires tokens - Buy tokens to continue'
-              }
-            </span>
-          )}
         </p>
       </div>
       
@@ -1547,7 +1395,6 @@ function ResumeForm() {
           onChange={(value) => handleInputChange('root', 'summary', value)}
           rows={4}
           placeholder="Write a brief summary of your professional background and key achievements..."
-          isProMode={isProMode}
         />
         
         {/* Extracted Text Reference - Only show when parsedData is NOT available */}
@@ -1866,7 +1713,6 @@ function ResumeForm() {
               onChange={(value) => handleInputChange('workExperience', 'description', value, index)}
               placeholder="Describe your role and responsibilities..."
               showAIButton={true}
-              isProMode={isProMode}
             />
           </div>
         </div>
@@ -2078,7 +1924,6 @@ function ResumeForm() {
               onChange={(value) => handleInputChange('education', 'description', value, index)}
               placeholder="Relevant coursework, honors, activities..."
               showAIButton={true}
-              isProMode={isProMode}
             />
           </div>
         </div>
@@ -2416,7 +2261,6 @@ function ResumeForm() {
               onChange={(value) => handleInputChange('projects', 'description', value, index)}
               placeholder="Describe the project, your role, and key features..."
               showAIButton={true}
-              isProMode={isProMode}
             />
           </div>
         </div>
@@ -2514,7 +2358,6 @@ function ResumeForm() {
               onChange={(value) => handleInputChange('achievements', 'description', value, index)}
               placeholder="Describe the achievement..."
               showAIButton={true}
-              isProMode={isProMode}
             />
           </div>
         </div>

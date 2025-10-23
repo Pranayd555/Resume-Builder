@@ -3,7 +3,7 @@ const { body, validationResult } = require('express-validator');
 const { protect, authorize } = require('../middleware/auth');
 const User = require('../models/User');
 const Resume = require('../models/Resume');
-const Subscription = require('../models/Subscription');
+// Subscription model no longer needed
 const logger = require('../utils/logger');
 
 const router = express.Router();
@@ -14,36 +14,11 @@ const router = express.Router();
 router.get('/profile', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    let subscription = await Subscription.findOne({ user: req.user.id });
-
-    // Apply same subscription processing logic as /current endpoint
-    if (!subscription) {
-      // Create default free subscription
-      subscription = new Subscription({
-        user: req.user.id,
-        plan: 'free',
-        status: 'active'
-      });
-      await subscription.save();
-    } else {
-      // Check if trial has expired and update if necessary
-      if (subscription.status === 'trialing' && subscription.hasTrialExpired()) {
-        await subscription.expireTrial();
-        // Refresh the subscription data after expiration
-        subscription = await Subscription.findOne({ user: req.user.id });
-      }
-      
-      // Recalculate actual resume count since subscription started
-      await subscription.recalculateResumeCount();
-    }
     
     res.json({
       success: true,
       data: {
-        user: {
-          ...user.toObject(),
-          subscription
-        }
+        user: user.toObject()
       }
     });
   } catch (error) {
@@ -111,28 +86,6 @@ router.put('/profile', [
 router.get('/dashboard', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    let subscription = await Subscription.findOne({ user: req.user.id });
-
-    // Apply same subscription processing logic as /current endpoint
-    if (!subscription) {
-      // Create default free subscription
-      subscription = new Subscription({
-        user: req.user.id,
-        plan: 'free',
-        status: 'active'
-      });
-      await subscription.save();
-    } else {
-      // Check if trial has expired and update if necessary
-      if (subscription.status === 'trialing' && subscription.hasTrialExpired()) {
-        await subscription.expireTrial();
-        // Refresh the subscription data after expiration
-        subscription = await Subscription.findOne({ user: req.user.id });
-      }
-      
-      // Recalculate actual resume count since subscription started
-      await subscription.recalculateResumeCount();
-    }
     
     const resumeCount = await Resume.countDocuments({ user: req.user.id });
     const publishedResumeCount = await Resume.countDocuments({ 
@@ -159,14 +112,7 @@ router.get('/dashboard', protect, async (req, res) => {
       resumeCount,
       publishedResumeCount,
       totalViews: totalViews[0]?.totalViews || 0,
-      totalDownloads: totalDownloads[0]?.totalDownloads || 0,
-      subscription: subscription?.plan || 'free',
-      subscriptionStatus: subscription?.status || 'active',
-      remainingResumes: subscription?.canCreateResume() ? 
-        subscription.features.resumeLimit - subscription.usage.resumesCreated : 0,
-      remainingExports: subscription?.features.unlimitedExports ? 
-        'Unlimited' : 
-        Math.max(0, 10 - (subscription?.usage.exportsThisMonth || 0))
+      totalDownloads: totalDownloads[0]?.totalDownloads || 0
     };
 
     res.json({
@@ -292,7 +238,6 @@ router.get('/activity', protect, async (req, res) => {
 router.get('/export', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    const subscription = await Subscription.findOne({ user: req.user.id });
     const resumes = await Resume.find({ user: req.user.id })
       .populate('template', 'name category');
 
@@ -307,12 +252,6 @@ router.get('/export', protect, async (req, res) => {
         createdAt: user.createdAt,
         preferences: user.preferences
       },
-      subscription: subscription ? {
-        plan: subscription.plan,
-        status: subscription.status,
-        startDate: subscription.startDate,
-        features: subscription.features
-      } : null,
       resumes: resumes.map(resume => ({
         title: resume.title,
         status: resume.status,
@@ -357,7 +296,6 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate('subscription');
 
     const total = await User.countDocuments();
 
@@ -388,7 +326,6 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
 router.get('/:id', protect, authorize('admin'), async (req, res) => {
   try {
     const user = await User.findById(req.params.id)
-      .populate('subscription');
 
     if (!user) {
       return res.status(404).json({

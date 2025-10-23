@@ -6,11 +6,9 @@ import {
   Bars3Icon,
   ArrowRightOnRectangleIcon,
   SunIcon,
-  MoonIcon,
-  CurrencyDollarIcon
+  MoonIcon
 } from '@heroicons/react/24/outline';
-import { apiHelpers, analyticsAPI } from '../services/api';
-import api from '../services/api';
+import { apiHelpers } from '../services/api';
 
 function Header() {
   const navigate = useNavigate();
@@ -19,80 +17,9 @@ function Header() {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [showMenu, setShowMenu] = useState(false);
   const [profilePictureVersion, setProfilePictureVersion] = useState(0);
-  const [tokenBalance, setTokenBalance] = useState(null);
   const mobileMenuRef = useRef(null);
   const mobileMenuButtonRef = useRef(null);
 
-  // Initialize token balance from localStorage
-  useEffect(() => {
-    if (isAuthenticated) {
-      // First try to get from localStorage
-      const storedBalance = apiHelpers.getTokenBalance();
-      if (storedBalance !== null) {
-        setTokenBalance(storedBalance);
-      }
-
-      // Then fetch fresh data from API
-      const fetchTokenBalance = async () => {
-        try {
-          // Try analytics API first
-          const response = await analyticsAPI.getTokenBalance();
-          if (response.success) {
-            const tokenBalance = response.data?.balance || 0;
-            setTokenBalance(tokenBalance);
-            // Store in localStorage for future use
-            apiHelpers.setTokenBalance(tokenBalance);
-            
-            // Store full token data if available
-            if (response.data) {
-              apiHelpers.setTokenData(response.data);
-            }
-          } else {
-            // Fallback to /api/auth/me
-            const authResponse = await api.get('/auth/me');
-            if (authResponse.data.success && authResponse.data.data?.user?.totalTokenBalance !== undefined) {
-              const tokenBalance = authResponse.data.data.user.totalTokenBalance;
-              setTokenBalance(tokenBalance);
-              apiHelpers.setTokenBalance(tokenBalance);
-            }
-          }
-        } catch (error) {
-          console.error('Failed to fetch token balance:', error);
-          // Fallback to localStorage if API fails
-          const fallbackBalance = apiHelpers.getTokenBalance();
-          if (fallbackBalance !== null) {
-            setTokenBalance(fallbackBalance);
-          }
-        }
-      };
-      fetchTokenBalance();
-    } else {
-      // Clear token balance when not authenticated
-      setTokenBalance(null);
-      apiHelpers.clearTokenData();
-    }
-  }, [isAuthenticated]);
-
-  // Listen for token balance updates from other components
-  useEffect(() => {
-    const handleTokenBalanceUpdate = (event) => {
-      setTokenBalance(event.detail.balance);
-    };
-
-    const handleTokenDataUpdate = (event) => {
-      if (event.detail.balance !== undefined) {
-        setTokenBalance(event.detail.balance);
-      }
-    };
-
-    window.addEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
-    window.addEventListener('tokenDataUpdated', handleTokenDataUpdate);
-    
-    return () => {
-      window.removeEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
-      window.removeEventListener('tokenDataUpdated', handleTokenDataUpdate);
-    };
-  }, []);
 
   // Helper function to get profile picture URL from user data
   const getProfilePictureUrl = (userData) => {
@@ -183,8 +110,8 @@ function Header() {
     navigate('/profile');
   };
 
-  const handleSubscription = () => {
-    navigate('/subscription');
+  const handleBuyTokens = () => {
+    navigate('/payment');
   };
 
   const handleAnalytics = () => {
@@ -259,14 +186,6 @@ function Header() {
               </div>
             )}
 
-            {/* Token Balance */}
-            <div className="flex items-center space-x-1 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
-              <CurrencyDollarIcon className="w-4 h-4 text-green-600 dark:text-green-400" />
-              <span className="text-sm font-medium text-green-700 dark:text-green-300">
-                {tokenBalance !== null ? tokenBalance : 0}
-              </span>
-            </div>
-            
             <div className="h-5 w-px bg-gray-300 dark:bg-gray-600"></div>
             
             {/* Dark Mode Toggle */}
@@ -289,10 +208,10 @@ function Header() {
               Profile
             </button>
             <button
-              onClick={handleSubscription}
+              onClick={handleBuyTokens}
               className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 px-2 py-1 lg:px-3 lg:py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-200 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:shadow-sm"
             >
-              Subscription
+              Buy Tokens
             </button>
             <button
               onClick={handleAnalytics}
@@ -367,13 +286,6 @@ function Header() {
                 </div>
               )}
 
-              {/* Token Balance - Mobile */}
-              <div className="flex items-center justify-center space-x-2 bg-green-100 dark:bg-green-900/30 px-3 py-2 rounded-lg mx-2">
-                <CurrencyDollarIcon className="w-4 h-4 text-green-600 dark:text-green-400" />
-                <span className="text-sm font-medium text-green-700 dark:text-green-300">
-                  {tokenBalance !== null ? tokenBalance : 0} tokens available
-                </span>
-              </div>
               
               {/* Dark Mode Toggle - Mobile */}
               <button
@@ -396,10 +308,10 @@ function Header() {
                 Profile
               </button>
               <button
-                onClick={handleSubscription}
+                onClick={handleBuyTokens}
                 className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 w-full text-left"
               >
-                Subscription
+                Buy Tokens
               </button>
               <button
                 onClick={handleAnalytics}

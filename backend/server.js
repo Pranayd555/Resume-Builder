@@ -263,13 +263,10 @@ app.use('/uploads', express.static('uploads', {
   }
 }));
 
-// Import subscription validation middleware
-const validateSubscription = require('./middleware/validateSubscription');
-
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/resumes', validateSubscription, resumeRoutes);
+app.use('/api/resumes', resumeRoutes);
 app.use('/api/templates', templateRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/subscription', subscriptionRoutes);
@@ -278,7 +275,7 @@ app.use('/api/email-test', emailTestRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/analytics', analyticsRoutes);
-app.use('/api/ai', validateSubscription, aiRoutes);
+app.use('/api/ai', aiRoutes);
 app.use('/api/createTemplate', createTemplateRoutes);
 app.use('/api/payment', paymentRoutes);
 

@@ -20,7 +20,6 @@ import {
   TrashIcon,
   EllipsisVerticalIcon,
   ChatBubbleLeftRightIcon,
-  CurrencyDollarIcon,
   ExclamationTriangleIcon,
   ChartBarIcon,
   SparklesIcon,
@@ -32,8 +31,6 @@ import { toast } from 'react-toastify';
 import ATSScoreModal from './ATSScoreModal';
 import EmailVerification from './EmailVerification';
 import { useAuth } from '../contexts/AuthContext';
-import { useSubscription } from '../hooks/useSubscription';
-import SubscriptionCountdown from './SubscriptionCountdown';
 
 // ATS Score Display Component
 const ATSScoreDisplay = ({ resume, isCardHovered }) => {
@@ -201,7 +198,6 @@ const ATSScoreDisplay = ({ resume, isCardHovered }) => {
 function ResumeList() {
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
-  const { subscription, canCreateResume, isOnTrial } = useSubscription();
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [hoveredCardId, setHoveredCardId] = useState(null);
   const [focusedCardId, setFocusedCardId] = useState(null);
@@ -285,41 +281,12 @@ function ResumeList() {
   const cardRefs = useRef({});
   const observerRef = useRef(null);
 
-  // Subscription data is now handled by the useSubscription hook
-
-  // Subscription data is automatically loaded by the useSubscription hook
-
-  // Subscription data is automatically refreshed by the useSubscription hook
-
-  // Check if user can create new resume based on subscription and current count
+  // Check if user can create new resume - always allow for free plan
   const canCreateNewResume = () => {
-    return canCreateResume();
+    return true; // Always allow resume creation
   };
 
-  // Get subscription limit message
-  const getSubscriptionLimitMessage = () => {
-    if (!subscription) return null;
-    
-    const currentResumeCount = resumes.length;
-    
-    if (currentResumeCount >= subscription.features.resumeLimit) {
-      if (subscription.plan === 'free') {
-        return {
-          type: 'warning',
-          message: 'Free plan limit reached! Delete old resumes or upgrade to Pro to create more resumes.',
-          action: 'Upgrade to Pro'
-        };
-      } else {
-        return {
-          type: 'info',
-          message: 'Resume limit reached! Please delete some old resumes to create new ones.',
-          action: null
-        };
-      }
-    }
-    
-    return null;
-  };
+  // No subscription limits for free plan
 
   // Handle click outside to close status dropdown
   useEffect(() => {
@@ -526,25 +493,6 @@ function ResumeList() {
   }, []);
 
   const handleCreateNew = () => {
-    if (!canCreateNewResume()) {
-      const limitMessage = getSubscriptionLimitMessage();
-      if (limitMessage) {
-        if (limitMessage.action === 'Upgrade to Pro') {
-          toast.warning(limitMessage.message, {
-            onClick: () => navigate('/subscription'),
-            closeButton: true,
-            autoClose: 5000
-          });
-        } else {
-          toast.info(limitMessage.message, {
-            closeButton: true,
-            autoClose: 4000
-          });
-        }
-      }
-      return;
-    }
-
     const userData = apiHelpers.getCurrentUserData();
     if (!userData) {
       toast.error('Please login to create a new resume');
@@ -671,9 +619,6 @@ function ResumeList() {
     navigate('/feedback');
   };
 
-  const handleUpgradeToPremium = () => {
-    navigate('/subscription');
-  };
 
   const handleDownload = async (resumeId) => {
     // Find the resume to check its status
@@ -725,38 +670,7 @@ function ResumeList() {
     } catch (err) {
       const errorMessage = apiHelpers.formatError(err);
       
-      // Handle specific subscription-related errors
-      if (errorMessage.includes('upgrade to Pro') || errorMessage.includes('subscription plan')) {
-        toast.error(
-          <div>
-            <div className="font-semibold">Upgrade Required</div>
-            <div className="text-sm">{errorMessage}</div>
-            <button 
-              onClick={() => navigate('/subscription')}
-              className="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700"
-            >
-              Upgrade Now
-            </button>
-          </div>,
-          { duration: 5000 }
-        );
-      } else if (errorMessage.includes('Export limit reached')) {
-        toast.error(
-          <div>
-            <div className="font-semibold">Export Limit Reached</div>
-            <div className="text-sm">{errorMessage}</div>
-            <button 
-              onClick={() => navigate('/subscription')}
-              className="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700"
-            >
-              Upgrade for Unlimited Exports
-            </button>
-          </div>,
-          { duration: 5000 }
-        );
-      } else {
-        toast.error(errorMessage);
-      }
+      toast.error(errorMessage);
     } finally {
       // Remove resume from downloading set
       setDownloadingResumes(prev => {
@@ -844,8 +758,8 @@ function ResumeList() {
     }
   };
 
-  // Loading state - || true Always show for testing
-  if (loading || !subscription) {
+  // Loading state
+  if (loading) {
     return (
       <AuthLoader 
         title="Loading Resumes..."
@@ -880,36 +794,15 @@ function ResumeList() {
                 <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   My Resumes
                 </h1>
-                {/* Subscription Status Badge */}
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                  isOnTrial() 
-                    ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
-                    : subscription?.plan === 'pro_monthly' || subscription?.plan === 'pro_yearly'
-                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
-                    : 'bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-300'
-                }`}>
-                  {isOnTrial() ? 'Trial' : 
-                   subscription?.plan === 'pro_monthly' ? 'Pro Monthly' : 
-                   subscription?.plan === 'pro_yearly' ? 'Pro Yearly' : 'Free'}
+                {/* Free Plan Badge */}
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-300">
+                  Free Plan
                 </span>
               </div>
               
-              {/* Subscription Countdown Timer */}
-              <div className="flex flex-wrap items-center gap-2">
-                <SubscriptionCountdown 
-                  variant="compact" 
-                  className="flex-shrink-0"
-                  urgencyLevel="medium"
-                />
-              </div>
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg">
               Create and manage your professional resumes
-              {subscription?.plan === 'free' && (
-                <span className="ml-2 text-sm text-gray-500 dark:text-gray-500">
-                  ({resumes.length}/{subscription?.features?.resumeLimit || 2} limit)
-                </span>
-              )}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-4 justify-end">
@@ -965,86 +858,6 @@ function ResumeList() {
           </div>
         )}
 
-        {/* Free Plan Limit Banner */}
-        {!canCreateNewResume() && !isEmailVerificationRequired() && subscription?.plan === 'free' && (
-          <div className="backdrop-blur-md bg-orange-50/80 border border-orange-200 rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0">
-                  <CurrencyDollarIcon className="w-6 h-6 text-orange-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-orange-800 mb-1">
-                    Free Plan Limit Reached
-                  </h3>
-                  <p className="text-orange-700 text-sm sm:text-base">
-                    You've reached the maximum of 2 resumes on the free plan. Upgrade to Pro for unlimited resumes and premium features.
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => navigate('/subscription')}
-                className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-xl hover:from-orange-600 hover:to-red-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold text-sm sm:text-base whitespace-nowrap"
-              >
-                Upgrade to Pro
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Trial Plan Limit Banner */}
-        {!canCreateNewResume() && !isEmailVerificationRequired() && isOnTrial() && (
-          <div className="backdrop-blur-md bg-purple-50/80 border border-purple-200 rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0">
-                  <SparklesIcon className="w-6 h-6 text-purple-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-purple-800 mb-1">
-                    Trial Limit Reached
-                  </h3>
-                  <p className="text-purple-700 text-sm sm:text-base">
-                  Resume limit reached! Please delete some old resumes to create new ones.
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => navigate('/subscription')}
-                className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-6 py-3 rounded-xl hover:from-purple-600 hover:to-indigo-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold text-sm sm:text-base whitespace-nowrap"
-              >
-                Upgrade to Pro
-              </button>
-            </div>
-          </div>
-        )}
-        
-        {/* Pro Plan Limit Banner */}
-        {!canCreateNewResume() && !isEmailVerificationRequired() && (subscription?.plan === 'pro_monthly' || subscription?.plan === 'pro_yearly') && (
-          <div className="backdrop-blur-md bg-blue-50/80 border border-blue-200 rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0">
-                  <DocumentTextIcon className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-blue-800 mb-1">
-                    Pro Plan Limit Reached
-                  </h3>
-                  <p className="text-blue-700 text-sm sm:text-base">
-                    You can create up to 5 resumes on your Pro plan. Please delete some old resumes to create new ones.
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => navigate('/subscription')}
-                className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-cyan-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold text-sm sm:text-base whitespace-nowrap"
-              >
-                Manage Subscription
-              </button>
-            </div>
-          </div>
-        )}
         
         {/* Search and Filter */}
         <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-4 sm:p-6 mb-8">
@@ -1293,13 +1106,13 @@ function ResumeList() {
                                </button>
 
                                <button
-                                 disabled={resume.status === 'draft' || !canCreateNewResume()}
+                                 disabled={resume.status === 'draft'}
                                  onClick={(e) => {
                                    e.stopPropagation();
                                    handleDuplicateResume(resume.id);
                                  }}
                                  className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
-                                  resume.status === 'draft' || !canCreateNewResume()
+                                  resume.status === 'draft'
                                     ? 'text-gray-400 cursor-not-allowed'
                                     : 'text-gray-700 hover:bg-gray-100'
                                 }`}
@@ -1535,20 +1348,6 @@ function ResumeList() {
               </div>
             </button>
             
-            <button
-              onClick={handleUpgradeToPremium}
-              className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-6 hover:bg-white/80 transition-all duration-200 hover:shadow-2xl hover:scale-105 cursor-pointer text-left group"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200">
-                  <CurrencyDollarIcon className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors duration-200">Upgrade to Premium</h3>
-                  <p className="text-gray-600 text-sm">Unlock unlimited templates and advanced features</p>
-                </div>
-              </div>
-            </button>
           </div>
         )}
 

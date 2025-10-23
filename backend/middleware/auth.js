@@ -54,97 +54,6 @@ const authorize = (...roles) => {
   };
 };
 
-// Check if user has active subscription
-const requireSubscription = async (req, res, next) => {
-  if (!req.user) {
-    return res.status(401).json({
-      success: false,
-      error: 'Access denied. Not authenticated.'
-    });
-  }
-
-  try {
-    let subscription = await Subscription.findOne({ user: req.user.id });
-    
-    if (!subscription) {
-      return res.status(403).json({
-        success: false,
-        error: 'Access denied. No subscription found.'
-      });
-    }
-
-    // Check if trial has expired and update if necessary
-    if (subscription.status === 'trialing' && subscription.hasTrialExpired()) {
-      await subscription.expireTrial();
-      // Refresh the subscription data after expiration
-      subscription = await Subscription.findOne({ user: req.user.id });
-    }
-
-    if (subscription.status !== 'active' && subscription.status !== 'trialing') {
-      return res.status(403).json({
-        success: false,
-        error: 'Access denied. Active subscription required.'
-      });
-    }
-
-    // Add subscription to request for later use
-    req.subscription = subscription;
-    next();
-  } catch (error) {
-    logger.error('Require subscription error:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Error checking subscription status'
-    });
-  }
-};
-
-// Check subscription limits for resume creation
-const checkResumeLimit = async (req, res, next) => {
-  try {
-    let subscription = await Subscription.findOne({ user: req.user.id });
-    
-    if (!subscription) {
-      return res.status(403).json({
-        success: false,
-        error: 'No subscription found. Please upgrade to create resumes.'
-      });
-    }
-
-    // Check if trial has expired and update if necessary
-    if (subscription.status === 'trialing' && subscription.hasTrialExpired()) {
-      await subscription.expireTrial();
-      // Refresh the subscription data after expiration
-      subscription = await Subscription.findOne({ user: req.user.id });
-    }
-
-    const canCreate = await subscription.canCreateResume();
-    if (!canCreate) {
-      const currentUsage = subscription.usage.resumesCreated || 0;
-      const limit = subscription.features?.resumeLimit || 2;
-      const planName = subscription.plan === 'free' ? 'Free' : 'Pro';
-      return res.status(403).json({
-        success: false,
-        error: `Resume creation limit reached. You have created ${currentUsage}/${limit} resumes on your ${planName} plan. Please upgrade to create more resumes.`,
-        limitReached: true,
-        currentUsage,
-        limit,
-        plan: subscription.plan
-      });
-    }
-
-    // Add subscription to request for later use
-    req.subscription = subscription;
-    next();
-  } catch (error) {
-    logger.error('Check resume limit error:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Error checking subscription limits'
-    });
-  }
-};
-
 // Check AI action limits
 const checkAIActionLimit = async (req, res, next) => {
   try {
@@ -453,8 +362,6 @@ const checkSubscription = async (req, res, next) => {
 module.exports = {
   protect,
   authorize,
-  requireSubscription,
-  checkResumeLimit,
   checkAIActionLimit,
   checkTemplateAccess,
   checkExportFormat,
