@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { analyticsAPI, apiHelpers } from '../services/api';
+import { analyticsAPI } from '../services/api';
 import { toast } from 'react-toastify';
 import AuthLoader from './AuthLoader';
 import { 
@@ -13,8 +13,7 @@ import {
   ChevronUpIcon,
   CreditCardIcon,
   CheckCircleIcon,
-  XCircleIcon,
-  CurrencyDollarIcon
+  XCircleIcon
 } from '@heroicons/react/24/outline';
 
 
@@ -64,47 +63,13 @@ function AnalyticsDashboard() {
     try {
       setLoading(true);
       
-      // First try to get token data from localStorage
-      const storedTokenData = apiHelpers.getTokenData();
-      const storedTokenBalance = apiHelpers.getTokenBalance();
-      
       const response = await analyticsAPI.getAnalyticsSummary();
       if (response.success) {
-        // Merge with localStorage data for better performance
-        const analyticsData = {
-          ...response.data,
-          tokens: {
-            balance: response.data?.tokens?.balance || storedTokenBalance || 0,
-            recentTransactions: response.data?.tokens?.recentTransactions || storedTokenData?.recentTransactions || []
-          }
-        };
-        
-        // Store updated token data in localStorage
-        if (response.data?.tokens) {
-          apiHelpers.setTokenData(response.data.tokens);
-          apiHelpers.setTokenBalance(response.data.tokens.balance);
-        }
-        
-        setAnalytics(analyticsData);
+        setAnalytics(response.data);
       }
     } catch (error) {
       console.error('Failed to fetch analytics:', error);
-      
-      // Fallback to localStorage data if API fails
-      const storedTokenData = apiHelpers.getTokenData();
-      const storedTokenBalance = apiHelpers.getTokenBalance();
-      
-      if (storedTokenData || storedTokenBalance !== null) {
-        setAnalytics(prev => ({
-          ...prev,
-          tokens: {
-            balance: storedTokenBalance || 0,
-            recentTransactions: storedTokenData?.recentTransactions || []
-          }
-        }));
-      } else {
-        toast.error('Failed to load analytics data');
-      }
+      toast.error('Failed to load analytics data');
     } finally {
       setLoading(false);
     }
@@ -133,7 +98,7 @@ function AnalyticsDashboard() {
     );
   }
 
-  const { resumes, subscription, templates, tokens } = analytics;
+  const { resumes, templates, tokens } = analytics;
 
   return (
     <div className="min-h-screen pt-16">
@@ -169,7 +134,7 @@ function AnalyticsDashboard() {
                 <p className="text-sm font-medium text-gray-500">Total Resumes</p>
                 <p className="text-2xl font-bold text-gray-900">{resumes.total}</p>
                 <p className="text-xs text-gray-500">
-                  {subscription.resumesCreated} / {subscription.resumeLimit} used
+                  {resumes.averageViews} avg views per resume
                 </p>
               </div>
             </div>
@@ -216,7 +181,7 @@ function AnalyticsDashboard() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Token Balance</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {tokens?.balance || subscription.tokenBalance || 0}
+                  {tokens?.balance || 0}
                 </p>
                 <p className="text-xs text-gray-500">
                   Available for AI actions
@@ -254,144 +219,20 @@ function AnalyticsDashboard() {
             </div>
           </div>
 
-          {/* AI Actions Used */}
+          {/* Token Usage */}
           <div className="bg-white/80 dark:bg-orange-50/95 backdrop-blur-sm p-6 rounded-lg shadow border border-gray-200 dark:border-orange-200/30">
             <div className="text-center">
               <div className="text-3xl font-bold text-gray-900 mb-2">
-                {subscription.aiActionsUsed || 0}
+                {tokens?.purchasedTokens || 0}
               </div>
-              <p className="text-sm font-medium text-gray-500">AI Actions Used</p>
+              <p className="text-sm font-medium text-gray-500">Tokens Purchased</p>
               <p className="text-xs text-gray-400 mt-1">
-                This billing cycle
+                Total purchased tokens
               </p>
             </div>
           </div>
         </div>
 
-        {/* Subscription Status */}
-        <div className="bg-white/80 dark:bg-orange-50/95 backdrop-blur-sm rounded-lg shadow border border-gray-200 dark:border-orange-200/30 mb-8">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">Subscription Status</h3>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Current Plan</p>
-                <p className="text-lg font-semibold text-gray-900 capitalize">{subscription.planName || subscription.plan}</p>
-                <p className="text-xs text-gray-500">
-                  {subscription.plan === 'free' && 'Free'}
-                  {subscription.plan === 'pro_monthly' && 'Premium templates + AI review'}
-                  {subscription.plan === 'pro_yearly' && 'All features + cloud storage'}
-                </p>
-                {(subscription.nextBillingDate && subscription.plan !== 'free') && (
-                  <p className="text-xs text-blue-600 mt-1">
-                    Next billing: {new Date(subscription.nextBillingDate).toLocaleDateString()}
-                  </p>
-                )}
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">Resume Creation</p>
-                <p className="text-lg font-semibold text-gray-900">
-                  {subscription.resumesCreated} / {subscription.resumeLimit}
-                </p>
-                <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                  <div 
-                    className="bg-blue-600 h-2 rounded-full" 
-                    style={{ width: `${Math.min((subscription.resumesCreated / subscription.resumeLimit) * 100, 100)}%` }}
-                  ></div>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  {subscription.resumeLimit - subscription.resumesCreated} resumes remaining
-                </p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">
-                  {subscription.aiActionsLimit === 'token-based' ? 'Free Tokens Used' : 'AI Actions This Month'}
-                </p>
-                <p className="text-lg font-semibold text-gray-900">
-                  {subscription.aiActionsLimit === 'token-based' 
-                    ? `${subscription.freeTokensUsed || 0} / ${subscription.freeTokens || 0}`
-                    : `${subscription.aiActionsUsed} / ${subscription.aiActionsLimit === -1 ? '∞' : subscription.aiActionsLimit}`
-                  }
-                </p>
-                <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                  <div 
-                    className="bg-orange-600 h-2 rounded-full" 
-                    style={{ 
-                      width: subscription.aiActionsLimit === 'token-based' 
-                        ? `${Math.min(((subscription.freeTokensUsed || 0) / (subscription.freeTokens || 1)) * 100, 100)}%`
-                        : `${Math.min((subscription.aiActionsUsed / subscription.aiActionsLimit) * 100, 100)}%`
-                    }}
-                  ></div>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  {subscription.aiActionsLimit === 'token-based' 
-                    ? `${(subscription.freeTokens || 0) - (subscription.freeTokensUsed || 0)} free tokens remaining`
-                    : subscription.aiActionsLimit === -1 ? 'Unlimited' : `${subscription.aiActionsLimit - subscription.aiActionsUsed} actions remaining`
-                  }
-                </p>
-              </div>
-              <div>
-                <div className="flex items-center">
-                  <CurrencyDollarIcon className="h-5 w-5 text-green-600 mr-2" />
-                  <p className="text-sm font-medium text-gray-500">Token Balance</p>
-                </div>
-                <p className="text-lg font-semibold text-gray-900">
-                  {tokens?.balance || subscription.tokenBalance || 0} tokens
-                </p>
-                <p className="text-xs text-gray-500">
-                  Available for AI actions
-                </p>
-                {subscription.cycleStartDate && (
-                  <p className="text-xs text-gray-400 mt-1">
-                    Cycle started: {new Date(subscription.cycleStartDate).toLocaleDateString()}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Plan Features */}
-        <div className="bg-white/80 dark:bg-orange-50/95 backdrop-blur-sm rounded-lg shadow border border-gray-200 dark:border-orange-200/30 mb-8">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">Plan Features</h3>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="flex items-center">
-                <CheckCircleIcon className={`h-5 w-5 mr-2 ${subscription.features?.aiReview ? 'text-green-600' : 'text-gray-400'}`} />
-                <span className={`text-sm ${subscription.features?.aiReview ? 'text-gray-900' : 'text-gray-500'}`}>
-                  AI Review & Analysis
-                </span>
-              </div>
-              <div className="flex items-center">
-                <CheckCircleIcon className={`h-5 w-5 mr-2 ${subscription.features?.prioritySupport ? 'text-green-600' : 'text-gray-400'}`} />
-                <span className={`text-sm ${subscription.features?.prioritySupport ? 'text-gray-900' : 'text-gray-500'}`}>
-                  Priority Support
-                </span>
-              </div>
-              <div className="flex items-center">
-                <CheckCircleIcon className={`h-5 w-5 mr-2 ${subscription.features?.customBranding ? 'text-green-600' : 'text-gray-400'}`} />
-                <span className={`text-sm ${subscription.features?.customBranding ? 'text-gray-900' : 'text-gray-500'}`}>
-                  Custom Branding
-                </span>
-              </div>
-              <div className="flex items-center">
-                <CheckCircleIcon className={`h-5 w-5 mr-2 ${subscription.features?.unlimitedExports ? 'text-green-600' : 'text-gray-400'}`} />
-                <span className={`text-sm ${subscription.features?.unlimitedExports ? 'text-gray-900' : 'text-gray-500'}`}>
-                  Unlimited Exports
-                </span>
-              </div>
-              <div className="flex items-center">
-                <CheckCircleIcon className={`h-5 w-5 mr-2 ${subscription.plan === 'pro' ? 'text-green-600' : 'text-gray-400'}`} />
-                <span className={`text-sm ${subscription.plan === 'pro' ? 'text-gray-900' : 'text-gray-500'}`}>
-                  Cloud Storage
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Templates Used Accordion */}
         {templates.totalUsed > 0 && (

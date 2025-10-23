@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
 import AIService from '../services/aiService';
-import { useTokenBalance } from '../hooks/useTokenBalance';
 import './AIButton.css';
-import { CurrencyDollarIcon } from '@heroicons/react/24/outline';
 
 const AIButton = ({ editorInstance, onContentChange, isProMode = false, onAIContentChange = null, onAILoading = null }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const { tokenBalance, hasEnoughTokens, consumeTokens } = useTokenBalance();
 
   // Token balance is automatically fetched by useTokenBalance hook
 
@@ -17,11 +14,6 @@ const AIButton = ({ editorInstance, onContentChange, isProMode = false, onAICont
       return;
     }
 
-    // Check if user has enough tokens
-    if (!hasEnoughTokens(1)) {
-      showNotification('Insufficient tokens. Please purchase more tokens to use AI features.', 'warning');
-      return;
-    }
 
     const editorContent = getEditorContent();
 
@@ -76,8 +68,6 @@ const AIButton = ({ editorInstance, onContentChange, isProMode = false, onAICont
       }
       replaceEditorContent(processedText);
 
-      // Consume 1 token for successful AI processing
-      consumeTokens(1);
 
       // Trigger content change event to update the editor
       if (onContentChange) {
@@ -175,12 +165,6 @@ const AIButton = ({ editorInstance, onContentChange, isProMode = false, onAICont
             <>
               <span className="ai-icon">✨</span>
               {isProMode ? 'AI Pro Tools' : 'AI Polish'}
-              <span className="token-info">
-                <span className="token-cost-display">
-                  <CurrencyDollarIcon className="w-4 h-4 text-green-600 dark:text-green-400" />1
-                </span>
-                <span className="token-count">({tokenBalance} left)</span>
-              </span>
             </>
           )}
         </button>

@@ -201,7 +201,7 @@ const Payment = () => {
   };
 
   const handleBack = () => {
-    navigate('/subscription');
+    navigate('/dashboard');
   };
 
   return (

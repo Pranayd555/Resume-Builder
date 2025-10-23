@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { ChartBarIcon, XMarkIcon, DocumentTextIcon, DocumentArrowDownIcon, XCircleIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import CKEditor from './CKEditor';
 import AILoader from './annimations/AILoader';
-import { subscriptionAPI, apiHelpers } from '../services/api';
+import { apiHelpers } from '../services/api';
 import aiService from '../services/aiService';
-import { useTokenBalance } from '../hooks/useTokenBalance';
 
 const ATSScoreModal = ({ 
   isOpen, 
@@ -18,29 +16,7 @@ const ATSScoreModal = ({
   const [atsFile, setAtsFile] = useState(null);
   const [atsInputType, setAtsInputType] = useState('text'); // 'text' or 'file'
   const [atsGenerating, setAtsGenerating] = useState(false);
-  const [subscription, setSubscription] = useState(null);
-  const navigate = useNavigate();
-  const { tokenBalance, hasEnoughTokens } = useTokenBalance();
 
-  // Fetch subscription status
-  useEffect(() => {
-    const fetchSubscription = async () => {
-      try {
-        const response = await subscriptionAPI.getCurrentSubscription();
-        if (response.success) {
-          setSubscription(response.data.subscription);
-        }
-      } catch (error) {
-        // Default to free plan if fetch fails
-        setSubscription({ plan: 'free', status: 'active' });
-      }
-    };
-
-    if (isOpen) {
-      fetchSubscription();
-      // Token balance is automatically fetched by useTokenBalance hook
-    }
-  }, [isOpen]);
 
   // Helper function to strip HTML tags from CKEditor content
   const stripHtmlTags = (html) => {
@@ -50,44 +26,6 @@ const ATSScoreModal = ({
     return temp.textContent || temp.innerText || '';
   };
 
-  // Check if user can use ATS score generation based on plan and tokens
-  const canUseATSGeneration = () => {
-    if (!subscription) return false;
-    
-    // Premium users can use ATS generation unlimited
-    if (subscription.plan === 'pro') {
-      return true;
-    }
-    
-    // Free users need tokens
-    if (subscription.plan === 'free') {
-      return hasEnoughTokens(1); // 1 token required for ATS generation
-    }
-    
-    return false;
-  };
-
-  // Get ATS generation restriction message
-  const getATSGenerationRestrictionMessage = () => {
-    if (!subscription) return null;
-    
-    if (subscription.plan === 'free') {
-      if (!hasEnoughTokens(1)) {
-        return {
-          type: 'error',
-          message: 'You need tokens to generate ATS scores. You have 0 tokens remaining.',
-          action: 'Buy Tokens'
-        };
-      }
-      return {
-        type: 'info',
-        message: `You have ${tokenBalance} tokens remaining. ATS score generation costs 1 token.`,
-        action: null
-      };
-    }
-    
-    return null; // Premium users have no restrictions
-  };
 
   // Handle modal close
   const handleClose = () => {
@@ -122,18 +60,6 @@ const ATSScoreModal = ({
 
   // Handle form submission
   const handleSubmit = async () => {
-    // Check if user can use ATS generation
-    if (!canUseATSGeneration()) {
-      const restrictionMessage = getATSGenerationRestrictionMessage();
-      if (restrictionMessage) {
-        toast.error(restrictionMessage.message);
-        if (restrictionMessage.action === 'Buy Tokens') {
-          navigate('/subscription');
-        }
-      }
-      return;
-    }
-
     try {
       setAtsGenerating(true);
       
@@ -379,55 +305,16 @@ const ATSScoreModal = ({
                 </div>
               )}
 
-              {/* Token restriction message for free users */}
-              {subscription && subscription.plan === 'free' && (
-                <div className={`p-3 rounded-lg border mb-4 ${
-                  hasEnoughTokens(1) 
-                    ? 'bg-blue-50 border-blue-200 text-blue-800' 
-                    : 'bg-red-50 border-red-200 text-red-800'
-                }`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="text-sm font-medium">
-                        {hasEnoughTokens(1) 
-                          ? `You have ${tokenBalance} tokens. ATS score generation costs 1 token.`
-                          : 'You need tokens to generate ATS scores.'
-                        }
-                      </span>
-                    </div>
-                    {!hasEnoughTokens(1) && (
-                      <button
-                        onClick={() => navigate('/subscription')}
-                        className="px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
-                      >
-                        Buy Tokens
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
 
               {/* Generate Button */}
               <div className="pt-2">
                 <button
                   onClick={handleSubmit}
-                  disabled={atsGenerating || !canUseATSGeneration() || (atsInputType === 'text' && !stripHtmlTags(atsJobDescription).trim()) || (atsInputType === 'file' && !atsFile)}
-                  className={`w-full py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium ${
-                    canUseATSGeneration() 
-                      ? 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700' 
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  } ${atsGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  disabled={atsGenerating || (atsInputType === 'text' && !stripHtmlTags(atsJobDescription).trim()) || (atsInputType === 'file' && !atsFile)}
+                  className={`w-full py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 ${atsGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <ChartBarIcon className="h-4 w-4" />
-                  <span>
-                    {canUseATSGeneration() 
-                      ? 'Generate ATS Score' 
-                      : 'ATS Generation Disabled - No Tokens'
-                    }
-                  </span>
+                  <span>Generate ATS Score</span>
                 </button>
               </div>
             </div>

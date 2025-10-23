@@ -18,7 +18,6 @@ import ResumeTemplates from './components/resume-templates';
 import ResumeForm from './components/ResumeForm';
 import TemplateSelection from './components/TemplateSelection';
 import Feedback from './components/feedback';
-import Subscription from './components/subscription';
 import Payment from './components/Payment';
 import Profile from './components/Profile';
 import PrivacyPolicy from './components/public/PrivacyPolicy';
@@ -139,14 +138,6 @@ const AppContent = () => {
               <Route 
                 path="/feedback" 
                 element={<Feedback />} 
-              />
-              <Route 
-                path="/subscription" 
-                element={
-                  <ProtectedRoute>
-                    <Subscription />
-                  </ProtectedRoute>
-                } 
               />
               <Route 
                 path="/payment" 
