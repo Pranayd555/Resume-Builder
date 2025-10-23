@@ -1127,7 +1127,6 @@ function Profile() {
                 <ul className="list-disc list-inside text-gray-600 space-y-1">
                   <li>Your profile information</li>
                   <li>All your resumes</li>
-                  <li>Your subscription data</li>
                   <li>All uploaded files</li>
                 </ul>
               </div>

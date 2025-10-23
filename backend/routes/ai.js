@@ -2,7 +2,6 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const multer = require('multer');
 const { protect, checkAIActionLimit, checkTokenLimit, trackUsage } = require('../middleware/auth');
-const Subscription = require('../models/Subscription');
 const Resume = require('../models/Resume');
 const Template = require('../models/Template');
 const logger = require('../utils/logger');
@@ -341,36 +340,33 @@ Return the final summarized text as clean HTML paragraphs only.
 // @access  Private
 router.get('/usage', protect, async (req, res) => {
   try {
-    const subscription = await Subscription.findOne({ user: req.user.id });
+    const User = require('../models/User');
+    const user = await User.findById(req.user.id);
     
-    if (!subscription) {
+    if (!user) {
       return res.status(404).json({
         success: false,
-        error: 'No subscription found'
+        error: 'User not found'
       });
     }
 
-    const usage = subscription.usage || {};
-    
     res.json({
       success: true,
       data: {
-        aiActionsUsed: usage.aiActionsThisCycle || 0,
-        aiActionsLimit: subscription.features?.aiActionsLimit || 200,
-        plan: subscription.plan,
-        remainingActions: Math.max(0, (subscription.features?.aiActionsLimit || 200) - (usage.aiActionsThisCycle || 0)),
-        cycleStartDate: usage.cycleStartDate || subscription.startDate,
-        nextBillingDate: subscription.billing?.nextBillingDate || null,
-        billingCycle: subscription.billing?.cycle || 'monthly',
-        daysUntilReset: subscription.billing?.nextBillingDate ? 
-          Math.floor((new Date(subscription.billing.nextBillingDate) - new Date()) / (1000 * 60 * 60 * 24)) : null
+        tokensAvailable: user.tokens || 0,
+        plan: 'free',
+        remainingActions: user.tokens || 0,
+        cycleStartDate: user.createdAt,
+        nextBillingDate: null,
+        billingCycle: 'token-based',
+        daysUntilReset: null
       }
     });
   } catch (error) {
     logger.error('Get AI usage error:', error);
     res.status(500).json({
       success: false,
-      error: 'Server error'
+      error: 'Error getting AI usage'
     });
   }
 });

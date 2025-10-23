@@ -110,6 +110,7 @@ function Header() {
     navigate('/profile');
   };
 
+
   const handleBuyTokens = () => {
     navigate('/payment');
   };

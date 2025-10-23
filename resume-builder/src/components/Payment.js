@@ -10,7 +10,7 @@ import {
   ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 import AnimatedBackground from './AnimatedBackground';
-import api, { apiHelpers } from '../services/api';
+import { paymentAPI, apiHelpers } from '../services/api';
 
 const Payment = () => {
   const navigate = useNavigate();
@@ -75,7 +75,7 @@ const Payment = () => {
     setLoading(true);
     try {
       // Create order on backend
-      const response = await api.post('/payment/create-order', {
+      const response = await paymentAPI.createOrder({
         amount: paymentData.amount,
         currency: 'INR',
         receipt: `${paymentData.type}_${Date.now()}`,
@@ -86,16 +86,12 @@ const Payment = () => {
         }
       });
 
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to create order');
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to create order');
       }
 
-      const order = response.data.order;
+      const order = response.order;
 
-      // Debug logging
-      console.log('Razorpay Key ID:', process.env.REACT_APP_RAZORPAY_KEY_ID);
-      console.log('NODE_ENV:', process.env.NODE_ENV);
-      console.log('Order:', order);
 
       // Get user data from localStorage
       const userData = apiHelpers.getCurrentUserData();
@@ -121,7 +117,7 @@ const Payment = () => {
             console.log('Razorpay payment response:', response);
             
             // Complete payment and add tokens in one call
-            const completeResponse = await api.post('/payment/complete-token-purchase', {
+            const completeResponse = await paymentAPI.completeTokenPurchase({
               order_id: response.razorpay_order_id,
               payment_id: response.razorpay_payment_id,
               signature: response.razorpay_signature,
@@ -133,16 +129,16 @@ const Payment = () => {
               contact: userData?.phone || userData?.contact || '+919876543210'
             });
 
-            if (completeResponse.data.success) {
+            if (completeResponse.success) {
               toast.success('Payment successful!');
               toast.success(`${paymentData.tokens} tokens added to your account!`);
               
               // Update token balance with total available tokens
-              if (completeResponse.data.data?.tokens?.totalAvailable !== undefined) {
-                apiHelpers.updateTokenBalance(completeResponse.data.data.tokens.totalAvailable);
-              } else if (completeResponse.data.data?.tokens?.current !== undefined) {
+              if (completeResponse.data?.tokens?.totalAvailable !== undefined) {
+                apiHelpers.updateTokenBalance(completeResponse.data.tokens.totalAvailable);
+              } else if (completeResponse.data?.tokens?.current !== undefined) {
                 // Fallback to current purchased tokens if totalAvailable not provided
-                apiHelpers.updateTokenBalance(completeResponse.data.data.tokens.current);
+                apiHelpers.updateTokenBalance(completeResponse.data.tokens.current);
               } else {
                 // Final fallback: fetch latest token balance from API
                 try {
