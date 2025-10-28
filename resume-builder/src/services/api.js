@@ -686,9 +686,6 @@ export const apiHelpers = {
     return balance ? JSON.parse(balance) : 0;
   },
 
-  setTokenData: (tokenData) => {
-    localStorage.setItem('tokenData', JSON.stringify(tokenData));
-  },
 
   getTokenData: () => {
     const tokenData = localStorage.getItem('tokenData');
@@ -706,18 +703,6 @@ export const apiHelpers = {
     // Dispatch custom event to notify other components
     window.dispatchEvent(new CustomEvent('tokenBalanceUpdated', { 
       detail: { balance: newBalance } 
-    }));
-  },
-
-  // Update token data across the app
-  updateTokenData: (tokenData) => {
-    apiHelpers.setTokenData(tokenData);
-    if (tokenData.balance !== undefined) {
-      apiHelpers.setTokenBalance(tokenData.balance);
-    }
-    // Dispatch custom event to notify other components
-    window.dispatchEvent(new CustomEvent('tokenDataUpdated', { 
-      detail: tokenData 
     }));
   },
 

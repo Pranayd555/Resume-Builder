@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { templateAPI, resumeAPI, apiHelpers } from '../services/api';
 import { toast } from 'react-toastify';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+import { Navigation, Pagination, Autoplay, EffectCoverflow, FreeMode } from 'swiper/modules';
 import AuthLoader from './AuthLoader';
 
 // Import Swiper styles
@@ -261,12 +261,23 @@ function TemplateSelection() {
         <div className="relative mb-8">
           <Swiper
             ref={swiperRef}
-            modules={[Navigation, Pagination, Autoplay]}
+            effect="coverflow"
+            coverflowEffect={{
+              rotate: 30,
+              stretch: 0,
+              depth: 100,
+              modifier: 1,
+              slideShadows: true,
+            }}
+            modules={[Navigation, Pagination, Autoplay, EffectCoverflow, FreeMode]}
             spaceBetween={20}
             slidesPerView={1}
             centeredSlides={true}
             loop={true}
             loopFillGroupWithBlank={true}
+            freeMode={true}
+            freeModeMomentum={true}
+            grabCursor={true}
             navigation={{
               nextEl: '.swiper-button-next',
               prevEl: '.swiper-button-prev',
@@ -288,17 +299,17 @@ function TemplateSelection() {
               },
               768: {
                 slidesPerView: 2,
-                spaceBetween: 32,
+                spaceBetween: 24,
                 centeredSlides: true,
               },
               1024: {
                 slidesPerView: 3,
-                spaceBetween: 32,
+                spaceBetween: 16,
                 centeredSlides: true,
               },
               1280: {
                 slidesPerView: 3,
-                spaceBetween: 40,
+                spaceBetween: 20,
                 centeredSlides: true,
               }
             }}

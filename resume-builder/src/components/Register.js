@@ -370,7 +370,7 @@ function Register() {
                 <button
                   type="button"
                   onClick={() => {
-                    window.location.href = `${process.env.REACT_APP_API_URL}/api/auth/google`;
+                    window.location.href = `${process.env.REACT_APP_API_URL}/auth/google`;
                   }}
                   className="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all duration-200"
                   title="Sign up with Google"
@@ -387,7 +387,7 @@ function Register() {
                 <button
                   type="button"
                   onClick={() => {
-                    window.location.href = `${process.env.REACT_APP_API_URL}/api/auth/linkedin`;
+                    window.location.href = `${process.env.REACT_APP_API_URL}/auth/linkedin`;
                   }}
                   className="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all duration-200"
                   title="Sign up with LinkedIn"

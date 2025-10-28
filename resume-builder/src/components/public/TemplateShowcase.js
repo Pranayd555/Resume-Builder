@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { templateAPI, apiHelpers } from '../../services/api';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+import { Navigation, Pagination, Autoplay, FreeMode, EffectCoverflow } from 'swiper/modules';
 import { useAuth } from '../../contexts/AuthContext';
 
 // Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import 'swiper/css/free-mode';
 
 // Custom styles for pagination dots and navigation buttons matching TemplateSelection
 const customPaginationStyles = `
@@ -161,12 +162,24 @@ function TemplateShowcase() {
         {/* Templates Carousel */}
         <div className="relative">
           <Swiper
-            modules={[Navigation, Pagination, Autoplay]}
+            ref={swiperRef}
+            effect="coverflow"
+            coverflowEffect={{
+              rotate: 30,
+              stretch: 0,
+              depth: 100,
+              modifier: 1,
+              slideShadows: true,
+            }}
+            modules={[Navigation, Pagination, Autoplay, FreeMode, EffectCoverflow]}
             spaceBetween={24}
             slidesPerView={1}
             centeredSlides={true}
             loop={true}
-            loopFillGroupWithBlank={true}
+            loopfillgroupwithblank={true}
+            freeMode={true}
+            freeModeMomentum={true}
+            grabCursor={true}
             navigation={{
               nextEl: '.swiper-button-next',
               prevEl: '.swiper-button-prev',
@@ -176,17 +189,19 @@ function TemplateShowcase() {
               dynamicBullets: true,
             }}
             autoplay={{
-              delay: 4000,
+              delay: 3000,
               disableOnInteraction: false,
             }}
             breakpoints={{
               640: {
                 slidesPerView: 2,
-                spaceBetween: 20,
+                spaceBetween: 5,
+                centeredSlides: true,
               },
               1024: {
                 slidesPerView: 3,
-                spaceBetween: 24,
+                spaceBetween: 0,
+                centeredSlides: true,
               },
             }}
             className="template-showcase-swiper"
