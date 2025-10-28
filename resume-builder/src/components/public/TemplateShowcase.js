@@ -165,11 +165,12 @@ function TemplateShowcase() {
             ref={swiperRef}
             effect="coverflow"
             coverflowEffect={{
-              rotate: 30,
+              rotate: 0,
               stretch: 0,
               depth: 100,
               modifier: 1,
-              slideShadows: true,
+              scale: 0.95,
+              slideShadows: false,
             }}
             modules={[Navigation, Pagination, Autoplay, FreeMode, EffectCoverflow]}
             spaceBetween={24}
@@ -195,14 +196,24 @@ function TemplateShowcase() {
             breakpoints={{
               640: {
                 slidesPerView: 2,
-                spaceBetween: 5,
+                spaceBetween: 24,
+                centeredSlides: true,
+              },
+              768: {
+                slidesPerView: 2,
+                spaceBetween: 24,
                 centeredSlides: true,
               },
               1024: {
                 slidesPerView: 3,
-                spaceBetween: 0,
+                spaceBetween: 16,
                 centeredSlides: true,
               },
+              1280: {
+                slidesPerView: 3,
+                spaceBetween: 20,
+                centeredSlides: true,
+              }
             }}
             className="template-showcase-swiper"
             onSwiper={(swiper) => {
@@ -211,7 +222,7 @@ function TemplateShowcase() {
           >
             {templates.map((template) => (
               <SwiperSlide key={template._id}>
-                 <div className="backdrop-blur-md bg-white/70 dark:bg-white/70 rounded-xl shadow-xl border border-white/20 dark:border-white/20 overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 hover:rounded-xl mt-4">
+                 <div className="backdrop-blur-md bg-white/20 dark:bg-white/70 rounded-xl shadow-xl border border-white/20 dark:border-white/20 overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 hover:rounded-xl mt-4">
                   {/* Template Preview */}
                    <div className="relative aspect-[3/4] overflow-hidden rounded-t-xl">
                     <img
