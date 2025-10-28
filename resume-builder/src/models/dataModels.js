@@ -15,6 +15,7 @@ export const createUserModel = (data = {}) => ({
   isEmailVerified: data.isEmailVerified || false,
   isActive: data.isActive || true,
   role: data.role || 'user',
+  tokens: data.tokens || 0,
   subscription: data.subscription || createSubscriptionModel(),
   usage: data.usage || createUsageModel(),
   preferences: data.preferences || createPreferencesModel(),
