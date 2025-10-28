@@ -215,7 +215,7 @@ const HomePage = () => {
               <ul className="space-y-2 text-gray-600 dark:text-gray-400">
                 <li><button onClick={() => navigate('/privacy-policy')} className="hover:text-gray-900 dark:hover:text-white transition-colors">Privacy Policy</button></li>
                 <li><button onClick={() => navigate('/terms-conditions')} className="hover:text-gray-900 dark:hover:text-white transition-colors">Terms & Conditions</button></li>
-                <li><button onClick={() => navigate('/cancellation-refunds')} className="hover:text-gray-900 dark:hover:text-white transition-colors">Cancellation & Refunds</button></li>
+                <li><button onClick={() => navigate('/cancellation-refunds')} className="hover:text-gray-900 dark:hover:text-white transition-colors text-align-left">Cancellation & Refunds</button></li>
               </ul>
             </div>
             <div>

@@ -263,11 +263,11 @@ function TemplateSelection() {
             ref={swiperRef}
             effect="coverflow"
             coverflowEffect={{
-              rotate: 30,
+              rotate: 0,
               stretch: 0,
               depth: 100,
               modifier: 1,
-              slideShadows: true,
+              slideShadows: false,
             }}
             modules={[Navigation, Pagination, Autoplay, EffectCoverflow, FreeMode]}
             spaceBetween={20}
