@@ -5,7 +5,8 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   ClockIcon,
-  CurrencyDollarIcon
+  CurrencyDollarIcon,
+  ArrowUturnLeftIcon
 } from '@heroicons/react/24/outline';
 import { paymentAPI } from '../services/api';
 
@@ -76,6 +77,14 @@ const PaymentHistory = () => {
       default:
         return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  // isRefundable is now provided by the backend API
+
+  const handleRefund = (transaction) => {
+    // Placeholder for refund functionality
+    toast.info('Refund functionality will be implemented soon');
+    console.log('Refund requested for transaction:', transaction.transactionId);
   };
 
   if (loading) {
@@ -165,9 +174,20 @@ const PaymentHistory = () => {
                         {formatAmount(transaction.amount)}
                       </span>
                     </div>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
-                      {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
-                    </span>
+                    <div className="flex items-center space-x-2">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
+                        {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
+                      </span>
+                      {transaction.isRefundable && (
+                        <button
+                          onClick={() => handleRefund(transaction)}
+                          className="inline-flex items-center px-3 py-1.5 border border-red-300 text-red-700 text-xs font-medium rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
+                        >
+                          <ArrowUturnLeftIcon className="w-4 h-4 mr-1" />
+                          Refund
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
 

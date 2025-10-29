@@ -131,10 +131,16 @@ const CancellationRefunds = () => {
                 Once a token has been used to trigger an AI response, it is considered consumed and non-refundable. 
                 Since digital services are delivered immediately, we cannot reclaim or reverse the content generated.
               </p>
-              <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
-                <XCircleIcon className="w-5 h-5" />
-                <span className="font-semibold">Used tokens are permanently non-refundable</span>
-              </div>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-600 mb-4">
+                <li className="flex items-start gap-2">
+                  <XCircleIcon className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+                  <span>Used tokens are permanently non-refundable</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <XCircleIcon className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+                  <span>Bonus tokens are not refundable under any circumstances</span>
+                </li>
+              </ul>
             </div>
 
             {/* Refunds for Unused Tokens */}
@@ -154,16 +160,25 @@ const CancellationRefunds = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>The refund amount will be proportional to the number of unused tokens</span>
+                  <span>If bonus tokens were used from a particular payment, they will be deducted from the bought tokens of that payment</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                  <span>Only the remaining amount after bonus token deduction will be refunded</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
                   <span>Refunds will be processed to the original payment method via Razorpay within 5–7 business days</span>
                 </li>
               </ul>
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-4 mb-4">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  <strong>Important:</strong> Bonus tokens are not refundable. If you used bonus tokens from a payment, the equivalent amount will be deducted from your refund.
+                </p>
+              </div>
               <div className="bg-white dark:bg-gray-800 rounded-xl p-4">
                 <p className="text-sm text-gray-700 dark:text-gray-300">
-                  <strong>Example:</strong> If you purchased 100 tokens and used 10, you may request a refund for the remaining 90 tokens within the refund period.
+                  <strong>Example:</strong> If you purchased 100 tokens (with 20 bonus tokens) and used 30 tokens (including 10 bonus tokens), you may request a refund for the remaining 70 bought tokens. The 10 used bonus tokens will be deducted from your refund amount.
                 </p>
               </div>
             </div>
@@ -191,7 +206,7 @@ const CancellationRefunds = () => {
               </p>
               <div className="bg-white dark:bg-gray-800 rounded-xl p-4">
                 <p className="text-sm text-gray-700 dark:text-gray-300">
-                  <strong>Tip:</strong> We encourage users to refine their input or retry the service.
+                  <strong>Tip:</strong> We encourage users to refine their input and then retry the service.
                 </p>
               </div>
             </div>

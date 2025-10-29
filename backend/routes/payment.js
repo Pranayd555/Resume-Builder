@@ -278,7 +278,7 @@ router.get('/history', protect, async (req, res) => {
       });
     }
 
-    const transactions = user.getTransactionHistory(20);
+    const transactions = user.razorpayTransactionsWithRefundStatus.slice(0, 20);
 
     res.json({
       success: true,
