@@ -13,7 +13,8 @@ import {
   ChevronUpIcon,
   CreditCardIcon,
   CheckCircleIcon,
-  XCircleIcon
+  XCircleIcon,
+  ArrowUturnLeftIcon
 } from '@heroicons/react/24/outline';
 
 
@@ -23,6 +24,15 @@ function AnalyticsDashboard() {
   const [loading, setLoading] = useState(true);
   const [isTemplatesAccordionOpen, setIsTemplatesAccordionOpen] = useState(false);
   const [isPaymentHistoryAccordionOpen, setIsPaymentHistoryAccordionOpen] = useState(false);
+
+  // isRefundable is now provided by the backend API
+
+  // Handle refund request
+  const handleRefund = (transaction) => {
+    // Placeholder for refund functionality
+    toast.info('Refund functionality will be implemented soon');
+    console.log('Refund requested for transaction:', transaction.transactionId);
+  };
 
   // Custom scrollbar styles
   const scrollbarStyles = `
@@ -391,6 +401,15 @@ function AnalyticsDashboard() {
                               <p className="text-xs text-orange-600 dark:text-orange-400">
                                 {transaction.metadata.billingCycle} billing
                               </p>
+                            )}
+                            {transaction.isRefundable && (
+                              <button
+                                onClick={() => handleRefund(transaction)}
+                                className="mt-2 inline-flex items-center px-2 py-1 border border-red-300 text-red-700 text-xs font-medium rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
+                              >
+                                <ArrowUturnLeftIcon className="w-3 h-3 mr-1" />
+                                Refund
+                              </button>
                             )}
                           </div>
                         </div>

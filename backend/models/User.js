@@ -240,6 +240,22 @@ userSchema.virtual('isLocked').get(function() {
   return !!(this.lockUntil && this.lockUntil > Date.now());
 });
 
+// Virtual for razorpay transactions with isRefundable field
+userSchema.virtual('razorpayTransactionsWithRefundStatus').get(function() {
+  return this.razorpayTransactions.map(transaction => {
+    const transactionDate = new Date(transaction.createdAt);
+    const currentDate = new Date();
+    const daysDifference = Math.floor((currentDate - transactionDate) / (1000 * 60 * 60 * 24));
+    
+    return {
+      ...transaction.toObject(),
+      isRefundable: transaction.status === 'captured' && 
+                   !transaction.refundedAt && 
+                   daysDifference <= 7
+    };
+  });
+});
+
 // Pre-save middleware to hash password
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
@@ -413,8 +429,8 @@ userSchema.methods.addRazorpayTransaction = function(transactionData) {
   this.razorpayTransactions.unshift(transactionData);
   
   // Keep only the last 20 transactions
-  if (this.razorpayTransactions.length > 20) {
-    this.razorpayTransactions = this.razorpayTransactions.slice(0, 20);
+  if (this.razorpayTransactions.length > 50) {
+    this.razorpayTransactions = this.razorpayTransactions.slice(0, 50);
   }
   
   return this.save();

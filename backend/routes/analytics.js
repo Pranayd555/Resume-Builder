@@ -180,7 +180,7 @@ router.get('/summary', protect, async (req, res) => {
         purchasedTokens: tokenData.purchasedTokens,
         bonusTokens: tokenData.bonusTokens,
         remainingFreeTokens: tokenData.remainingFreeTokens,
-        recentTransactions: user?.razorpayTransactions?.slice(0, 5) || []
+        recentTransactions: user?.razorpayTransactionsWithRefundStatus?.slice(0, 10) || []
       }
     };
 
@@ -217,7 +217,7 @@ router.get('/ai-usage', protect, async (req, res) => {
         remainingFreeTokens: tokenData.remainingFreeTokens,
         isTokenBased: true
       },
-      recentTransactions: user?.razorpayTransactions?.slice(0, 5) || []
+      recentTransactions: user?.razorpayTransactionsWithRefundStatus?.slice(0, 5) || []
     };
 
     res.json({
@@ -249,8 +249,8 @@ router.get('/tokens', protect, async (req, res) => {
       balance: tokenData.totalTokenBalance,
       purchasedTokens: tokenData.purchasedTokens,
       bonusTokens: tokenData.bonusTokens,
-      remainingFreeTokens: tokenData.remainingFreeTokens,
-      recentTransactions: user?.razorpayTransactions?.slice(0, 5) || []
+        remainingFreeTokens: tokenData.remainingFreeTokens,
+        recentTransactions: user?.razorpayTransactionsWithRefundStatus?.slice(0, 5) || []
     };
     
     res.json({
