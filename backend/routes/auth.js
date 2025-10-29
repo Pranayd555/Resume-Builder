@@ -62,13 +62,14 @@ router.post('/register', [
       });
     }
 
-    // Create user (unverified by default)
+    // Create user (unverified by default) with bonus tokens
     const user = new User({
       firstName,
       lastName,
       email,
       password,
-      isEmailVerified: false
+      isEmailVerified: false,
+      bonusTokens: 5 // Give 5 bonus tokens to new users
     });
 
     // Generate OTP for email verification
@@ -95,6 +96,9 @@ router.post('/register', [
     // Generate JWT token
     const token = user.getSignedJwtToken();
 
+    // Calculate total token data
+    const tokenData = await calculateTotalTokens(user._id);
+
     // Remove password and sensitive data from response
     const userResponse = user.toObject();
     delete userResponse.password;
@@ -107,8 +111,13 @@ router.post('/register', [
       success: true,
       message: 'Registration successful! Please check your email for verification code.',
       data: {
-        user: userResponse,
+        user: {...userResponse, tokens: tokenData.totalTokenBalance},
         token,
+        tokens: {
+          balance: tokenData.totalTokenBalance,
+          purchasedTokens: tokenData.purchasedTokens,
+          bonusTokens: tokenData.bonusTokens
+        },
         requiresEmailVerification: true
       }
     });
@@ -196,6 +205,9 @@ router.post('/login', [
     // Generate JWT token
     const token = user.getSignedJwtToken();
 
+    // Calculate total token data
+    const tokenData = await calculateTotalTokens(user._id);
+
     // Remove password from response
     const userResponse = user.toObject();
     delete userResponse.password;
@@ -205,8 +217,13 @@ router.post('/login', [
     res.json({
       success: true,
       data: {
-        user: userResponse,
-        token
+        user: {...userResponse, tokens: tokenData.totalTokenBalance},
+        token,
+        tokens: {
+          balance: tokenData.totalTokenBalance,
+          purchasedTokens: tokenData.purchasedTokens,
+          bonusTokens: tokenData.bonusTokens
+        }
       }
     });
   } catch (error) {
@@ -398,6 +415,9 @@ router.get('/me', protect, async (req, res) => {
         error: 'User not found'
       });
     }
+
+    // Calculate total token data
+    const tokenData = await calculateTotalTokens(user._id);
     
     res.json({
       success: true,
@@ -415,10 +435,16 @@ router.get('/me', protect, async (req, res) => {
           isActive: user.isActive,
           role: user.role,
           preferences: user.preferences,
-          tokens: user.tokens,
+          tokens: (user.tokens + user.bonusTokens),
+          bonusTokens: user.bonusTokens,
           usage: user.usage,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt
+        },
+        tokens: {
+          balance: tokenData.totalTokenBalance,
+          purchasedTokens: tokenData.purchasedTokens,
+          bonusTokens: tokenData.bonusTokens
         }
       }
     });

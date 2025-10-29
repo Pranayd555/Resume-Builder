@@ -151,9 +151,9 @@ router.post('/parse-resume', [
           originalText: extractedText,
           parsedData: null,
           fileName: originalname,
-          message: 'Resume text extracted successfully (AI parsing failed)'
+          message: 'Resume text extracted successfully (AI parsing failed)',
+          tokens: req.tokens || 0
         },
-        tokens: currentUser ? currentUser.tokens : 0
       });
     }
     
@@ -163,9 +163,9 @@ router.post('/parse-resume', [
         originalText: extractedText,
         parsedData: parsedData,
         fileName: originalname,
-        message: 'Resume text extracted and parsed successfully'
+        message: 'Resume text extracted and parsed successfully',
+        tokens: req.tokens || 0
       },
-      tokens: currentUser ? currentUser.tokens : 0
     });
 
   } catch (error) {

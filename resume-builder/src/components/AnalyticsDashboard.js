@@ -101,7 +101,7 @@ function AnalyticsDashboard() {
   // Safely destructure with defaults to prevent rendering objects directly
   const resumes = analytics?.resumes || { total: 0, totalViews: 0, totalDownloads: 0, averageViews: 0, averageDownloads: 0 };
   const templates = analytics?.templates || { totalUsed: 0, templates: [] };
-  const tokens = analytics?.tokens || { balance: 0, purchasedTokens: 0, remainingFreeTokens: 0, recentTransactions: [] };
+  const tokens = analytics?.tokens || { balance: 0, purchasedTokens: 0, bonusTokens: 0, remainingFreeTokens: 0, recentTransactions: [] };
 
   return (
     <div className="min-h-screen pt-16">
@@ -187,7 +187,7 @@ function AnalyticsDashboard() {
                   {tokens?.balance || 0}
                 </p>
                 <p className="text-xs text-gray-500">
-                  Available for AI actions
+                  {tokens?.purchasedTokens || 0} regular + {tokens?.bonusTokens || 0} bonus
                 </p>
               </div>
             </div>
@@ -358,7 +358,12 @@ function AnalyticsDashboard() {
                               </p>
                               {transaction.metadata?.tokensAdded && (
                                 <p className="text-xs text-blue-600 dark:text-blue-400">
-                                  +{transaction.metadata.tokensAdded} tokens added
+                                  +{transaction.metadata.regularTokensAdded || transaction.metadata.tokensAdded} tokens added
+                                  {transaction.metadata?.bonusTokensAdded > 0 && (
+                                    <span className="text-green-600 dark:text-green-400 ml-1">
+                                      (+{transaction.metadata.bonusTokensAdded} bonus)
+                                    </span>
+                                  )}
                                 </p>
                               )}
                               {transaction.metadata?.planDetails && (
@@ -369,7 +374,7 @@ function AnalyticsDashboard() {
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="font-semibold text-gray-900 dark:text-gray-100">
+                            <p className="font-semibold text-gray-900 dark:text-gray-600">
                               ₹{(transaction.amount / 100).toFixed(2)}
                             </p>
                             <p className="text-xs text-gray-400 dark:text-gray-700">

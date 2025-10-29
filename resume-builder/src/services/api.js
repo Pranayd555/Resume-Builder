@@ -31,22 +31,25 @@ api.interceptors.response.use(
     if (response.data) {
       // Check for tokens in multiple possible locations
       let tokenBalance = null;
+      let tokenData = null;
       
       // Check direct tokens field
       if (response.data.tokens !== undefined) {
         tokenBalance = response.data.tokens;
       }
-      // Check nested user.tokens
-      else if (response.data.data?.user?.tokens !== undefined) {
-        tokenBalance = response.data.data.user.tokens;
-      }
-      // Check data.tokens
+      // Check data.tokens (new structure with bonus tokens)
       else if (response.data.data?.tokens !== undefined) {
+        tokenData = response.data.data.tokens;
         tokenBalance = response.data.data.tokens?.balance;
       }
       
       if (tokenBalance !== null) {
         apiHelpers.updateTokenBalance(tokenBalance);
+      }
+      
+      if (tokenData) {
+        console.log('🔄 API Response: Updating token data:', tokenData);
+        apiHelpers.updateTokenData(tokenData);
       }
     }
     return response;
@@ -686,6 +689,9 @@ export const apiHelpers = {
     return balance ? JSON.parse(balance) : 0;
   },
 
+  setTokenData: (tokenData) => {
+    localStorage.setItem('tokenData', JSON.stringify(tokenData));
+  },
 
   getTokenData: () => {
     const tokenData = localStorage.getItem('tokenData');
@@ -703,6 +709,19 @@ export const apiHelpers = {
     // Dispatch custom event to notify other components
     window.dispatchEvent(new CustomEvent('tokenBalanceUpdated', { 
       detail: { balance: newBalance } 
+    }));
+  },
+
+  // Update token data with bonus tokens
+  updateTokenData: (tokenData) => {
+    apiHelpers.setTokenData(tokenData);
+    // Update balance as well
+    if (tokenData.balance !== undefined) {
+      apiHelpers.updateTokenBalance(tokenData.balance);
+    }
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent('tokenDataUpdated', { 
+      detail: tokenData 
     }));
   },
 

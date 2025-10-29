@@ -15,10 +15,19 @@ router.get('/profile', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     
+    // Calculate total token data
+    const { calculateTotalTokens } = require('../utils/tokenCalculator');
+    const tokenData = await calculateTotalTokens(user._id);
+    
     res.json({
       success: true,
       data: {
-        user: user.toObject()
+        user: user.toObject(),
+        tokens: {
+          balance: tokenData.totalTokenBalance,
+          purchasedTokens: tokenData.purchasedTokens,
+          bonusTokens: tokenData.bonusTokens
+        }
       }
     });
   } catch (error) {
@@ -108,6 +117,10 @@ router.get('/dashboard', protect, async (req, res) => {
       { $group: { _id: null, totalDownloads: { $sum: '$analytics.downloads' } } }
     ]);
 
+    // Calculate total token data
+    const { calculateTotalTokens } = require('../utils/tokenCalculator');
+    const tokenData = await calculateTotalTokens(user._id);
+
     const stats = {
       resumeCount,
       publishedResumeCount,
@@ -119,7 +132,12 @@ router.get('/dashboard', protect, async (req, res) => {
       success: true,
       data: {
         stats,
-        recentResumes
+        recentResumes,
+        tokens: {
+          balance: tokenData.totalTokenBalance,
+          purchasedTokens: tokenData.purchasedTokens,
+          bonusTokens: tokenData.bonusTokens
+        }
       }
     });
   } catch (error) {

@@ -19,6 +19,7 @@ function Header() {
   const [showMenu, setShowMenu] = useState(false);
   const [profilePictureVersion, setProfilePictureVersion] = useState(0);
   const [tokenBalance, setTokenBalance] = useState(0);
+  const [tokenData, setTokenData] = useState({ balance: 0, purchasedTokens: 0, bonusTokens: 0 });
   const mobileMenuRef = useRef(null);
   const mobileMenuButtonRef = useRef(null);
 
@@ -62,24 +63,30 @@ function Header() {
     setProfilePictureVersion(prev => prev + 1);
   }, [user?.profilePicture]);
 
-  // Load token balance from localStorage
+  // Consolidated token data management
   useEffect(() => {
-    const balance = apiHelpers.getTokenBalance();
-    setTokenBalance(balance);
-  }, []);
+    // Helper function to update token data
+    const updateTokenData = () => {
+      const balance = apiHelpers.getTokenBalance();
+      const tokenData = apiHelpers.getTokenData();
+      const defaultTokenData = { balance: 0, purchasedTokens: 0, bonusTokens: 0 };
+      
+      setTokenData(tokenData || defaultTokenData);
+      setTokenBalance(balance || 0);
+    };
 
-  // Update token balance when page becomes visible (to catch updates from other tabs)
-  useEffect(() => {
+    // Initial load and when user changes (e.g., after login)
+    updateTokenData();
+
+    // Event handlers for various scenarios
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        const balance = apiHelpers.getTokenBalance();
-        setTokenBalance(balance);
+        updateTokenData();
       }
     };
 
     const handleFocus = () => {
-      const balance = apiHelpers.getTokenBalance();
-      setTokenBalance(balance);
+      updateTokenData();
     };
 
     // Listen for token balance updates from API responses
@@ -87,16 +94,26 @@ function Header() {
       setTokenBalance(event.detail.balance);
     };
 
+    // Listen for token data updates from API responses
+    const handleTokenDataUpdate = (event) => {
+      console.log('🔄 Header: Token data updated:', event.detail);
+      setTokenData(event.detail);
+      setTokenBalance(event.detail.balance || 0);
+    };
+
+    // Add event listeners
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', handleFocus);
     window.addEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
+    window.addEventListener('tokenDataUpdated', handleTokenDataUpdate);
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
+      window.removeEventListener('tokenDataUpdated', handleTokenDataUpdate);
     };
-  }, []);
+  }, [isAuthenticated, user]); // Dependencies: re-run when user changes
 
   // Handle click outside to close mobile menu
   useEffect(() => {
@@ -230,9 +247,16 @@ function Header() {
             {/* Token Balance */}
             <div className="flex items-center space-x-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-700/30 rounded-lg px-3 py-1.5">
               <CurrencyDollarIcon className="w-4 h-4 text-green-600 dark:text-green-400" />
-              <span className="text-green-700 dark:text-green-300 text-xs font-semibold">
-                {tokenBalance}
-              </span>
+              <div className="flex flex-col">
+                <span className="text-green-700 dark:text-green-300 text-xs font-semibold">
+                  {tokenData.balance || tokenBalance}
+                </span>
+                {tokenData.bonusTokens > 0 && (
+                  <span className="text-green-600 dark:text-green-400 text-xs">
+                    {tokenData.purchasedTokens || 0} + {tokenData.bonusTokens} bonus
+                  </span>
+                )}
+              </div>
             </div>
             
             <div className="h-5 w-px bg-gray-300 dark:bg-gray-600"></div>
@@ -340,10 +364,13 @@ function Header() {
                 <CurrencyDollarIcon className="w-5 h-5 text-green-600 dark:text-green-400" />
                 <div>
                   <div className="text-green-700 dark:text-green-300 text-sm font-semibold">
-                    {tokenBalance} Tokens
+                    {tokenData.balance || tokenBalance} Tokens
                   </div>
                   <div className="text-green-600 dark:text-green-400 text-xs">
-                    Available Balance
+                    {tokenData.bonusTokens > 0 ? 
+                      `${tokenData.purchasedTokens || 0} regular + ${tokenData.bonusTokens} bonus` : 
+                      'Available Balance'
+                    }
                   </div>
                 </div>
               </div>

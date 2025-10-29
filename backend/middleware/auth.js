@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const logger = require('../utils/logger');
+const { calculateTotalTokens } = require('../utils/tokenCalculator');
 
 // Protect routes - require authentication
 const protect = async (req, res, next) => {
@@ -66,7 +67,7 @@ const checkAIActionLimit = async (req, res, next) => {
     }
 
     // Check if user has tokens available
-    if (user.tokens <= 0) {
+    if (user.tokens <= 0 && user.bonusTokens <= 0) {
       return res.status(403).json({
         success: false,
         error: 'No tokens available. Please purchase more tokens to use AI features.',
@@ -159,11 +160,15 @@ const checkTokenLimit = async (req, res, next) => {
     // Consume 1 token for AI action
     try {
       await user.consumeTokens(1);
-      logger.info(`Token consumed: 1 token for user ${req.user.id}, remaining: ${user.tokens}`);
-      
+      logger.info(`Token consumed: 1 token for user ${req.user.id}, remaining: ${user.tokens + user.bonusTokens}`);
+      const tokenData = await calculateTotalTokens(req.user.id);
       // Store user object and token data in request for potential refund and response
       req.userForRefund = user;
-      req.tokens = user.tokens;
+      req.tokens = {
+        balance: tokenData.totalTokenBalance,
+        purchasedTokens: tokenData.purchasedTokens,
+        bonusTokens: tokenData.bonusTokens,
+      };
     } catch (error) {
       logger.error(`Error consuming tokens: ${error.message}`);
       return res.status(500).json({
