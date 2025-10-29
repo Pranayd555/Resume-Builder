@@ -1,338 +1,383 @@
-import axios from 'axios';
-import { createApiConfig } from '../config/timeouts';
+// Admin API service for centralized API calls and error handling
+import { toast } from 'react-toastify';
 
-// Create axios instance with base configuration
-const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
-  timeout: 30000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
-// Request interceptor to add auth token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+// Helper function to get auth headers
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    throw new Error('No authentication token found. Please log in again.');
   }
-);
+  return {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  };
+};
 
-// Response interceptor for error handling
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    // Handle unauthorized access
-    if (error?.response?.status === 401) {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
-      return;
-    }
-
-    // Extract user-friendly error message
-    let backendMessage = 'An unexpected error occurred';
-    
-    if (error?.response?.data) {
-      if (error.response.data.error) {
-        backendMessage = error.response.data.error;
-      } else if (Array.isArray(error.response.data.errors)) {
-        backendMessage = error.response.data.errors.map((e) => e.msg || e.message).join(', ');
-      }
-    } else if (error?.message) {
-      backendMessage = error.message;
-    }
-
-    error.userMessage = backendMessage;
-    return Promise.reject(error);
+// Helper function to handle API responses
+const handleApiResponse = async (response, errorMessage = 'An error occurred') => {
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || errorMessage);
   }
-);
-
-// Admin Analytics API calls
-export const adminAnalyticsAPI = {
-  // Get admin dashboard statistics
-  getDashboardStats: async () => {
-    const config = createApiConfig('/analytics/admin/dashboard');
-    const response = await api.get('/analytics/admin/dashboard', config);
-    return response.data;
-  },
-
-  // Get admin analytics charts data
-  getChartsData: async (period = '30d') => {
-    const config = createApiConfig('/analytics/admin/charts', { params: { period } });
-    const response = await api.get('/analytics/admin/charts', config);
-    return response.data;
-  },
+  return response.json();
 };
 
-// Admin Users API calls
-export const adminUsersAPI = {
-  // Get all users with pagination
-  getUsers: async (params = {}) => {
-    const config = createApiConfig('/users', { params });
-    const response = await api.get('/users', config);
-    return response.data;
-  },
-
-  // Get user by ID
-  getUserById: async (userId) => {
-    const config = createApiConfig('/users');
-    const response = await api.get(`/users/${userId}`, config);
-    return response.data;
-  },
-
-  // Update user status (activate/deactivate)
-  updateUserStatus: async (userId, isActive) => {
-    const config = createApiConfig('/users');
-    const response = await api.put(`/users/${userId}/status`, { isActive }, config);
-    return response.data;
-  },
-
-  // Add tokens to user account
-  addTokensToUser: async (userId, tokenData) => {
-    const config = createApiConfig('/users');
-    const response = await api.post(`/users/${userId}/add-tokens`, tokenData, config);
-    return response.data;
-  },
+// Helper function to handle errors
+const handleError = (error, defaultMessage = 'An error occurred') => {
+  console.error('API Error:', error);
+  const message = error.message || defaultMessage;
+  
+  // Handle authentication errors
+  if (message.includes('No authentication token') || 
+      message.includes('401') || 
+      message.includes('Unauthorized') ||
+      message.includes('token failed')) {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+    return;
+  }
+  
+  toast.error(message);
+  throw error;
 };
 
-// Admin Templates API calls
-export const adminTemplatesAPI = {
-  // Get all templates
-  getTemplates: async (params = {}) => {
-    const config = createApiConfig('/templates', { params });
-    const response = await api.get('/templates', config);
-    return response.data;
+// Feedback API calls
+export const feedbackApi = {
+  // Get all feedbacks with pagination and filtering
+  getFeedbacks: async (params = {}) => {
+    try {
+      const queryParams = new URLSearchParams(params);
+      const response = await fetch(`${API_BASE_URL}/feedback?${queryParams}`, {
+        headers: getAuthHeaders()
+      });
+      return await handleApiResponse(response, 'Failed to fetch feedbacks');
+    } catch (error) {
+      handleError(error, 'Failed to fetch feedbacks');
+    }
   },
 
-  // Get template by ID
-  getTemplateById: async (templateId) => {
-    const config = createApiConfig('/templates');
-    const response = await api.get(`/templates/${templateId}`, config);
-    return response.data;
-  },
-
-  // Create new template
-  createTemplate: async (templateData) => {
-    const config = createApiConfig('/templates');
-    const response = await api.post('/templates', templateData, config);
-    return response.data;
-  },
-
-  // Update template
-  updateTemplate: async (templateId, templateData) => {
-    const config = createApiConfig('/templates');
-    const response = await api.put(`/templates/${templateId}`, templateData, config);
-    return response.data;
-  },
-
-  // Delete template
-  deleteTemplate: async (templateId) => {
-    const config = createApiConfig('/templates');
-    const response = await api.delete(`/templates/${templateId}`, config);
-    return response.data;
-  },
-
-  // Seed default templates
-  seedTemplates: async () => {
-    const config = createApiConfig('/templates/seed');
-    const response = await api.post('/templates/seed', {}, config);
-    return response.data;
-  },
-
-  // Get template statistics
-  getTemplateStats: async (templateId) => {
-    const config = createApiConfig('/templates');
-    const response = await api.get(`/templates/${templateId}/stats`, config);
-    return response.data;
-  },
-};
-
-// Admin Contact API calls
-export const adminContactAPI = {
-  // Get all contacts with pagination and filters
-  getContacts: async (params = {}) => {
-    const config = createApiConfig('/contact', { params });
-    const response = await api.get('/contact', config);
-    return response.data;
-  },
-
-  // Get contact by ID
-  getContactById: async (contactId) => {
-    const config = createApiConfig('/contact');
-    const response = await api.get(`/contact/${contactId}`, config);
-    return response.data;
-  },
-
-  // Update contact status
-  updateContactStatus: async (contactId, statusData) => {
-    const config = createApiConfig('/contact');
-    const response = await api.put(`/contact/${contactId}/status`, statusData, config);
-    return response.data;
-  },
-
-  // Add response to contact
-  addContactResponse: async (contactId, responseData) => {
-    const config = createApiConfig('/contact');
-    const response = await api.put(`/contact/${contactId}/response`, responseData, config);
-    return response.data;
-  },
-
-  // Get contact statistics
-  getContactStats: async () => {
-    const config = createApiConfig('/contact');
-    const response = await api.get('/contact/stats/overview', config);
-    return response.data;
-  },
-
-  // Delete contact
-  deleteContact: async (contactId) => {
-    const config = createApiConfig('/contact');
-    const response = await api.delete(`/contact/${contactId}`, config);
-    return response.data;
-  },
-};
-
-// Admin Feedback API calls
-export const adminFeedbackAPI = {
-  // Get all feedback with pagination and filters
-  getFeedback: async (params = {}) => {
-    const config = createApiConfig('/feedback', { params });
-    const response = await api.get('/feedback', config);
-    return response.data;
-  },
-
-  // Get feedback by ID
-  getFeedbackById: async (feedbackId) => {
-    const config = createApiConfig('/feedback');
-    const response = await api.get(`/feedback/${feedbackId}`, config);
-    return response.data;
+  // Get single feedback by ID
+  getFeedback: async (id) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/feedback/${id}`, {
+        headers: getAuthHeaders()
+      });
+      return await handleApiResponse(response, 'Failed to fetch feedback');
+    } catch (error) {
+      handleError(error, 'Failed to fetch feedback');
+    }
   },
 
   // Update feedback status
-  updateFeedbackStatus: async (feedbackId, statusData) => {
-    const config = createApiConfig('/feedback');
-    const response = await api.put(`/feedback/${feedbackId}/status`, statusData, config);
-    return response.data;
+  updateStatus: async (id, status) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/feedback/${id}/status`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ status })
+      });
+      return await handleApiResponse(response, 'Failed to update feedback status');
+    } catch (error) {
+      handleError(error, 'Failed to update feedback status');
+    }
   },
 
   // Add response to feedback
-  addFeedbackResponse: async (feedbackId, responseData) => {
-    const config = createApiConfig('/feedback');
-    const response = await api.put(`/feedback/${feedbackId}/response`, responseData, config);
-    return response.data;
+  addResponse: async (id, response) => {
+    try {
+      const apiResponse = await fetch(`${API_BASE_URL}/feedback/${id}/response`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ response })
+      });
+      return await handleApiResponse(apiResponse, 'Failed to add response');
+    } catch (error) {
+      handleError(error, 'Failed to add response');
+    }
   },
 
-  // Get feedback statistics
-  getFeedbackStats: async () => {
-    const config = createApiConfig('/feedback');
-    const response = await api.get('/feedback/stats', config);
-    return response.data;
+  // Add admin notes to feedback
+  addNotes: async (id, adminNotes) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/feedback/${id}/notes`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ adminNotes })
+      });
+      return await handleApiResponse(response, 'Failed to add notes');
+    } catch (error) {
+      handleError(error, 'Failed to add notes');
+    }
   },
 
   // Delete feedback
-  deleteFeedback: async (feedbackId) => {
-    const config = createApiConfig('/feedback');
-    const response = await api.delete(`/feedback/${feedbackId}`, config);
-    return response.data;
+  deleteFeedback: async (id) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/feedback/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      return await handleApiResponse(response, 'Failed to delete feedback');
+    } catch (error) {
+      handleError(error, 'Failed to delete feedback');
+    }
   },
+
+  // Get feedback statistics
+  getStats: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/feedback/stats/overview`, {
+        headers: getAuthHeaders()
+      });
+      return await handleApiResponse(response, 'Failed to fetch feedback statistics');
+    } catch (error) {
+      handleError(error, 'Failed to fetch feedback statistics');
+    }
+  }
 };
 
-// Admin Email Test API calls
-export const adminEmailAPI = {
-  // Test email connection
-  testEmailConnection: async () => {
-    const config = createApiConfig('/email-test/connection');
-    const response = await api.get('/email-test/connection', config);
-    return response.data;
+// Contact API calls
+export const contactApi = {
+  // Get all contacts with pagination and filtering
+  getContacts: async (params = {}) => {
+    try {
+      const queryParams = new URLSearchParams(params);
+      const response = await fetch(`${API_BASE_URL}/contact?${queryParams}`, {
+        headers: getAuthHeaders()
+      });
+      return await handleApiResponse(response, 'Failed to fetch contacts');
+    } catch (error) {
+      handleError(error, 'Failed to fetch contacts');
+    }
   },
 
-  // Send test email
-  sendTestEmail: async (emailData) => {
-    const config = createApiConfig('/email-test/send');
-    const response = await api.post('/email-test/send', emailData, config);
-    return response.data;
+  // Get single contact by ID
+  getContact: async (id) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/contact/${id}`, {
+        headers: getAuthHeaders()
+      });
+      return await handleApiResponse(response, 'Failed to fetch contact');
+    } catch (error) {
+      handleError(error, 'Failed to fetch contact');
+    }
   },
+
+  // Update contact status
+  updateStatus: async (id, status) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/contact/${id}/status`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ status })
+      });
+      return await handleApiResponse(response, 'Failed to update contact status');
+    } catch (error) {
+      handleError(error, 'Failed to update contact status');
+    }
+  },
+
+  // Update contact priority
+  updatePriority: async (id, priority) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/contact/${id}/priority`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ priority })
+      });
+      return await handleApiResponse(response, 'Failed to update contact priority');
+    } catch (error) {
+      handleError(error, 'Failed to update contact priority');
+    }
+  },
+
+  // Add response to contact
+  addResponse: async (id, response) => {
+    try {
+      const apiResponse = await fetch(`${API_BASE_URL}/contact/${id}/response`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ response })
+      });
+      return await handleApiResponse(apiResponse, 'Failed to add response');
+    } catch (error) {
+      handleError(error, 'Failed to add response');
+    }
+  },
+
+  // Add admin notes to contact
+  addNotes: async (id, adminNotes) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/contact/${id}/notes`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ adminNotes })
+      });
+      return await handleApiResponse(response, 'Failed to add notes');
+    } catch (error) {
+      handleError(error, 'Failed to add notes');
+    }
+  },
+
+  // Delete contact
+  deleteContact: async (id) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/contact/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      return await handleApiResponse(response, 'Failed to delete contact');
+    } catch (error) {
+      handleError(error, 'Failed to delete contact');
+    }
+  },
+
+  // Get contact statistics
+  getStats: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/contact/stats/overview`, {
+        headers: getAuthHeaders()
+      });
+      return await handleApiResponse(response, 'Failed to fetch contact statistics');
+    } catch (error) {
+      handleError(error, 'Failed to fetch contact statistics');
+    }
+  }
 };
 
-// Admin Resume API calls
-export const adminResumeAPI = {
-  // Get all resumes with pagination
-  getResumes: async (params = {}) => {
-    const config = createApiConfig('/resumes', { params });
-    const response = await api.get('/resumes', config);
-    return response.data;
+// Analytics API calls
+export const analyticsApi = {
+  // Get dashboard statistics
+  getDashboardStats: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/analytics/admin/dashboard`, {
+        headers: getAuthHeaders()
+      });
+      return await handleApiResponse(response, 'Failed to fetch dashboard stats');
+    } catch (error) {
+      handleError(error, 'Failed to fetch dashboard stats');
+    }
   },
 
-  // Get resume by ID
-  getResumeById: async (resumeId) => {
-    const config = createApiConfig('/resumes');
-    const response = await api.get(`/resumes/${resumeId}`, config);
-    return response.data;
-  },
-
-  // Update resume status
-  updateResumeStatus: async (resumeId, statusData) => {
-    const config = createApiConfig('/resumes');
-    const response = await api.put(`/resumes/${resumeId}/status`, statusData, config);
-    return response.data;
-  },
-
-  // Delete resume
-  deleteResume: async (resumeId) => {
-    const config = createApiConfig('/resumes');
-    const response = await api.delete(`/resumes/${resumeId}`, config);
-    return response.data;
-  },
-
-  // Get resume analytics
-  getResumeAnalytics: async (resumeId) => {
-    const config = createApiConfig('/resumes');
-    const response = await api.get(`/resumes/${resumeId}/analytics`, config);
-    return response.data;
-  },
+  // Get charts data
+  getChartsData: async (period = '30d') => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/analytics/admin/charts?period=${period}`, {
+        headers: getAuthHeaders()
+      });
+      return await handleApiResponse(response, 'Failed to fetch charts data');
+    } catch (error) {
+      handleError(error, 'Failed to fetch charts data');
+    }
+  }
 };
 
-// Admin System API calls
-export const adminSystemAPI = {
-  // Get system health
-  getSystemHealth: async () => {
-    const config = createApiConfig('/admin/system/health');
-    const response = await api.get('/admin/system/health', config);
-    return response.data;
+// Users API calls
+export const usersApi = {
+  // Get all users with pagination and filtering
+  getUsers: async (params = {}) => {
+    try {
+      const queryParams = new URLSearchParams(params);
+      const response = await fetch(`${API_BASE_URL}/users?${queryParams}`, {
+        headers: getAuthHeaders()
+      });
+      return await handleApiResponse(response, 'Failed to fetch users');
+    } catch (error) {
+      handleError(error, 'Failed to fetch users');
+    }
   },
 
-  // Get system logs
-  getSystemLogs: async (params = {}) => {
-    const config = createApiConfig('/admin/system/logs', { params });
-    const response = await api.get('/admin/system/logs', config);
-    return response.data;
+  // Get single user by ID
+  getUser: async (id) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+        headers: getAuthHeaders()
+      });
+      return await handleApiResponse(response, 'Failed to fetch user');
+    } catch (error) {
+      handleError(error, 'Failed to fetch user');
+    }
   },
 
-  // Clear system cache
-  clearSystemCache: async () => {
-    const config = createApiConfig('/admin/system/cache');
-    const response = await api.post('/admin/system/cache/clear', {}, config);
-    return response.data;
+  // Update user status
+  updateUserStatus: async (id, isActive) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/${id}/status`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ isActive })
+      });
+      return await handleApiResponse(response, 'Failed to update user status');
+    } catch (error) {
+      handleError(error, 'Failed to update user status');
+    }
   },
+
+  // Add tokens to user
+  addTokensToUser: async (id, tokenData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/${id}/tokens`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(tokenData)
+      });
+      return await handleApiResponse(response, 'Failed to add tokens to user');
+    } catch (error) {
+      handleError(error, 'Failed to add tokens to user');
+    }
+  },
+
+  // Delete user
+  deleteUser: async (id) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      return await handleApiResponse(response, 'Failed to delete user');
+    } catch (error) {
+      handleError(error, 'Failed to delete user');
+    }
+  }
 };
 
-// Export all admin APIs as a single object
-export const adminAPI = {
-  analytics: adminAnalyticsAPI,
-  users: adminUsersAPI,
-  templates: adminTemplatesAPI,
-  contact: adminContactAPI,
-  feedback: adminFeedbackAPI,
-  email: adminEmailAPI,
-  resume: adminResumeAPI,
-  system: adminSystemAPI,
+// Generic API utilities
+export const apiUtils = {
+  // Check if user is authenticated
+  isAuthenticated: () => {
+    return !!localStorage.getItem('token');
+  },
+
+  // Get current user token
+  getToken: () => {
+    return localStorage.getItem('token');
+  },
+
+  // Clear authentication
+  clearAuth: () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  },
+
+  // Handle authentication errors
+  handleAuthError: (error) => {
+    if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+      apiUtils.clearAuth();
+      window.location.href = '/login';
+    }
+  }
 };
 
+const adminAPI = {
+  feedbackApi,
+  contactApi,
+  analyticsApi,
+  usersApi,
+  apiUtils
+};
+
+export { adminAPI };
 export default adminAPI;

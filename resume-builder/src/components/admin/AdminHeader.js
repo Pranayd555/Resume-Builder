@@ -7,15 +7,12 @@ import {
   XMarkIcon, 
   HomeIcon, 
   UsersIcon, 
-  DocumentTextIcon, 
-  NewspaperIcon,
+  UserCircleIcon,
   ChatBubbleLeftRightIcon,
   ChatBubbleLeftIcon,
-  EnvelopeIcon,
-  ChartBarIcon,
-  Cog6ToothIcon,
+  CreditCardIcon,
+  CurrencyDollarIcon,
   ArrowRightOnRectangleIcon,
-  UserCircleIcon,
   SunIcon,
   MoonIcon
 } from '@heroicons/react/24/outline';
@@ -39,14 +36,12 @@ const AdminHeader = () => {
 
   const navigation = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: HomeIcon, current: location.pathname === '/admin/dashboard' },
+    { name: 'Profile', href: '/profile', icon: UserCircleIcon, current: location.pathname === '/admin/profile' },
     { name: 'Users', href: '/admin/users', icon: UsersIcon, current: location.pathname === '/admin/users' },
-    { name: 'Resumes', href: '/admin/resumes', icon: DocumentTextIcon, current: location.pathname === '/admin/resumes' },
-    { name: 'Templates', href: '/admin/templates', icon: NewspaperIcon, current: location.pathname === '/admin/templates' },
-    { name: 'Contacts', href: '/admin/contacts', icon: ChatBubbleLeftRightIcon, current: location.pathname === '/admin/contacts' },
     { name: 'Feedback', href: '/admin/feedback', icon: ChatBubbleLeftIcon, current: location.pathname === '/admin/feedback' },
-    { name: 'Analytics', href: '/admin/analytics', icon: ChartBarIcon, current: location.pathname === '/admin/analytics' },
-    { name: 'Email Test', href: '/admin/email-test', icon: EnvelopeIcon, current: location.pathname === '/admin/email-test' },
-    { name: 'Settings', href: '/admin/settings', icon: Cog6ToothIcon, current: location.pathname === '/admin/settings' },
+    { name: 'Contacts', href: '/admin/contacts', icon: ChatBubbleLeftRightIcon, current: location.pathname === '/admin/contacts' },
+    { name: 'Transactions & Refunds', href: '/admin/transactions', icon: CreditCardIcon, current: location.pathname === '/admin/transactions' },
+    { name: 'Tokens', href: '/admin/tokens', icon: CurrencyDollarIcon, current: location.pathname === '/admin/tokens' },
   ];
 
   return (
@@ -66,19 +61,20 @@ const AdminHeader = () => {
               </Link>
             </div>
             
-            {/* Desktop navigation */}
-            <nav className="hidden md:ml-8 md:flex md:space-x-8">
+            {/* Desktop navigation - compact mobile-style design */}
+            <nav className="hidden sm:ml-4 sm:flex sm:space-x-1 lg:space-x-2">
               {navigation.map((item) => (
                 <Link
                   key={item.name}
                   to={item.href}
                   className={`${
                     item.current
-                      ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-                  } whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200`}
+                      ? 'bg-indigo-100 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
+                      : 'border-transparent text-gray-600 hover:bg-gray-100 hover:border-gray-300 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300'
+                  } group flex items-center px-2 py-1.5 border-l-2 text-xs font-medium transition-colors duration-200 rounded-r-md`}
                 >
-                  {item.name}
+                  <item.icon className="mr-1.5 h-3.5 w-3.5 flex-shrink-0" />
+                  <span className="truncate max-w-20 lg:max-w-none">{item.name}</span>
                 </Link>
               ))}
             </nav>
@@ -124,15 +120,6 @@ const AdminHeader = () => {
                   </div>
                   
                   <Link
-                    to="/admin/profile"
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-                    onClick={() => setUserMenuOpen(false)}
-                  >
-                    <UserCircleIcon className="h-4 w-4 mr-2" />
-                    Profile Settings
-                  </Link>
-                  
-                  <Link
                     to="/dashboard"
                     className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                     onClick={() => setUserMenuOpen(false)}
@@ -155,23 +142,23 @@ const AdminHeader = () => {
               )}
             </div>
 
-            {/* Mobile menu button */}
+            {/* Mobile menu button - only for extra small screens */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+              className="sm:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
             >
               {mobileMenuOpen ? (
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="h-5 w-5" />
               ) : (
-                <Bars3Icon className="h-6 w-6" />
+                <Bars3Icon className="h-5 w-5" />
               )}
             </button>
           </div>
         </div>
 
-        {/* Mobile navigation menu */}
+        {/* Mobile navigation menu - only for extra small screens */}
         {mobileMenuOpen && (
-          <div className="md:hidden">
+          <div className="sm:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 border-t border-gray-200 dark:border-gray-700">
               {navigation.map((item) => (
                 <Link
@@ -179,13 +166,13 @@ const AdminHeader = () => {
                   to={item.href}
                   className={`${
                     item.current
-                      ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-400'
-                      : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300'
-                  } group flex items-center px-3 py-2 border-l-4 text-base font-medium transition-colors duration-200`}
+                      ? 'bg-indigo-100 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
+                      : 'border-transparent text-gray-600 hover:bg-gray-100 hover:border-gray-300 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300'
+                  } group flex items-center px-3 py-2 border-l-2 text-sm font-medium transition-colors duration-200 rounded-r-md`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <item.icon className="mr-3 h-5 w-5" />
-                  {item.name}
+                  <item.icon className="mr-2 h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">{item.name}</span>
                 </Link>
               ))}
             </div>

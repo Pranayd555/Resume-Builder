@@ -21,7 +21,7 @@ const AdminDashboard = () => {
         setLoading(true);
       }
       
-      const response = await adminAPI.analytics.getDashboardStats();
+      const response = await adminAPI.analyticsApi.getDashboardStats();
       
       if (response.success) {
         setDashboardData(response.data);

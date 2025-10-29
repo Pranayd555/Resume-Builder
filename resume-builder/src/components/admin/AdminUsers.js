@@ -20,7 +20,7 @@ const AdminUsers = () => {
   const fetchUsers = useCallback(async (page = 1, search = '') => {
     try {
       setLoading(true);
-      const response = await adminAPI.users.getUsers({
+      const response = await adminAPI.usersApi.getUsers({
         page,
         limit: pagination.limit,
         search
@@ -43,7 +43,7 @@ const AdminUsers = () => {
   // Toggle user status
   const toggleUserStatus = async (userId, isActive) => {
     try {
-      const response = await adminAPI.users.updateUserStatus(userId, !isActive);
+      const response = await adminAPI.usersApi.updateUserStatus(userId, !isActive);
       
       if (response.success) {
         toast.success(`User ${!isActive ? 'activated' : 'deactivated'} successfully`);
@@ -60,7 +60,7 @@ const AdminUsers = () => {
   // Add tokens to user
   const addTokens = async (userId, tokens) => {
     try {
-      const response = await adminAPI.users.addTokensToUser(userId, {
+      const response = await adminAPI.usersApi.addTokensToUser(userId, {
         tokens: parseInt(tokens)
       });
       
