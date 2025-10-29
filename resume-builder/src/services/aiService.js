@@ -34,14 +34,29 @@ class AIService {
 
      const responseData = await response.json();
      
-     // Update token balance if present in response
-     if (responseData && responseData.data && responseData.data.tokens !== undefined) {
-       apiHelpers.updateTokenBalance(responseData.data.tokens);
+     // Update token data if present in response (new structure with bonus tokens)
+     if (responseData && responseData.data && responseData.data.tokens) {
+       const tokenData = responseData.data.tokens;
+       if (typeof tokenData === 'object' && (tokenData.balance !== undefined || tokenData.purchasedTokens !== undefined)) {
+         // New structure with bonus tokens
+         console.log('🔄 AI Service: Updating token data (new structure):', tokenData);
+         apiHelpers.updateTokenData(tokenData);
+       } else if (typeof tokenData === 'number') {
+         // Legacy structure - just balance
+         console.log('🔄 AI Service: Updating token balance (legacy):', tokenData);
+         apiHelpers.updateTokenBalance(tokenData);
+       }
      }
      
      // Also check for tokens at root level
      if (responseData && responseData.tokens !== undefined) {
-       apiHelpers.updateTokenBalance(responseData.tokens);
+       if (typeof responseData.tokens === 'object' && (responseData.tokens.balance !== undefined || responseData.tokens.purchasedTokens !== undefined)) {
+         // New structure with bonus tokens
+         apiHelpers.updateTokenData(responseData.tokens);
+       } else if (typeof responseData.tokens === 'number') {
+         // Legacy structure - just balance
+         apiHelpers.updateTokenBalance(responseData.tokens);
+       }
      }
 
      return responseData;
@@ -170,14 +185,29 @@ class AIService {
 
      const result = await response.json();
      
-     // Update token balance if present in response
-     if (result && result.data && result.data.tokens !== undefined) {
-       apiHelpers.updateTokenBalance(result.data.tokens);
+     // Update token data if present in response (new structure with bonus tokens)
+     if (result && result.data && result.data.tokens) {
+       const tokenData = result.data.tokens;
+       if (typeof tokenData === 'object' && (tokenData.balance !== undefined || tokenData.purchasedTokens !== undefined)) {
+         // New structure with bonus tokens
+         console.log('🔄 AI Service (ATS): Updating token data (new structure):', tokenData);
+         apiHelpers.updateTokenData(tokenData);
+       } else if (typeof tokenData === 'number') {
+         // Legacy structure - just balance
+         console.log('🔄 AI Service (ATS): Updating token balance (legacy):', tokenData);
+         apiHelpers.updateTokenBalance(tokenData);
+       }
      }
      
      // Also check for tokens at root level
      if (result && result.tokens !== undefined) {
-       apiHelpers.updateTokenBalance(result.tokens);
+       if (typeof result.tokens === 'object' && (result.tokens.balance !== undefined || result.tokens.purchasedTokens !== undefined)) {
+         // New structure with bonus tokens
+         apiHelpers.updateTokenData(result.tokens);
+       } else if (typeof result.tokens === 'number') {
+         // Legacy structure - just balance
+         apiHelpers.updateTokenBalance(result.tokens);
+       }
      }
      
      // Backend returns { success: true, data: { atsAnalysis, ... } }

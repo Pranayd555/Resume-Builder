@@ -157,9 +157,26 @@ router.post('/complete-token-purchase', protect, async (req, res) => {
       });
     }
 
+    // Calculate bonus tokens based on package
+    const tokenPackages = [
+      { amount: 5, price: 49, bonus: 0 },
+      { amount: 10, price: 89, bonus: 1 },
+      { amount: 25, price: 199, bonus: 5 },
+      { amount: 50, price: 349, bonus: 15 },
+      { amount: 100, price: 599, bonus: 40 }
+    ];
+    
+    const selectedPackage = tokenPackages.find(pkg => pkg.amount === (tokens - pkg.bonus));
+    const regularTokens = selectedPackage ? selectedPackage.amount : tokens;
+    const bonusTokens = selectedPackage ? selectedPackage.bonus : 0;
+    
     // Add tokens to user account
-    const newTokenBalance = user.tokens + tokens;
-    await user.addTokens(tokens);
+    await user.addTokens(regularTokens);
+    if (bonusTokens > 0) {
+      await user.addBonusTokens(bonusTokens);
+    }
+    
+    const newTokenBalance = user.getTotalTokens();
 
     // Add transaction record
     const transactionData = {
@@ -174,9 +191,11 @@ router.post('/complete-token-purchase', protect, async (req, res) => {
       contact: contact,
       createdAt: new Date(),
       capturedAt: new Date(),
-      notes: `${tokens} AI Tokens Purchase`,
+      notes: `${regularTokens} AI Tokens Purchase${bonusTokens > 0 ? ` + ${bonusTokens} Bonus` : ''}`,
       metadata: {
         tokensAdded: tokens,
+        regularTokensAdded: regularTokens,
+        bonusTokensAdded: bonusTokens,
         newTokenBalance: newTokenBalance,
         type: 'token_purchase',
         razorpaySignature: signature
@@ -213,14 +232,21 @@ router.post('/complete-token-purchase', protect, async (req, res) => {
       // Don't fail the payment process if email fails
     }
     
+    // Get updated token data after purchase
+    const { calculateTotalTokens } = require('../utils/tokenCalculator');
+    const updatedTokenData = await calculateTotalTokens(user._id);
+    
     res.json({
       success: true,
       message: 'Token purchase completed successfully',
       data: {
         tokens: {
+          balance: updatedTokenData.totalTokenBalance,
+          purchasedTokens: updatedTokenData.purchasedTokens,
+          bonusTokens: updatedTokenData.bonusTokens,
           added: tokens,
-          current: newTokenBalance,
-          totalAvailable: newTokenBalance
+          regularTokensAdded: regularTokens,
+          bonusTokensAdded: bonusTokens
         },
         transaction: {
           id: payment_id,

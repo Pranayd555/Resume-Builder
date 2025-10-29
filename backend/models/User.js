@@ -135,6 +135,11 @@ const userSchema = new mongoose.Schema({
     default: 20,
     min: 0
   },
+  bonusTokens: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
   
   // Razorpay Transaction History (last 20 transactions)
   razorpayTransactions: [{
@@ -360,23 +365,45 @@ userSchema.methods.clearEmailOtp = function() {
   this.emailOtpExpire = undefined;
 };
 
-// Method to check if user has enough tokens
+// Method to check if user has enough tokens (bonus + regular)
 userSchema.methods.hasTokens = function(requiredTokens = 1) {
-  return this.tokens >= requiredTokens;
+  const totalTokens = (this.tokens || 0) + (this.bonusTokens || 0);
+  return totalTokens >= requiredTokens;
 };
 
-// Method to consume tokens
+// Method to get total available tokens
+userSchema.methods.getTotalTokens = function() {
+  return (this.tokens || 0) + (this.bonusTokens || 0);
+};
+
+// Method to consume tokens (bonus first, then regular)
 userSchema.methods.consumeTokens = function(tokensToConsume = 1) {
-  if (this.tokens < tokensToConsume) {
+  const totalAvailable = this.getTotalTokens();
+  if (totalAvailable < tokensToConsume) {
     throw new Error('Insufficient tokens');
   }
-  this.tokens -= tokensToConsume;
+  
+  // Consume bonus tokens first
+  if (this.bonusTokens >= tokensToConsume) {
+    this.bonusTokens -= tokensToConsume;
+  } else {
+    const remainingFromBonus = tokensToConsume - this.bonusTokens;
+    this.bonusTokens = 0;
+    this.tokens -= remainingFromBonus;
+  }
+  
   return this.save();
 };
 
-// Method to add tokens
+// Method to add regular tokens
 userSchema.methods.addTokens = function(tokensToAdd) {
   this.tokens += tokensToAdd;
+  return this.save();
+};
+
+// Method to add bonus tokens
+userSchema.methods.addBonusTokens = function(tokensToAdd) {
+  this.bonusTokens += tokensToAdd;
   return this.save();
 };
 

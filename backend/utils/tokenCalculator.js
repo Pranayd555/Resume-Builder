@@ -7,18 +7,21 @@ const User = require('../models/User');
  */
 async function calculateTotalTokens(userId) {
   try {
-    const user = await User.findById(userId).select('tokens');
+    const user = await User.findById(userId).select('tokens bonusTokens');
     
     if (!user) {
       throw new Error('User not found');
     }
     
-    // Get purchased tokens from user
+    // Get purchased tokens and bonus tokens from user
     const purchasedTokens = user.tokens || 0;
+    const bonusTokens = user.bonusTokens || 0;
+    const totalTokenBalance = purchasedTokens + bonusTokens;
     
     return {
-      totalTokenBalance: purchasedTokens,
+      totalTokenBalance: totalTokenBalance,
       purchasedTokens: purchasedTokens,
+      bonusTokens: bonusTokens,
       remainingFreeTokens: 0,
       freeTokens: 0,
       freeTokensUsed: 0,
@@ -37,6 +40,7 @@ async function calculateTotalTokens(userId) {
     return {
       totalTokenBalance: 0,
       purchasedTokens: 0,
+      bonusTokens: 0,
       remainingFreeTokens: 0,
       freeTokens: 0,
       freeTokensUsed: 0,

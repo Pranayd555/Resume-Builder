@@ -131,19 +131,21 @@ const Payment = () => {
               toast.success('Payment successful!');
               toast.success(`${paymentData.tokens} tokens added to your account!`);
               
-              // Update token balance with total available tokens
-              if (completeResponse.data?.tokens?.totalAvailable !== undefined) {
-                apiHelpers.updateTokenBalance(completeResponse.data.tokens.totalAvailable);
-              } else if (completeResponse.data?.tokens?.current !== undefined) {
-                // Fallback to current purchased tokens if totalAvailable not provided
-                apiHelpers.updateTokenBalance(completeResponse.data.tokens.current);
+              // Update token data with bonus tokens
+              if (completeResponse.data?.tokens) {
+                const tokenData = {
+                  balance: completeResponse.data.tokens.balance || 0,
+                  purchasedTokens: completeResponse.data.tokens.purchasedTokens || 0,
+                  bonusTokens: completeResponse.data.tokens.bonusTokens || 0
+                };
+                apiHelpers.updateTokenData(tokenData);
               } else {
                 // Final fallback: fetch latest token balance from API
                 try {
                   const { analyticsAPI } = await import('../services/api');
                   const tokenResponse = await analyticsAPI.getTokenBalance();
-                  if (tokenResponse.success && tokenResponse.data?.balance !== undefined) {
-                    apiHelpers.updateTokenBalance(tokenResponse.data.balance);
+                  if (tokenResponse.success && tokenResponse.data) {
+                    apiHelpers.updateTokenData(tokenResponse.data);
                   }
                 } catch (error) {
                   console.error('Failed to fetch updated token balance:', error);
