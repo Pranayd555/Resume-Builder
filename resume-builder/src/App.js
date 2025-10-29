@@ -22,6 +22,8 @@ import Payment from './components/Payment';
 import Profile from './components/Profile';
 import PrivacyPolicy from './components/public/PrivacyPolicy';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
+import AdminDashboard from './components/admin/AdminDashboard';
+import AdminUsers from './components/admin/AdminUsers';
 
 // Public Pages
 import HomePage from './components/public/HomePage';
@@ -30,10 +32,11 @@ import TermsConditions from './components/public/TermsConditions';
 import Shipping from './components/public/Shipping';
 import ContactUs from './components/public/ContactUs';
 
-import ProtectedRoute, { UnauthorizedPage } from './components/ProtectedRoute';
+import ProtectedRoute, { RoleProtectedRoute, UnauthorizedPage, ROLES } from './components/ProtectedRoute';
 import AuthCallback from './components/AuthCallback';
 import ResumePreviewEnhanced from './components/ResumePreviewEnhanced';
 import ErrorPage from './components/annimations/ErrorPage';
+import { PUBLIC_ROUTES, USER_ROUTES, ADMIN_ROUTES } from './constants/routes';
 
 const AppContent = () => {
   const { isDarkMode } = useDarkMode();
@@ -56,10 +59,10 @@ const AppContent = () => {
         <div className="relative z-10">
           <Layout>
               <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<HomePage />} />
+              {/* Public Routes - No authentication required */}
+              <Route path={PUBLIC_ROUTES.HOME} element={<HomePage />} />
               <Route 
-                path="/login" 
+                path={PUBLIC_ROUTES.LOGIN} 
                 element={
                   <ProtectedRoute requireAuth={false}>
                     <Login />
@@ -67,108 +70,135 @@ const AppContent = () => {
                 } 
               />
               <Route 
-                path="/register" 
+                path={PUBLIC_ROUTES.ADMIN_LOGIN} 
+                element={
+                  <ProtectedRoute requireAuth={false}>
+                    <Login isAdminLogin={true} />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path={PUBLIC_ROUTES.REGISTER} 
                 element={
                   <ProtectedRoute requireAuth={false}>
                     <Register />
                   </ProtectedRoute>
                 } 
               />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-              <Route path="/terms-conditions" element={<TermsConditions />} />
-              <Route path="/cancellation-refunds" element={<CancellationRefunds />} />
-              <Route path="/shipping" element={<Shipping />} />
-              <Route path="/contact-us" element={<ContactUs />} />
-              <Route path="/unauthorized" element={<UnauthorizedPage />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route path="/error" element={<ErrorPage />} />
-              <Route path="/network-timeout" element={<ErrorPage errorCode="Network Timeout" />} />
+              <Route path={PUBLIC_ROUTES.PRIVACY_POLICY} element={<PrivacyPolicy />} />
+              <Route path={PUBLIC_ROUTES.TERMS_CONDITIONS} element={<TermsConditions />} />
+              <Route path={PUBLIC_ROUTES.CANCELLATION_REFUNDS} element={<CancellationRefunds />} />
+              <Route path={PUBLIC_ROUTES.SHIPPING} element={<Shipping />} />
+              <Route path={PUBLIC_ROUTES.CONTACT_US} element={<ContactUs />} />
+              <Route path={PUBLIC_ROUTES.UNAUTHORIZED} element={<UnauthorizedPage />} />
+              <Route path={PUBLIC_ROUTES.AUTH_CALLBACK} element={<AuthCallback />} />
+              <Route path={PUBLIC_ROUTES.ERROR} element={<ErrorPage />} />
+              <Route path={PUBLIC_ROUTES.NETWORK_TIMEOUT} element={<ErrorPage errorCode="Network Timeout" />} />
               
-              {/* Protected Routes */}
+              {/* User Routes - Require authentication */}
               <Route 
-                path="/dashboard" 
+                path={USER_ROUTES.DASHBOARD} 
                 element={
-                  <ProtectedRoute>
+                  <RoleProtectedRoute requiredRole={ROLES.USER}>
                     <ResumeList />
-                  </ProtectedRoute>
+                  </RoleProtectedRoute>
                 } 
               />
               <Route 
-                path="/resumes" 
+                path={USER_ROUTES.RESUMES} 
                 element={
-                  <ProtectedRoute>
+                  <RoleProtectedRoute requiredRole={ROLES.USER}>
                     <ResumeList />
-                  </ProtectedRoute>
+                  </RoleProtectedRoute>
                 } 
               />
               <Route 
-                path="/resume-form" 
+                path={USER_ROUTES.RESUME_FORM} 
                 element={
-                  <ProtectedRoute>
+                  <RoleProtectedRoute requiredRole={ROLES.USER}>
                     <ResumeForm />
-                  </ProtectedRoute>
+                  </RoleProtectedRoute>
                 } 
               />
               <Route 
-                path="/template-selection/:resumeId" 
+                path={`${USER_ROUTES.TEMPLATE_SELECTION}/:resumeId`} 
                 element={
-                  <ProtectedRoute>
+                  <RoleProtectedRoute requiredRole={ROLES.USER}>
                     <TemplateSelection />
-                  </ProtectedRoute>
+                  </RoleProtectedRoute>
                 } 
               />
               <Route 
-                path="/resume-preview/:resumeId" 
+                path={`${USER_ROUTES.RESUME_PREVIEW}/:resumeId`} 
                 element={
-                  <ProtectedRoute>
+                  <RoleProtectedRoute requiredRole={ROLES.USER}>
                     <ResumePreviewEnhanced />
-                  </ProtectedRoute>
+                  </RoleProtectedRoute>
                 } 
               />
-
-
               <Route 
-                path="/resume-templates" 
+                path={USER_ROUTES.RESUME_TEMPLATES} 
                 element={
-                  <ProtectedRoute>
+                  <RoleProtectedRoute requiredRole={ROLES.USER}>
                     <ResumeTemplates />
-                  </ProtectedRoute>
+                  </RoleProtectedRoute>
                 } 
               />
               <Route 
-                path="/feedback" 
-                element={<Feedback />} 
+                path={USER_ROUTES.FEEDBACK} 
+                element={
+                  <RoleProtectedRoute requiredRole={ROLES.USER}>
+                    <Feedback />
+                  </RoleProtectedRoute>
+                } 
               />
               <Route 
-                path="/payment" 
+                path={USER_ROUTES.PAYMENT} 
                 element={
-                  <ProtectedRoute>
+                  <RoleProtectedRoute requiredRole={ROLES.USER}>
                     <Payment />
-                  </ProtectedRoute>
+                  </RoleProtectedRoute>
                 } 
               />
               <Route 
-                path="/profile" 
+                path={USER_ROUTES.PROFILE} 
                 element={
-                  <ProtectedRoute>
+                  <RoleProtectedRoute requiredRole={ROLES.USER}>
                     <Profile />
-                  </ProtectedRoute>
+                  </RoleProtectedRoute>
                 } 
               />
               <Route 
-                path="/analytics" 
+                path={USER_ROUTES.ANALYTICS} 
                 element={
-                  <ProtectedRoute>
+                  <RoleProtectedRoute requiredRole={ROLES.USER}>
                     <AnalyticsDashboard />
-                  </ProtectedRoute>
+                  </RoleProtectedRoute>
                 } 
               />
               <Route 
-                path="/create-template" 
+                path={USER_ROUTES.CREATE_TEMPLATE} 
                 element={
-                  <ProtectedRoute>
+                  <RoleProtectedRoute requiredRole={ROLES.USER}>
                     <CreateTemplate />
-                  </ProtectedRoute>
+                  </RoleProtectedRoute>
+                } 
+              />
+              {/* Admin Routes - Require admin role */}
+              <Route 
+                path={ADMIN_ROUTES.DASHBOARD} 
+                element={
+                  <RoleProtectedRoute requiredRole={ROLES.ADMIN}>
+                    <AdminDashboard />
+                  </RoleProtectedRoute>
+                } 
+              />
+              <Route 
+                path={ADMIN_ROUTES.USERS} 
+                element={
+                  <RoleProtectedRoute requiredRole={ROLES.ADMIN}>
+                    <AdminUsers />
+                  </RoleProtectedRoute>
                 } 
               />
               

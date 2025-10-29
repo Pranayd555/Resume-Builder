@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { protect } = require('../middleware/auth');
+const { protect, authorize } = require('../middleware/auth');
 const Resume = require('../models/Resume');
 const Template = require('../models/Template');
+const User = require('../models/User');
 // Subscription model no longer needed
 const logger = require('../utils/logger');
 const { calculateTotalTokens } = require('../utils/tokenCalculator');
@@ -344,6 +345,424 @@ router.post('/feature-usage', protect, async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Server error'
+    });
+  }
+});
+
+// ==================== ADMIN ROUTES ====================
+
+// @desc    Get admin dashboard statistics
+// @route   GET /api/analytics/admin/dashboard
+// @access  Private/Admin
+router.get('/admin/dashboard', protect, authorize('admin'), async (req, res) => {
+  try {
+    // Get total users count with error handling
+    const totalUsers = await User.countDocuments().catch(err => {
+      logger.error('Error counting total users:', err);
+      return 0;
+    });
+    
+    const activeUsers = await User.countDocuments({ isActive: true }).catch(err => {
+      logger.error('Error counting active users:', err);
+      return 0;
+    });
+    
+    // Get total resumes count with error handling
+    const totalResumes = await Resume.countDocuments().catch(err => {
+      logger.error('Error counting total resumes:', err);
+      return 0;
+    });
+    
+    const publishedResumes = await Resume.countDocuments({ status: 'published' }).catch(err => {
+      logger.error('Error counting published resumes:', err);
+      return 0;
+    });
+    
+    // Get total templates count with error handling
+    const totalTemplates = await Template.countDocuments().catch(err => {
+      logger.error('Error counting templates:', err);
+      return 0;
+    });
+    
+    // Get revenue data from payments with proper error handling
+    const revenueData = await User.aggregate([
+      {
+        $unwind: {
+          path: '$razorpayTransactions',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $match: {
+          'razorpayTransactions.status': 'captured',
+          'razorpayTransactions.amount': { $exists: true, $type: 'number' }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: '$razorpayTransactions.amount' },
+          totalTransactions: { $sum: 1 }
+        }
+      }
+    ]).catch(err => {
+      logger.error('Error aggregating revenue data:', err);
+      return [{ totalRevenue: 0, totalTransactions: 0 }];
+    });
+
+    // Calculate total tokens from user tokens field (not from transactions)
+    const tokensData = await User.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalTokensSold: { $sum: { $add: ['$tokens', '$bonusTokens'] } },
+          totalUsersWithTokens: { $sum: { $cond: [{ $gt: [{ $add: ['$tokens', '$bonusTokens'] }, 0] }, 1, 0] } }
+        }
+      }
+    ]).catch(err => {
+      logger.error('Error aggregating tokens data:', err);
+      return [{ totalTokensSold: 0, totalUsersWithTokens: 0 }];
+    });
+
+    // Get recent transactions with proper error handling
+    const recentTransactions = await User.aggregate([
+      {
+        $unwind: {
+          path: '$razorpayTransactions',
+          preserveNullAndEmptyArrays: false
+        }
+      },
+      {
+        $match: {
+          'razorpayTransactions.status': 'captured',
+          'razorpayTransactions.amount': { $exists: true, $type: 'number' }
+        }
+      },
+      {
+        $sort: { 'razorpayTransactions.createdAt': -1 }
+      },
+      {
+        $limit: 10
+      },
+      {
+        $project: {
+          name: { 
+            $concat: [
+              { $ifNull: ['$firstName', ''] }, 
+              ' ', 
+              { $ifNull: ['$lastName', ''] }
+            ]
+          },
+          email: '$email',
+          amount: '$razorpayTransactions.amount',
+          currency: { $ifNull: ['$razorpayTransactions.currency', 'INR'] },
+          date: '$razorpayTransactions.createdAt',
+          status: '$razorpayTransactions.status',
+          transactionId: '$razorpayTransactions.transactionId'
+        }
+      }
+    ]).catch(err => {
+      logger.error('Error getting recent transactions:', err);
+      return [];
+    });
+    // Get recent users with error handling
+    const recentUsers = await User.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select('firstName lastName email createdAt isActive')
+      .catch(err => {
+        logger.error('Error getting recent users:', err);
+        return [];
+      });
+    // Get refund requests with proper error handling
+    const refundRequests = await User.aggregate([
+      {
+        $unwind: {
+          path: '$razorpayTransactions',
+          preserveNullAndEmptyArrays: false
+        }
+      },
+      {
+        $match: {
+          'razorpayTransactions.refundStatus': { $in: ['pending', 'requested'] }
+        }
+      },
+      {
+        $project: {
+          name: { 
+            $concat: [
+              { $ifNull: ['$firstName', ''] }, 
+              ' ', 
+              { $ifNull: ['$lastName', ''] }
+            ]
+          },
+          email: '$email',
+          amount: '$razorpayTransactions.amount',
+          currency: { $ifNull: ['$razorpayTransactions.currency', 'INR'] },
+          refundReason: '$razorpayTransactions.refundReason',
+          refundStatus: '$razorpayTransactions.refundStatus',
+          date: '$razorpayTransactions.createdAt',
+          transactionId: '$razorpayTransactions.transactionId'
+        }
+      }
+    ]).catch(err => {
+      logger.error('Error getting refund requests:', err);
+      return [];
+    });
+
+    // Get activity feed (recent user registrations and transactions)
+    const activityFeed = [
+      ...recentUsers.map(user => ({
+        type: 'user_registration',
+        message: `New user ${user.firstName || ''} ${user.lastName || ''} registered`,
+        date: user.createdAt,
+        icon: 'person_add',
+        color: 'green'
+      })),
+      ...recentTransactions.slice(0, 3).map(transaction => ({
+        type: 'transaction',
+        message: `${transaction.name || 'Unknown User'} made a purchase of ₹${transaction.amount || 0}`,
+        date: transaction.date,
+        icon: 'shopping_cart',
+        color: 'blue'
+      }))
+    ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
+
+    // Get additional stats for better insights
+    const additionalStats = await Promise.allSettled([
+      // Users registered in last 30 days
+      User.countDocuments({
+        createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+      }),
+      // Resumes created in last 30 days
+      Resume.countDocuments({
+        createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+      }),
+      // Templates usage stats
+      Template.aggregate([
+        { $group: { _id: null, totalUses: { $sum: '$usage.totalUses' } } }
+      ])
+    ]).catch(err => {
+      logger.error('Error getting additional stats:', err);
+      return [0, 0, [{ totalUses: 0 }]];
+    });
+
+    const dashboardData = {
+      stats: {
+        totalUsers,
+        activeUsers,
+        totalResumes,
+        publishedResumes,
+        totalTemplates,
+        totalRevenue: revenueData[0]?.totalRevenue || 0,
+        totalTransactions: revenueData[0]?.totalTransactions || 0,
+        totalTokensSold: tokensData[0]?.totalTokensSold || 0,
+        totalUsersWithTokens: tokensData[0]?.totalUsersWithTokens || 0,
+        newUsersLast30Days: additionalStats[0]?.value || 0,
+        newResumesLast30Days: additionalStats[1]?.value || 0,
+        totalTemplateUses: additionalStats[2]?.value?.[0]?.totalUses || 0
+      },
+      recentTransactions: recentTransactions || [],
+      recentUsers: recentUsers || [],
+      refundRequests: refundRequests || [],
+      activityFeed: activityFeed || []
+    };
+
+    res.json({
+      success: true,
+      data: dashboardData
+    });
+  } catch (error) {
+    logger.error('Admin dashboard stats error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// @desc    Get admin analytics charts data
+// @route   GET /api/analytics/admin/charts
+// @access  Private/Admin
+router.get('/admin/charts', protect, authorize('admin'), async (req, res) => {
+  try {
+    const { period = '30d' } = req.query;
+    
+    // Validate period parameter
+    const validPeriods = ['7d', '30d', '90d'];
+    if (!validPeriods.includes(period)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid period. Must be one of: 7d, 30d, 90d'
+      });
+    }
+    
+    // Calculate date range
+    const now = new Date();
+    let startDate;
+    
+    switch (period) {
+      case '7d':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case '30d':
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case '90d':
+        startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        break;
+      default:
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    }
+
+    // Get revenue chart data with error handling
+    const revenueChart = await User.aggregate([
+      {
+        $unwind: {
+          path: '$razorpayTransactions',
+          preserveNullAndEmptyArrays: false
+        }
+      },
+      {
+        $match: {
+          'razorpayTransactions.status': 'captured',
+          'razorpayTransactions.createdAt': { $gte: startDate },
+          'razorpayTransactions.amount': { $exists: true, $type: 'number' }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: '%Y-%m-%d',
+              date: '$razorpayTransactions.createdAt'
+            }
+          },
+          dailyRevenue: { $sum: '$razorpayTransactions.amount' },
+          dailyTransactions: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      }
+    ]).catch(err => {
+      logger.error('Error getting revenue chart data:', err);
+      return [];
+    });
+
+    // Get user registration chart data with error handling
+    const userRegistrationChart = await User.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startDate }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: '%Y-%m-%d',
+              date: '$createdAt'
+            }
+          },
+          dailyRegistrations: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      }
+    ]).catch(err => {
+      logger.error('Error getting user registration chart data:', err);
+      return [];
+    });
+
+    // Get resume creation chart data
+    const resumeCreationChart = await Resume.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startDate }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: '%Y-%m-%d',
+              date: '$createdAt'
+            }
+          },
+          dailyResumes: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      }
+    ]).catch(err => {
+      logger.error('Error getting resume creation chart data:', err);
+      return [];
+    });
+
+    // Get template usage data with error handling
+    const templateUsage = await Template.aggregate([
+      {
+        $project: {
+          name: 1,
+          category: 1,
+          usageCount: { $size: { $ifNull: ['$usage.uniqueUsers', []] } },
+          totalUses: { $ifNull: ['$usage.totalUses', 0] },
+          averageRating: { $ifNull: ['$usage.rating.average', 0] }
+        }
+      },
+      {
+        $sort: { usageCount: -1 }
+      },
+      {
+        $limit: 10
+      }
+    ]).catch(err => {
+      logger.error('Error getting template usage data:', err);
+      return [];
+    });
+
+    // Get category distribution
+    const categoryDistribution = await Template.aggregate([
+      {
+        $group: {
+          _id: '$category',
+          count: { $sum: 1 },
+          totalUses: { $sum: { $ifNull: ['$usage.totalUses', 0] } }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      }
+    ]).catch(err => {
+      logger.error('Error getting category distribution:', err);
+      return [];
+    });
+
+    res.json({
+      success: true,
+      data: {
+        revenueChart: revenueChart || [],
+        userRegistrationChart: userRegistrationChart || [],
+        resumeCreationChart: resumeCreationChart || [],
+        templateUsage: templateUsage || [],
+        categoryDistribution: categoryDistribution || [],
+        period,
+        dateRange: {
+          start: startDate,
+          end: now
+        }
+      }
+    });
+  } catch (error) {
+    logger.error('Admin charts data error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
