@@ -24,6 +24,8 @@ import PrivacyPolicy from './components/public/PrivacyPolicy';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import AdminDashboard from './components/admin/AdminDashboard';
 import AdminUsers from './components/admin/AdminUsers';
+import AdminFeedback from './components/admin/AdminFeedback';
+import AdminContacts from './components/admin/AdminContacts';
 
 // Public Pages
 import HomePage from './components/public/HomePage';
@@ -198,6 +200,22 @@ const AppContent = () => {
                 element={
                   <RoleProtectedRoute requiredRole={ROLES.ADMIN}>
                     <AdminUsers />
+                  </RoleProtectedRoute>
+                } 
+              />
+              <Route 
+                path={ADMIN_ROUTES.FEEDBACK} 
+                element={
+                  <RoleProtectedRoute requiredRole={ROLES.ADMIN}>
+                    <AdminFeedback />
+                  </RoleProtectedRoute>
+                } 
+              />
+              <Route 
+                path={ADMIN_ROUTES.CONTACTS} 
+                element={
+                  <RoleProtectedRoute requiredRole={ROLES.ADMIN}>
+                    <AdminContacts />
                   </RoleProtectedRoute>
                 } 
               />

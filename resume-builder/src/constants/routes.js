@@ -35,11 +35,14 @@ export const USER_ROUTES = {
 // Admin routes (require admin role)
 export const ADMIN_ROUTES = {
   DASHBOARD: '/admin/dashboard',
+  PROFILE: '/admin/profile',
   USERS: '/admin/users',
+  FEEDBACK: '/admin/feedback',
+  CONTACTS: '/admin/contacts',
+  TRANSACTIONS: '/admin/transactions',
+  TOKENS: '/admin/tokens',
   RESUMES: '/admin/resumes',
   TEMPLATES: '/admin/templates',
-  CONTACTS: '/admin/contacts',
-  FEEDBACK: '/admin/feedback',
   ANALYTICS: '/admin/analytics',
   EMAIL_TEST: '/admin/email-test',
   SETTINGS: '/admin/settings'
@@ -83,11 +86,14 @@ export const ROUTE_PROTECTION = {
 
   // Admin routes - require admin role
   [ADMIN_ROUTES.DASHBOARD]: { category: ROUTE_CATEGORIES.ADMIN, requireRole: 'admin' },
+  [ADMIN_ROUTES.PROFILE]: { category: ROUTE_CATEGORIES.ADMIN, requireRole: 'admin' },
   [ADMIN_ROUTES.USERS]: { category: ROUTE_CATEGORIES.ADMIN, requireRole: 'admin' },
+  [ADMIN_ROUTES.FEEDBACK]: { category: ROUTE_CATEGORIES.ADMIN, requireRole: 'admin' },
+  [ADMIN_ROUTES.CONTACTS]: { category: ROUTE_CATEGORIES.ADMIN, requireRole: 'admin' },
+  [ADMIN_ROUTES.TRANSACTIONS]: { category: ROUTE_CATEGORIES.ADMIN, requireRole: 'admin' },
+  [ADMIN_ROUTES.TOKENS]: { category: ROUTE_CATEGORIES.ADMIN, requireRole: 'admin' },
   [ADMIN_ROUTES.RESUMES]: { category: ROUTE_CATEGORIES.ADMIN, requireRole: 'admin' },
   [ADMIN_ROUTES.TEMPLATES]: { category: ROUTE_CATEGORIES.ADMIN, requireRole: 'admin' },
-  [ADMIN_ROUTES.CONTACTS]: { category: ROUTE_CATEGORIES.ADMIN, requireRole: 'admin' },
-  [ADMIN_ROUTES.FEEDBACK]: { category: ROUTE_CATEGORIES.ADMIN, requireRole: 'admin' },
   [ADMIN_ROUTES.ANALYTICS]: { category: ROUTE_CATEGORIES.ADMIN, requireRole: 'admin' },
   [ADMIN_ROUTES.EMAIL_TEST]: { category: ROUTE_CATEGORIES.ADMIN, requireRole: 'admin' },
   [ADMIN_ROUTES.SETTINGS]: { category: ROUTE_CATEGORIES.ADMIN, requireRole: 'admin' }
