@@ -242,6 +242,10 @@ userSchema.virtual('isLocked').get(function() {
 
 // Virtual for razorpay transactions with isRefundable field
 userSchema.virtual('razorpayTransactionsWithRefundStatus').get(function() {
+  if (!this.razorpayTransactions || !Array.isArray(this.razorpayTransactions)) {
+    return [];
+  }
+  
   return this.razorpayTransactions.map(transaction => {
     const transactionDate = new Date(transaction.createdAt);
     const currentDate = new Date();

@@ -9,7 +9,7 @@ import {
   EyeSlashIcon 
 } from '@heroicons/react/24/outline';
 
-function Login() {
+function Login({ isAdminLogin = false }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isLoading, error } = useAuth();
@@ -25,7 +25,7 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
 
   // Get the redirect path from navigation state
-  const from = location.state?.from?.pathname || '/dashboard';
+  const from = location.state?.from?.pathname || (isAdminLogin ? '/admin/dashboard' : '/dashboard');
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -84,9 +84,11 @@ function Login() {
             {/* Header */}
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                Welcome Back
+                {isAdminLogin ? 'Admin Login' : 'Welcome Back'}
               </h2>
-              <p className="text-gray-600 dark:text-gray-600">Sign in to continue building your professional resume</p>
+              <p className="text-gray-600 dark:text-gray-600">
+                {isAdminLogin ? 'Sign in to access the admin dashboard' : 'Sign in to continue building your professional resume'}
+              </p>
             </div>
 
             {/* Global Error */}
@@ -188,35 +190,40 @@ function Login() {
                 className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-200 ${
                   isLoading
                     ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                    : isAdminLogin
+                    ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white hover:from-red-700 hover:to-orange-700 shadow-lg hover:shadow-xl transform hover:scale-105'
                     : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transform hover:scale-105'
                 }`}
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    Signing In...
+                    {isAdminLogin ? 'Signing In as Admin...' : 'Signing In...'}
                   </div>
                 ) : (
-                  'Sign In'
+                  isAdminLogin ? 'Sign In as Admin' : 'Sign In'
                 )}
               </button>
             </form>
 
-            {/* Register Link */}
-            <div className="text-center mt-8">
-              <p className="text-gray-600 dark:text-gray-600">
-                Don't have an account?{' '}
-                <Link 
-                  to="/register" 
-                  className="text-blue-600 hover:text-blue-700 font-semibold hover:underline"
-                >
-                  Create Account
-                </Link>
-              </p>
-            </div>
+            {/* Register Link - Hidden for admin login */}
+            {!isAdminLogin && (
+              <div className="text-center mt-8">
+                <p className="text-gray-600 dark:text-gray-600">
+                  Don't have an account?{' '}
+                  <Link 
+                    to="/register" 
+                    className="text-blue-600 hover:text-blue-700 font-semibold hover:underline"
+                  >
+                    Create Account
+                  </Link>
+                </p>
+              </div>
+            )}
 
-            {/* Social Login */}
-            <div className="mt-8">
+            {/* Social Login - Hidden for admin login */}
+            {!isAdminLogin && (
+              <div className="mt-8">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
@@ -258,9 +265,8 @@ function Login() {
                   <span className="ml-2">LinkedIn</span>
                 </button>
               </div>
-              
-
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

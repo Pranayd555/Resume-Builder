@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useDarkMode } from '../../contexts/DarkModeContext';
 import { useRouteScrollToTop } from '../../hooks/useAutoScroll';
 import TemplateShowcase from './TemplateShowcase';
+import { USER_ROUTES, ADMIN_ROUTES, PUBLIC_ROUTES } from '../../constants/routes';
 import { 
   DocumentTextIcon, 
   SparklesIcon, 
@@ -17,7 +18,7 @@ import {
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   useRouteScrollToTop();
 
@@ -51,6 +52,14 @@ const HomePage = () => {
     { number: "24/7", label: "Support" }
   ];
 
+  // Helper function to get the correct dashboard route
+  const getDashboardRoute = () => {
+    if (user && user.role === 'admin') {
+      return ADMIN_ROUTES.DASHBOARD;
+    }
+    return USER_ROUTES.DASHBOARD;
+  };
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -70,7 +79,7 @@ const HomePage = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {isAuthenticated ? (
                 <button
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => navigate(getDashboardRoute())}
                   className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2"
                 >
                   Go to Dashboard
@@ -79,14 +88,14 @@ const HomePage = () => {
               ) : (
                 <>
                   <button
-                    onClick={() => navigate('/register')}
+                    onClick={() => navigate(PUBLIC_ROUTES.REGISTER)}
                     className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2"
                   >
                     Get Started Free
                     <ArrowRightIcon className="w-5 h-5" />
                   </button>
                   <button
-                    onClick={() => navigate('/login')}
+                    onClick={() => navigate(PUBLIC_ROUTES.LOGIN)}
                     className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 flex items-center justify-center gap-2"
                   >
                     <UserIcon className="w-5 h-5" />
@@ -160,7 +169,7 @@ const HomePage = () => {
             Join thousands of professionals who have successfully created their resumes with our builder.
           </p>
           <button
-            onClick={() => navigate(isAuthenticated ? '/dashboard' : '/register')}
+            onClick={() => navigate(isAuthenticated ? getDashboardRoute() : PUBLIC_ROUTES.REGISTER)}
             className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2 mx-auto"
           >
             {isAuthenticated ? 'Go to Dashboard' : 'Start Building Now'}
@@ -183,11 +192,12 @@ const HomePage = () => {
               <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Quick Links</h4>
               <ul className="space-y-2 text-gray-600 dark:text-gray-400">
                 {isAuthenticated ? (
-                  <li><button onClick={() => navigate('/dashboard')} className="hover:text-gray-900 dark:hover:text-white transition-colors">Dashboard</button></li>
+                  <li><button onClick={() => navigate(getDashboardRoute())} className="hover:text-gray-900 dark:hover:text-white transition-colors">Dashboard</button></li>
                 ) : (
                   <>
-                    <li><button onClick={() => navigate('/login')} className="hover:text-gray-900 dark:hover:text-white transition-colors">Login</button></li>
-                    <li><button onClick={() => navigate('/register')} className="hover:text-gray-900 dark:hover:text-white transition-colors">Register</button></li>
+                    <li><button onClick={() => navigate(PUBLIC_ROUTES.LOGIN)} className="hover:text-gray-900 dark:hover:text-white transition-colors">Login</button></li>
+                    <li><button onClick={() => navigate(PUBLIC_ROUTES.REGISTER)} className="hover:text-gray-900 dark:hover:text-white transition-colors">Register</button></li>
+                    <li><button onClick={() => navigate(PUBLIC_ROUTES.ADMIN_LOGIN)} className="hover:text-gray-900 dark:hover:text-white transition-colors">Login as Admin</button></li>
                   </>
                 )}
                 <li>
@@ -213,17 +223,17 @@ const HomePage = () => {
             <div>
               <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Legal</h4>
               <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                <li><button onClick={() => navigate('/privacy-policy')} className="hover:text-gray-900 dark:hover:text-white transition-colors">Privacy Policy</button></li>
-                <li><button onClick={() => navigate('/terms-conditions')} className="hover:text-gray-900 dark:hover:text-white transition-colors">Terms & Conditions</button></li>
-                <li><button onClick={() => navigate('/cancellation-refunds')} className="hover:text-gray-900 dark:hover:text-white transition-colors text-align-left">Cancellation & Refunds</button></li>
+                <li><button onClick={() => navigate(PUBLIC_ROUTES.PRIVACY_POLICY)} className="hover:text-gray-900 dark:hover:text-white transition-colors">Privacy Policy</button></li>
+                <li><button onClick={() => navigate(PUBLIC_ROUTES.TERMS_CONDITIONS)} className="hover:text-gray-900 dark:hover:text-white transition-colors">Terms & Conditions</button></li>
+                <li><button onClick={() => navigate(PUBLIC_ROUTES.CANCELLATION_REFUNDS)} className="hover:text-gray-900 dark:hover:text-white transition-colors text-align-left">Cancellation & Refunds</button></li>
               </ul>
             </div>
             <div>
               <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Support</h4>
               <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                <li><button onClick={() => navigate('/contact-us')} className="hover:text-gray-900 dark:hover:text-white transition-colors">Contact Us</button></li>
-                <li><button onClick={() => navigate('/shipping')} className="hover:text-gray-900 dark:hover:text-white transition-colors">Shipping</button></li>
-                <li><button onClick={() => navigate('/feedback')} className="hover:text-gray-900 dark:hover:text-white transition-colors">Feedback</button></li>
+                <li><button onClick={() => navigate(PUBLIC_ROUTES.CONTACT_US)} className="hover:text-gray-900 dark:hover:text-white transition-colors">Contact Us</button></li>
+                <li><button onClick={() => navigate(PUBLIC_ROUTES.SHIPPING)} className="hover:text-gray-900 dark:hover:text-white transition-colors">Shipping</button></li>
+                <li><button onClick={() => navigate(USER_ROUTES.FEEDBACK)} className="hover:text-gray-900 dark:hover:text-white transition-colors">Feedback</button></li>
               </ul>
             </div>
           </div>

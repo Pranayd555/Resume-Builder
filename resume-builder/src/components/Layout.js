@@ -7,6 +7,7 @@ const Layout = ({ children }) => {
   
   // Routes that should not show the header
   const routesWithoutHeader = [
+    '/',
     '/login', 
     '/register', 
     '/privacy-policy', 
@@ -15,7 +16,17 @@ const Layout = ({ children }) => {
     '/cancellation-refunds',
     '/shipping',
     '/contact-us',
-    '/feedback'
+    '/feedback',
+    '/admin-login',
+    '/admin/dashboard',
+    '/admin/users',
+    '/admin/resumes',
+    '/admin/templates',
+    '/admin/contacts',
+    '/admin/feedback',
+    '/admin/analytics',
+    '/admin/email-test',
+    '/admin/settings'
   ];
   
   const shouldShowHeader = !routesWithoutHeader.includes(location.pathname);
