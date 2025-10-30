@@ -36,7 +36,7 @@ const AdminHeader = () => {
 
   const navigation = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: HomeIcon, current: location.pathname === '/admin/dashboard' },
-    { name: 'Profile', href: '/profile', icon: UserCircleIcon, current: location.pathname === '/admin/profile' },
+    { name: 'Profile', href: '/admin/profile', icon: UserCircleIcon, current: location.pathname === '/admin/profile' },
     { name: 'Users', href: '/admin/users', icon: UsersIcon, current: location.pathname === '/admin/users' },
     { name: 'Feedback', href: '/admin/feedback', icon: ChatBubbleLeftIcon, current: location.pathname === '/admin/feedback' },
     { name: 'Contacts', href: '/admin/contacts', icon: ChatBubbleLeftRightIcon, current: location.pathname === '/admin/contacts' },

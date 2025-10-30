@@ -344,6 +344,23 @@ export const usersApi = {
   }
 };
 
+// Token API calls
+export const tokensApi = {
+  // Give bonus tokens to user
+  giveBonusTokens: async (userId, tokenData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/payment/admin/give-bonus-tokens/${userId}`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(tokenData)
+      });
+      return await handleApiResponse(response, 'Failed to give bonus tokens to user');
+    } catch (error) {
+      handleError(error, 'Failed to give bonus tokens to user');
+    }
+  }
+};
+
 // Generic API utilities
 export const apiUtils = {
   // Check if user is authenticated
@@ -376,6 +393,7 @@ const adminAPI = {
   contactApi,
   analyticsApi,
   usersApi,
+  tokensApi,
   apiUtils
 };
 

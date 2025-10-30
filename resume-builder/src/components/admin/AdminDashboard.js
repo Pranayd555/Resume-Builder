@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { adminAPI } from '../../services/adminApi';
 import { toast } from 'react-toastify';
-import AdminLayout from './AdminLayout';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -78,39 +77,33 @@ const AdminDashboard = () => {
 
   if (loading) {
     return (
-      <AdminLayout>
         <div className="flex items-center justify-center min-h-96">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
         </div>
-      </AdminLayout>
     );
   }
 
   if (!user || user.role !== 'admin') {
     return (
-      <AdminLayout>
         <div className="flex items-center justify-center min-h-96">
           <div className="text-center">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Access Denied</h2>
             <p className="text-gray-600 dark:text-gray-400">You don't have permission to access this page.</p>
           </div>
         </div>
-      </AdminLayout>
     );
   }
 
-  return (
-    <AdminLayout>
-      {/* Dashboard Content */}
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Welcome back, {user.firstName}! Here's what's happening with your platform.
-            </p>
-          </div>
+  return (  
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Welcome back, {user.firstName}! Here's what's happening with your platform.
+          </p>
+        </div>
           
           <div className="flex items-center space-x-4">
             <button
@@ -470,7 +463,6 @@ const AdminDashboard = () => {
           </div>
         )}
       </div>
-    </AdminLayout>
   );
 };
 

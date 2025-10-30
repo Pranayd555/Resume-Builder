@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { adminAPI } from '../../services/adminApi';
 import { toast } from 'react-toastify';
-import AdminLayout from './AdminLayout';
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
@@ -60,20 +59,21 @@ const AdminUsers = () => {
   // Add tokens to user
   const addTokens = async (userId, tokens) => {
     try {
-      const response = await adminAPI.usersApi.addTokensToUser(userId, {
-        tokens: parseInt(tokens)
+      const response = await adminAPI.tokensApi.giveBonusTokens(userId, {
+        tokens: parseInt(tokens),
+        reason: 'Admin bonus via user management'
       });
-      
+
       if (response.success) {
-        toast.success(`${tokens} tokens added successfully`);
+        toast.success(`${tokens} bonus tokens added successfully`);
         fetchUsers(pagination.page, searchTerm);
         setShowUserModal(false);
       } else {
-        toast.error('Failed to add tokens');
+        toast.error('Failed to add bonus tokens');
       }
     } catch (error) {
-      console.error('Error adding tokens:', error);
-      toast.error('Error adding tokens');
+      console.error('Error adding bonus tokens:', error);
+      toast.error('Error adding bonus tokens');
     }
   };
 
@@ -101,17 +101,14 @@ const AdminUsers = () => {
   };
 
   if (loading && users.length === 0) {
-    return (
-      <AdminLayout>
+    return (  
         <div className="flex items-center justify-center min-h-96">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
         </div>
-      </AdminLayout>
     );
   }
 
   return (
-    <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
         <div className="mb-6">
@@ -358,7 +355,6 @@ const AdminUsers = () => {
           </div>
         )}
       </div>
-    </AdminLayout>
   );
 };
 

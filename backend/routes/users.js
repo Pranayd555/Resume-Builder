@@ -309,13 +309,29 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
+    const search = req.query.search ? req.query.search.trim() : '';
 
-    const users = await User.find()
+    // Build search query
+    let query = {};
+    if (search) {
+      // Create a case-insensitive regex for partial matching
+      const searchRegex = new RegExp(search, 'i');
+
+      query = {
+        $or: [
+          { email: searchRegex },
+          { firstName: searchRegex },
+          { lastName: searchRegex }
+        ]
+      };
+    }
+
+    const users = await User.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
 
-    const total = await User.countDocuments();
+    const total = await User.countDocuments(query);
 
     res.json({
       success: true,

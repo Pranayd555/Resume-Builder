@@ -145,6 +145,158 @@
             font-weight: 500;
             text-transform: uppercase;
         }
+
+        /* Responsive Design */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+                margin: 0;
+            }
+
+            .container {
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .header {
+                padding: 20px 15px;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .header p {
+                font-size: 14px;
+            }
+
+            .content {
+                padding: 20px 15px;
+            }
+
+            .greeting {
+                font-size: 16px;
+            }
+
+            .message-box {
+                padding: 15px;
+                margin: 15px 0;
+                border-radius: 0 6px 6px 0;
+            }
+
+            .message-box h3 {
+                font-size: 15px;
+            }
+
+            .info-section {
+                padding: 15px;
+                margin: 15px 0;
+                border-radius: 6px;
+            }
+
+            .info-section h3 {
+                font-size: 16px;
+            }
+
+            .info-list li {
+                padding: 6px 0;
+                font-size: 14px;
+            }
+
+            .info-list li::before {
+                margin-right: 8px;
+            }
+
+            .response-time {
+                padding: 12px;
+                margin: 15px 0;
+                border-radius: 6px;
+            }
+
+            .response-time h4 {
+                font-size: 14px;
+                margin-bottom: 8px;
+            }
+
+            .response-time p {
+                font-size: 13px;
+            }
+
+            .contact-info {
+                padding: 15px;
+                margin: 15px 0;
+                border-radius: 6px;
+            }
+
+            .contact-info h4 {
+                font-size: 15px;
+            }
+
+            .contact-info p {
+                font-size: 14px;
+            }
+
+            .footer {
+                padding: 15px;
+                font-size: 12px;
+            }
+
+            .footer p {
+                margin: 5px 0;
+            }
+
+            .category-badge {
+                padding: 3px 8px;
+                font-size: 11px;
+            }
+        }
+
+        @media only screen and (max-width: 400px) {
+            .header {
+                padding: 15px 10px;
+            }
+
+            .header h1 {
+                font-size: 18px;
+            }
+
+            .content {
+                padding: 15px 10px;
+            }
+
+            .greeting {
+                font-size: 15px;
+            }
+
+            .message-box {
+                padding: 12px;
+                margin: 12px 0;
+            }
+
+            .info-section {
+                padding: 12px;
+                margin: 12px 0;
+            }
+
+            .response-time {
+                padding: 10px;
+                margin: 12px 0;
+            }
+
+            .contact-info {
+                padding: 12px;
+                margin: 12px 0;
+            }
+
+            .footer {
+                padding: 12px;
+            }
+
+            .info-list li {
+                padding: 4px 0;
+                font-size: 13px;
+            }
+        }
     </style>
 </head>
 <body>
