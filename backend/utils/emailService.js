@@ -665,6 +665,72 @@ The Resume Builder Team
     }
   }
 
+  /**
+   * Send bonus tokens email notification
+   * @param {Object} params - Email parameters
+   * @returns {Promise<Object>} - Result object
+   */
+  async sendBonusTokensEmail({ email, name, tokensAdded, newTokenBalance, givenBy, reason, dateAdded }) {
+    try {
+      const htmlContent = await this.loadTemplate('bonus-tokens', {
+        name,
+        tokensAdded: tokensAdded.toLocaleString('en-IN'),
+        newTokenBalance: newTokenBalance.toLocaleString('en-IN'),
+        givenBy,
+        reason: reason || '',
+        reasonDisplay: reason ? 'block' : 'none',
+        dateAdded,
+        appName: process.env.APP_NAME || 'Resume Builder',
+        dashboardUrl: `${process.env.CLIENT_URL}/dashboard`,
+        supportUrl: `${process.env.CLIENT_URL}/contact`,
+        year: new Date().getFullYear()
+      });
+
+      const textContent = `
+Hello ${name},
+
+Great news! 🎉 You've received bonus tokens in your account!
+
+BONUS DETAILS:
+- Tokens Added: ${tokensAdded.toLocaleString('en-IN')} AI Tokens
+- New Total Balance: ${newTokenBalance.toLocaleString('en-IN')} Tokens
+- Given By: ${givenBy}
+- Date Added: ${dateAdded}${reason ? `
+- Reason: ${reason}` : ''}
+
+What can you do with these bonus tokens?
+- Generate AI-powered resume content
+- Parse and analyze existing resumes
+- Get ATS compatibility scores
+- Enhance your resume with professional suggestions
+
+Your bonus tokens are now ready to use! Head over to your dashboard to start leveraging AI features.
+
+Dashboard: ${process.env.CLIENT_URL}/dashboard
+
+Questions? Contact our support team anytime.
+
+Thank you for being an awesome user!
+
+Best regards,
+The ${process.env.APP_NAME || 'Resume Builder'} Team
+      `;
+
+      await this.sendEmail(
+        email,
+        `🎉 ${tokensAdded} Bonus AI Tokens Added to Your Account!`,
+        htmlContent,
+        textContent
+      );
+
+      logger.info(`Bonus tokens email sent to ${email} for ${tokensAdded} tokens`);
+      return { success: true, message: 'Bonus tokens email sent successfully' };
+    } catch (error) {
+      logger.error(`Failed to send bonus tokens email to ${email}:`, error);
+      return { success: false, error: error.message };
+    }
+  }
+
 }
 
 

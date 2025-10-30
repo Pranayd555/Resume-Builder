@@ -112,15 +112,183 @@
             font-size: 14px;
             color: #6b7280;
         }
-        @media (max-width: 600px) {
+        /* Responsive Design */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+                margin: 0;
+            }
+
             .container {
                 padding: 20px;
+                border-radius: 0;
+                box-shadow: none;
             }
+
+            .header {
+                margin-bottom: 20px;
+            }
+
+            .logo {
+                font-size: 24px;
+            }
+
+            h1 {
+                font-size: 20px;
+                margin-bottom: 15px;
+            }
+
+            .feedback-badge {
+                padding: 15px;
+                margin: 15px 0;
+                border-radius: 8px;
+            }
+
+            .feedback-badge h2 {
+                font-size: 18px;
+            }
+
+            .feedback-badge p {
+                font-size: 14px;
+            }
+
+            .rating-display {
+                padding: 15px;
+                margin: 15px 0;
+                border-radius: 6px;
+            }
+
+            .rating-stars {
+                font-size: 24px;
+            }
+
+            .details-box {
+                padding: 15px;
+                margin: 15px 0;
+                border-radius: 6px;
+            }
+
+            .details-box h3 {
+                font-size: 16px;
+            }
+
             .details-row {
-                flex-direction: column;
+                margin-bottom: 8px;
             }
+
             .details-label {
-                margin-bottom: 5px;
+                font-size: 14px;
+                min-width: auto;
+                margin-bottom: 2px;
+            }
+
+            .details-value {
+                font-size: 14px;
+            }
+
+            .message-box {
+                padding: 15px;
+                margin: 15px 0;
+                border-radius: 6px;
+            }
+
+            .message-box h3 {
+                font-size: 16px;
+            }
+
+            .message-content {
+                font-size: 14px;
+            }
+
+            .footer {
+                margin-top: 20px;
+                padding-top: 15px;
+                font-size: 12px;
+            }
+
+            .footer p {
+                margin: 5px 0;
+            }
+        }
+
+        @media only screen and (max-width: 400px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header {
+                margin-bottom: 15px;
+            }
+
+            .logo {
+                font-size: 20px;
+            }
+
+            h1 {
+                font-size: 18px;
+                margin-bottom: 12px;
+            }
+
+            .feedback-badge {
+                padding: 12px;
+                margin: 12px 0;
+            }
+
+            .feedback-badge h2 {
+                font-size: 16px;
+            }
+
+            .feedback-badge p {
+                font-size: 13px;
+            }
+
+            .rating-display {
+                padding: 12px;
+                margin: 12px 0;
+            }
+
+            .rating-stars {
+                font-size: 20px;
+            }
+
+            .details-box {
+                padding: 12px;
+                margin: 12px 0;
+            }
+
+            .details-box h3 {
+                font-size: 15px;
+            }
+
+            .details-row {
+                margin-bottom: 6px;
+            }
+
+            .details-label {
+                font-size: 13px;
+            }
+
+            .details-value {
+                font-size: 13px;
+            }
+
+            .message-box {
+                padding: 12px;
+                margin: 12px 0;
+            }
+
+            .message-box h3 {
+                font-size: 15px;
+            }
+
+            .message-content {
+                font-size: 13px;
+            }
+
+            .footer {
+                margin-top: 15px;
+                padding-top: 12px;
+                font-size: 11px;
             }
         }
     </style>

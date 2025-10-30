@@ -85,9 +85,144 @@
             background-color: #f9fafb;
             border-radius: 6px;
         }
-        @media (max-width: 600px) {
+        /* Responsive Design */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+                margin: 0;
+            }
+
             .container {
                 padding: 20px;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .header {
+                margin-bottom: 20px;
+            }
+
+            .logo {
+                font-size: 24px;
+            }
+
+            h1 {
+                font-size: 20px;
+                margin-bottom: 15px;
+            }
+
+            .welcome-badge {
+                padding: 15px;
+                margin: 15px 0;
+                border-radius: 8px;
+            }
+
+            .welcome-badge h2 {
+                font-size: 18px;
+            }
+
+            .welcome-badge p {
+                font-size: 14px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                margin: 15px 0;
+                font-size: 14px;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                margin: 20px 0;
+            }
+
+            .feature {
+                padding: 15px;
+            }
+
+            .feature h3 {
+                font-size: 16px;
+                margin-bottom: 8px;
+            }
+
+            .footer {
+                margin-top: 20px;
+                padding-top: 15px;
+                font-size: 12px;
+            }
+
+            .support {
+                padding: 12px;
+                margin-top: 15px;
+                border-radius: 6px;
+            }
+        }
+
+        @media only screen and (max-width: 400px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header {
+                margin-bottom: 15px;
+            }
+
+            .logo {
+                font-size: 20px;
+            }
+
+            h1 {
+                font-size: 18px;
+                margin-bottom: 12px;
+            }
+
+            .welcome-badge {
+                padding: 12px;
+                margin: 12px 0;
+            }
+
+            .welcome-badge h2 {
+                font-size: 16px;
+            }
+
+            .welcome-badge p {
+                font-size: 13px;
+            }
+
+            .btn {
+                padding: 10px 16px;
+                margin: 12px 0;
+                font-size: 13px;
+            }
+
+            .features {
+                gap: 12px;
+                margin: 15px 0;
+            }
+
+            .feature {
+                padding: 12px;
+            }
+
+            .feature h3 {
+                font-size: 15px;
+                margin-bottom: 6px;
+            }
+
+            .feature p {
+                font-size: 13px;
+            }
+
+            .footer {
+                margin-top: 15px;
+                padding-top: 12px;
+                font-size: 11px;
+            }
+
+            .support {
+                padding: 10px;
+                margin-top: 12px;
             }
         }
     </style>

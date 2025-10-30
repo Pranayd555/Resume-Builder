@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import AdminLayout from './AdminLayout';
 import { contactApi } from '../../services/adminApi';
 import {
   EyeIcon,
@@ -192,7 +191,6 @@ const AdminContacts = () => {
   }
 
   return (
-    <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -728,7 +726,6 @@ const AdminContacts = () => {
         </div>
       )}
       </div>
-    </AdminLayout>
   );
 };
 

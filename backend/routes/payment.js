@@ -449,13 +449,140 @@ async function handlePaymentFailed(event) {
 async function handleOrderPaid(event) {
   try {
     const order = event.payload.order.entity;
-    
+
     logger.info(`Order paid: ${order.id}`);
-    
+
     // Additional order-level processing can be added here
   } catch (error) {
     logger.error('Error handling order paid webhook:', error);
   }
 }
+
+// @desc    Admin: Give bonus tokens to user
+// @route   POST /api/payment/admin/give-bonus-tokens/:userId
+// @access  Private (Admin only)
+router.post('/admin/give-bonus-tokens/:userId', protect, async (req, res) => {
+  try {
+    // Check if user is admin (you might want to add admin role check)
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Admin role required.'
+      });
+    }
+
+    const { userId } = req.params;
+    const { tokens, reason = 'Admin bonus' } = req.body;
+
+    if (!tokens || tokens <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid token amount is required'
+      });
+    }
+
+    // Validate token amount (reasonable limit for admin bonus)
+    if (tokens > 10000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Bonus tokens cannot exceed 10,000 per transaction'
+      });
+    }
+
+    // Find user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Add bonus tokens
+    await user.addBonusTokens(tokens);
+
+    // Get updated token data
+    const { calculateTotalTokens } = require('../utils/tokenCalculator');
+    const updatedTokenData = await calculateTotalTokens(user._id);
+
+    // Add transaction record for tracking
+    const transactionData = {
+      transactionId: `admin_bonus_${Date.now()}_${userId}`,
+      orderId: `admin_bonus_${Date.now()}`,
+      amount: 0, // No monetary value for bonus tokens
+      currency: 'INR',
+      status: 'captured', // Use 'captured' as it's the valid enum value for successful transactions
+      paymentId: `admin_bonus_${Date.now()}`,
+      method: 'admin_bonus',
+      email: user.email,
+      contact: '',
+      createdAt: new Date(),
+      capturedAt: new Date(),
+      notes: `${tokens} Bonus Tokens - ${reason}`,
+      metadata: {
+        tokensAdded: tokens,
+        bonusTokensAdded: tokens,
+        newTokenBalance: updatedTokenData.totalTokenBalance,
+        type: 'admin_bonus',
+        reason: reason,
+        givenBy: req.user.email
+      }
+    };
+
+    await user.addRazorpayTransaction(transactionData);
+
+    logger.info(`Admin ${req.user.email} gave ${tokens} bonus tokens to user ${user.email}. Reason: ${reason}`);
+
+    // Send bonus tokens email notification
+    try {
+      logger.info(`Attempting to send bonus tokens email to ${user.email} for ${tokens} tokens`);
+
+      const emailResult = await emailService.sendBonusTokensEmail({
+        email: user.email,
+        name: user.firstName || user.email.split('@')[0],
+        tokensAdded: tokens,
+        newTokenBalance: updatedTokenData.totalTokenBalance,
+        givenBy: req.user.firstName ? `${req.user.firstName} ${req.user.lastName || ''}`.trim() : req.user.email,
+        reason: reason,
+        dateAdded: new Date().toLocaleDateString('en-IN', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      });
+
+      if (emailResult.success) {
+        logger.info(`✅ Bonus tokens email sent successfully to ${user.email} - Message ID: ${emailResult.messageId || 'N/A'}`);
+      } else {
+        logger.warn(`❌ Failed to send bonus tokens email to ${user.email}: ${emailResult.error}`);
+        // Don't fail the bonus token process if email fails
+      }
+    } catch (emailError) {
+      logger.error(`💥 Error sending bonus tokens email to ${user.email}:`, emailError);
+      // Don't fail the bonus token process if email fails
+    }
+
+    res.json({
+      success: true,
+      message: 'Bonus tokens added successfully',
+      data: {
+        userId: user._id,
+        userEmail: user.email,
+        tokensAdded: tokens,
+        newTokenBalance: updatedTokenData.totalTokenBalance,
+        reason: reason
+      }
+    });
+  } catch (error) {
+    logger.error('Admin give bonus tokens error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to add bonus tokens',
+      error: error.message
+    });
+  }
+});
 
 module.exports = router;

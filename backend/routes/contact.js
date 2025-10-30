@@ -3,6 +3,7 @@ const router = express.Router();
 const Contact = require('../models/Contact');
 const { protect, authorize } = require('../middleware/auth');
 const logger = require('../utils/logger');
+const emailService = require('../utils/emailService');
 
 // @desc    Get all contacts with pagination and filtering
 // @route   GET /api/contact
@@ -182,7 +183,7 @@ router.put('/:id/priority', protect, authorize('admin'), async (req, res) => {
 router.post('/:id/response', protect, authorize('admin'), async (req, res) => {
   try {
     const { response } = req.body;
-    
+
     if (!response || response.trim().length === 0) {
       return res.status(400).json({
         success: false,
@@ -198,11 +199,39 @@ router.post('/:id/response', protect, authorize('admin'), async (req, res) => {
       });
     }
 
+    // Get admin information for the email
+    const adminUser = await require('../models/User').findById(req.user.id);
+    if (!adminUser) {
+      return res.status(404).json({
+        success: false,
+        error: 'Admin user not found'
+      });
+    }
+
+    const adminName = `${adminUser.firstName} ${adminUser.lastName}`.trim();
+
     contact.response = response;
     contact.status = 'responded';
     contact.respondedBy = req.user.id;
     contact.respondedAt = new Date();
     await contact.save();
+
+    // Send email response to user using contact-response.html template
+    try {
+      await emailService.sendContactResponse({
+        name: contact.name,
+        email: contact.email,
+        subject: contact.subject,
+        response: response,
+        adminName: adminName
+      });
+
+      logger.info(`Contact response email sent to ${contact.email} for contact ID ${contact._id}`);
+    } catch (emailError) {
+      logger.error('Failed to send contact response email:', emailError);
+      // Don't fail the entire request if email fails, but log it
+      // The response was still saved successfully
+    }
 
     res.json({
       success: true,
