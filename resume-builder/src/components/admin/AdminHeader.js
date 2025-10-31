@@ -2,16 +2,17 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDarkMode } from '../../contexts/DarkModeContext';
-import { 
-  Bars3Icon, 
-  XMarkIcon, 
-  HomeIcon, 
-  UsersIcon, 
+import {
+  Bars3Icon,
+  XMarkIcon,
+  HomeIcon,
+  UsersIcon,
   UserCircleIcon,
   ChatBubbleLeftRightIcon,
   ChatBubbleLeftIcon,
   CreditCardIcon,
   CurrencyDollarIcon,
+  ArrowUturnLeftIcon,
   ArrowRightOnRectangleIcon,
   SunIcon,
   MoonIcon
@@ -40,7 +41,8 @@ const AdminHeader = () => {
     { name: 'Users', href: '/admin/users', icon: UsersIcon, current: location.pathname === '/admin/users' },
     { name: 'Feedback', href: '/admin/feedback', icon: ChatBubbleLeftIcon, current: location.pathname === '/admin/feedback' },
     { name: 'Contacts', href: '/admin/contacts', icon: ChatBubbleLeftRightIcon, current: location.pathname === '/admin/contacts' },
-    { name: 'Transactions & Refunds', href: '/admin/transactions', icon: CreditCardIcon, current: location.pathname === '/admin/transactions' },
+    { name: 'Transactions', href: '/admin/transactions', icon: CreditCardIcon, current: location.pathname === '/admin/transactions' },
+    { name: 'Refunds', href: '/admin/refunds', icon: ArrowUturnLeftIcon, current: location.pathname === '/admin/refunds' },
     { name: 'Tokens', href: '/admin/tokens', icon: CurrencyDollarIcon, current: location.pathname === '/admin/tokens' },
   ];
 

@@ -361,6 +361,48 @@ export const tokensApi = {
   }
 };
 
+// Refund API calls
+export const refundApi = {
+  // Get all refund requests
+  getRefundRequests: async (params = {}) => {
+    try {
+      const queryParams = new URLSearchParams(params);
+      const response = await fetch(`${API_BASE_URL}/payment/admin/refund-requests?${queryParams}`, {
+        headers: getAuthHeaders()
+      });
+      return await handleApiResponse(response, 'Failed to fetch refund requests');
+    } catch (error) {
+      handleError(error, 'Failed to fetch refund requests');
+    }
+  },
+
+  // Process refund (approve or reject)
+  processRefund: async (transactionId, action, notes = '') => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/payment/admin/process-refund/${transactionId}`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ action, notes })
+      });
+      return await handleApiResponse(response, 'Failed to process refund');
+    } catch (error) {
+      handleError(error, 'Failed to process refund');
+    }
+  },
+
+  // Get refund statistics
+  getRefundStats: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/payment/admin/refund-stats`, {
+        headers: getAuthHeaders()
+      });
+      return await handleApiResponse(response, 'Failed to fetch refund statistics');
+    } catch (error) {
+      handleError(error, 'Failed to fetch refund statistics');
+    }
+  }
+};
+
 // Generic API utilities
 export const apiUtils = {
   // Check if user is authenticated
@@ -394,6 +436,7 @@ const adminAPI = {
   analyticsApi,
   usersApi,
   tokensApi,
+  refundApi,
   apiUtils
 };
 

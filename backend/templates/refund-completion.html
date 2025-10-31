@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refund Processed Successfully - {{appName}}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        .refund-details {
+            background-color: #f0fdf4;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
+            border-left: 4px solid #10b981;
+        }
+        .refund-details h3 {
+            margin: 0 0 20px 0;
+            color: #065f46;
+            font-size: 20px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #bbf7d0;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+            font-weight: 600;
+            font-size: 18px;
+            color: #065f46;
+            background-color: #dcfce7;
+            margin: 10px -15px -15px -15px;
+            padding: 15px;
+            border-radius: 0 0 8px 8px;
+        }
+        .detail-label {
+            font-weight: 500;
+            color: #065f46;
+        }
+        .detail-value {
+            font-weight: 600;
+            color: #065f46;
+        }
+        .success-message {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .success-message h3 {
+            margin: 0 0 10px 0;
+            font-size: 22px;
+        }
+        .success-message p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        .timeline-info {
+            background-color: #ecfdf5;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        .timeline-info h3 {
+            margin: 0 0 15px 0;
+            color: #065f46;
+            font-size: 18px;
+        }
+        .timeline-info ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .timeline-info li {
+            margin-bottom: 8px;
+            color: #047857;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            margin: 20px 0;
+            transition: transform 0.2s;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+        .footer p {
+            margin: 5px 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .support-info {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .support-info h4 {
+            margin: 0 0 10px 0;
+            color: #065f46;
+        }
+        .support-info p {
+            margin: 0;
+            color: #065f46;
+            font-size: 14px;
+        }
+        .success-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        /* Responsive Design */
+        /* Tablet and smaller desktop screens */
+        @media only screen and (max-width: 768px) {
+            body {
+                padding: 15px;
+                margin: 0;
+            }
+
+            .container {
+                max-width: 100%;
+                border-radius: 8px;
+            }
+
+            .header {
+                padding: 25px 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .content {
+                padding: 25px 20px;
+            }
+
+            .detail-row {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .cta-button {
+                padding: 14px 25px;
+                font-size: 15px;
+            }
+        }
+
+        /* Mobile screens */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+                margin: 0;
+            }
+
+            .container {
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .header {
+                padding: 20px 15px;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .header p {
+                font-size: 14px;
+            }
+
+            .success-icon {
+                font-size: 36px;
+            }
+
+            .content {
+                padding: 20px 15px;
+            }
+
+            .greeting {
+                font-size: 16px;
+            }
+
+            .refund-details {
+                padding: 15px;
+                margin: 15px 0;
+                border-radius: 6px;
+            }
+
+            .refund-details h3 {
+                font-size: 16px;
+                margin-bottom: 15px;
+            }
+
+            .detail-row {
+                padding: 10px 0;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+
+            .detail-row:last-child {
+                margin: 10px -12px -12px -12px;
+                padding: 12px;
+            }
+
+            .detail-label {
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            .detail-value {
+                margin-top: 2px;
+                font-size: 14px;
+                word-break: break-all;
+            }
+
+            .success-message {
+                padding: 15px;
+                margin: 15px 0;
+            }
+
+            .success-message h3 {
+                font-size: 18px;
+            }
+
+            .timeline-info {
+                padding: 15px;
+                margin: 15px 0;
+            }
+
+            .timeline-info h3 {
+                font-size: 16px;
+                margin-bottom: 12px;
+            }
+
+            .timeline-info li {
+                font-size: 14px;
+                line-height: 1.4;
+            }
+
+            .next-steps {
+                padding: 15px;
+                margin: 15px 0;
+            }
+
+            .next-steps h3 {
+                font-size: 16px;
+                margin-bottom: 12px;
+            }
+
+            .next-steps li {
+                font-size: 14px;
+                line-height: 1.4;
+            }
+
+            .cta-button {
+                padding: 12px 20px;
+                margin: 15px 0;
+                font-size: 14px;
+                width: 100%;
+                max-width: 300px;
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .support-info {
+                padding: 12px;
+                margin: 15px 0;
+            }
+
+            .support-info h4 {
+                font-size: 15px;
+            }
+
+            .support-info p {
+                font-size: 13px;
+                line-height: 1.4;
+            }
+
+            .footer {
+                padding: 15px;
+                font-size: 12px;
+            }
+
+            .footer p {
+                line-height: 1.4;
+            }
+        }
+
+        /* Small mobile screens */
+        @media only screen and (max-width: 480px) {
+            .header {
+                padding: 18px 12px;
+            }
+
+            .header h1 {
+                font-size: 18px;
+            }
+
+            .success-icon {
+                font-size: 32px;
+            }
+
+            .content {
+                padding: 18px 12px;
+            }
+
+            .greeting {
+                font-size: 15px;
+            }
+
+            .refund-details {
+                padding: 12px;
+                margin: 12px 0;
+            }
+
+            .success-message {
+                padding: 12px;
+                margin: 12px 0;
+            }
+
+            .timeline-info {
+                padding: 12px;
+                margin: 12px 0;
+            }
+
+            .next-steps {
+                padding: 12px;
+                margin: 12px 0;
+            }
+
+            .cta-button {
+                padding: 12px 16px;
+                font-size: 13px;
+            }
+
+            .support-info {
+                padding: 10px;
+                margin: 12px 0;
+            }
+
+            .footer {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="success-icon">✅</div>
+            <h1>Refund Processed Successfully!</h1>
+            <p>Your refund has been completed</p>
+        </div>
+
+        <div class="content">
+            <div class="greeting">
+                Hello {{name}},
+            </div>
+
+            <p>Great news! Your refund request has been processed successfully and the amount has been refunded to your original payment method.</p>
+
+            <div class="refund-details">
+                <h3>💰 Refund Details</h3>
+                <div class="detail-row">
+                    <span class="detail-label">Transaction ID:</span>
+                    <span class="detail-value">{{transactionId}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Order ID:</span>
+                    <span class="detail-value">{{orderId}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Refund Amount:</span>
+                    <span class="detail-value">₹{{refundAmount}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Refund ID:</span>
+                    <span class="detail-value">{{refundId}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Processed Date:</span>
+                    <span class="detail-value">{{processedDate}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status:</span>
+                    <span class="detail-value" style="color: #10b981;">✅ Completed</span>
+                </div>
+            </div>
+
+            <div class="success-message">
+                <h3>🎉 Refund Completed!</h3>
+                <p>The refund amount will be credited to your original payment method within 5-7 business days</p>
+            </div>
+
+            <div class="timeline-info">
+                <h3>📅 What Happens Next?</h3>
+                <ul>
+                    <li>You will receive a confirmation from your bank/card provider once the amount is credited</li>
+                    <li>The refund typically appears in your account within 5-7 business days</li>
+                    <li>Processing time may vary depending on your bank/card provider</li>
+                    <li>You can track the refund status using the Refund ID provided above</li>
+                </ul>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{dashboardUrl}}" class="cta-button">
+                    📊 View Analytics Dashboard
+                </a>
+            </div>
+
+            <div class="support-info">
+                <h4>💡 Need Help?</h4>
+                <p>
+                    If you have any questions about this refund or need assistance,
+                    please don't hesitate to contact our support team at
+                    <a href="mailto:{{supportEmail}}" style="color: #10b981;">{{supportEmail}}</a>
+                </p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>{{appName}}</strong></p>
+            <p>Thank you for your patience during the refund process!</p>
+            <p style="font-size: 12px; color: #adb5bd;">
+                This is a confirmation of your completed refund. Please keep this email for your records.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
