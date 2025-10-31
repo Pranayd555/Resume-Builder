@@ -251,7 +251,7 @@ router.post('/profile-picture', protect, (req, res, next) => {
       .toFile(avatarPath);
 
     // Generate URLs for frontend
-    const baseUrl = process.env.CLIENT_URL || `${req.protocol}://${req.get('host')}`;
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
     // Fallback to request host if CLIENT_URL is not set (e.g., in development)
     const urls = {
       url: `${baseUrl}/uploads/profile-pictures/${baseFileName}${fileExtension}`,
