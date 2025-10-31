@@ -356,6 +356,15 @@ export const analyticsAPI = {
     const response = await api.get('/analytics/tokens', config);
     return response.data;
   },
+
+  requestRefund: async (transactionId, reason) => {
+    const config = createApiConfig('/payment/request-refund');
+    const response = await api.post('/payment/request-refund', {
+      transactionId,
+      reason
+    }, config);
+    return response.data;
+  },
 };
 
 // Template API calls

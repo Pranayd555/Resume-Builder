@@ -161,7 +161,7 @@ const userSchema = new mongoose.Schema({
     },
     status: {
       type: String,
-      enum: ['created', 'authorized', 'captured', 'refunded', 'failed'],
+      enum: ['created', 'authorized', 'captured', 'refunded', 'refund_requested', 'failed'],
       required: true
     },
     paymentId: String,
@@ -186,6 +186,14 @@ const userSchema = new mongoose.Schema({
     capturedAt: Date,
     refundedAt: Date,
     notes: String,
+    // Refund tracking fields
+    refundRequestedAt: Date,
+    refundReason: String,
+    refundStatus: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected', 'processing', 'completed'],
+      sparse: true
+    },
     metadata: mongoose.Schema.Types.Mixed
   }],
   
@@ -245,16 +253,16 @@ userSchema.virtual('razorpayTransactionsWithRefundStatus').get(function() {
   if (!this.razorpayTransactions || !Array.isArray(this.razorpayTransactions)) {
     return [];
   }
-  
+
   return this.razorpayTransactions.map(transaction => {
     const transactionDate = new Date(transaction.createdAt);
     const currentDate = new Date();
     const daysDifference = Math.floor((currentDate - transactionDate) / (1000 * 60 * 60 * 24));
-    
+
     return {
       ...transaction.toObject(),
-      isRefundable: transaction.status === 'captured' && 
-                   !transaction.refundedAt && 
+      isRefundable: (transaction.status === 'captured' || transaction.status === 'refund_requested') &&
+                   !transaction.refundedAt &&
                    daysDifference <= 7
     };
   });
@@ -445,7 +453,25 @@ userSchema.methods.updateTransactionStatus = function(transactionId, status, add
   const transaction = this.razorpayTransactions.find(t => t.transactionId === transactionId);
   if (transaction) {
     transaction.status = status;
-    Object.assign(transaction, additionalData);
+    
+    // Set refund-related fields directly on transaction
+    if (additionalData.refundReason) {
+      transaction.refundReason = additionalData.refundReason;
+    }
+    if (additionalData.refundRequestedAt) {
+      transaction.refundRequestedAt = additionalData.refundRequestedAt;
+    }
+    if (additionalData.refundStatus) {
+      transaction.refundStatus = additionalData.refundStatus;
+    }
+    
+    // Merge additionalData into metadata for structured data storage
+    if (Object.keys(additionalData).length > 0) {
+      if (!transaction.metadata) {
+        transaction.metadata = {};
+      }
+      Object.assign(transaction.metadata, additionalData);
+    }
     
     // Set timestamps based on status
     if (status === 'captured') {

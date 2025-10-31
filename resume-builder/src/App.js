@@ -27,6 +27,7 @@ import AdminUsers from './components/admin/AdminUsers';
 import AdminFeedback from './components/admin/AdminFeedback';
 import AdminContacts from './components/admin/AdminContacts';
 import AdminTokens from './components/admin/AdminTokens';
+import AdminRefunds from './components/admin/AdminRefunds';
 import AdminLayout from './components/admin/AdminLayout';
 
 // Public Pages
@@ -263,6 +264,16 @@ const AppContent = () => {
                 <AdminLayout>
                   <RoleProtectedRoute requiredRole={ROLES.ADMIN}>
                     <AdminTokens />
+                  </RoleProtectedRoute>
+                </AdminLayout>
+              }
+            />
+            <Route
+              path={ADMIN_ROUTES.REFUNDS}
+              element={
+                <AdminLayout>
+                  <RoleProtectedRoute requiredRole={ROLES.ADMIN}>
+                    <AdminRefunds />
                   </RoleProtectedRoute>
                 </AdminLayout>
               }

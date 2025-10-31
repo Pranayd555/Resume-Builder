@@ -666,6 +666,182 @@ The Resume Builder Team
   }
 
   /**
+   * Send refund request confirmation email
+   * @param {Object} params - Email parameters
+   * @returns {Promise<Object>} - Result object
+   */
+  async sendRefundRequestEmail({ email, name, transactionId, orderId, amount, reason, requestDate }) {
+    try {
+      const htmlContent = await this.loadTemplate('refund-request-confirmation', {
+        name,
+        transactionId,
+        orderId,
+        amount: amount.toLocaleString('en-IN'),
+        reason,
+        requestDate,
+        appName: process.env.APP_NAME || 'Resume Builder',
+        dashboardUrl: `${process.env.CLIENT_URL}/analytics`,
+        supportEmail: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER
+      });
+
+      const textContent = `
+Hello ${name},
+
+We've received your refund request for Transaction ID: ${transactionId}. Our team will review it shortly.
+
+REFUND REQUEST DETAILS:
+- Transaction ID: ${transactionId}
+- Order ID: ${orderId}
+- Refund Amount: ₹${amount.toLocaleString('en-IN')}
+- Reason: ${reason}
+- Request Date: ${requestDate}
+- Status: ⏳ Under Review
+
+PROCESSING TIMELINE:
+We will process your refund within 3-5 business days. You will receive an email confirmation once the refund is processed.
+
+WHAT HAPPENS NEXT:
+1. Our team will review your refund request
+2. If approved, the refund will be processed to your original payment method
+3. You will receive an email confirmation when the refund is completed
+4. The refunded amount will appear in your account within 5-7 business days
+
+Questions? Contact our support team anytime at ${process.env.SUPPORT_EMAIL || process.env.EMAIL_USER}
+
+Thank you for your patience!
+
+Best regards,
+The ${process.env.APP_NAME || 'Resume Builder'} Team
+      `;
+
+      await this.sendEmail(
+        email,
+        'Refund Request Submitted - Resume Builder',
+        htmlContent,
+        textContent
+      );
+
+      logger.info(`Refund request confirmation email sent to ${email} for transaction ${transactionId}`);
+      return { success: true, message: 'Refund request confirmation email sent successfully' };
+    } catch (error) {
+      logger.error(`Failed to send refund request confirmation email to ${email}:`, error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Send refund completion email
+   * @param {Object} params - Email parameters
+   * @returns {Promise<Object>} - Result object
+   */
+  async sendRefundCompletionEmail({ email, name, transactionId, orderId, refundAmount, refundId, processedDate }) {
+    try {
+      const htmlContent = await this.loadTemplate('refund-completion', {
+        name,
+        transactionId,
+        orderId,
+        refundAmount: refundAmount.toLocaleString('en-IN'),
+        refundId,
+        processedDate,
+        appName: process.env.APP_NAME || 'Resume Builder',
+        dashboardUrl: `${process.env.CLIENT_URL}/analytics`,
+        supportEmail: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER
+      });
+
+      const textContent = `
+Hello ${name},
+
+Your refund has been successfully processed!
+
+REFUND DETAILS:
+- Transaction ID: ${transactionId}
+- Order ID: ${orderId}
+- Refund Amount: ₹${refundAmount.toLocaleString('en-IN')}
+- Refund ID: ${refundId}
+- Processed Date: ${processedDate}
+
+The refund amount will be credited to your original payment method within 5-7 business days. You will receive a confirmation from your bank/card provider once the amount is credited.
+
+If you have any questions about this refund, please contact our support team at ${process.env.SUPPORT_EMAIL || process.env.EMAIL_USER}
+
+Thank you for using ${process.env.APP_NAME || 'Resume Builder'}!
+
+Best regards,
+The ${process.env.APP_NAME || 'Resume Builder'} Team
+      `;
+
+      await this.sendEmail(
+        email,
+        'Refund Processed Successfully - Resume Builder',
+        htmlContent,
+        textContent
+      );
+
+      logger.info(`Refund completion email sent to ${email} for transaction ${transactionId}`);
+      return { success: true, message: 'Refund completion email sent successfully' };
+    } catch (error) {
+      logger.error(`Failed to send refund completion email to ${email}:`, error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Send refund rejection email
+   * @param {Object} params - Email parameters
+   * @returns {Promise<Object>} - Result object
+   */
+  async sendRefundRejectionEmail({ email, name, transactionId, orderId, amount, rejectionReason, rejectedDate }) {
+    try {
+      const htmlContent = await this.loadTemplate('refund-rejection', {
+        name,
+        transactionId,
+        orderId,
+        amount: amount.toLocaleString('en-IN'),
+        rejectionReason: rejectionReason || 'No specific reason provided',
+        rejectedDate,
+        appName: process.env.APP_NAME || 'Resume Builder',
+        dashboardUrl: `${process.env.CLIENT_URL}/analytics`,
+        supportEmail: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER
+      });
+
+      const textContent = `
+Hello ${name},
+
+We regret to inform you that your refund request has been declined.
+
+REFUND REQUEST DETAILS:
+- Transaction ID: ${transactionId}
+- Order ID: ${orderId}
+- Amount: ₹${amount.toLocaleString('en-IN')}
+- Rejected Date: ${rejectedDate}
+
+REASON FOR REJECTION:
+${rejectionReason || 'No specific reason provided'}
+
+If you believe this decision was made in error or would like to discuss this further, please contact our support team at ${process.env.SUPPORT_EMAIL || process.env.EMAIL_USER} with your transaction details.
+
+We appreciate your understanding.
+
+Best regards,
+The ${process.env.APP_NAME || 'Resume Builder'} Team
+      `;
+
+      await this.sendEmail(
+        email,
+        'Refund Request Declined - Resume Builder',
+        htmlContent,
+        textContent
+      );
+
+      logger.info(`Refund rejection email sent to ${email} for transaction ${transactionId}`);
+      return { success: true, message: 'Refund rejection email sent successfully' };
+    } catch (error) {
+      logger.error(`Failed to send refund rejection email to ${email}:`, error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
    * Send bonus tokens email notification
    * @param {Object} params - Email parameters
    * @returns {Promise<Object>} - Result object
@@ -731,6 +907,87 @@ The ${process.env.APP_NAME || 'Resume Builder'} Team
     }
   }
 
+  /**
+   * Send refund not eligible email notification
+   * @param {Object} params - Email parameters
+   * @returns {Promise<Object>} - Result object
+   */
+  async sendRefundNotEligibleEmail({ email, name, transactionId, orderId, amountPaid, refundReason, boughtTokens, bonusTokensAdded, currentTokenBalance, totalAvailable }) {
+    try {
+      const requestDate = new Date().toLocaleDateString('en-IN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      const htmlContent = await this.loadTemplate('refund-not-eligible', {
+        name,
+        transactionId,
+        orderId,
+        amountPaid: (amountPaid / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        requestDate,
+        refundReason,
+        boughtTokens,
+        bonusTokensAdded,
+        currentTokenBalance,
+        totalAvailable,
+        appName: process.env.APP_NAME || 'Resume Builder',
+        dashboardUrl: `${process.env.CLIENT_URL}/analytics`,
+        supportEmail: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER
+      });
+
+      const textContent = `
+Hello ${name},
+
+Thank you for contacting us regarding your refund request. After reviewing your account and token usage, we regret to inform you that your refund request cannot be processed under our current refund policy.
+
+REQUEST SUMMARY:
+- Transaction ID: ${transactionId}
+- Order ID: ${orderId}
+- Amount Paid: ₹${(amountPaid / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+- Request Date: ${requestDate}
+
+WHY YOUR REFUND CANNOT BE PROCESSED:
+${refundReason}
+
+TOKEN USAGE BREAKDOWN:
+- Tokens Purchased: ${boughtTokens} tokens
+- Bonus Tokens Provided: ${bonusTokensAdded} tokens
+- Current Token Balance: ${currentTokenBalance} tokens
+- Total Available Now: ${totalAvailable} tokens (Below threshold)
+
+OUR REFUND POLICY:
+1. Full Refund: Available when purchased tokens remain completely unused
+2. Partial Refund: Available when sufficient tokens remain unused (calculated based on usage)
+3. No Refund: When tokens have been used beyond the refundable threshold (less than 1 token equivalent value remaining)
+4. Bonus Tokens: Bonus tokens count towards the refund eligibility calculation
+5. Time Limit: Refund requests must be made within 7 days of purchase
+
+QUESTIONS?
+If you believe this decision was made in error or have any questions about our refund policy, please contact our support team at ${process.env.SUPPORT_EMAIL || process.env.EMAIL_USER} with your transaction details.
+
+You can continue using your purchased tokens for all AI features on ${process.env.APP_NAME || 'Resume Builder'}.
+
+Best regards,
+The ${process.env.APP_NAME || 'Resume Builder'} Team
+      `;
+
+      await this.sendEmail(
+        email,
+        'Refund Request - Not Eligible',
+        htmlContent,
+        textContent
+      );
+
+      logger.info(`Refund not eligible email sent to ${email} for transaction ${transactionId}`);
+      return { success: true, message: 'Refund not eligible notification email sent successfully' };
+    } catch (error) {
+      logger.error(`Failed to send refund not eligible email to ${email}:`, error);
+      return { success: false, error: error.message };
+    }
+  }
 }
 
 
