@@ -191,7 +191,7 @@ function Header() {
           {/* Logo/Brand */}
                 <div className="flex items-center min-w-0 flex-1">
                 <img 
-                  src="/resume-builder-logo-192.png" 
+                  src={isDarkMode ? "/resume-builder-logo-512-dark.png" : "/resume-builder-logo-512-light.png"} 
                   alt="Resume Builder logo featuring a stylized document icon with blue and purple gradient, representing a professional and modern resume creation tool. The logo is next to the text Resume Builder in bold gradient letters. The environment is a clean website header with a welcoming and professional tone." 
                   className="h-8 mr-2" 
                 />
@@ -422,4 +422,4 @@ function Header() {
   );
 }
 
-export default Header; 
+export default Header;
