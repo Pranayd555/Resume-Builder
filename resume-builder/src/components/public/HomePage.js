@@ -243,7 +243,7 @@ const HomePage = () => {
             </div>
           </div>
           <div className="border-t border-white/20 dark:border-orange-200/30 mt-8 pt-8 text-center text-gray-600 dark:text-gray-400">
-            <p>&copy; 2024 Resume Builder. All rights reserved.</p>
+            <p>&copy; 2025 Resume Builder. All rights reserved.</p>
           </div>
         </div>
       </footer>

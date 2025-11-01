@@ -98,7 +98,7 @@ if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
     clientID: process.env.LINKEDIN_CLIENT_ID,
     clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
     callbackURL: process.env.LINKEDIN_CALLBACK_URL || 'http://localhost:5000/api/auth/linkedin/callback',
-    scope: ['r_emailaddress', 'r_liteprofile']
+    scope: ['openid', 'profile', 'email']
   }, async (accessToken, refreshToken, profile, done) => {
     try {
       // Check if user already exists with LinkedIn ID
@@ -167,4 +167,4 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
-module.exports = passport; 
+module.exports = passport;
