@@ -507,7 +507,8 @@ class EmailService {
         userName,
         totalDeleted,
         deletedResumes,
-        upgradeUrl
+        upgradeUrl,
+        year: new Date().getFullYear()
       });
 
       const textContent = `
@@ -994,14 +995,10 @@ The ${process.env.APP_NAME || 'Resume Builder'} Team
       const html = await this.loadTemplate('forgot-password-template', {
         name,
         otp,
+        appName: process.env.APP_NAME || 'Resume Builder',
+        supportEmail: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER,
+        year: new Date().getFullYear()
       });
-
-      const mailOptions = {
-        from: process.env.EMAIL_FROM,
-        to: email,
-        subject: 'Password Reset OTP',
-        html,
-      };
 
       await this.sendEmail(
         email,
