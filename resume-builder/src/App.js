@@ -10,8 +10,8 @@ import { DarkModeProvider, useDarkMode } from './contexts/DarkModeContext';
 // Components
 import AnimatedBackground from './components/AnimatedBackground';
 import Layout from './components/Layout';
-import Login from './components/login';
-import Register from './components/Register';
+import Login from './components/public/login';
+import Register from './components/public/Register';
 import ResumeList from './components/resume-list';
 import CreateTemplate from './components/CreateTemplate';
 import ResumeTemplates from './components/resume-templates';
@@ -49,7 +49,10 @@ const AppContent = () => {
 
   useEffect(() => {
     const handleUserDataUpdate = (e) => {
-      updateUser(e.detail);
+      // updateUser(e.detail);
+      // The event detail already contains the updated user data, so no need to call updateUser again.
+      // If there's a need to update local state in App.js based on this event, it should be done here directly.
+      // For now, we just prevent the recursive call.
     };
     window.addEventListener('userDataUpdated', handleUserDataUpdate);
     return () => {

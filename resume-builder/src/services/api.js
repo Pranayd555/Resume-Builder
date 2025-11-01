@@ -136,11 +136,18 @@ export const authAPI = {
     return response.data;
   },
 
-  forgotPassword: async (email) => {
+  forgotPassword: async (email, otp, newPassword) => {
     const config = createApiConfig('/auth/forgot-password');
-    const response = await api.post('/auth/forgot-password', { email }, config);
+    const response = await api.post('/auth/forgot-password', { email, otp, newPassword }, config);
     return response.data;
   },
+
+  forgotEmailVerification: async (email) => {
+    const config = createApiConfig('/auth/forgot-password-otp-verification');
+    const response = await api.post('/auth/forgot-password-otp-verification', { email }, config);
+    return response.data;
+  },
+
 
   resetPassword: async (resetData) => {
     const config = createApiConfig('/auth/reset-password');

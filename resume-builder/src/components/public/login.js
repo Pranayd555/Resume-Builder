@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { useRouteScrollToTop } from '../hooks/useAutoScroll';
-import { useAuth } from '../contexts/AuthContext';
-import { validators } from '../models/dataModels';
-import { 
-  ExclamationTriangleIcon, 
-  EyeIcon, 
-  EyeSlashIcon 
+import { useRouteScrollToTop } from '../../hooks/useAutoScroll';
+import { useAuth } from '../../contexts/AuthContext';
+import { validators } from '../../models/dataModels';
+import ForgotPassword from './forgotPassword';
+import {
+  ExclamationTriangleIcon,
+  EyeIcon,
+  EyeSlashIcon
 } from '@heroicons/react/24/outline';
 
 function Login({ isAdminLogin = false }) {
@@ -14,15 +15,39 @@ function Login({ isAdminLogin = false }) {
   const location = useLocation();
   const { login, isLoading, error } = useAuth();
   useRouteScrollToTop();
-  
+
+  const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] = useState(false);
+
+  const openForgotPasswordModal = () => {
+    setIsForgotPasswordModalOpen(true);
+  };
+
+  const closeForgotPasswordModal = () => {
+    setIsForgotPasswordModalOpen(false);
+  };
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     rememberMe: false,
   });
-  
+
   const [validationErrors, setValidationErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+
+    checkDarkMode(); // Set initial mode
+
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+    return () => observer.disconnect();
+  }, []);
 
   // Get the redirect path from navigation state
   const from = location.state?.from?.pathname || (isAdminLogin ? '/admin/dashboard' : '/dashboard');
@@ -83,6 +108,11 @@ function Login({ isAdminLogin = false }) {
 
             {/* Header */}
             <div className="text-center mb-8">
+              <img
+                src={isDarkMode ? '/resume-builder-logo-512-dark.png' : '/resume-builder-logo-512-light.png'}
+                alt="Resume Builder Logo"
+                className="mx-auto h-24 w-auto mb-6"
+              />
               <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
                 {isAdminLogin ? 'Admin Login' : 'Welcome Back'}
               </h2>
@@ -175,12 +205,13 @@ function Login({ isAdminLogin = false }) {
                     Remember me
                   </label>
                 </div>
-                <Link 
-                  to="/forgot-password" 
-                  className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                <button
+                  type="button"
+                  onClick={openForgotPasswordModal}
+                  className="text-sm text-blue-600 hover:text-blue-700 hover:underline focus:outline-none"
                 >
                   Forgot password?
-                </Link>
+                </button>
               </div>
 
               {/* Submit Button */}
@@ -270,6 +301,11 @@ function Login({ isAdminLogin = false }) {
           </div>
         </div>
       </div>
+
+      <ForgotPassword
+        isOpen={isForgotPasswordModalOpen}
+        closeModal={closeForgotPasswordModal}
+      />
     </div>
   );
 }

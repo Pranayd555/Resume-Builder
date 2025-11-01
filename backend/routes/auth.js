@@ -1,5 +1,4 @@
 const express = require('express');
-const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const passport = require('passport');
 const { body, validationResult } = require('express-validator');
@@ -686,62 +685,87 @@ router.put('/password', [
 // @access  Public
 router.post('/forgot-password', [
   authLimiter,
-  body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email')
+  body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
+  body('otp').isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits'),
+   body('newPassword').isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
+      return res.status(400).json({ success: false, errors: errors.array() });
     }
 
-    const { email } = req.body;
+    const { email, otp, newPassword } = req.body;
 
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
+      return res.status(404).json({ success: false, error: 'User not found' });
     }
 
-    // Generate reset token
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+    if (!user.passwordResetOtp || user.passwordResetOtp !== otp || user.passwordResetOtpExpire < Date.now()) {
+      return res.status(400).json({ success: false, error: 'Invalid or expired OTP' });
+    }
+    user.password = newPassword;
+    user.passwordResetOtp = undefined;
+    user.passwordResetOtpExpire = undefined;
 
     await user.save();
 
-    // Send password reset email
-    try {
-      await emailService.sendPasswordResetEmail(email, `${user.firstName} ${user.lastName}`, resetToken);
-      logger.info(`Password reset email sent to ${email}`);
-    } catch (emailError) {
-      logger.error('Failed to send password reset email:', emailError);
-      // Reset the token fields if email fails
-      user.resetPasswordToken = undefined;
-      user.resetPasswordExpire = undefined;
-      await user.save();
-      
-      return res.status(500).json({
-        success: false,
-        error: 'Email could not be sent. Please try again later.'
-      });
+    res.json({ success: true, message: 'Password has been reset successfully' });
+
+  } catch (error) {
+    logger.error('Forgot password reset error:', error);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
+
+// @desc    Send OTP for password reset
+// @route   POST /api/auth/forgot-password-otp-verification
+// @access  Public
+router.post('/forgot-password-otp-verification', authLimiter, async (req, res) => {
+  const { email } = req.body;
+
+  // Basic validation
+  if (!email) {
+    return res.status(400).json({ success: false, error: 'Please provide an email address' });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found with that email address' });
     }
 
-    res.json({
-      success: true,
-      message: 'Password reset email sent'
-    });
+    // Generate a 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.passwordResetOtp = otp;
+    user.passwordResetOtpExpire = Date.now() + 10 * 60 * 1000; // OTP valid for 10 minutes
+
+    await user.save();
+
+    // Send OTP email
+    try {
+      await emailService.sendPasswordResetOtp(user.email, `${user.firstName} ${user.lastName}`, otp);
+      logger.info(`Password reset OTP sent to ${user.email}`);
+    } catch (emailError) {
+      logger.error('Failed to send password reset OTP email:', emailError);
+      // Reset the OTP fields if email fails
+      user.passwordResetOtp = undefined;
+      user.passwordResetOtpExpire = undefined;
+      await user.save();
+      
+      return res.status(500).json({ success: false, error: 'OTP email could not be sent. Please try again later.' });
+    }
+
+    res.json({ success: true, message: 'Password reset OTP sent to your email' });
+
   } catch (error) {
-    logger.error('Forgot password error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error'
-    });
+    logger.error('Forgot password OTP verification error:', error);
+    res.status(500).json({ success: false, error: 'Server error' });
   }
 });
 
@@ -1062,4 +1086,4 @@ router.post('/contact', [
   }
 });
 
-module.exports = router; 
+module.exports = router;

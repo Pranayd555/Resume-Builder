@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useRouteScrollToTop } from '../hooks/useAutoScroll';
-import { useAuth } from '../contexts/AuthContext';
-import { validators } from '../models/dataModels';
+import { useRouteScrollToTop } from '../../hooks/useAutoScroll';
+import { useAuth } from '../../contexts/AuthContext';
+import { validators } from '../../models/dataModels';
 import {
   ExclamationTriangleIcon,
   EyeIcon,
@@ -26,6 +26,20 @@ function Register() {
   const [validationErrors, setValidationErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+
+    checkDarkMode(); // Set initial mode
+
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+    return () => observer.disconnect();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -126,6 +140,11 @@ function Register() {
 
             {/* Header */}
             <div className="text-center mb-8">
+              <img
+                src={isDarkMode ? '/resume-builder-logo-512-dark.png' : '/resume-builder-logo-512-light.png'}
+                alt="Resume Builder Logo"
+                className="mx-auto h-24 w-auto mb-6"
+              />
               <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
                 Create Account
               </h2>
@@ -408,4 +427,4 @@ function Register() {
   );
 }
 
-export default Register; 
+export default Register;
