@@ -148,14 +148,14 @@ const resumeSchema = new mongoose.Schema({
       maxlength: [100, 'Location cannot exceed 100 characters']
     },
     startDate: {
-      type: Date,
-      required: [true, 'Start date is required']
+      type: Date
     },
     endDate: {
       type: Date,
+      required: [true, 'End date is required'],
       validate: {
         validator: function(value) {
-          return !value || value > this.startDate;
+          return this.startDate ? value > this.startDate : true;
         },
         message: 'End date must be after start date'
       }

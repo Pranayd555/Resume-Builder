@@ -181,8 +181,8 @@ module.exports = [
                         {{#if location}}<span class="location secondaryFont">{{location}}</span>{{/if}}
                     </div>
                     <div class="edu-dates secondaryFont">
-                        <time>{{formatDate startDate}}</time> - 
-                        {{#if isCurrentlyStudying}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
+                        {{#if startDate}}<time itemprop="startDate">{{formatDate startDate}}</time> - {{/if}}
+                        {{#if isCurrentlyStudying}}<span>Present</span>{{else}}<time itemprop="endDate">{{formatDate endDate}}</time>{{/if}}
                     </div>
                     </div>
                     {{#if gpa}}<p class="gpa secondaryFont">GPA: {{gpa}}</p>{{/if}}
@@ -511,11 +511,11 @@ module.exports = [
                     <strong class="edu-degree secondaryFont">{{degree}}</strong>
                     <div class="institution secondaryFont">{{institution}}</div>
                     <div class="edu-dates secondaryFont">
-                      {{formatDate startDate}} - 
+                      {{#if startDate}}<time itemprop="startDate">{{formatDate startDate}}</time> - {{/if}}
                       {{#if isCurrentlyStudying}}
                         Present
                       {{else}}
-                        {{#if endDate}}{{formatDate endDate}}{{/if}}
+                        {{#if endDate}}<time itemprop="endDate">{{formatDate endDate}}</time>{{/if}}
                       {{/if}}
                     </div>
                     {{#if gpa}}
@@ -843,8 +843,8 @@ module.exports = [
                     <span class="institution secondaryFont" itemprop="recognizedBy">{{institution}}</span>
                     {{#if location}}<span class="location secondaryFont"> • {{location}}</span>{{/if}}
                     <span class="edu-dates secondaryFont">
-                      • <time>{{formatDate startDate}}</time> - 
-                      {{#if isCurrentlyStudying}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
+                      • {{#if startDate}}<time itemprop="startDate">{{formatDate startDate}}</time> - {{/if}}
+                      {{#if isCurrentlyStudying}}<span>Present</span>{{else}}<time itemprop="endDate">{{formatDate endDate}}</time>{{/if}}
                     </span>
                     {{#if gpa}}<span class="gpa secondaryFont"> • GPA: {{gpa}}</span>{{/if}}
                   </div>
@@ -1151,8 +1151,8 @@ module.exports = [
                     {{#if location}}<span class="location">{{location}}</span>{{/if}}
                   </div>
                   <div class="edu-dates secondaryFont">
-                    <time>{{formatDate startDate}}</time> - 
-                    {{#if isCurrentlyStudying}}<span class="current-badge">Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
+                      {{#if startDate}}<time itemprop="startDate">{{formatDate startDate}}</time> - {{/if}}
+                    {{#if isCurrentlyStudying}}<span class="current-badge">Present</span>{{else}}<time itemprop="endDate">{{formatDate endDate}}</time>{{/if}}
                   </div>
                   {{#if gpa}}<div class="gpa secondaryFont">GPA: {{gpa}}</div>{{/if}}
                   {{#if description}}<div class="edu-description secondaryFont">{{{description}}}</div>{{/if}}

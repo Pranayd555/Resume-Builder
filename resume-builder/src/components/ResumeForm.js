@@ -183,7 +183,7 @@ function ResumeForm() {
   const fieldOrder = [
     'title', 'fullName', 'email', 'phone', 'address',
     'workExperience_0_jobTitle', 'workExperience_0_company', 'workExperience_0_startDate',
-    'education_0_degree', 'education_0_institution', 'education_0_startDate'
+    'education_0_degree', 'education_0_institution', 'education_0_endDate'
   ];
   
   const { scrollToFirstError } = useFormScroll(validationErrors, fieldOrder);
@@ -532,13 +532,16 @@ function ResumeForm() {
 
       // Education validation
       let hasValidEducation = false;
-      formData.education.forEach((edu) => {
-        if (edu.degree && edu.institution && edu.startDate && edu.gpa) {
+      formData.education.forEach((edu, index) => {
+        if (edu.degree && edu.institution && edu.endDate && edu.gpa) {
           hasValidEducation = true;
+        }
+        if (edu.startDate && edu.endDate && new Date(edu.startDate) > new Date(edu.endDate)) {
+          errors[`education_${index}_dateRange`] = 'End date must be after start date';
         }
       });
       if (!hasValidEducation) {
-        errors.education = 'At least one education entry is required (Degree, Institution, Start Date, and GPA)';
+        errors.education = 'At least one education entry is required (Degree, Institution, End Date, and GPA)';
       }
 
       // Certification validation
@@ -678,13 +681,39 @@ function ResumeForm() {
         const edu = formData.education[index];
         if (field === 'degree' && !validators.required(edu.degree)) {
           errors[`education_${index}_degree`] = 'Degree is required';
+        } else if (field === 'degree') {
+          setValidationErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors[`education_${index}_degree`];
+            return newErrors;
+          });
         }
+
         if (field === 'institution' && !validators.required(edu.institution)) {
           errors[`education_${index}_institution`] = 'Institution is required';
+        } else if (field === 'institution') {
+          setValidationErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors[`education_${index}_institution`];
+            return newErrors;
+          });
         }
-        if (field === 'startDate' && !validators.required(edu.startDate)) {
-          errors[`education_${index}_startDate`] = 'Start date is required';
+
+        if (field === 'endDate') {
+          if (!edu.isCurrentlyStudying && !validators.required(edu.endDate)) {
+            errors[`education_${index}_endDate`] = 'End date is required';
+          } else if (edu.startDate && edu.endDate && new Date(edu.startDate) > new Date(edu.endDate)) {
+            errors[`education_${index}_dateRange`] = 'End date must be after start date';
+          } else {
+            setValidationErrors(prev => {
+              const newErrors = { ...prev };
+              delete newErrors[`education_${index}_endDate`];
+              delete newErrors[`education_${index}_dateRange`];
+              return newErrors;
+            });
+          }
         }
+
         if (field === 'gpa' && !validators.required(edu.gpa)) {
           errors[`education_${index}_gpa`] = 'GPA is required';
         } else if (field === 'gpa' && edu.gpa) {
@@ -1933,34 +1962,30 @@ function ResumeForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
-                Start Date *
+                Start Date
               </label>
               <CustomDatePicker
-                required
                 value={edu.startDate}
                 onChange={(value) => handleInputChange('education', 'startDate', value, index)}
                 onBlur={() => handleInputBlur('education', 'startDate', index)}
-                hasError={!!validationErrors[`education_${index}_startDate`]}
                 placeholder="Select start date"
               />
-              {validationErrors[`education_${index}_startDate`] && (
-                <p className="text-red-600 text-sm mt-1">{validationErrors[`education_${index}_startDate`]}</p>
-              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
-                End Date
+                End Date *
               </label>
               <CustomDatePicker
                 value={edu.endDate}
                 disabled={edu.isCurrentlyStudying}
                 onChange={(value) => handleInputChange('education', 'endDate', value, index)}
                 onBlur={() => handleInputBlur('education', 'endDate', index)}
-                hasError={!!validationErrors[`education_${index}_dateRange`]}
+                
+                hasError={!!(validationErrors[`education_${index}_endDate`] || validationErrors[`education_${index}_dateRange`])}
                 placeholder="Select end date"
               />
-              {validationErrors[`education_${index}_dateRange`] && (
-                <p className="text-red-600 text-sm mt-1">{validationErrors[`education_${index}_dateRange`]}</p>
+              {(validationErrors[`education_${index}_endDate`] || validationErrors[ `education_${index}_dateRange`]) && (
+                <p className="text-red-600 text-sm mt-1">{validationErrors[`education_${index}_dateRange`] || validationErrors[`education_${index}_endDate`]}</p>
               )}
             </div>
           </div>
@@ -2736,15 +2761,15 @@ function ResumeForm() {
       case 4:
         // Validate education - check if any education has been started
         formData.education.forEach((edu, index) => {
-          if (edu.degree || edu.institution || edu.startDate || edu.endDate || edu.description) {
+          if (edu.degree || edu.institution || edu.endDate || edu.description) {
             if (!validators.required(edu.degree)) {
               errors[`education_${index}_degree`] = 'Degree is required';
             }
             if (!validators.required(edu.institution)) {
               errors[`education_${index}_institution`] = 'Institution is required';
             }
-            if (!validators.required(edu.startDate)) {
-              errors[`education_${index}_startDate`] = 'Start date is required';
+            if (!validators.required(edu.endDate)) {
+              errors[`education_${index}_endDate`] = 'End date is required';
             }
             if (edu.startDate && edu.endDate && !edu.isCurrentlyStudying) {
               if (!validators.dateRange(edu.startDate, edu.endDate)) {
@@ -2757,12 +2782,12 @@ function ResumeForm() {
         // Check if at least one complete education is required for final submission
         let hasValidEducation = false;
         formData.education.forEach((edu) => {
-          if (edu.degree && edu.institution && edu.startDate && edu.gpa) {
+          if (edu.degree && edu.institution && edu.endDate && edu.gpa) {
             hasValidEducation = true;
           }
         });
         if (!hasValidEducation) {
-          errors.education = 'At least one education entry is required (Degree, Institution, Start Date, and GPA)';
+          errors.education = 'At least one education entry is required (Degree, Institution, End Date, and GPA)';
         }
         break;
       default:
@@ -3065,4 +3090,4 @@ function ResumeForm() {
   );
 }
 
-export default ResumeForm; 
+export default ResumeForm;

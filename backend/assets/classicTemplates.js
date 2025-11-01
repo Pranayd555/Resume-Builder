@@ -113,8 +113,8 @@ module.exports = [
                 <div class="edu-header">
                   <h3 class="primaryFont" itemprop="credentialCategory">{{degree}}</h3>
                   <span class="edu-dates secondaryFont">
-                    <time>{{formatDate startDate}}</time> - 
-                    {{#if isCurrentlyStudying}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
+                    {{#if startDate}}<time itemprop="startDate">{{formatDate startDate}}</time> - {{/if}}
+                    {{#if isCurrentlyStudying}}<span>Present</span>{{else}}<time itemprop="endDate">{{formatDate endDate}}</time>{{/if}}
                   </span>
                 </div>
                 <div class="institution-info secondaryFont">
@@ -363,7 +363,8 @@ module.exports = [
                       <div class="education-line">
                         <h3 class="primaryFont">{{degree}}</h3>
                         <span class="edu-dates secondaryFont">
-                          {{formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{#if endDate}}{{formatDate endDate}}{{/if}}{{/if}}
+                          {{#if startDate}}<time itemprop="startDate">{{formatDate startDate}}</time> - {{/if}}
+                          {{#if isCurrentlyStudying}}<span>Present</span>{{else}}<time itemprop="endDate">{{formatDate endDate}}</time>{{/if}}
                         </span>
                       </div>
                       <div class="school-line secondaryFont">
@@ -583,8 +584,8 @@ module.exports = [
                         {{#if location}}<span class="location secondaryFont">{{location}}</span>{{/if}}
                       </div>
                       <div class="edu-dates secondaryFont">
-                        <time>{{formatDate startDate}}</time> - 
-                        {{#if isCurrentlyStudying}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
+                        {{#if startDate}}<time itemprop="startDate">{{formatDate startDate}}</time> - {{/if}}
+                        {{#if isCurrentlyStudying}}<span>Present</span>{{else}}<time itemprop="endDate">{{formatDate endDate}}</time>{{/if}}
                       </div>
                     </div>
                     {{#if gpa}}<p class="gpa secondaryFont">GPA: {{gpa}}</p>{{/if}}
