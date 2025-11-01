@@ -134,8 +134,8 @@ module.exports = [
                      <div class="institution-info secondaryFont" itemprop="recognizedBy"><span class="institution">{{institution}}</span>{{#if location}}, <span class="location">{{location}}</span>{{/if}}</div>
                  </div>
                  <div class="edu-dates secondaryFont">
-                    <time>{{formatDate startDate}}</time> - 
-                    {{#if isCurrentlyStudying}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
+                    {{#if startDate}}<time itemprop="startDate">{{formatDate startDate}}</time> - {{/if}}
+                    {{#if isCurrentlyStudying}}<span>Present</span>{{else}}<time itemprop="endDate">{{formatDate endDate}}</time>{{/if}}    
                 </div>
                 </div>
                 {{#if gpa}}<div class="gpa secondaryFont">GPA: {{gpa}}</div>{{/if}}

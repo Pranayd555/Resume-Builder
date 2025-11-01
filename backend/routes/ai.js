@@ -192,7 +192,7 @@ Return the final ATS-optimized, keyword-rich text as clean HTML only.
 
     try {
       const response = await genAI.models.generateContent({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         contents: prompt,
       });
 
@@ -298,7 +298,7 @@ Return the final summarized text as clean HTML paragraphs only.
 
     try {
       const response = await genAI.models.generateContent({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         contents: prompt,
       });
 
@@ -522,7 +522,7 @@ router.post('/ats-score', [
 
     try {
       const response = await genAI.models.generateContent({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         contents: atsPrompt,
       });
 
@@ -762,7 +762,7 @@ router.post('/adjust-tone', [
         `;
 
     const response = await genAI.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       contents: prompt,
     });
 
@@ -914,7 +914,7 @@ router.post('/adjust-tone', [
           `;
 
     const response = await genAI.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       contents: prompt,
     });
 
@@ -1009,7 +1009,7 @@ Return a complete, professional resume template as clean HTML only.
 
     try {
       const response = await genAI.models.generateContent({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         contents: prompt,
       });
 
@@ -1113,7 +1113,7 @@ Return the restructured and improved template as clean HTML only.
 
     try {
       const response = await genAI.models.generateContent({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         contents: prompt,
       });
 
