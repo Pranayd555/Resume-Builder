@@ -988,10 +988,32 @@ The ${process.env.APP_NAME || 'Resume Builder'} Team
       return { success: false, error: error.message };
     }
   }
+
+  async sendPasswordResetOtp(email, name, otp) {
+    try {
+      const html = await this.loadTemplate('forgot-password-template', {
+        name,
+        otp,
+      });
+
+      const mailOptions = {
+        from: process.env.EMAIL_FROM,
+        to: email,
+        subject: 'Password Reset OTP',
+        html,
+      };
+
+      await this.sendEmail(
+        email,
+        'Password Reset OTP',
+        html
+      );
+      logger.info(`Password reset OTP email sent to ${email}`);
+    } catch (error) {
+      logger.error(`Error sending password reset OTP email to ${email}:`, error);
+      throw new Error('Failed to send password reset OTP email');
+    }
+  }
 }
 
-
-// Create singleton instance
-const emailService = new EmailService();
-
-module.exports = emailService; 
+module.exports = new EmailService();
