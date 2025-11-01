@@ -15,20 +15,32 @@
       }
     },
     {
-      "src": "/resume-builder-logo.ico",
-      "dest": "/resume-builder-logo.ico"
+      "src": "/resume-builder-logo-light.ico",
+      "dest": "/resume-builder-logo-light.ico"
     },
     {
       "src": "/manifest.json",
       "dest": "/manifest.json"
     },
     {
-      "src": "/resume-builder-logo-192.png",
-      "dest": "/resume-builder-logo-192.png"
+      "src": "/resume-builder-logo-192-light.png",
+      "dest": "/resume-builder-logo-192-light.png"
     },
     {
-      "src": "/resume-builder-logo-512.png",
-      "dest": "/resume-builder-logo-512.png"
+      "src": "/resume-builder-logo-512-light.png",
+      "dest": "/resume-builder-logo-512-light.png"
+    },
+    {
+      "src": "/resume-builder-logo-dark.ico",
+      "dest": "/resume-builder-logo-dark.ico"
+    },
+    {
+      "src": "/resume-builder-logo-192-dark.png",
+      "dest": "/resume-builder-logo-192-dark.png"
+    },
+    {
+      "src": "/resume-builder-logo-512-dark.png",
+      "dest": "/resume-builder-logo-512-dark.png"
     },
     {
       "src": "/robots.txt",
@@ -112,4 +124,4 @@
   
   "cleanUrls": true,
   "trailingSlash": false
-} 
+}

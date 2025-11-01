@@ -171,7 +171,7 @@ const AdminUsers = () => {
                         <div className="h-10 w-10 flex-shrink-0">
                           <img
                             className="h-10 w-10 rounded-full object-cover"
-                            src={user.profilePicture || `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=2a73ea&color=fff`}
+                            src={user.profilePicture && user.profilePicture.type === 'avatar' ? user.profilePicture.avatarUrl : user.profilePicture && user.profilePicture.type === 'uploaded' ?  user.profilePicture.uploadedPhoto.thumbnailUrl || user.profilePicture.uploadedPhoto.avatarUrl : user.profilePicture || `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=2a73ea&color=fff`}
                             alt=""
                           />
                         </div>

@@ -4,21 +4,41 @@
   "description": "Build your professional resume in minutes with our easy-to-use online resume builder.",
   "icons": [
     {
-      "src": "resume-builder-logo.ico",
+      "src": "resume-builder-logo-light.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
     },
     {
-      "src": "resume-builder-logo-192.png",
+      "src": "resume-builder-logo-dark.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon",
+      "media": "(prefers-color-scheme: dark)"
+    },
+    {
+      "src": "resume-builder-logo-192-light.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any maskable"
     },
     {
-      "src": "resume-builder-logo-512.png",
+      "src": "resume-builder-logo-192-dark.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable",
+      "media": "(prefers-color-scheme: dark)"
+    },
+    {
+      "src": "resume-builder-logo-512-light.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
+    },
+    {
+      "src": "resume-builder-logo-512-dark.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable",
+      "media": "(prefers-color-scheme: dark)"
     }
   ],
   "start_url": ".",
