@@ -8,6 +8,8 @@ const morgan = require('morgan');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss');
 const passport = require('passport');
+const session = require('express-session'); // Import express-session
+const MongoStore = require('connect-mongo'); // Import connect-mongo
 require('dotenv').config();
 
 
@@ -34,6 +36,26 @@ const app = express();
 
 // Trust proxy for deployment
 app.set('trust proxy', 1);
+
+// Configure express-session middleware
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'supersecretkey', // Use a strong secret from environment variables
+  resave: false,
+  saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI || 'mongodb://localhost:27017/resumebuilder',
+    collectionName: 'sessions',
+    ttl: 14 * 24 * 60 * 60, // 14 days. Default
+    autoRemove: 'interval',
+    autoRemoveInterval: 10 // In minutes. Default
+  }),
+  cookie: {
+    secure: process.env.NODE_ENV === 'production' && !process.env.LOCAL_DEVELOPMENT, // Set to true in production (HTTPS), false in development (HTTP)
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === 'production' && !process.env.LOCAL_DEVELOPMENT ? 'none' : 'lax', // 'none' for cross-site cookies in production, 'lax' for development
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
 
 // Set server timeout for long-running requests (like AI model initialization)
 app.use((req, res, next) => {
@@ -127,6 +149,15 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Initialize passport
 app.use(passport.initialize());
+app.use(passport.session()); // Use passport.session() after express-session
+
+// serialize/deserialize user for session
+passport.serializeUser((user, done) => {
+  done(null, user); // in prod, serialize only user id
+});
+passport.deserializeUser((obj, done) => {
+  done(null, obj);
+});
 
 // Data sanitization against NoSQL query injection
 app.use(mongoSanitize());
@@ -321,4 +352,4 @@ if (process.env.NODE_ENV !== 'test') {
   });
 }
 
-module.exports = app; 
+module.exports = app;

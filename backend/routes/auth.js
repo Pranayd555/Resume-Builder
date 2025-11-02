@@ -975,20 +975,43 @@ router.get('/google/callback',
 // @desc    LinkedIn OAuth
 // @route   GET /api/auth/linkedin
 // @access  Public
-router.get('/linkedin', passport.authenticate('linkedin'));
+router.get('/linkedin', passport.authenticate('linkedin', {scope: ['openid', 'profile', 'email']}));
 
 // @desc    LinkedIn OAuth callback
 // @route   GET /api/auth/linkedin/callback
 // @access  Public
 router.get('/linkedin/callback',
-  passport.authenticate('linkedin', { session: false }),
+  (req, res, next) => {
+    passport.authenticate('linkedin', { session: false }, (err, user, info) => {
+      if (err) {
+        logger.error('Passport LinkedIn authentication error:', err);
+        return res.redirect('/api/auth/linkedin/failure');
+      }
+      if (!user) {
+        logger.warn('Passport LinkedIn authentication failed: No user returned.', info);
+        return res.redirect('/api/auth/linkedin/failure');
+      }
+      req.logIn(user, (err) => {
+        if (err) {
+          logger.error('Passport LinkedIn login error:', err);
+          return res.redirect('/api/auth/linkedin/failure');
+        }
+        next();
+      });
+    })(req, res, next);
+  },
   async (req, res) => {
     try {
       const user = req.user;
       const token = user.getSignedJwtToken();
+      let clientUrl = process.env.CLIENT_URL;
+      
+      if (!clientUrl) {
+        clientUrl = 'https://resume-builder-pranay-das-projects.vercel.app';
+      }
+      
+      const redirectUrl = `${clientUrl}/auth/callback?token=${token}`;
 
-      // Redirect to frontend with token
-      const redirectUrl = `${process.env.CLIENT_URL}/auth/callback?token=${token}`;
       res.redirect(redirectUrl);
     } catch (error) {
       logger.error('LinkedIn OAuth callback error:', error);
@@ -996,6 +1019,15 @@ router.get('/linkedin/callback',
     }
   }
 );
+
+// @desc    LinkedIn OAuth failure
+// @route   GET /api/auth/linkedin/failure
+// @access  Public
+router.get('/linkedin/failure', (req, res) => {
+  logger.error('LinkedIn OAuth authentication failed.');
+  res.redirect(`${process.env.CLIENT_URL}/auth/error?message=LinkedIn authentication failed`);
+});
+
 
 // @desc    Logout user
 // @route   POST /api/auth/logout

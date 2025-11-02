@@ -2,7 +2,8 @@ const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
+const OpenIDConnectStrategy = require('passport-openidconnect').Strategy;
+const axios = require('axios');
 const User = require('../models/User');
 const logger = require('../utils/logger');
 
@@ -94,60 +95,71 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 
 // LinkedIn OAuth Strategy
 if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
-  passport.use(new LinkedInStrategy({
+  passport.use('linkedin', new OpenIDConnectStrategy({
+    issuer: 'https://www.linkedin.com/oauth', // base OIDC issuer
+    insecure_oidc_skip_issuer_verification: true,
+    authorizationURL: 'https://www.linkedin.com/oauth/v2/authorization',
+    tokenURL: 'https://www.linkedin.com/oauth/v2/accessToken',
+    userInfoURL: 'https://api.linkedin.com/v2/userinfo', // OIDC-compliant endpoint
     clientID: process.env.LINKEDIN_CLIENT_ID,
     clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
-    callbackURL: process.env.LINKEDIN_CALLBACK_URL || 'http://localhost:5000/api/auth/linkedin/callback',
+    callbackURL: process.env.LINKEDIN_CALLBACK_URL,
     scope: ['openid', 'profile', 'email']
-  }, async (accessToken, refreshToken, profile, done) => {
+  }, async (issuer, sub, profile, jwtClaims, accessToken, refreshToken, done) => {
     try {
-      // Check if user already exists with LinkedIn ID
-      let user = await User.findOne({ linkedinId: profile.id });
-      
+      const linkedinId = sub.id;
+      const firstName = sub?.givenName || '';
+      const lastName = sub?.familyName || '';
+      const email = sub.emails?.[0]?.value || '';
+      const profilePicture = profile.picture || profile.photos?.[0]?.value || '';
+
+      // Step 2: Find or create user
+      let user = await User.findOne({ linkedinId });
       if (user) {
-        // Update login count and last login
         user.usage.loginCount += 1;
         user.usage.lastLogin = new Date();
         await user.save();
         return done(null, user);
       }
-      
-      // Check if user exists with same email
-      const existingUser = await User.findOne({ email: profile.emails[0].value });
-      
+
+      const existingUser = await User.findOne({ email });
       if (existingUser) {
-        // Link LinkedIn account to existing user
-        existingUser.linkedinId = profile.id;
-        existingUser.isEmailVerified = true;
-        existingUser.usage.loginCount += 1;
-        existingUser.usage.lastLogin = new Date();
-        await existingUser.save();
-        return done(null, existingUser);
-      }
-      
-      // Create new user
-      const newUser = new User({
-        firstName: profile.name.givenName,
-        lastName: profile.name.familyName,
-        email: profile.emails[0].value,
-        linkedinId: profile.id,
-        isEmailVerified: true,
-        profilePicture: profile.photos[0]?.value ? {
-          type: 'avatar',
-          avatarUrl: profile.photos[0].value
-        } : undefined,
-        usage: {
-          loginCount: 1,
-          lastLogin: new Date()
+        if (!existingUser.linkedinId) {
+          // If an existing user is found by email, but they don't have a linkedinId,
+          // it means this is their first LinkedIn login. Link the account.
+          existingUser.linkedinId = linkedinId;
+          existingUser.isEmailVerified = true;
+          existingUser.usage.loginCount += 1;
+          existingUser.usage.lastLogin = new Date();
+          await existingUser.save();
+          return done(null, existingUser);
+        } else {
+          // If an existing user is found by email AND they already have a linkedinId,
+          // it means this email is already linked to a different LinkedIn account.
+          // This is an account conflict. Prevent login to avoid account takeover.
+          logger.error(`LinkedIn OAuth Error: Email ${email} is already linked to another LinkedIn account.`);
+          return done(new Error('Email already linked to another LinkedIn account.'), null);
         }
+      }
+
+      const newUser = new User({
+        firstName,
+        lastName,
+        email,
+        linkedinId,
+        isEmailVerified: true,
+        profilePicture: profilePicture
+          ? { type: 'avatar', avatarUrl: profilePicture }
+          : undefined,
+        usage: { loginCount: 1, lastLogin: new Date() }
       });
-      
+
       await newUser.save();
-      
-      logger.info(`New user created via LinkedIn OAuth: ${newUser.email}`);
+      logger.info(`LinkedIn authentication successful for user3: ${newUser.id}`);
       return done(null, newUser);
+
     } catch (error) {
-      logger.error('LinkedIn OAuth Error:', error);
+      logger.error('LinkedIn OIDC Fetch Error:', error.response?.data || error);
       return done(error, null);
     }
   }));
