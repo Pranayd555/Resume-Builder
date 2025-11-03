@@ -530,6 +530,8 @@ router.put('/profile', [
         user.emailVerificationExpire = undefined;
         user.emailOtp = undefined;
         user.emailOtpExpire = undefined;
+        user.googleId = undefined;
+        user.linkedinId = undefined;
         
         logger.info(`Email changed for user ${user._id}: ${user.email} -> ${email} (unverified)`);
       }
