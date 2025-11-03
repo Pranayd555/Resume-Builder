@@ -3,7 +3,7 @@ const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const OpenIDConnectStrategy = require('passport-openidconnect').Strategy;
-const axios = require('axios');
+const jwt_decode = require('jwt-decode').jwtDecode;
 const User = require('../models/User');
 const logger = require('../utils/logger');
 
@@ -104,14 +104,15 @@ if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
     clientID: process.env.LINKEDIN_CLIENT_ID,
     clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
     callbackURL: process.env.LINKEDIN_CALLBACK_URL,
-    scope: ['openid', 'profile', 'email']
+  scope: ['openid', 'profile', 'email'],
   }, async (issuer, sub, profile, jwtClaims, accessToken, refreshToken, done) => {
     try {
-      const linkedinId = sub.id;
-      const firstName = sub?.givenName || '';
-      const lastName = sub?.familyName || '';
-      const email = sub.emails?.[0]?.value || '';
-      const profilePicture = profile.picture || profile.photos?.[0]?.value || '';
+    const decodedJwtClaims = jwt_decode(jwtClaims);
+    const linkedinId = decodedJwtClaims.sub;
+    const firstName = decodedJwtClaims.given_name;
+    const lastName = decodedJwtClaims.family_name;
+    const email = decodedJwtClaims.email;
+    const profilePicture = decodedJwtClaims.picture;
 
       // Step 2: Find or create user
       let user = await User.findOne({ linkedinId });
