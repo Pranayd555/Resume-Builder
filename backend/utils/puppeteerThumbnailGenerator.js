@@ -82,15 +82,15 @@ class PuppeteerThumbnailGenerator {
         "downloads": 6,
         "lastDownloaded": "2025-08-29T16:00:48.195Z"
     },
-    "title": "aaaBBDJSd",
-    "summary": "<p>A Senior Software Developer is a highly experienced professional responsible for designing, defveloping, testing, and maintaining complex software applications. They lead development teams, make architectural decisions, mentor junior developers, and ensure high-quality code through best practices and efficient workflows.ffcvvcvcvcv</p><p>fdfd</p>",
+    "title": "Senior Software Engineer",
+    "summary": "<p>A Senior Software Developer is a highly experienced professional responsible for designing, defveloping, testing, and maintaining complex software applications. They lead development teams, make architectural decisions, mentor junior developers, and ensure high-quality code through best practices and efficient workflows.</p><p>fdfd</p>",
     "workExperience": [
         {
             "jobTitle": "trainee",
             "company": "TCS",
             "location": "Kolkata",
             "startDate": "2018-01-04T00:00:00.000Z",
-            "endDate": null,
+            "endDate": "2019-01-04T00:00:00.000Z",
             "isCurrentJob": true,
             "description": "<ul><li>A Senior Software Developer is a highly experienced professional responsible for designing, developing, testing, and maintaining complex software applications.&nbsp;</li><li>They lead development teams, make architectural decisions, mentor junior developers, and ensure high-quality code through best practices and efficient workflows.</li></ul>",
             "achievements": [],
@@ -102,7 +102,7 @@ class PuppeteerThumbnailGenerator {
             "company": "ITC",
             "location": "Kolkata",
             "startDate": "2022-07-19T00:00:00.000Z",
-            "endDate": null,
+            "endDate": "2025-08-29T16:01:43.307Z",
             "isCurrentJob": true,
             "description": "<ol><li>A Senior Software Developer is a highly experienced professional responsible for designing, developing, testing, and maintaining complex software applications.&nbsp;</li><li>They lead development teams, make architectural decisions, mentor junior developers, and ensure high-quality code through best practices and efficient workflows.</li></ol>",
             "achievements": [],
@@ -111,6 +111,18 @@ class PuppeteerThumbnailGenerator {
         }
     ],
     "education": [
+          {
+            "degree": "MBA",
+            "institution": "IIT-Delhi",
+            "location": "Delhi",
+            "startDate": "2024-02-05T00:00:00.000Z",
+            "endDate": "2026-05-31T00:00:00.000Z",
+            "isCurrentlyStudying": false,
+            "gpa": 8.6,
+            "description": "",
+            "_id": "68b1be4539fdbe111461834a",
+            "id": "68b1be4539fdbe111461834a"
+        },
         {
             "degree": "Btech",
             "institution": "MAKAUT",
@@ -215,7 +227,12 @@ class PuppeteerThumbnailGenerator {
     "projects": [
         {
             "name": "OMSA",
-            "description": "It was a development project",
+            "description": `<p>Developed and maintained a full-stack web application using modern technologies, focusing on scalability and user experience.</p>
+            <ul>
+            <li>Enhanced existing features to improve user experience and performance.</li>
+            <li>Implemented new functionalities based on user feedback and business requirements.</li>
+            <li>Optimized codebase for better maintainability and scalability.</li>
+          </ul>`,
             "technologies": [
                 "Angular",
                 "Nodejs",
@@ -223,7 +240,7 @@ class PuppeteerThumbnailGenerator {
                 "Rxjs"
             ],
             "url": "",
-            "githubUrl": "",
+            "githubUrl": "https://github.com/Prana1234/OMSA",
             "startDate": null,
             "endDate": null,
             "_id": "68b1be4539fdbe1114618355",
@@ -231,7 +248,7 @@ class PuppeteerThumbnailGenerator {
         },
         {
             "name": "Mondee",
-            "description": "It was an enhancement project",
+            "description": "<ul><li>Enhanced existing features to improve user experience and performance.</li><li>Implemented new functionalities based on user feedback and business requirements.</li><li>Optimized codebase for better maintainability and scalability.</li></ul>",
             "technologies": [
                 "Angular",
                 "Nodejs",
@@ -270,7 +287,7 @@ class PuppeteerThumbnailGenerator {
             "issuer": "Meta",
             "date": null,
             "expiryDate": null,
-            "credentialId": "",
+            "credentialId": "f34534derfsd4454fs",
             "url": "",
             "_id": "68b1be4539fdbe1114618359",
             "id": "68b1be4539fdbe1114618359"
@@ -278,9 +295,9 @@ class PuppeteerThumbnailGenerator {
         {
             "name": "Angular Intermediate",
             "issuer": "Jobsschool",
-            "date": null,
+            "date": "2023-02-05T00:00:00.000Z",
             "expiryDate": null,
-            "credentialId": "",
+            "credentialId": "f34534derfsd4454fs",
             "url": "",
             "_id": "68b1be4539fdbe111461835a",
             "id": "68b1be4539fdbe111461835a"
@@ -721,4 +738,4 @@ class PuppeteerThumbnailGenerator {
   }
 }
 
-module.exports = PuppeteerThumbnailGenerator; 
+module.exports = PuppeteerThumbnailGenerator;
