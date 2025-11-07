@@ -270,7 +270,7 @@ function TemplateSelection() {
               slideShadows: false,
             }}
             modules={[Navigation, Pagination, Autoplay, EffectCoverflow, FreeMode]}
-            spaceBetween={20}
+            spaceBetween={30}
             slidesPerView={1}
             centeredSlides={true}
             loop={true}

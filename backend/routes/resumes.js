@@ -926,6 +926,17 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
     // Initialize template renderer
     const renderer = new OptimizedTemplateRenderer();
 
+    if(resume.isAddPhoto) {
+    const response = await axios.get(resume.personalInfo.profilePicture, {
+        responseType: "arraybuffer",
+        timeout: 8000
+      });
+      const contentType = response.headers["content-type"] || "image/jpeg";
+      const base64 = Buffer.from(response.data, "binary").toString("base64");
+      const dataUrl = `data:${contentType};base64,${base64}`;
+      resume.personalInfo.profilePicture = dataUrl;
+    }
+
     // Prepare resume data for rendering
     const resumeData = {
       title: resume.title,
@@ -1040,9 +1051,6 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
     // Create PDF using Puppeteer. Use Sparticuz Chromium on Linux (Render), fallback locally
     const isLinux = process.platform === 'linux';
     let executablePath;
-    let launchArgs;
-    let defaultViewport;
-    let headlessOption;
 
     if (isLinux) {
       try {
@@ -1072,6 +1080,7 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
 
     // Use shared browser
     const pdfBuffer = await withPage(async (page) => {
+      
       await page.emulateMediaType('print');
       await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
       // Conditionally inject margin CSS
@@ -1094,7 +1103,11 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
       //     `
       //   });
       // }
+
+      // Small buffer for stability
+      await page.waitForTimeout(300);
       await page.evaluateHandle('document.fonts.ready');
+      await page.emulateMediaType('print');
 
       return await page.pdf({
         format: 'A4',
@@ -2091,7 +2104,12 @@ router.put('/:id', [
 
     allowedFields.forEach(field => {
       if (req.body[field] !== undefined) {
-        resume[field] = req.body[field];
+        if (field === 'personalInfo' && typeof req.body.personalInfo === 'object') {
+          // Merge personalInfo to avoid overwriting profilePicture and isAddPhoto
+          Object.assign(resume.personalInfo, req.body.personalInfo);
+        } else {
+          resume[field] = req.body[field];
+        }
       }
     });
 
@@ -2702,4 +2720,4 @@ router.get('/color-presets', protect, async (req, res) => {
   }
 });
 
-module.exports = router; 
+module.exports = router;

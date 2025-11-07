@@ -54,20 +54,31 @@ const FormField = ({
   const readOnlyClasses = readOnly ? "bg-gray-50 dark:bg-gray-50 cursor-not-allowed" : "";
   
   return (
-    <div>
-      <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
+    <div className={`form-field ${type === 'checkbox' ? 'flex items-center space-x-2' : ''}`}>
+      <label className={`block text-sm font-medium text-gray-900 dark:text-gray-900  ${type === 'checkbox' ? 'order-2 ml-2' : 'mb-2'}`}>
         {label} {required && <span className="text-red-500">*</span>}
       </label>
-      <input
-        type={type}
-        value={value}
-        onChange={onChange}
-        onBlur={onBlur}
-        readOnly={readOnly}
-        className={`${baseClasses} ${errorClasses} ${readOnlyClasses} ${className}`}
-        placeholder={placeholder}
-        {...props}
-      />
+      {type === 'checkbox' ? (
+        <input
+          type="checkbox"
+          checked={value}
+          onChange={onChange}
+          onBlur={onBlur}
+          readOnly={readOnly}
+          className="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+        />
+      ) : (
+        <input
+          type={type}
+          value={value}
+          onChange={onChange}
+          onBlur={onBlur}
+          readOnly={readOnly}
+          className={`${baseClasses} ${errorClasses} ${readOnlyClasses} ${className}`}
+          placeholder={placeholder}
+          {...props}
+        />
+      )}
       {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
     </div>
   );
@@ -131,6 +142,10 @@ const saveToLocalStorage = (formData, currentStep, isEditMode) => {
   }
 };
 
+function getProfilePicture(user) {
+  return user.profilePicture?.type === 'avatar' ? user.profilePicture.avatarUrl : user.profilePicture?.type === 'uploaded' ? user.profilePicture.uploadedPhoto.url : '' 
+}
+
 function ResumeForm() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -154,7 +169,9 @@ function ResumeForm() {
       address: '',
       website: '',
       linkedin: '',
-      github: ''
+      github: '',
+      isAddPhoto: false,
+      profilePicture: ''
     },
     summary: '',
     workExperience: [],
@@ -576,6 +593,11 @@ function ResumeForm() {
           newArray[index] = { ...newArray[index], [field]: value };
           return { ...prev, [section]: newArray };
         } else {
+            if(field === 'isAddPhoto') {
+              const profilePicture = getProfilePicture(user);
+              handleInputChange('personalInfo', 'profilePicture', profilePicture)
+            console.log('profilePicture', profilePicture)
+            }
           return {
             ...prev,
             [section]: { ...prev[section], [field]: value }
@@ -829,7 +851,9 @@ function ResumeForm() {
                 address: resumeData.personalInfo?.address || '',
                 website: resumeData.personalInfo?.website || '',
                 linkedin: resumeData.personalInfo?.linkedin || '',
-                github: resumeData.personalInfo?.github || ''
+                github: resumeData.personalInfo?.github || '',
+                isAddPhoto: resumeData.personalInfo?.isAddPhoto || false,
+                profilePicture: resumeData.personalInfo?.isAddPhoto ? getProfilePicture(user) : '' 
               },
               summary: ensureHtmlContent(resumeData.summary || ''),
               workExperience: (resumeData.workExperience || []).map(exp => ({
@@ -1056,7 +1080,7 @@ function ResumeForm() {
     };
 
     checkEditMode();
-  }, [location.state, navigate]); // Added navigate to dependencies to fix eslint warning
+  }, [location.state, navigate, user]); // Added navigate to dependencies to fix eslint warning
 
   // Clear validation errors when moving to step 1 (only title validation is relevant)
   useEffect(() => {
@@ -1628,6 +1652,12 @@ function ResumeForm() {
           value={formData.personalInfo.github}
           onChange={(e) => handleInputChange('personalInfo', 'github', e.target.value)}
           placeholder="https://github.com/johndoe"
+        />
+        <FormField
+          label="Add Photo(From Profile)"
+          type="checkbox"
+          value={formData.personalInfo.isAddPhoto}
+          onChange={(e) => handleInputChange('personalInfo', 'isAddPhoto', e.target.checked)}
         />
       </div>
     </div>

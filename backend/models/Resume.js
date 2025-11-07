@@ -62,7 +62,11 @@ const resumeSchema = new mongoose.Schema({
     profilePicture: {
       type: String,
       trim: true,
-      maxlength: [500, 'Profile picture URL cannot exceed 500 characters']
+      maxlength: [5000, 'Profile picture URL cannot exceed 500 characters']
+    },
+    isAddPhoto: {
+      type: Boolean,
+      default: false
     }
   },
   

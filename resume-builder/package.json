@@ -16,6 +16,7 @@
     "lottie-react": "^2.4.1",
     "pdfjs-dist": "^4.0.379",
     "react": "^19.1.0",
+    "react-awesome-reveal": "^4.3.1",
     "react-color": "^2.19.3",
     "react-datepicker": "^8.7.0",
     "react-dom": "^19.1.0",

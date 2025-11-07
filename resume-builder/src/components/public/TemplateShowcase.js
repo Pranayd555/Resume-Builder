@@ -4,6 +4,7 @@ import { templateAPI, apiHelpers } from '../../services/api';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay, FreeMode, EffectCoverflow } from 'swiper/modules';
 import { useAuth } from '../../contexts/AuthContext';
+import { AttentionSeeker, Fade, Flip } from 'react-awesome-reveal';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -149,6 +150,7 @@ function TemplateShowcase() {
     <section className="py-16 sm:py-20 lg:py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
+        <Flip direction="vertical" duration={3000}>
         <div className="text-center mb-12 sm:mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">
             Professional Templates
@@ -158,6 +160,7 @@ function TemplateShowcase() {
             Each template is crafted to help you stand out and land your dream job.
           </p>
         </div>
+        </Flip>
 
         {/* Templates Carousel */}
         <div className="relative">
@@ -303,6 +306,7 @@ function TemplateShowcase() {
         </div>
 
         {/* Call to Action */}
+          <Fade direction="down">
         <div className="text-center mt-12 sm:mt-16">
           <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-8 sm:p-12 max-w-4xl mx-auto">
             <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-500 mb-4">
@@ -312,12 +316,14 @@ function TemplateShowcase() {
               Join thousands of professionals who have already created stunning resumes with our templates.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <AttentionSeeker duration={3000}>
               <button
                 onClick={handleGetStarted}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
               >
                 {isAuthenticated ? 'Go to Dashboard' : 'Get Started Free'}
               </button>
+            </AttentionSeeker>
               <button
                 onClick={() => navigate('/contact-us')}
                 className="bg-transparent border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-700 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-400 font-semibold py-3 px-8 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
@@ -327,6 +333,8 @@ function TemplateShowcase() {
             </div>
           </div>
         </div>
+            </Fade>
+        
       </div>
     </section>
   );
