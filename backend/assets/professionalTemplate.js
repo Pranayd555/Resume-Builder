@@ -64,6 +64,7 @@ module.exports = [
             <header class="header">
             <div class="header-content">
                 <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+                {{#if isFresher}}{{else}}<h2 class="name primaryFont" itemprop="title">{{title}}</h2>{{/if}}
                 <div class="contact-info secondaryFont">
                 <div class="contact-row">
                     <span class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</span>
@@ -256,6 +257,8 @@ module.exports = [
         section { margin-bottom: 12px; }
         h2 { font-weight: 600; color: #1e40af; margin-bottom: 2px; padding-bottom: 4px; border-bottom: 2px solid #e5e7eb; position: relative; }
         h2::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 18px; height: 2px; background: #1e40af; }
+
+        h2.name {color: white !important;}
         .summary { line-height: 1.4; color: #4b5563; text-align: justify; }
         
         .job-entry, .edu-entry, .project-entry, .achievement-entry { margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #f3f4f6; }
@@ -401,6 +404,7 @@ module.exports = [
           html: `<div class="resume professional-executive">
             <header class="executive-header">
               <h1 class="name primaryFont">{{personalInfo.fullName}}</h1>
+              {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
               <div class="contact-bar secondaryFont">
                 {{#if personalInfo.email}}
                   <span class="contact-item secondaryFont">{{personalInfo.email}}</span>
@@ -753,6 +757,7 @@ module.exports = [
             <div class="main-column">
               <header class="header">
                 <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+                {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
                 <div class="contact-info secondaryFont">
                   <div class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</div>
                   {{#if personalInfo.phone}}<div class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
@@ -1031,7 +1036,7 @@ module.exports = [
               <header class="executive-header">
                 <div class="header-content">
                   <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
-                  <div class="title-role primaryFont">{{personalInfo.title}}</div>
+                  {{#if isFresher}}{{else}}<h2 class="section-title primaryFont" itemprop="title">{{title}}</h2>{{/if}}
                   <div class="contact-grid secondaryFont">
                     <div class="contact-item" itemprop="email">
                       <span class="contact-icon">📧</span>

@@ -50,6 +50,7 @@ module.exports = [
           html: `<article class="resume classic-traditional" itemscope itemtype="http://schema.org/Person">
             <header class="header">
               <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+              {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
               <div class="contact-info secondaryFont">
                 <span class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</span>
                 {{#if personalInfo.phone}} | <span class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</span>{{/if}}
@@ -303,7 +304,7 @@ module.exports = [
           templateCode: {
             html: `<div class="resume classic-professional">
               <header class="classic-header">
-                <h1 class="name primaryFont">{{personalInfo.fullName}}</h1>
+                <h1 class="name primaryFont">{{personalInfo.fullName}}</h1>{{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
                 <div class="contact-details secondaryFont">
                   {{#if personalInfo.address}}<span class="contact-item secondaryFont">{{personalInfo.address}}</span>{{/if}}
                   {{#if personalInfo.phone}}{{#if personalInfo.address}} | {{/if}}<span class="contact-item secondaryFont">{{personalInfo.phone}}</span>{{/if}}
@@ -555,6 +556,7 @@ module.exports = [
               "html": `<article class="resume classic-serif" itemscope itemtype="http://schema.org/Person">
                 <header class="header">
                   <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+                  {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
                   <div class="contact-info secondaryFont">
                     <div class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</div>
                     {{#if personalInfo.phone}}<div class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
@@ -980,7 +982,7 @@ module.exports = [
                     <body class="classic-two-column">
                     <div class="resume-container">
                     <header>
-                    <h1 class="primaryFont">{{personalInfo.fullName}}</h1>
+                    <h1 class="name primaryFont">{{personalInfo.fullName}}</h1>
                     {{#if title}}<h2 class="primaryFont">{{title}}</h2>{{/if}}
                     </header>
                     <section class="contact-info secondaryFont">
@@ -1012,7 +1014,7 @@ module.exports = [
                     <section class="section summary">
                     <h3 class="primaryFont">PROFILE INFO</h3>
                     <hr class="separator"/>
-                    <span>{{{summary}}}</span>
+                    <span class="summary-text">{{{summary}}}</span>
                     </section>
                     {{/if}}
                     <main class="main-content">
@@ -1023,16 +1025,19 @@ module.exports = [
                     <hr class="separator"/>
                     {{#each education}}
                     <div class="education-item">
-                    <p class="date">{{#if startDate}}<time itemprop="startDate">{{formatDate startDate}}</time> - {{/if}}
+                    <p class="date edu-dates">{{#if startDate}}<time itemprop="startDate">{{formatDate startDate}}</time> - {{/if}}
                         {{#if isCurrentlyStudying}}<span>Present</span>{{else}}<time itemprop="endDate">{{formatDate endDate}}</time>{{/if}}</p>
                     <p class="university">{{institution}}</p>
-                    <ul>
-                    <li>{{degree}}</li>
+                    <ul class="secondaryFont">
+                    <li class="edu-degree">{{degree}}</li>
                     {{#if gpa}}
-                    <li>GPA: {{gpa}}</li>
+                    <li class="edu-gpa">GPA: {{gpa}}</li>
                     {{/if}}
                     {{#if location}}
-                    <li>{{location}}</li>
+                    <li class="location">{{location}}</li>
+                    {{/if}}
+                    {{#if description}}
+                    <li class="edu-description">{{{description}}}</li>
                     {{/if}}
                     </ul>
                     </div>
@@ -1044,10 +1049,10 @@ module.exports = [
                     <h3 class="primaryFont">SKILLS</h3>
                     <hr class="separator"/>
                     {{#each skills}}
-                    <span><strong>{{category}}:</strong></span>
+                    <span class="skill-category-title"><strong>{{category}}:</strong></span>
                     <ul class="list">
                     {{#each items}}
-                    <li>{{name}}</li>
+                    <li class="skill-items">{{name}}</li>
                     {{/each}}
                     </ul>
                     {{/each}}
@@ -1059,7 +1064,7 @@ module.exports = [
                     <hr class="separator"/>
                     <ul class="list">
                     {{#each languages}}
-                    <li>{{this.name}} ({{this.proficiency}})</li>
+                    <li class="language-item">{{this.name}} <span class="language-proficiency secondaryFont">({{this.proficiency}})</span></li>
                     {{/each}}
                     </ul>
                     </section>
@@ -1074,12 +1079,14 @@ module.exports = [
                     {{#each workExperience}}
                     <div class="experience-item">
                     <div class="experience-header secondaryFont">
-                    <h4>{{jobTitle}} - {{company}}</h4>
+                    <h4 class="job-title">{{jobTitle}} - {{company}}</h4>
                     {{#if location}}<span class="location secondaryFont" itemprop="jobLocation">{{location}}</span>{{/if}}
+                    <span class="job-dates secondaryFont">
                     <time itemprop="datePosted">{{formatDate startDate}}</time> - 
                             {{#if isCurrentJob}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
+                    </span>
                     </div>
-            {{#if description}}<p class="job-title">{{{description}}}</p>{{/if}}
+            {{#if description}}<p class="job-description">{{{description}}}</p>{{/if}}
                     </div>
                     {{/each}}
                     </section>
@@ -1091,13 +1098,13 @@ module.exports = [
                     {{#each projects}}
                     <div class="project-item">
                     <div class="project-header">
-                    <h4>{{name}}</h4>
+                    <h4 class="project-name">{{name}}</h4>
                     {{#if startDate}}<div class="project-dates secondaryFont">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
                     </div>
                     {{#if description}}<div class="project-description secondaryFont">{{{description}}}</div>{{/if}}
                     {{#if technologies}}
                     <div class="technologies">
-                      <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{#unless @last}}, {{/unless}}{{/each}}
+                      <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag technologies secondaryFont">{{this}}</span>{{#unless @last}}, {{/unless}}{{/each}}
                     </div>
                     {{/if}}
                     {{#if url}}<div class="project-links secondaryFont"><a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
@@ -1107,7 +1114,7 @@ module.exports = [
                     </section>
                     {{/if}}
                     {{#if achievements.length}}
-                    <section class="section">
+                    <section class="achievements section">
                     <h3 class="primaryFont">ACHIEVEMENTS</h3>
                     <hr class="separator"/>
                     {{#each achievements}}
@@ -1124,7 +1131,7 @@ module.exports = [
                     <hr class="separator"/>
                     <ul class="list">
                     {{#each certifications}}
-                    <li class="secondaryFont">{{name}} {{#if issuer}}<span class="cert-issuer secondaryFont"> - {{issuer}}</span>{{/if}}
+                    <li class="secondaryFont"><span class="cert-name">{{name}}</span> {{#if issuer}}<span class="cert-issuer secondaryFont"> - {{issuer}}</span>{{/if}}
                     {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}</span>{{/if}}
                     {{#if expiryDate}}<div class="cert-expiry secondaryFont">Expires: {{formatDate expiryDate}}</div>{{/if}}
                     {{#if credentialId}}<div class="cert-id secondaryFont">ID: {{credentialId}}</div>{{/if}}
@@ -1279,7 +1286,7 @@ module.exports = [
                                 font-weight: 600;
                                 margin: 0;
                             }
-                            .experience-item .job-title {
+                            .experience-item .job-description {
                                 font-weight: 600;
                                 color: var(--text-color-secondary-light);
                                 margin-bottom: 0.5rem;
@@ -1305,6 +1312,8 @@ module.exports = [
                             }
                                  .project-links a, .cert-link a, .contact-item a { color: #000000; text-decoration: none; }
           .project-links a:hover, .cert-link a:hover, .contact-item a:hover { text-decoration: underline; }
+
+          .language-name, .skill-category-title, .job-title, .edu-degree, .project-name, .achievement-title, .cert-name, .custom-field-title { font-weight: bold; color: #1f2937; }
                            
                             }`
             },

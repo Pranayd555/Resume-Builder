@@ -20,14 +20,14 @@ const handleValidationError = (error, res) => {
       message: err.message,
       value: err.value
     }));
-    
+
     return res.status(400).json({
       success: false,
       error: 'Validation failed',
       details: errors
     });
   }
-  
+
   if (error.name === 'CastError') {
     return res.status(400).json({
       success: false,
@@ -35,7 +35,7 @@ const handleValidationError = (error, res) => {
       details: `Invalid ${error.path}: ${error.value}`
     });
   }
-  
+
   // For other errors, return generic server error
   return res.status(500).json({
     success: false,
@@ -55,7 +55,7 @@ router.post('/form-data', [
 ], trackUsage, async (req, res) => {
   try {
     logger.info('Form data request received:', { user: req.user.id, body: req.body });
-    
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       logger.error('Validation errors:', errors.array());
@@ -116,7 +116,7 @@ router.post('/auto-save', [
 ], async (req, res) => {
   try {
     logger.info('Auto-save request received:', { user: req.user.id, body: req.body });
-    
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       logger.error('Auto-save validation errors:', errors.array());
@@ -146,8 +146,8 @@ router.post('/auto-save', [
 
       // Update allowed fields
       const allowedFields = [
-        'title', 'personalInfo', 'summary', 'workExperience', 
-        'education', 'skills', 'projects', 'achievements', 
+        'title', 'personalInfo', 'summary', 'workExperience',
+        'education', 'skills', 'projects', 'achievements',
         'certifications', 'languages', 'customFields'
       ];
 
@@ -230,7 +230,7 @@ router.put('/:id/complete', protect, async (req, res) => {
           $inc: { 'usage.resumesCreated': 1 }
         }
       );
-      
+
       logger.info(`Resume created and published: ${resume.title} by user ${req.user.email} (resumesCreated: +1)`);
     } else {
       logger.info(`Resume updated and republished: ${resume.title} by user ${req.user.email}`);
@@ -291,10 +291,10 @@ router.put('/:id/template', [
     // Check if this is the same template (preserve custom colors) or a new template (reset to defaults)
     const isSameTemplate = resume.template && resume.template.toString() === req.body.templateId;
     const previousTemplate = resume.template;
-    
+
     // Update resume with selected template
     resume.template = req.body.templateId;
-    
+
     // Initialize styling with template defaults and proper template styling structure
     let newStyling = {
       ...template.styling, // Template's default styling (colors, fonts, etc.)
@@ -306,7 +306,7 @@ router.put('/:id/template', [
         sectionSpacing: template.styling?.template?.sectionSpacing || 1
       }
     };
-    
+
     // Handle colors based on template change
     if (isSameTemplate) {
       // Same template: preserve custom colors if they exist
@@ -317,14 +317,14 @@ router.put('/:id/template', [
       // New template: reset colors to null (use template defaults)
       newStyling.template.colors = null;
     }
-    
+
     resume.styling = newStyling;
-    
+
     // Override with any provided styling from request
     if (req.body.styling) {
       resume.styling = { ...resume.styling, ...req.body.styling };
     }
-    
+
     await resume.save();
 
     await resume.populate('template', 'name category preview styling templateCode');
@@ -391,7 +391,7 @@ router.put('/:id/template-styling', [
       if (!resume.styling.template) {
         resume.styling.template = {};
       }
-      
+
       // Update only the provided fields
       Object.keys(req.body.styling.template).forEach(key => {
         if (req.body.styling.template[key] !== undefined) {
@@ -437,7 +437,7 @@ router.get('/:id/preview', protect, async (req, res) => {
     // Handle missing template case - automatically assign Classic Traditional template
     let templateAssigned = false;
     if (!resume.template) {
-      
+
       // Find the Classic Traditional template
       const classicTemplate = await Template.findOne({
         name: 'Classic Traditional',
@@ -459,13 +459,13 @@ router.get('/:id/preview', protect, async (req, res) => {
           }
         };
         await resume.save();
-        
+
         // Re-populate the template for rendering
         await resume.populate('template');
-        
+
         templateAssigned = true;
       } else {
-        
+
         // Fallback to placeholder if template doesn't exist
         const placeholderHtml = `
           <div style="padding: 40px; text-align: center; font-family: Arial, sans-serif;">
@@ -484,7 +484,7 @@ router.get('/:id/preview', protect, async (req, res) => {
             </div>
           </div>
         `;
-        
+
         return res.json({
           success: true,
           data: {
@@ -518,7 +518,7 @@ router.get('/:id/preview', protect, async (req, res) => {
 
     // Initialize template renderer
     const renderer = new OptimizedTemplateRenderer();
-    
+
     // Prepare resume data for rendering
     const resumeData = {
       title: resume.title,
@@ -551,7 +551,7 @@ router.get('/:id/preview', protect, async (req, res) => {
 
     // Check if HTML contains raw Handlebars
     const hasHandlebars = renderResult.html.includes('{{') || renderResult.html.includes('}}');
-    
+
     if (hasHandlebars) {
       console.error('❌ WARNING: Rendered HTML still contains Handlebars syntax!');
     }
@@ -747,7 +747,7 @@ router.get('/:id/preview/pdf-images', protect, async (req, res) => {
         launchArgs = chromium.args;
         defaultViewport = chromium.defaultViewport;
         headlessOption = chromium.headless;
-      } catch (e) {}
+      } catch (e) { }
     }
 
     if (!executablePath) {
@@ -771,69 +771,69 @@ router.get('/:id/preview/pdf-images', protect, async (req, res) => {
       await page.evaluateHandle('document.fonts.ready');
       await page.emulateMediaType('print');
 
-    // Target A4 dimensions in CSS pixels at 96 DPI
-    const a4WidthCssPx = Math.ceil(8.27 * 96);
-    const a4HeightCssPx = Math.ceil(11.69 * 96);
-    const deviceScaleFactor = 2; // improve sharpness
+      // Target A4 dimensions in CSS pixels at 96 DPI
+      const a4WidthCssPx = Math.ceil(8.27 * 96);
+      const a4HeightCssPx = Math.ceil(11.69 * 96);
+      const deviceScaleFactor = 2; // improve sharpness
 
-    await page.setViewport({
-      width: a4WidthCssPx,
-      height: a4HeightCssPx,
-      deviceScaleFactor
-    });
+      await page.setViewport({
+        width: a4WidthCssPx,
+        height: a4HeightCssPx,
+        deviceScaleFactor
+      });
 
-    // Measure resume container
-    const rect = await page.evaluate(() => {
-      const el = document.querySelector('.resume') || document.querySelector('.resume-isolated-container .resume') || document.body;
-      const r = el.getBoundingClientRect();
-      return { x: Math.floor(r.left), y: Math.floor(r.top), width: Math.ceil(r.width), height: Math.ceil(r.height) };
-    });
+      // Measure resume container
+      const rect = await page.evaluate(() => {
+        const el = document.querySelector('.resume') || document.querySelector('.resume-isolated-container .resume') || document.body;
+        const r = el.getBoundingClientRect();
+        return { x: Math.floor(r.left), y: Math.floor(r.top), width: Math.ceil(r.width), height: Math.ceil(r.height) };
+      });
 
       const pages = [];
-    const totalHeight = rect.height;
-    const pageHeight = a4HeightCssPx; // full page height in CSS px
-    const contentAreaCssPx = Math.max(1, pageHeight - 2 * Math.round(0.5 * 96));
-    const pageWidth = Math.min(a4WidthCssPx, rect.width);
-    let y = rect.y;
-    let index = 0;
-    const marginCssPx = Math.round(0.5 * 96); // 0.5in in CSS px at 96 DPI
-    const marginDevicePx = marginCssPx * deviceScaleFactor;
+      const totalHeight = rect.height;
+      const pageHeight = a4HeightCssPx; // full page height in CSS px
+      const contentAreaCssPx = Math.max(1, pageHeight - 2 * Math.round(0.5 * 96));
+      const pageWidth = Math.min(a4WidthCssPx, rect.width);
+      let y = rect.y;
+      let index = 0;
+      const marginCssPx = Math.round(0.5 * 96); // 0.5in in CSS px at 96 DPI
+      const marginDevicePx = marginCssPx * deviceScaleFactor;
 
       while (y < rect.y + totalHeight) {
-      const remainingCss = rect.y + totalHeight - y;
-      const clipHeightCss = Math.floor(Math.min(contentAreaCssPx, remainingCss));
-      const buffer = await page.screenshot({
-        type: 'webp',
-        quality: 85,
-        clip: {
-          x: Math.max(0, rect.x),
-          y: Math.max(0, Math.floor(y)),
-          width: Math.floor(pageWidth),
-          height: clipHeightCss
+        const remainingCss = rect.y + totalHeight - y;
+        const clipHeightCss = Math.floor(Math.min(contentAreaCssPx, remainingCss));
+        const buffer = await page.screenshot({
+          type: 'webp',
+          quality: 85,
+          clip: {
+            x: Math.max(0, rect.x),
+            y: Math.max(0, Math.floor(y)),
+            width: Math.floor(pageWidth),
+            height: clipHeightCss
+          }
+        });
+        // Add a white top and bottom margin to each page image for preview
+        let finalBuffer = buffer;
+        try {
+          const clipHeightDevicePx = clipHeightCss * deviceScaleFactor;
+          const totalTargetHeightDevicePx = pageHeight * deviceScaleFactor;
+          const bottomExtendDevicePx = Math.max(0, totalTargetHeightDevicePx - (marginDevicePx + clipHeightDevicePx));
+          // Use template background instead of white for top/bottom padding so page color is continuous
+          const bg = (resume?.template?.styling?.colors?.background || '#ffffff').replace('#', '');
+          const r = parseInt(bg.substring(0, 2), 16) || 255;
+          const g = parseInt(bg.substring(2, 4), 16) || 255;
+          const b = parseInt(bg.substring(4, 6), 16) || 255;
+          finalBuffer = await sharp(buffer)
+            .extend({ top: marginDevicePx, bottom: bottomExtendDevicePx, background: { r, g, b, alpha: 1 } })
+            .webp({ quality: 85 })
+            .toBuffer();
+        } catch (e) {
+          // If sharp fails, fallback to original buffer
         }
-      });
-      // Add a white top and bottom margin to each page image for preview
-      let finalBuffer = buffer;
-      try {
-        const clipHeightDevicePx = clipHeightCss * deviceScaleFactor;
-        const totalTargetHeightDevicePx = pageHeight * deviceScaleFactor;
-        const bottomExtendDevicePx = Math.max(0, totalTargetHeightDevicePx - (marginDevicePx + clipHeightDevicePx));
-        // Use template background instead of white for top/bottom padding so page color is continuous
-        const bg = (resume?.template?.styling?.colors?.background || '#ffffff').replace('#','');
-        const r = parseInt(bg.substring(0,2), 16) || 255;
-        const g = parseInt(bg.substring(2,4), 16) || 255;
-        const b = parseInt(bg.substring(4,6), 16) || 255;
-        finalBuffer = await sharp(buffer)
-          .extend({ top: marginDevicePx, bottom: bottomExtendDevicePx, background: { r, g, b, alpha: 1 } })
-          .webp({ quality: 85 })
-          .toBuffer();
-      } catch (e) {
-        // If sharp fails, fallback to original buffer
-      }
-      const base64 = finalBuffer.toString('base64');
+        const base64 = finalBuffer.toString('base64');
         pages.push({ index, mimeType: 'image/webp', dataUri: `data:image/webp;base64,${base64}` });
-      index += 1;
-      y += clipHeightCss;
+        index += 1;
+        y += clipHeightCss;
       }
 
       return pages;
@@ -875,10 +875,10 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
         error: 'Resume not found'
       });
     }
-
+    let template = undefined;
     // Handle missing template - automatically assign Classic Traditional template
     if (!resume.template) {
-      
+
       // Find the Classic Traditional template
       const classicTemplate = await Template.findOne({
         name: 'Classic Traditional',
@@ -900,21 +900,32 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
           }
         };
         await resume.save();
-        
+
         // Re-populate the template for rendering
         await resume.populate('template');
-        
+        template = classicTemplate;
+
       } else {
         return res.status(400).json({
           success: false,
           error: 'No default template available for PDF generation'
         });
       }
+    } else {
+      template = await Template.findOne({
+        _id: resume.template
+      });
+      if (!template) {
+        return res.status(400).json({
+          success: false,
+          error: 'No template available for PDF generation'
+        });
+      }
     }
 
     // Initialize template renderer
     const renderer = new OptimizedTemplateRenderer();
-    
+
     // Prepare resume data for rendering
     const resumeData = {
       title: resume.title,
@@ -928,7 +939,8 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
       certifications: resume.certifications,
       languages: resume.languages,
       customFields: resume.customFields,
-      styling: resume.styling || {} // Include styling data
+      styling: resume.styling || {}, // Include styling data
+      isFresher: resume.isFresher
     };
 
     // Render template with user data
@@ -1062,12 +1074,32 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
     const pdfBuffer = await withPage(async (page) => {
       await page.emulateMediaType('print');
       await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+      // Conditionally inject margin CSS
+      // const notRequiredMargin = [
+      //   'Professional Academic Research',
+      //   'Creative Designer'
+      // ]
+      // const applyCustomMargins = (notRequiredMargin.filter(v => v == template.name).length == 0);
+      // logger.log('applyCustomMargins', applyCustomMargins, template.name)
+      // if (applyCustomMargins) {
+      //   await page.addStyleTag({
+      //     content: `
+      //       /* Page margins for PDF generation */
+      //       @page :first {
+      //           margin: 0in 0in 0.5in 0in;
+      //       }
+      //       @page {
+      //           margin: 0.5in 0in 0.5in 0in;
+      //       }
+      //     `
+      //   });
+      // }
       await page.evaluateHandle('document.fonts.ready');
-      
+
       return await page.pdf({
-      format: 'A4',
+        format: 'A4',
         margin: '0in', // Let CSS @page rules handle margins
-      printBackground: true
+        printBackground: true
       });
     });
 
@@ -1118,7 +1150,7 @@ router.get('/:id/download/docx', protect, async (req, res) => {
 
     // Handle missing template - automatically assign Classic Traditional template
     if (!resume.template) {
-      
+
       // Find the Classic Traditional template
       const classicTemplate = await Template.findOne({
         name: 'Classic Traditional',
@@ -1140,10 +1172,10 @@ router.get('/:id/download/docx', protect, async (req, res) => {
           }
         };
         await resume.save();
-        
+
         // Re-populate the template for rendering
         await resume.populate('template');
-        
+
       } else {
         return res.status(400).json({
           success: false,
@@ -1169,7 +1201,7 @@ router.get('/:id/download/docx', protect, async (req, res) => {
 
     // Initialize template renderer
     const renderer = new OptimizedTemplateRenderer();
-    
+
     // Prepare resume data for rendering
     const resumeData = {
       title: resume.title,
@@ -1289,7 +1321,7 @@ router.get('/:id/download/docx', protect, async (req, res) => {
         docxArgs = chromium.args;
         docxViewport = chromium.defaultViewport;
         docxHeadless = chromium.headless;
-      } catch (e) {}
+      } catch (e) { }
     }
 
     if (!docxExecutablePath) {
@@ -1305,13 +1337,13 @@ router.get('/:id/download/docx', protect, async (req, res) => {
       args: docxArgs,
       defaultViewport: docxViewport
     });
-    
+
     const page = await browser.newPage();
     await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-    
+
     // Wait for fonts to load
     await page.evaluateHandle('document.fonts.ready');
-    
+
     // For now, we'll generate a PDF and inform the user that DOCX is being worked on
     // This is a temporary solution while we implement proper HTML-to-DOCX conversion
     const pdfBuffer = await page.pdf({
@@ -1335,9 +1367,9 @@ router.get('/:id/download/docx', protect, async (req, res) => {
       'Content-Disposition': `attachment; filename="${filename}"`,
       'Content-Length': pdfBuffer.length
     });
-    
+
     res.send(pdfBuffer);
-    
+
     logger.info(`Resume downloaded as PDF (DOCX conversion in progress): ${resume.title} by user ${req.user.email}`);
   } catch (error) {
     logger.error('Download DOCX error:', error);
@@ -1357,36 +1389,36 @@ function generateDocxContent(docx, resume) {
   const template = resume.template;
   const templateStyling = template.styling || {};
   const resumeStyling = resume.styling || {};
-  
+
   // Get template-specific styling
   const colors = templateStyling.colors || {};
   const fonts = templateStyling.fonts || {};
   const fontSizes = fonts.sizes || {};
-  
+
   // Get user's custom styling options
   const userStyling = resumeStyling.template || {};
-  
+
   // Set document default font
   const primaryFont = fonts.primary || 'Inter';
   const secondaryFont = fonts.secondary || 'Inter';
-  
+
   // Apply user's font size if specified
   const baseFontSize = userStyling.fontSize || fontSizes.body || 11;
   const headerFontSize = userStyling.headerFontSize || (userStyling.fontSize ? userStyling.fontSize * 1.8 : fontSizes.heading || 20);
   const subheadingFontSize = userStyling.fontSize ? userStyling.fontSize * 1.3 : fontSizes.subheading || 14;
-  
+
   // Apply user's line spacing if specified
   const lineSpacing = userStyling.lineSpacing || 1.5;
-  
+
   // Apply user's section spacing if specified
   const sectionSpacing = userStyling.sectionSpacing || 5;
-  
+
   // Convert color hex to RGB for officegen
   const hexToRgb = (hex) => {
     if (!hex) return '000000';
     return hex.replace('#', '').toUpperCase();
   };
-  
+
   // Template-specific section titles based on template category
   const getSectionTitle = (section, templateCategory) => {
     const sectionTitles = {
@@ -1445,7 +1477,7 @@ function generateDocxContent(docx, resume) {
         achievements: 'Achievements'
       }
     };
-    
+
     return sectionTitles[templateCategory]?.[section] || section;
   };
 
@@ -1459,10 +1491,10 @@ function generateDocxContent(docx, resume) {
       color: hexToRgb(colors.primary || '#000000'),
       underline: isClassic // Add underline for classic template
     });
-    
+
     // Add a line break after section titles
     docx.createP().addText('');
-    
+
     return titleParagraph;
   };
 
@@ -1496,7 +1528,7 @@ function generateDocxContent(docx, resume) {
     resume.personalInfo.address,
     resume.personalInfo.website
   ].filter(Boolean);
-  
+
   contactParagraph.addText(contactInfo.join(' | '), {
     font_face: secondaryFont,
     font_size: baseFontSize, // Use baseFontSize for contact info
@@ -1510,18 +1542,18 @@ function generateDocxContent(docx, resume) {
   // Add summary with template-specific title
   if (resume.summary) {
     const summaryTitle = getSectionTitle('summary', template.category);
-    
+
     if (summaryTitle) {
       addSectionTitle(summaryTitle, isClassicTemplate);
     }
-    
+
     const summaryContent = docx.createP();
     summaryContent.addText(resume.summary, {
       font_face: secondaryFont,
       font_size: baseFontSize, // Use baseFontSize for summary
       color: hexToRgb(colors.text || '#000000')
     });
-    
+
     addSectionSpacing(); // Use user's section spacing
   }
 
@@ -1580,7 +1612,7 @@ function generateDocxContent(docx, resume) {
 
       docx.createP().addText(''); // Spacing between jobs
     });
-    
+
     addSectionSpacing(); // Use user's section spacing after work experience
   }
 
@@ -1636,7 +1668,7 @@ function generateDocxContent(docx, resume) {
 
       docx.createP().addText(''); // Spacing between education entries
     });
-    
+
     addSectionSpacing(); // Use user's section spacing after education
   }
 
@@ -1653,7 +1685,7 @@ function generateDocxContent(docx, resume) {
         color: hexToRgb(colors.text || '#000000')
       });
     });
-    
+
     addSectionSpacing(); // Use user's section spacing after skills
   }
 
@@ -1699,7 +1731,7 @@ function generateDocxContent(docx, resume) {
 
       docx.createP().addText(''); // Spacing between projects
     });
-    
+
     addSectionSpacing(); // Use user's section spacing after projects
   }
 
@@ -1737,7 +1769,7 @@ function generateDocxContent(docx, resume) {
 
       docx.createP().addText(''); // Spacing between certifications
     });
-    
+
     addSectionSpacing(); // Use user's section spacing after certifications
   }
 
@@ -1784,7 +1816,7 @@ function generateDocxContent(docx, resume) {
 
       docx.createP().addText(''); // Spacing between achievements
     });
-    
+
     addSectionSpacing(); // Use user's section spacing after achievements
   }
 
@@ -1800,7 +1832,7 @@ function generateDocxContent(docx, resume) {
         color: hexToRgb(colors.text || '#000000')
       });
     });
-    
+
     addSectionSpacing(); // Use user's section spacing after languages
   }
 }
@@ -1882,7 +1914,7 @@ router.get('/:id', protect, async (req, res) => {
 
     // Handle missing template - automatically assign Classic Traditional template
     if (!resume.template) {
-      
+
       // Find the Classic Traditional template
       const classicTemplate = await Template.findOne({
         name: 'Classic Traditional',
@@ -1891,23 +1923,23 @@ router.get('/:id', protect, async (req, res) => {
       });
 
       if (classicTemplate) {
-          // Assign the template to the resume
-          resume.template = classicTemplate._id;
-          resume.styling = {
-            ...classicTemplate.styling,
-            template: {
-              headerLevel: 'h3',
-              headerFontSize: 18,
-              fontSize: 14,
-              lineSpacing: 1.3,
-              sectionSpacing: 1
-            }
-          };
+        // Assign the template to the resume
+        resume.template = classicTemplate._id;
+        resume.styling = {
+          ...classicTemplate.styling,
+          template: {
+            headerLevel: 'h3',
+            headerFontSize: 18,
+            fontSize: 14,
+            lineSpacing: 1.3,
+            sectionSpacing: 1
+          }
+        };
         await resume.save();
-        
+
         // Re-populate the template for rendering
         await resume.populate('template', 'name category styling templateCode');
-        
+
       } else {
         return res.status(400).json({
           success: false,
@@ -2052,8 +2084,8 @@ router.put('/:id', [
 
     // Update allowed fields
     const allowedFields = [
-      'title', 'personalInfo', 'summary', 'isFresher', 'workExperience', 
-      'education', 'skills', 'projects', 'achievements', 
+      'title', 'personalInfo', 'summary', 'isFresher', 'workExperience',
+      'education', 'skills', 'projects', 'achievements',
       'certifications', 'languages', 'customFields', 'styling'
     ];
 
@@ -2133,7 +2165,7 @@ router.post('/:id/duplicate', protect, async (req, res) => {
 
     // Create duplicate - use a more robust approach
     const duplicateData = JSON.parse(JSON.stringify(originalResume.toObject()));
-    
+
     // Remove fields that should not be duplicated
     delete duplicateData._id;
     delete duplicateData.createdAt;
@@ -2143,7 +2175,7 @@ router.post('/:id/duplicate', protect, async (req, res) => {
     duplicateData.title = `${duplicateData.title} (Copy)`;
     duplicateData.status = 'draft';
     duplicateData.analytics = { views: 0, shares: 0, downloads: 0, lastViewed: new Date(), lastDownloaded: new Date() };
-    
+
     // Validate that we don't have any conflicting _id fields
     if (duplicateData._id) {
       logger.error('Duplicate data still contains _id field:', duplicateData._id);
@@ -2152,7 +2184,7 @@ router.post('/:id/duplicate', protect, async (req, res) => {
         error: 'Internal server error during duplication'
       });
     }
-    
+
     const resumeData = {
       user: req.user.id,
       title: duplicateData.title || 'Untitled Resume',
@@ -2171,12 +2203,12 @@ router.post('/:id/duplicate', protect, async (req, res) => {
 
 
     const duplicateResume = new Resume(resumeData);
-    logger.info('Creating duplicate resume:', { 
-      originalId: originalResume._id, 
+    logger.info('Creating duplicate resume:', {
+      originalId: originalResume._id,
       duplicateTitle: duplicateData.title,
       duplicateId: duplicateResume._id // This should be a new ObjectId
     });
-    
+
     try {
       await duplicateResume.save();
       logger.info('Duplicate resume saved successfully with ID:', duplicateResume._id);
@@ -2290,7 +2322,7 @@ router.post('/:id/share', protect, async (req, res) => {
     resume.shareToken = shareToken;
     resume.isPublic = true;
     resume.analytics.shares += 1;
-    
+
     await resume.save();
 
     const shareUrl = `${process.env.CLIENT_URL}/resume/shared/${shareToken}`;
@@ -2464,7 +2496,7 @@ router.put('/:id/colors', [
   body('colors').custom((value) => {
     // Allow null for reset functionality
     if (value === null) return true;
-    
+
     // If colors object is provided, validate each color
     if (value && typeof value === 'object') {
       const colorFields = ['primary', 'secondary', 'accent', 'text'];
@@ -2509,7 +2541,7 @@ router.put('/:id/colors', [
     if (!resume.styling.template) {
       resume.styling.template = {};
     }
-    
+
     // Handle color reset (null values) or color updates
     if (req.body.colors === null) {
       // Reset colors to null to use template defaults
@@ -2524,10 +2556,10 @@ router.put('/:id/colors', [
 
     await resume.save();
 
-    logger.info('Resume colors updated:', { 
-      resumeId: resume._id, 
-      userId: req.user.id, 
-      colors: req.body.colors 
+    logger.info('Resume colors updated:', {
+      resumeId: resume._id,
+      userId: req.user.id,
+      colors: req.body.colors
     });
 
     res.json({
@@ -2591,15 +2623,15 @@ router.put('/:id/colors/individual', [
     if (!resume.styling.template.colors) {
       resume.styling.template.colors = {};
     }
-    
+
     // Update the specific color
     resume.styling.template.colors[req.body.colorType] = req.body.colorValue;
 
     await resume.save();
 
     logger.info('Individual resume color updated:', {
-      resumeId: resume._id, 
-      userId: req.user.id, 
+      resumeId: resume._id,
+      userId: req.user.id,
       colorType: req.body.colorType,
       colorValue: req.body.colorValue
     });

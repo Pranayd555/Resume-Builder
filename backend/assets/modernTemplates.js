@@ -51,6 +51,7 @@ module.exports = [
             <div class="main-column">
               <header class="header">
                 <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+                {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
                 <div class="contact-info secondaryFont">
                   <div class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</div>
                   {{#if personalInfo.phone}}<div class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
@@ -339,6 +340,7 @@ module.exports = [
           html: `<article class="resume modern-executive" itemscope itemtype="http://schema.org/Person">
             <header class="header">
               <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+              {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
               <div class="title-line"></div>
                <div class="contact-info secondaryFont">
                  <span class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</span>
@@ -609,6 +611,7 @@ module.exports = [
             <header class="tech-header">
               <div class="header-left">
                 <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+                {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
                 <div class="contact-info secondaryFont">
                   {{#if personalInfo.email}}<div class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</div>{{/if}}
                   {{#if personalInfo.phone}}<div class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
@@ -875,6 +878,7 @@ module.exports = [
             <div class="main-column">
               <header class="header">
                 <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+                {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
                 <div class="contact-info secondaryFont">
                   <div class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</div>
                   {{#if personalInfo.phone}}<div class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
@@ -1173,6 +1177,7 @@ module.exports = [
           html: `<article class="resume elegant-minimal" itemscope itemtype="http://schema.org/Person">
             <header class="header">
               <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+              {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
               <div class="contact-info secondaryFont">
                 <div class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</div>
                 {{#if personalInfo.phone}}<div class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
@@ -1442,6 +1447,7 @@ module.exports = [
           html: `<article class="resume bold-accent" itemscope itemtype="http://schema.org/Person">
             <header class="header">
               <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+              {{#if isFresher}}{{else}}<h2 class="name primaryFont" itemprop="title">{{title}}</h2>{{/if}}
               <div class="contact-info secondaryFont">
                 <div class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</div>
                 {{#if personalInfo.phone}}<div class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
@@ -1708,6 +1714,7 @@ module.exports = [
           "html": `<article class="resume fresh-gradient" itemscope itemtype="http://schema.org/Person">
             <header class="header">
               <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+              {{#if isFresher}}{{else}}<h2 class="name primaryFont" itemprop="title">{{title}}</h2>{{/if}}
               <div class="contact-info secondaryFont">
                 <div class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</div>
                 {{#if personalInfo.phone}}<div class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
@@ -2264,8 +2271,10 @@ module.exports = [
         templateCode: {
           html: `<article class="resume modern-glassmorphism" itemscope itemtype="http://schema.org/Person">
             <header class="header">
+            <div class="header-content">
               <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
-              <div class="title secondaryFont">{{personalInfo.title}}</div>
+              {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
+            </div>
             </header>
             
             <div class="content-wrapper">
@@ -2428,21 +2437,22 @@ module.exports = [
           .header { 
             background: #0d9488; 
             color: white; 
-            padding: 2rem; 
+            padding: 0.5rem;
             text-align: center; 
-            margin-bottom: 0;
+            font-size: 18px;
+            font-weight: 700;
           }
-          
-          .name { 
-            font-size: 28px; 
-            font-weight: 700; 
-            margin: 0 0 8px 0; 
-            color: white; 
+
+          h1{
+          font-size:2rem !important;
+          }
+          h2{
+          font-size:1.5rem !important;
           }
           
           .title { 
             font-size: 16px; 
-            font-weight: 400; 
+            font-weight: 600; 
             margin: 0; 
             color: white; 
             text-transform: uppercase; 

@@ -50,6 +50,7 @@ module.exports = [
         html: `<article class="resume minimalist-clean" itemscope itemtype="http://schema.org/Person">
             <header class="header">
             <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+            {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
             <div class="contact-info secondaryFont">
                 <span class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</span>
                 {{#if personalInfo.phone}}<span class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</span>{{/if}}
@@ -318,11 +319,11 @@ module.exports = [
         availability: { tier: 'free', isPublic: true, isActive: true },
         templateCode:{
             html: ` 
-                <body>
+                <body class="modern-professional-minimal">
                 <div class="resume-container" itemscope itemtype="http://schema.org/Person">
                 <header>
-                <h1 class="primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
-                {{#if title}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
+                <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+                {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
                 <div class="contact-info secondaryFont" itemprop="contactPoint" itemscope itemtype="http://schema.org/ContactPoint">
                 {{#if personalInfo.address}}<span class="contact-item" itemprop="address">{{personalInfo.address}}</span>{{/if}}
                 {{#if personalInfo.email}}<span class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</span>{{/if}}
@@ -346,7 +347,7 @@ module.exports = [
                 <div class="skills-grid">
                 {{#each skills}}
                  <div class="skill-category">
-                    <h4 class="skill-category-title primaryFont">{{category}}</h4>
+                    <h4 class="skill-category-title secondaryFont"><strong>{{category}}</strong></h4>
                     <div class="skill-items secondaryFont">
                       {{#each items}}<span class="skill-item" data-level="{{level}}">{{name}}</span>{{#unless @last}}, {{/unless}}{{/each}}
                     </div>
@@ -362,7 +363,7 @@ module.exports = [
                 {{#each workExperience}}
                     <div class="job-item" itemscope itemtype="http://schema.org/JobPosting">
                         <div class="job-header">
-                            <div class="job-title primaryFont" itemprop="title">{{jobTitle}}</div>
+                            <div class="job-title secondaryFont" itemprop="title"><strong>{{jobTitle}}</strong></div>
                         <div class="job-meta">
                             <span class="company secondaryFont" itemprop="hiringOrganization">{{company}}</span>
                             {{#if location}}<span class="location secondaryFont" itemprop="jobLocation">{{location}}</span>{{/if}}
@@ -389,13 +390,13 @@ module.exports = [
                 {{#each projects}}
                  <div class="project-item">
                     <div class="project-header">
-                      <h4 class="project-name primaryFont">{{name}}</h4>
+                      <h4 class="project-name secondaryFont"><strong>{{name}}</strong></h4>
                       {{#if startDate}}<div class="project-dates secondaryFont">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
                     </div>
                     {{#if description}}<div class="project-description secondaryFont">{{{description}}}</div>{{/if}}
                     {{#if technologies}}
                     <div class="technologies">
-                      <h4 class="primaryFont">Technologies:</h4> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{#unless @last}}, {{/unless}}{{/each}}
+                      <strong class="technologies secondaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag technologies secondaryFont">{{this}}</span>{{#unless @last}}, {{/unless}}{{/each}}
                     </div>
                     {{/if}}
                     {{#if url}}<div class="project-links secondaryFont"><a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
@@ -412,7 +413,7 @@ module.exports = [
                 {{#each education}}
                 <div class="edu-item" itemscope itemtype="http://schema.org/EducationalOccupationalCredential">
                     <div class="edu-header">
-                        <h4 class="edu-degree primaryFont" itemprop="credentialCategory">{{degree}}</h4>
+                        <h4 class="edu-degree secondaryFont" itemprop="credentialCategory"><strong>{{degree}}</strong></h4>
                       <div class="edu-meta">
                         <span class="institution secondaryFont" itemprop="recognizedBy">{{institution}}</span>
                         {{#if location}}<span class="location secondaryFont">{{location}}</span>{{/if}}
@@ -436,7 +437,7 @@ module.exports = [
                 <ul class="secondaryFont">
                 {{#each achievements}}
                <div class="achievement-item">
-                    {{#if title}}<h4 class="achievement-title primaryFont">{{title}}</h4>{{/if}}
+                    {{#if title}}<h4 class="achievement-title secondaryFont"><strong>{{title}}</strong></h4>{{/if}}
                     {{#if description}}<div class="achievement-description secondaryFont">{{{description}}}</div>{{/if}}
                     {{#if date}}<div class="achievement-date secondaryFont">{{formatDate date}}</div>{{/if}}
                     {{#if issuer}}<div class="achievement-issuer secondaryFont">{{issuer}}</div>{{/if}}
@@ -452,7 +453,7 @@ module.exports = [
                 <ul class="secondaryFont">
                 {{#each certifications}}
                 <div class="cert-item">
-                    <div class="cert-name secondaryFont">{{name}}</div>
+                    <div class="cert-name secondaryFont"><strong>{{name}}</strong></div>
                     <div class="cert-meta">
                       <span class="issuer secondaryFont">{{issuer}}</span>
                       {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}</span>{{/if}}
@@ -515,7 +516,7 @@ module.exports = [
                         .secondaryFont {
                             font-family: var(--secondary-font, sans-serif);
                         }
-                        body {
+                        body.modern-professional-minimal {
                             font-family: 'Lato', sans-serif;
                             background-color: #f3f4f6;
                             color: var(--text-light);
@@ -526,14 +527,14 @@ module.exports = [
                             margin-bottom: 1rem;
                         }
                         header h1 {
-                            font-size: 1.8rem;
+                            font-size: 18px;
                             font-weight: 700;
                             letter-spacing: 0.025em;
                             color: #111827;
                             margin-bottom: 0.2rem;
                         }
                         header h2 {
-                            font-size: 1rem;
+                            font-size: 16px;
                             font-weight: 700;
                             letter-spacing: 0.05em;
                             color: #374151;
@@ -542,7 +543,7 @@ module.exports = [
                         }
 
                         h4 {
-                            font-size: 0.65rem;
+                            font-size: 13px;
                             font-weight: 700;
                             letter-spacing: 0.05em;
                             color: #374151;
@@ -558,7 +559,7 @@ module.exports = [
                             text-decoration: none;
                         }
                         .contact-info {
-                            font-size: 0.8rem;
+                            font-size: 13px;
                             color: #4b5563;
                             margin-top: 0;
                             line-height: 1.3;
@@ -567,7 +568,7 @@ module.exports = [
                             margin-bottom: 1rem;
                         }
                         .section-title {
-                            font-size: 0.7rem;
+                            font-size: 15px;    
                             font-weight: 700;
                             letter-spacing: 0.1em;
                             color: var(--section-header-text-light);
@@ -575,15 +576,14 @@ module.exports = [
                             padding: 0.2rem 0.6rem;
                             border-radius: 9999px;
                             display: inline-block;
-                            margin-bottom: 0.6rem;
                             width: 100%;
                         }
                         section p, section ul li {
-                            font-size: 0.85rem;
+                            font-size: 13px;
                             line-height: 1.4;
                         }
                         .summary-text {
-                            font-size: 0.85rem;
+                            font-size: 13px;
                             line-height: 1.4;
                             margin-top: 0;
                         }
@@ -604,18 +604,18 @@ module.exports = [
                         }
                         .entry-title {
                             font-weight: 700;
-                            font-size: 0.9rem;
+                            font-size: 15px;
                             color: #111827;
                         }
                         .entry-date {
-                            font-size: 0.75rem;
+                            font-size: 13px;
                             font-weight: 500;
                             color: #4b5563;
                             flex-shrink: 0;
                             margin-left: 0.8rem;
                         }
                         .entry-subtitle {
-                            font-size: 0.85rem;
+                            font-size: 13px;
                             font-style: italic;
                             color: #4b5563;
                             margin: 0;
@@ -639,7 +639,7 @@ module.exports = [
                         .item-title h3, .achievement-item .achievement-title, .custom-field skill-category h3 { font-weight: 600; color: #1f2937; margin-bottom: 2px; }
 
                         .technologies {
-                            font-size: 0.85rem;
+                            font-size: 13px;
                             font-weight: 600;
                         }
 
@@ -650,6 +650,11 @@ module.exports = [
                         align-items: center;
                         justify-content: flex-start;
                         }
+
+                        .project-links a, .cert-link a, .contact-item a { color: #1f2937; text-decoration: none; }
+        .project-links a:hover, .cert-link a:hover, .contact-item a:hover { text-decoration: underline; }
+
+        
                         @media (min-width: 640px) {
                             body {
                                 padding: 1.2rem;

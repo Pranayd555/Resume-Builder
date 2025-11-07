@@ -16,7 +16,7 @@ class PuppeteerThumbnailGenerator {
     try {
       // Create output directory if it doesn't exist
       await fs.mkdir(this.outputDir, { recursive: true });
-      
+
       // Launch browser
       this.browser = await puppeteer.launch({
         headless: 'new',
@@ -29,7 +29,7 @@ class PuppeteerThumbnailGenerator {
           '--window-size=1920,1080'
         ]
       });
-      
+
       console.log('✅ Puppeteer browser initialized');
     } catch (error) {
       console.error('❌ Failed to initialize Puppeteer:', error);
@@ -47,267 +47,146 @@ class PuppeteerThumbnailGenerator {
 
   generateSampleData() {
     return {
-      "personalInfo": {
-        "fullName": "John Doe",
-        "email": "John@yopmail.com",
-        "phone": "+91 7689878934",
-        "address": "DN-53, Salt Lake, Sector-v",
-        "website": "",
-        "linkedin": "https://linkedin.com/john",
-        "github": "https://github.com/john"
-    },
-    "styling": {
-        "template": {
-            "headerLevel": "h3",
-            "headerFontSize": 18,
-            "fontSize": 12,
-            "lineSpacing": 1.3,
-            "sectionSpacing": 1
-        },
-        "header": {
-            "labelSize": "medium",
-            "size": "medium",
-            "spacing": "normal",
-            "textSize": "medium"
-        },
-        "fontFamily": "Inter",
-        "fontSize": 12,
-        "primaryColor": "#2563eb",
-        "secondaryColor": "#64748b"
-    },
-    "analytics": {
-        "views": 52,
-        "shares": 0,
-        "lastViewed": "2025-08-29T16:01:43.307Z",
-        "downloads": 6,
-        "lastDownloaded": "2025-08-29T16:00:48.195Z"
-    },
-    "title": "Senior Software Engineer",
-    "summary": "<p>A Senior Software Developer is a highly experienced professional responsible for designing, defveloping, testing, and maintaining complex software applications. They lead development teams, make architectural decisions, mentor junior developers, and ensure high-quality code through best practices and efficient workflows.</p><p>fdfd</p>",
-    "workExperience": [
+      title: 'Software Engineer Resume',
+      isFresher: false,
+      personalInfo: {
+        fullName: 'John Doe',
+        email: 'john.doe@email.com',
+        phone: '+1 (555) 123-4567',
+        address: 'San Francisco, CA',
+        website: 'https://johndoe.dev',
+        linkedin: 'https://linkedin.com/in/johndoe',
+        github: 'https://github.com/johndoe',
+        profilePicture: 'https://cdn-icons-png.flaticon.com/512/3135/3135823.png',
+      },
+      summary: 'Experienced software engineer with 5+ years of experience in full-stack development. Passionate about creating scalable applications and leading development teams. Skilled in modern JavaScript frameworks, cloud technologies, and agile methodologies.',
+      workExperience: [
         {
-            "jobTitle": "trainee",
-            "company": "TCS",
-            "location": "Kolkata",
-            "startDate": "2018-01-04T00:00:00.000Z",
-            "endDate": "2019-01-04T00:00:00.000Z",
-            "isCurrentJob": true,
-            "description": "<ul><li>A Senior Software Developer is a highly experienced professional responsible for designing, developing, testing, and maintaining complex software applications.&nbsp;</li><li>They lead development teams, make architectural decisions, mentor junior developers, and ensure high-quality code through best practices and efficient workflows.</li></ul>",
-            "achievements": [],
-            "_id": "68b1be4539fdbe1114618348",
-            "id": "68b1be4539fdbe1114618348"
+          jobTitle: 'Senior Software Engineer',
+          company: 'Tech Corp',
+          location: 'San Francisco, CA',
+          startDate: '2021-03-01',
+          endDate: null,
+          isCurrentJob: true,
+          description: 'Lead development of customer-facing web applications using React and Node.js. Mentor junior developers and contribute to architecture decisions.',
+          achievements: [
+            'Improved application performance by 40% through optimization techniques',
+            'Led a team of 4 developers in building a new customer portal',
+            'Implemented automated testing that reduced bugs by 60%'
+          ]
         },
         {
-            "jobTitle": "Software developer",
-            "company": "ITC",
-            "location": "Kolkata",
-            "startDate": "2022-07-19T00:00:00.000Z",
-            "endDate": "2025-08-29T16:01:43.307Z",
-            "isCurrentJob": true,
-            "description": "<ol><li>A Senior Software Developer is a highly experienced professional responsible for designing, developing, testing, and maintaining complex software applications.&nbsp;</li><li>They lead development teams, make architectural decisions, mentor junior developers, and ensure high-quality code through best practices and efficient workflows.</li></ol>",
-            "achievements": [],
-            "_id": "68b1be4539fdbe1114618349",
-            "id": "68b1be4539fdbe1114618349"
+          jobTitle: 'Software Engineer',
+          company: 'StartupCo',
+          location: 'San Francisco, CA',
+          startDate: '2019-06-01',
+          endDate: '2021-02-28',
+          isCurrentJob: false,
+          description: 'Developed and maintained web applications using modern JavaScript frameworks.',
+          achievements: [
+            'Built RESTful APIs serving 1M+ requests per day',
+            'Collaborated with design team to implement responsive UI components',
+            'Reduced deployment time by 50% through CI/CD pipeline improvements'
+          ]
         }
-    ],
-    "education": [
-          {
-            "degree": "MBA",
-            "institution": "IIT-Delhi",
-            "location": "Delhi",
-            "startDate": "2024-02-05T00:00:00.000Z",
-            "endDate": "2026-05-31T00:00:00.000Z",
-            "isCurrentlyStudying": false,
-            "gpa": 8.6,
-            "description": "",
-            "_id": "68b1be4539fdbe111461834a",
-            "id": "68b1be4539fdbe111461834a"
-        },
+      ],
+      education: [
         {
-            "degree": "Btech",
-            "institution": "MAKAUT",
-            "location": "Kolkata",
-            "startDate": "2013-02-05T00:00:00.000Z",
-            "endDate": "2018-05-31T00:00:00.000Z",
-            "isCurrentlyStudying": false,
-            "gpa": 7.6,
-            "description": "",
-            "_id": "68b1be4539fdbe111461834a",
-            "id": "68b1be4539fdbe111461834a"
-        },
-        {
-            "degree": "12th",
-            "institution": "A B C High School",
-            "location": "Kolkata",
-            "startDate": "2013-02-05T00:00:00.000Z",
-            "endDate": "2018-05-31T00:00:00.000Z",
-            "isCurrentlyStudying": false,
-            "gpa": 7.6,
-            "description": "",
-            "_id": "68b1be4539fdbe111461834a",
-            "id": "68b1be4539fdbe111461834a"
-        },
-        {
-            "degree": "10th",
-            "institution": "D A V Public School",
-            "location": "Kolkata",
-            "startDate": "2013-02-05T00:00:00.000Z",
-            "endDate": "2018-05-31T00:00:00.000Z",
-            "isCurrentlyStudying": false,
-            "gpa": 7.6,
-            "description": "",
-            "_id": "68b1be4539fdbe111461834a",
-            "id": "68b1be4539fdbe111461834a"
+          degree: 'Bachelor of Science in Computer Science',
+          institution: 'University of California, Berkeley',
+          location: 'Berkeley, CA',
+          startDate: '2015-09-01',
+          endDate: '2019-05-30',
+          isCurrentlyStudying: false,
+          gpa: 3.8,
+          description: 'Relevant coursework: Data Structures, Algorithms, Software Engineering, Database Systems'
         }
-    ],
-    "skills": [
+      ],
+      skills: [
         {
-            "category": "Technical",
-            "items": [
-                {
-                    "name": "Angular",
-                    "level": "intermediate",
-                    "_id": "68b1be4539fdbe111461834c",
-                    "id": "68b1be4539fdbe111461834c"
-                },
-                {
-                    "name": "Javascript",
-                    "level": "intermediate",
-                    "_id": "68b1be4539fdbe111461834d",
-                    "id": "68b1be4539fdbe111461834d"
-                },
-                {
-                    "name": "HTML",
-                    "level": "intermediate",
-                    "_id": "68b1be4539fdbe111461834e",
-                    "id": "68b1be4539fdbe111461834e"
-                },
-                {
-                    "name": "CSS",
-                    "level": "intermediate",
-                    "_id": "68b1be4539fdbe111461834f",
-                    "id": "68b1be4539fdbe111461834f"
-                },
-                {
-                    "name": "React",
-                    "level": "intermediate",
-                    "_id": "68b1be4539fdbe1114618350",
-                    "id": "68b1be4539fdbe1114618350"
-                }
-            ],
-            "_id": "68b1be4539fdbe111461834b",
-            "id": "68b1be4539fdbe111461834b"
+          category: 'Programming Languages',
+          items: [
+            { name: 'JavaScript', level: 'expert' },
+            { name: 'Python', level: 'advanced' },
+            { name: 'Java', level: 'intermediate' },
+            { name: 'TypeScript', level: 'advanced' }
+          ]
         },
         {
-            "category": "Management skills",
-            "items": [
-                {
-                    "name": "Jira",
-                    "level": "intermediate",
-                    "_id": "68b1be4539fdbe1114618352",
-                    "id": "68b1be4539fdbe1114618352"
-                },
-                {
-                    "name": "Azure",
-                    "level": "intermediate",
-                    "_id": "68b1be4539fdbe1114618353",
-                    "id": "68b1be4539fdbe1114618353"
-                },
-                {
-                    "name": "Github",
-                    "level": "intermediate",
-                    "_id": "68b1be4539fdbe1114618354",
-                    "id": "68b1be4539fdbe1114618354"
-                }
-            ],
-            "_id": "68b1be4539fdbe1114618351",
-            "id": "68b1be4539fdbe1114618351"
-        }
-    ],
-    "projects": [
-        {
-            "name": "OMSA",
-            "description": `<p>Developed and maintained a full-stack web application using modern technologies, focusing on scalability and user experience.</p>
-            <ul>
-            <li>Enhanced existing features to improve user experience and performance.</li>
-            <li>Implemented new functionalities based on user feedback and business requirements.</li>
-            <li>Optimized codebase for better maintainability and scalability.</li>
-          </ul>`,
-            "technologies": [
-                "Angular",
-                "Nodejs",
-                "Jqurey",
-                "Rxjs"
-            ],
-            "url": "",
-            "githubUrl": "https://github.com/Prana1234/OMSA",
-            "startDate": null,
-            "endDate": null,
-            "_id": "68b1be4539fdbe1114618355",
-            "id": "68b1be4539fdbe1114618355"
+          category: 'Frameworks & Libraries',
+          items: [
+            { name: 'React', level: 'expert' },
+            { name: 'Node.js', level: 'advanced' },
+            { name: 'Express.js', level: 'advanced' },
+            { name: 'Django', level: 'intermediate' }
+          ]
         },
         {
-            "name": "Mondee",
-            "description": "<ul><li>Enhanced existing features to improve user experience and performance.</li><li>Implemented new functionalities based on user feedback and business requirements.</li><li>Optimized codebase for better maintainability and scalability.</li></ul>",
-            "technologies": [
-                "Angular",
-                "Nodejs",
-                "Jqurey",
-                "Rxjs"
-            ],
-            "url": "",
-            "githubUrl": "",
-            "startDate": null,
-            "endDate": null,
-            "_id": "68b1be4539fdbe1114618356",
-            "id": "68b1be4539fdbe1114618356"
+          category: 'Tools & Technologies',
+          items: [
+            { name: 'Git', level: 'expert' },
+            { name: 'Docker', level: 'advanced' },
+            { name: 'AWS', level: 'intermediate' },
+            { name: 'MongoDB', level: 'advanced' }
+          ]
         }
-    ],
-    "achievements": [
+      ],
+      projects: [
         {
-            "title": "On the spot team award",
-            "description": "",
-            "date": null,
-            "issuer": "TCS",
-            "_id": "68b1be4539fdbe1114618357",
-            "id": "68b1be4539fdbe1114618357"
+          name: 'E-commerce Platform',
+          description: 'Full-stack e-commerce application with payment processing and inventory management',
+          technologies: ['React', 'Node.js', 'MongoDB', 'Razorpay API'],
+          url: 'https://ecommerce-demo.com',
+          githubUrl: 'https://github.com/johndoe/ecommerce-platform',
+          startDate: '2020-01-01',
+          endDate: '2020-06-30'
         },
         {
-            "title": "Best team award",
-            "description": "",
-            "date": null,
-            "issuer": "TCS",
-            "_id": "68b1be4539fdbe1114618358",
-            "id": "68b1be4539fdbe1114618358"
+          name: 'Task Management App',
+          description: 'Collaborative task management application with real-time updates',
+          technologies: ['React', 'Socket.io', 'PostgreSQL'],
+          url: 'https://taskapp-demo.com',
+          githubUrl: 'https://github.com/johndoe/task-app',
+          startDate: '2019-08-01',
+          endDate: '2019-12-31'
         }
-    ],
-    "certifications": [
+      ],
+      achievements: [
         {
-            "name": "Javascript fundamentals",
-            "issuer": "Meta",
-            "date": null,
-            "expiryDate": null,
-            "credentialId": "f34534derfsd4454fs",
-            "url": "",
-            "_id": "68b1be4539fdbe1114618359",
-            "id": "68b1be4539fdbe1114618359"
+          title: 'Best Innovation Award',
+          description: 'Recognized for developing an innovative solution that improved customer satisfaction by 25%',
+          date: '2022-12-01',
+          issuer: 'Tech Corp'
         },
         {
-            "name": "Angular Intermediate",
-            "issuer": "Jobsschool",
-            "date": "2023-02-05T00:00:00.000Z",
-            "expiryDate": null,
-            "credentialId": "f34534derfsd4454fs",
-            "url": "",
-            "_id": "68b1be4539fdbe111461835a",
-            "id": "68b1be4539fdbe111461835a"
+          title: 'Outstanding Graduate',
+          description: 'Graduated Summa Cum Laude with highest honors in Computer Science',
+          date: '2019-05-30',
+          issuer: 'UC Berkeley'
         }
-    ],
+      ],
+      certifications: [
+        {
+          name: 'AWS Certified Solutions Architect',
+          issuer: 'Amazon Web Services',
+          date: '2022-03-15',
+          expiryDate: '2025-03-15',
+          credentialId: 'AWS-CSA-123456',
+          url: 'https://aws.amazon.com/certification/'
+        },
+        {
+          name: 'React Developer Certification',
+          issuer: 'Meta',
+          date: '2021-08-20',
+          credentialId: 'META-REACT-789012'
+        }
+      ],
       languages: [
-        { name: 'English', proficiency: 'Native' },
-        { name: 'Spanish', proficiency: 'Conversational' },
-        { name: 'French', proficiency: 'Basic' }
-      ]
+        { name: 'English', proficiency: 'native' },
+        { name: 'Spanish', proficiency: 'conversational' },
+        { name: 'French', proficiency: 'basic' }
+      ],
+      customFields: []
     };
   }
 
@@ -316,14 +195,14 @@ class PuppeteerThumbnailGenerator {
     handlebars.registerHelper('formatDate', (dateString) => {
       if (!dateString) return '';
       const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', { 
-        month: 'short', 
-        year: 'numeric' 
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        year: 'numeric'
       });
     });
 
     handlebars.registerHelper('eq', (a, b) => a === b);
-    handlebars.registerHelper('unless', function(conditional, options) {
+    handlebars.registerHelper('unless', function (conditional, options) {
       if (!conditional) {
         return options.fn(this);
       }
@@ -352,7 +231,7 @@ class PuppeteerThumbnailGenerator {
       // const htmlTemplate = handlebars.compile(template.templateCode.html);
       // const compiledHTML = htmlTemplate(this.sampleData);
       const renderer = new OptimizedTemplateRenderer();
-    
+
       // Prepare resume data for rendering
       const resumeData = {
         title: this.sampleData.title,
@@ -369,7 +248,7 @@ class PuppeteerThumbnailGenerator {
         styling: this.sampleData.styling || {} // Include styling data
       };
       const renderResult = renderer.render(template, resumeData);
-      
+
       const htmlContent = `
       <!DOCTYPE html>
       <html lang="en">
@@ -415,7 +294,7 @@ class PuppeteerThumbnailGenerator {
                       color-adjust: exact;
                   }
               }
-              
+
               /* Page margins for PDF generation */
               @page :first {
                   margin: 0in 0in 0.5in 0in;
@@ -467,7 +346,7 @@ class PuppeteerThumbnailGenerator {
 
       // Create new page
       const page = await this.browser.newPage();
-      
+
       // Set viewport to match the template dimensions
       await page.setViewport({
         width: Math.max(width * 2, 800),
@@ -510,12 +389,12 @@ class PuppeteerThumbnailGenerator {
 
       // Add white border using sharp
       const finalImage = await sharp(screenshotBuffer).extend({
-          top: 0,
-          bottom: whiteBorderHeight,
-          left: 0,
-          right: 0,
-          background: 'white'
-        })
+        top: 0,
+        bottom: whiteBorderHeight,
+        left: 0,
+        right: 0,
+        background: 'white'
+      })
         .toBuffer();
       await sharp(finalImage).toFile(thumbnailPath);
 
@@ -523,7 +402,7 @@ class PuppeteerThumbnailGenerator {
       await page.close();
 
       console.log(`✅ Generated thumbnail: ${thumbnailFilename}`);
-      
+
       return {
         success: true,
         path: thumbnailPath,
@@ -545,26 +424,26 @@ class PuppeteerThumbnailGenerator {
 
   async generateThumbnailsForAllTemplates(templates, options = {}) {
     const results = [];
-    
+
     console.log(`🔄 Generating thumbnails for ${templates.length} templates...`);
-    
+
     for (let i = 0; i < templates.length; i++) {
       const template = templates[i];
       console.log(`📸 Processing ${i + 1}/${templates.length}: ${template.name}`);
-      
+
       const result = await this.generateThumbnail(template, options);
       results.push({
         templateId: template._id,
         templateName: template.name,
         ...result
       });
-      
+
       // Small delay to prevent overwhelming the system
       await new Promise(resolve => setTimeout(resolve, 100));
     }
-    
+
     console.log(`✅ Thumbnail generation complete. ${results.filter(r => r.success).length}/${results.length} successful`);
-    
+
     return results;
   }
 
@@ -575,9 +454,9 @@ class PuppeteerThumbnailGenerator {
       quality: 85,
       format: 'webp' // More efficient than PNG/JPEG
     };
-    
+
     const mergedOptions = { ...defaultOptions, ...options };
-    
+
     return await this.generateThumbnailsForAllTemplates(templates, mergedOptions);
   }
 
@@ -588,10 +467,10 @@ class PuppeteerThumbnailGenerator {
       { width: 300, height: 400, suffix: 'medium' },
       { width: 600, height: 800, suffix: 'large' }
     ];
-    
+
     const sizesToGenerate = sizes.length > 0 ? sizes : defaultSizes;
     const results = [];
-    
+
     for (const size of sizesToGenerate) {
       const filename = `${template.name.toLowerCase().replace(/\s+/g, '-')}-${size.suffix}.webp`;
       const result = await this.generateThumbnail(template, {
@@ -600,20 +479,20 @@ class PuppeteerThumbnailGenerator {
         format: 'webp',
         filename
       });
-      
+
       results.push({
         size: size.suffix,
         ...result
       });
     }
-    
+
     return results;
   }
 
   // Generate data URI for inline embedding
   async generateDataURI(template, options = {}) {
     const { width = 300, height = 400, format = 'png' } = options;
-    
+
     if (!this.browser) {
       throw new Error('Puppeteer browser not initialized. Call initialize() first.');
     }
@@ -682,7 +561,7 @@ class PuppeteerThumbnailGenerator {
 
       // Create new page
       const page = await this.browser.newPage();
-      
+
       // Set viewport to match the template dimensions
       await page.setViewport({
         width: Math.max(width * 2, 800),
@@ -720,7 +599,7 @@ class PuppeteerThumbnailGenerator {
       const dataURI = `data:${mimeType};base64,${screenshotBuffer.toString('base64')}`;
 
       console.log(`✅ Generated data URI for ${template.name}`);
-      
+
       return {
         success: true,
         dataURI,

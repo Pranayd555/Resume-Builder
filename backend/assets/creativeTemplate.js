@@ -50,7 +50,7 @@ module.exports = [
           html: `<div class="resume creative-designer">
             <div class="sidebar">
               <div class="profile-section">
-                <h1 class="name primaryFont">{{personalInfo.fullName}}</h1>
+                <h1 class="name primaryFont">{{personalInfo.fullName}}</h1>{{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
                 <div class="contact-info secondaryFont">
                   <div class="contact-item secondaryFont">
                     <span class="icon">📧</span>
@@ -148,7 +148,7 @@ module.exports = [
                       {{/if}}
                       {{#if url}}
                         <div class="cert-link secondaryFont">
-                          <a href="{{url}}" target="_blank">Verify</a>
+                          <a href="{{url}}" target="_blank">{{url}}</a>
                         </div>
                       {{/if}}
                     </div>
@@ -300,7 +300,8 @@ module.exports = [
           css: `.resume.creative-designer {
             font-family: 'Arial', sans-serif;
             max-width: 8.5in;
-            margin: 0 auto;
+            margin: 0 auto;            
+            padding: 0.35in 0.35in;
             background: white;
             color: #1f2937;
             display: grid;
@@ -312,12 +313,17 @@ module.exports = [
           .sidebar {
             background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
             color: white;
-            padding: 24px 20px;
+            padding: 0.20in 0.20in;
           }
           
           .profile-section {
             margin-bottom: 6px;
           }
+
+          .span a {
+            color: rgba(255,255,255,0.9);
+            text-decoration:none;
+            }
           
           .name {
             font-size: 18px;
@@ -344,7 +350,7 @@ module.exports = [
           
           .sidebar h2 {
             font-weight: 600;
-            margin: 0 0 6px 0;
+            margin: 6px 0;
             position: relative;
             padding-bottom: 8px;
           }
@@ -436,13 +442,13 @@ module.exports = [
           .cert-meta {
             display: flex;
             gap: 8px;
-            color: rgba(255,255,255,0.7);
+            color: rgba(255,255,255,0.9);
             margin-bottom: 2px;
           }
           
           .cert-expiry,
           .cert-id {
-            color: rgba(255,255,255,0.6);
+            color: rgba(255,255,255,0.9);
             margin-bottom: 1px;
           }
           
@@ -677,9 +683,9 @@ module.exports = [
           }
           
           /* Unified classes for consistent styling */
-          .institution, .location, .company, .issuer, .gpa, .dates, .job-dates, .edu-dates, .project-dates, .achievement-date, .cert-dates, .cert-expiry, .cert-id, .achievement-issuer, .cert-issuer { color: #6b7280; }
+          .institution, .location, .company, .issuer, .gpa, .dates, .job-dates, .edu-dates, .project-dates, .achievement-date, .achievement-issuer, { color: #6b7280; }
           .language-name, .skill-category-title, .job-title, .edu-degree, .project-name, .achievement-title, .cert-name, .custom-field-title { font-weight: 600; color: #1f2937; }
-          .project-links a, .cert-link a, .contact-item a { color: #ec4899; text-decoration: none; }
+          .project-links a, .cert-link a, { color: #ec4899; text-decoration: none; }
           .project-links a:hover, .cert-link a:hover, .contact-item a:hover { text-decoration: underline; }`
         },
         creator: null,
@@ -737,6 +743,7 @@ module.exports = [
           html: `<article class="resume creative-portfolio" itemscope itemtype="http://schema.org/Person">
             <header class="header">
               <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+              {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
               <div class="contact-info secondaryFont">
                 <div class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</div>
                 {{#if personalInfo.phone}}<div class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
