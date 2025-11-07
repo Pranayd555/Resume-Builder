@@ -58,6 +58,11 @@ const resumeSchema = new mongoose.Schema({
       type: String,
       trim: true,
       maxlength: [200, 'GitHub URL cannot exceed 200 characters']
+    },
+    profilePicture: {
+      type: String,
+      trim: true,
+      maxlength: [500, 'Profile picture URL cannot exceed 500 characters']
     }
   },
   

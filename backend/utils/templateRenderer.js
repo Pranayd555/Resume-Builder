@@ -275,7 +275,8 @@ class OptimizedTemplateRenderer {
         .${uniqueId} .summary-text,
         .${uniqueId} .project-description,
         .${uniqueId} .achievement-description,
-        .${uniqueId} .edu-description { 
+        .${uniqueId} .edu-description
+        .${uniqueId} .achievements { 
           font-size: ${baseSize}px !important; 
         }
         
@@ -402,6 +403,11 @@ class OptimizedTemplateRenderer {
       .${uniqueId} small.secondaryFont,
       .${uniqueId} .secondaryFont .dates {
         font-size: ${smallSize}px !important;
+      }
+
+      .${uniqueId} strong.secondaryFont, 
+      .${uniqueId} .secondaryFont strong {
+        font-weight: 600 !important;
       }
       
       /* Override any existing font rules for these classes */
@@ -996,6 +1002,7 @@ class OptimizedTemplateRenderer {
   generateSampleData() {
     return {
       title: 'Software Engineer Resume',
+      isFresher: false,
       personalInfo: {
         fullName: 'John Doe',
         email: 'john.doe@email.com',
@@ -1003,7 +1010,8 @@ class OptimizedTemplateRenderer {
         address: 'San Francisco, CA',
         website: 'https://johndoe.dev',
         linkedin: 'https://linkedin.com/in/johndoe',
-        github: 'https://github.com/johndoe'
+        github: 'https://github.com/johndoe',
+        profilePicture: 'https://cdn-icons-png.flaticon.com/512/3135/3135823.png',
       },
       summary: 'Experienced software engineer with 5+ years of experience in full-stack development. Passionate about creating scalable applications and leading development teams. Skilled in modern JavaScript frameworks, cloud technologies, and agile methodologies.',
       workExperience: [
