@@ -287,7 +287,7 @@ module.exports = [
         html: `<article class="resume professional-academic-research" itemscope itemtype="http://schema.org/Person">
                 <main>
                 <div class="sidebar">
-                {{#if personalInfo.profilePicture}}
+                {{#if personalInfo.isAddPhoto}}
                 <div class="profile-image-container">
                 <img alt="Profile picture of user" class="profile-image" src="{{personalInfo.profilePicture}}"/>
                 </div>
