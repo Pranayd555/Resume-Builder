@@ -47,7 +47,7 @@ class PuppeteerThumbnailGenerator {
 
   generateSampleData() {
     return {
-      title: 'Software Engineer Resume',
+      title: 'Senior Software Engineer',
       isFresher: false,
       personalInfo: {
         fullName: 'John Doe',
@@ -57,7 +57,8 @@ class PuppeteerThumbnailGenerator {
         website: 'https://johndoe.dev',
         linkedin: 'https://linkedin.com/in/johndoe',
         github: 'https://github.com/johndoe',
-        profilePicture: 'https://cdn-icons-png.flaticon.com/512/3135/3135823.png',
+        profilePicture: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
+        isAddPhoto: true,
       },
       summary: 'Experienced software engineer with 5+ years of experience in full-stack development. Passionate about creating scalable applications and leading development teams. Skilled in modern JavaScript frameworks, cloud technologies, and agile methodologies.',
       workExperience: [
@@ -91,6 +92,26 @@ class PuppeteerThumbnailGenerator {
         }
       ],
       education: [
+        {
+          degree: 'Bachelor of Science in Computer Science',
+          institution: 'University of California, Berkeley',
+          location: 'Berkeley, CA',
+          startDate: '2015-09-01',
+          endDate: '2019-05-30',
+          isCurrentlyStudying: false,
+          gpa: 3.8,
+          description: 'Relevant coursework: Data Structures, Algorithms, Software Engineering, Database Systems'
+        },
+        {
+          degree: 'Bachelor of Science in Computer Science',
+          institution: 'University of California, Berkeley',
+          location: 'Berkeley, CA',
+          startDate: '2015-09-01',
+          endDate: '2019-05-30',
+          isCurrentlyStudying: false,
+          gpa: 3.8,
+          description: 'Relevant coursework: Data Structures, Algorithms, Software Engineering, Database Systems'
+        },
         {
           degree: 'Bachelor of Science in Computer Science',
           institution: 'University of California, Berkeley',
@@ -336,6 +357,16 @@ class PuppeteerThumbnailGenerator {
                 margin-bottom: 0 !important;
                 padding-bottom: 0 !important;
               }
+
+              .profile-image-container {
+                            display: flex;
+                            justify-content: center;
+                            align-items:center;
+                            }
+                        .profile-image {
+                            width: 10rem;height: 10rem;border-radius: 9999px;border: 4px solid white;
+                            object-fit: cover;
+                        }
           </style>
       </head>
       <body>
