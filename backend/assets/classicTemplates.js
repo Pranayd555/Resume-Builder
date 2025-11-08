@@ -303,7 +303,8 @@ module.exports = [
           availability: { tier: 'free', isPublic: true, isActive: true },
           templateCode: {
             html: `<div class="resume classic-professional">
-              <header class="classic-header">
+              <header class="header">
+               <div class="right-column">
                 <h1 class="name primaryFont">{{personalInfo.fullName}}</h1>{{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
                 <div class="contact-details secondaryFont">
                   {{#if personalInfo.address}}<span class="contact-item secondaryFont">{{personalInfo.address}}</span>{{/if}}
@@ -325,6 +326,14 @@ module.exports = [
                     Website: <a class="contact-item secondaryFont" href="{{personalInfo.website}}" target="_blank" itemprop="url">{{personalInfo.website}}</a>
                   </div>
                 {{/if}}
+                </div>
+              {{#if personalInfo.isAddPhoto}}
+              <div class="header=left">
+                <div class="profile-image-container">
+                <img alt="Profile picture of user" class="profile-image" src="{{personalInfo.profilePicture}}"/>
+                </div>
+                </div>
+              {{/if}}
               </header>
               
               {{#if summary}}
@@ -454,7 +463,7 @@ module.exports = [
               {{/if}}
             </div>`,
             css: `.resume.classic-professional { font-family: 'Georgia', serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: black; line-height: 1; }
-            .classic-header { text-align: center; margin-bottom: 6px; padding-bottom: 8px; border-bottom: 2px solid #1f2937; }
+            .header {  display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; padding-bottom: 8px; border-bottom: 2px solid #1f2937; }
             .name { font-weight: bold; color: #1f2937; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
             .contact-details { color: #4b5563; margin-bottom: 2px; }
             .linkedin { color: #6b7280;} .linkedin a { color: #6b7280; text-decoration: none; }

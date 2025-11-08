@@ -925,18 +925,7 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
 
     // Initialize template renderer
     const renderer = new OptimizedTemplateRenderer();
-
-    if(resume.isAddPhoto) {
-    const response = await axios.get(resume.personalInfo.profilePicture, {
-        responseType: "arraybuffer",
-        timeout: 8000
-      });
-      const contentType = response.headers["content-type"] || "image/jpeg";
-      const base64 = Buffer.from(response.data, "binary").toString("base64");
-      const dataUrl = `data:${contentType};base64,${base64}`;
-      resume.personalInfo.profilePicture = dataUrl;
-    }
-
+   
     // Prepare resume data for rendering
     const resumeData = {
       title: resume.title,
@@ -953,6 +942,25 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
       styling: resume.styling || {}, // Include styling data
       isFresher: resume.isFresher
     };
+    if(resumeData.personalInfo.isAddPhoto) {
+      try {
+        const response = await fetch(resumeData.personalInfo.profilePicture, {
+          signal: AbortSignal.timeout(8000) // 8-second timeout
+        });
+        if (!response.ok) {
+          throw new Error(`Failed to fetch profile picture: ${response.statusText}`);
+        }
+        const imageBuffer = await response.arrayBuffer();
+        const base64 = Buffer.from(imageBuffer).toString('base64');
+        const dataUri = `data:image/jpeg;base64,${base64}`;
+        logger.info('profile picture uri: ' + dataUri.substring(0, 100) + '...'); // Log first 100 chars
+        resumeData.personalInfo.profilePicture = dataUri;
+      } catch (error) {
+        logger.error(`Error processing profile picture: ${error.message}`);
+        // Optionally, set a placeholder or handle the error gracefully in the UI
+        resumeData.personalInfo.profilePicture = ''; // Clear the profile picture to prevent further issues
+      }
+    }
 
     // Render template with user data
     const renderResult = renderer.render(resume.template, resumeData);
@@ -1040,6 +1048,16 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
                 margin-bottom: 0 !important;
                 padding-bottom: 0 !important;
               }
+
+              .profile-image-container {
+                            display: flex;
+                            justify-content: center;
+                            margin-bottom: 1rem;
+                            }
+                        .profile-image {
+                            width: 10rem;height: 10rem;border-radius: 9999px;border: 4px solid white;
+                            object-fit: cover;
+                        }
           </style>
       </head>
       <body>
@@ -1077,37 +1095,14 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
       defaultViewport = null;
       headlessOption = 'new';
     }
-
+    console.log('debug log')
     // Use shared browser
     const pdfBuffer = await withPage(async (page) => {
       
       await page.emulateMediaType('print');
-      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-      // Conditionally inject margin CSS
-      // const notRequiredMargin = [
-      //   'Professional Academic Research',
-      //   'Creative Designer'
-      // ]
-      // const applyCustomMargins = (notRequiredMargin.filter(v => v == template.name).length == 0);
-      // logger.log('applyCustomMargins', applyCustomMargins, template.name)
-      // if (applyCustomMargins) {
-      //   await page.addStyleTag({
-      //     content: `
-      //       /* Page margins for PDF generation */
-      //       @page :first {
-      //           margin: 0in 0in 0.5in 0in;
-      //       }
-      //       @page {
-      //           margin: 0.5in 0in 0.5in 0in;
-      //       }
-      //     `
-      //   });
-      // }
-
-      // Small buffer for stability
-      await page.waitForTimeout(300);
+      await page.setContent(htmlContent, { waitUntil: 'domcontentloaded' });
+      await page.waitForTimeout(2000);
       await page.evaluateHandle('document.fonts.ready');
-      await page.emulateMediaType('print');
 
       return await page.pdf({
         format: 'A4',

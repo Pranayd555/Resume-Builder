@@ -49,6 +49,15 @@ module.exports = [
         templateCode: {
         html: `<article class="resume academic-research" itemscope itemtype="http://schema.org/Person">
             <header class="header">
+
+            {{#if personalInfo.isAddPhoto}}
+            <div class="left-column">
+                <div class="profile-image-container">
+                <img alt="Profile picture of user" class="profile-image" src="{{personalInfo.profilePicture}}"/>
+                </div>
+                </div>
+            {{/if}}
+            <div class="right-column">
             <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
             {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
             <div class="contact-info secondaryFont">
@@ -60,6 +69,7 @@ module.exports = [
                  {{#if personalInfo.linkedin}}<div class="contact-item secondaryFont"><span class="label">LinkedIn:</span><span class="value"><a href="{{personalInfo.linkedin}}" target="_blank">{{personalInfo.linkedin}}</a></span></div>{{/if}}
                  {{#if personalInfo.github}}<div class="contact-item secondaryFont"><span class="label">GitHub:</span><span class="value"><a href="{{personalInfo.github}}" target="_blank">{{personalInfo.github}}</a></span></div>{{/if}}
                 </div>
+            </div>
             </div>
             </header>
             
@@ -191,7 +201,8 @@ module.exports = [
             {{/if}}
         </article>`,
         css: `.resume.academic-research { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; line-height: 1.4; }
-        .header { text-align: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #059669; }
+        .header { display: flex; justify-content: space-between; align-items: center; text-align: center; justify-content:center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #059669; }
+        .left-column { padding-right: 5px; border-right: 2px solid #059669; margin-right: 5px; border-radius: 99999px; margin-bottm:1rem; }
         .name { font-family: 'Georgia', serif; font-weight: 600; color: #059669; margin-bottom: 6px; letter-spacing: 0.5px; text-align: center; }
         .contact-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-width: 800px; margin: 0 auto; }
         .contact-item { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 2px; margin-bottom: 2px; }
@@ -292,86 +303,79 @@ module.exports = [
                 <img alt="Profile picture of user" class="profile-image" src="{{personalInfo.profilePicture}}"/>
                 </div>
                 {{/if}}
+                
+                <section class="contact-info">
+                {{#if personalInfo.phone}}
+                <div class="contact-item secondaryFont">
+                <span>{{personalInfo.phone}}</span>
+                </div>
+                {{/if}}
+                {{#if personalInfo.address}}
+                <div class="contact-item secondaryFont">
+                <span>{{personalInfo.address}}</span>
+                </div>
+                {{/if}}
+                {{#if personalInfo.email}}
+                <div class="contact-item secondaryFont">
+                <span>{{personalInfo.email}}</span>
+                </div>
+                {{/if}}
+                {{#if personalInfo.website}}
+                <div class="contact-item secondaryFont">
+                <span><a href="{{personalInfo.website}}" target="_blank">{{personalInfo.website}}</a></span>
+                </div>
+                {{/if}}
+                {{#if personalInfo.linkedin}}
+                <div class="contact-item secondaryFont">
+                <span><a href="{{personalInfo.linkedin}}" target="_blank">{{personalInfo.linkedin}}</a></span>
+                </div>
+                {{/if}}
+                {{#if personalInfo.github}}
+                <div class="contact-item secondaryFont">
+                <span><a href="{{personalInfo.github}}" target="_blank">{{personalInfo.github}}</a></span>
+                </div>
+                {{/if}}
+                </section>
                 {{#if education}}
                 <section class="education">
-                <h2 class="section-title">EDUCATION</h2>
+                <h2 class="section-title primaryFont">EDUCATION</h2>
                 {{#each education}}
-                <div class="education-item">
-                <h3>{{institution}}</h3>
+                <div class="education-item {{#if @last}}style="margin-bottom:0;"{{/if}}">
+                <strong class="secondaryFont">{{institution}}</strong>
                 <p>{{degree}}</p>
-                <p class="location">{{location}}</p>
-                <time class="date">{{ formatDate startDate}} - {{#if isCurrentlyStudying}}Present{{else}}{{ formatDate endDate}}{{/if}}</time>
+                <p class="location secondaryFont">{{location}}</p>
+                <time class="date secondaryFont">{{#if startDate}}{{ formatDate startDate}} - {{/if}}{{#if isCurrentlyStudying}}Present{{else}}{{ formatDate endDate}}{{/if}}</time>
                 {{#if gpa}}
-                <p class="gpa">GPA: {{gpa}}</p>
+                <p class="gpa secondaryFont">GPA: {{gpa}}</p>
                 {{/if}}
                 {{#if description}}
-                <p class="description">{{{description}}}</p>
+                <p class="description secondaryFont">{{{description}}}</p>
                 {{/if}}
                 </div>
                 {{/each}}
                 </section>
                 {{/if}}
-                {{#if achievements}}
-                <section class="achievements">
-                <h2 class="section-title">ACHIEVEMENTS</h2>
-                {{#each achievements}}
-                <div class="achievement-item">
-                <div class="achievement-header">
-                <h3>{{title}}</h3>
-                <time class="achievement-date">{{ formatDate date}}</time>
-                </div>
-                <p class="issuer">{{issuer}}</p>
-                <p class="description">{{{description}}}</p>
-                </div>
-                {{/each}}
-                </section>
-                {{/if}}
+
                 {{#if certifications}}
                 <section class="certifications">
-                <h2 class="section-title">CERTIFICATIONS</h2>
+                <h2 class="section-title primaryFont">CERTIFICATIONS</h2>
                 {{#each certifications}}
-                <div class="experience-item">
-                <div class="experience-header">
-                <h3>{{name}}</h3>
-                <span class="experience-date">{{ formatDate date}}</span>
+                <div class="certification-item {{#if @last}}style="margin-bottom:0;"{{/if}}">
+                <div class="certification-header">
+                <strong class="secondaryFont">{{name}}</strong>
+                <span class="certification-date secondaryFont">{{ formatDate date}}</span>
                 </div>
-                <p class="experience-company">{{issuer}}</p>
+                <p class="certification-issuer secondaryFont">{{issuer}}</p>
                 {{#if expiryDate}}
-                <p class="cert-expiry">Expires: {{ formatDate expiryDate}}</p>
+                <p class="cert-expiry secondaryFont">Expires: {{ formatDate expiryDate}}</p>
                 {{/if}}
                 {{#if credentialId}}
-                <p class="cert-id">ID: {{credentialId}}</p>
+                <p class="cert-id secondaryFont">ID: {{credentialId}}</p>
                 {{/if}}
                 {{#if url}}
-                <p class="cert-link"><a href="{{url}}" target="_blank">View Credential</a></p>
+                <p class="cert-link secondaryFont"><a href="{{url}}" target="_blank">{{url}}</a></p>
                 {{/if}}
-                <p class="description">{{{description}}}</p>
-                </div>
-                {{/each}}
-                </section>
-                {{/if}}
-                {{#if skills}}
-                <section class="skills">
-                <h2 class="section-title">SKILLS</h2>
-                {{#each skills}}
-                <div class="skill-category">
-                <h3 class="skill-category-title">{{category}}</h3>
-                <ul class="skill-list">
-                {{#each items}}
-                <li>{{name}} ({{level}})</li>
-                {{/each}}
-                </ul>
-                </div>
-                {{/each}}
-                </section>
-                {{/if}}
-                {{#if languages}}
-                <section class="languages">
-                <h2 class="section-title">LANGUAGES</h2>
-                {{#each languages}}
-                <div class="language-item">
-                <h3 class="language-name">{{name}}</h3>
-                <p class="proficiency">{{proficiency}}</p>
+                <p class="description secondaryFont">{{{description}}}</p>
                 </div>
                 {{/each}}
                 </section>
@@ -379,85 +383,67 @@ module.exports = [
                 </div>
                 <div class="main-content">
                 <div class="header">
-                <h1 itemprop="name">{{personalInfo.fullName}}</h1>
+                <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
                 {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
                 </div>
                 {{#if summary}}
                 <section class="summary">
-                <h2 class="section-title">PROFESSIONAL SUMMARY</h2>
-                <p class="summary-text">{{{summary}}}</p>
+                <h2 class="section-title primaryFont">PROFESSIONAL SUMMARY</h2>
+                <p class="summary-text secondaryFont">{{{summary}}}</p>
                 </section>
                 {{/if}}
-                <div class="contact-info">
-                {{#if personalInfo.phone}}
-                <div class="contact-item">
-                <span>{{personalInfo.phone}}</span>
+                {{#if skills}}
+                <section class="skills">
+                <h2 class="section-title primaryFont">SKILLS</h2>
+                {{#each skills}}
+                <div class="skill-category {{#if @last}}style="margin-bottom:0;"{{/if}}">
+                <strong class="skill-category-title secondaryFont">{{category}}</strong>
+                <ul class="skill-list">
+                {{#each items}}
+                <li class="secondaryFont">{{name}} <span class="skill-level secondaryFont">({{level}})</span></li>
+                {{/each}}
+                </ul>
                 </div>
+                {{/each}}
+                </section>
                 {{/if}}
-                {{#if personalInfo.address}}
-                <div class="contact-item">
-                <span>{{personalInfo.address}}</span>
-                </div>
-                {{/if}}
-                {{#if personalInfo.email}}
-                <div class="contact-item">
-                <span>{{personalInfo.email}}</span>
-                </div>
-                {{/if}}
-                {{#if personalInfo.website}}
-                <div class="contact-item">
-                <span><a href="{{personalInfo.website}}" target="_blank">{{personalInfo.website}}</a></span>
-                </div>
-                {{/if}}
-                {{#if personalInfo.linkedin}}
-                <div class="contact-item">
-                <span><a href="{{personalInfo.linkedin}}" target="_blank">{{personalInfo.linkedin}}</a></span>
-                </div>
-                {{/if}}
-                {{#if personalInfo.github}}
-                <div class="contact-item">
-                <span><a href="{{personalInfo.github}}" target="_blank">{{personalInfo.github}}</a></span>
-                </div>
-                {{/if}}
-                </div>
                 {{#if projects}}
-                <section class="section-box">
-                <h2 class="section-title">PROJECTS</h2>
+                <section class="projects">
+                <h2 class="section-title primaryFont">PROJECTS</h2>
                 {{#each projects}}
-                <div class="experience-item">
-                <div class="experience-header">
-                <h3 class="project-name">{{name}}</h3>
+                <div class="project-item {{#if @last}}style="margin-bottom:0;"{{/if}}">
+                <div class="project-header">
+                <strong class="project-name secondaryFont">{{name}}</strong>
                 </div>
                 {{#if technologies}}
-                <p class="technologies">Technologies: {{join technologies ", "}}</p>
+                <p class="technologies secondaryFont">Technologies: {{join technologies ", "}}</p>
                 {{/if}}
                 {{#if url}}
-                <p class="project-links"><a href="{{url}}" target="_blank">View Project</a></p>
+                <p class="project-links secondaryFont"><a href="{{url}}" target="_blank">{{url}}</a></p>
                 {{/if}}
                 {{#if githubUrl}}
-                <p class="project-links"><a href="{{githubUrl}}" target="_blank">{{githubUrl}}</a></p>
+                <p class="project-links secondaryFont"><a href="{{githubUrl}}" target="_blank">{{githubUrl}}</a></p>
                 {{/if}}
-                <p class="description">{{{description}}}</p>
+                <p class="description secondaryFont">{{{description}}}</p>
                 </div>
                 {{/each}}
                 </section>  
                 {{/if}}
-                <hr/>
                 <div>
                 {{#if workExperience}}
-                <section class="section-box">
-                <h2 class="section-title">WORK EXPERIENCE</h2>
+                <section class="work-experience">
+                <h2 class="section-title primaryFont">WORK EXPERIENCE</h2>
                 {{#each workExperience}}
-                <div class="work-experience-item" {{#if @last}}style="margin-bottom:0;"{{/if}}>
+                <div class="work-experience-item secondaryFont" {{#if @last}}style="margin-bottom:0;"{{/if}}>
                 <div class="work-experience-header">
-                <h3>{{company}}</h3>
-                <span>{{ formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{ formatDate endDate}}{{/if}}</span>
+                <strong class="company secondaryFont">{{company}}</h3>
+                <span class="secondaryFont">{{ formatDate startDate}} - {{#if isCurrentJob}}Present{{else}}{{ formatDate endDate}}{{/if}}</span>
                 </div>
-                <p class="job-title">{{jobTitle}}</p>
-                <p class="location">{{location}}</p>
-                <p class="description">{{{description}}}</p>
+                <strong class="job-title secondaryFont">{{jobTitle}}</strong>
+                <p class="location secondaryFont">{{location}}</p>
+                <p class="description secondaryFont">{{{description}}}</p>
                 {{#if achievements}}
-                <ul class="experience-list">
+                <ul class="experience-list secondaryFont">
                 {{#each achievements}}
                 <li>{{this}}</li>
                 {{/each}}
@@ -467,14 +453,44 @@ module.exports = [
                 {{/each}}
                 </section>  
                 {{/if}}
+
+                
+                {{#if achievements}}
+                <section class="achievements">
+                <h2 class="section-title primaryFont" style="margin-bottom: 0rem;">ACHIEVEMENTS</h2>
+                {{#each achievements}}
+                <div class="achievement-item secondaryFont {{#if @last}}style="margin-bottom:0;"{{/if}}">
+                <div class="achievement-header">
+                <h3 class="secondaryFont">{{title}}</h3>
+                <time class="achievement-date secondaryFont">{{ formatDate date}}</time>
+                </div>
+                <p class="issuer secondaryFont">{{issuer}}</p>
+                <p class="description secondaryFont">{{{description}}}</p>
+                </div>
+                {{/each}}
+                </section>
+                {{/if}}
+
+                {{#if languages}}
+                <section class="languages">
+                <h2 class="section-title primaryFont">LANGUAGES</h2>
+                {{#each languages}}
+                <div class="language-item secondaryFont {{#if @last}}style="margin-bottom:0;"{{/if}}">
+                <h3 class="language-name secondaryFont">{{name}}</h3>
+                <p class="proficiency secondaryFont">{{proficiency}}</p>
+                </div>
+                {{/each}}
+                </section>
+                {{/if}}
+
                 {{#if customFields}}
                 <section class="custom-fields">
-                <h2 class="section-title">CUSTOM INFORMATION</h2>
+                <h2 class="section-title primaryFont">CUSTOM INFORMATION</h2>
                 {{#each customFields}}
-                <div class="custom-field-item">
-                <h3 class="custom-field-title">{{title}}</h3>
+                <div class="custom-field-item secondaryFont {{#if @last}}style="margin-bottom:0;"{{/if}}">
+                <h3 class="custom-field-title secondaryFont">{{title}}</h3>
                 {{#if type "===" "list"}}
-                <ul class="custom-field-list">
+                <ul class="custom-field-list secondaryFont">
                 {{#each split content ", "}}
                 <li>{{this}}</li>
                 {{/each}}
@@ -529,21 +545,33 @@ module.exports = [
                         .profile-image-container {
                             display: flex;
                             justify-content: center;
-                            margin-top: -5rem;}
+                            margin-top: -5rem;
+                            margin-bottom: 1rem;
+                            }
                         .profile-image {
                             width: 10rem;height: 10rem;border-radius: 9999px;border: 4px solid white;
                             object-fit: cover;
                         }
-                        .section-title {
-                            font-size: 1.25rem;font-weight: 700;
-                            letter-spacing: 0.05em;
-                            margin-bottom: 1rem;
+
+                        // section.custom-fields, section.languages, section.work-experience, section.projects, section.achievements, section.contact-info, section.summary, section.certifications, section.education {
+                        //     margin-bottom: 0rem;
+                        //     padding-bottom : 0rem;
+                        // }
+                        // h2.section-title {
+                        //     font-size: 1.25rem;
+                        //     font-weight: 700;
+                        //     letter-spacing: 0.05em;
+                        //     margin-bottom: 0 !important;
+                        //     padding-bottom: 0 !important;
+                        // }
+
+                        section { margin-bottom: 6px; }
+          h2 { font-weight: bold; text-transform: uppercase; margin-bottom: 6px; color: var(--text-light); padding-bottom: 8px; border-bottom: 1px solid #9ca3af; letter-spacing: 0.5px; }
+
+          .sidebar h2 { color: var( --text-dark-blue-sidebar);
                         }
-                        .education-item, .reference-item {
-                            margin-bottom: 1rem;
-                        }
-                        .education-item h3, .reference-item h3 {
-                            font-size: 0.875rem;font-weight: 600;
+                        .education-item, .skill-category, .certification-item, .work-experience-item, .contact-item, .project-item, .achievement-item, .language-item {
+                            margin-bottom: 0.25rem;
                         }
                         .education-item p, .reference-item p {
                             font-size: 0.75rem;color: #e5e7eb;
@@ -554,33 +582,25 @@ module.exports = [
                         }
                         hr {
                             border-color: #9ca3af;
-                            margin-top: 1.5rem;
-                            margin-bottom: 1.5rem;
+                            margin-top: 0.75rem;
+                            margin-bottom: 0.5rem;
                             border-top-width: 1px;
                             border-style: solid;
                         }
-                        .main-content hr {
+                        .main-content hr,h2 {
                             border-color: #d1d5db;
+                        }
+
+                        .skill-category {
+                            display: grid;
+                            grid-template-columns: repeat(2, 1fr);
+                            gap: 1rem;
                         }
                         .skill-list, .experience-list {
                             list-style-position: inside;
                             list-style-type: disc;
                             padding-left: 0;
                             font-size: 0.875rem;
-                        }
-                        .skill-list li, .experience-list li {
-                            margin-bottom: 0.5rem;
-                        }
-                        .reference-contact {
-                            display: flex;
-                            align-items: center;
-                            margin-top: 0.25rem;
-                            font-size: 0.75rem;
-                            color: #d1d5db;
-                        }
-                        .reference-contact .material-symbols-outlined {
-                            margin-right: 0.5rem;
-                            font-size: 0.75rem;
                         }
                         .header {
                             text-align: center;
@@ -593,21 +613,14 @@ module.exports = [
                         }
                         .job-title {
                             font-size: 1.125rem;color: var(--text-light);
-                            margin-top: 0.25rem;
                         }
                         .contact-info {
-                            margin-top: 1.5rem;
                             display: flex;
                             flex-direction: column;
                             align-items: center;
                             font-size: 0.875rem;
-                            color: var(--text-light);
                         }
-                        .contact-item {
-                            display: flex;
-                            align-items: center;
-                            margin-bottom: 0.5rem;
-                        }
+
                         .contact-item .material-symbols-outlined {
                             margin-right: 0.75rem;
                             font-size: 16px;
@@ -617,37 +630,10 @@ module.exports = [
                             font-size: 0.875rem;
                             color: var(--text-light);
                             line-height: 1.625;
-                            margin: 0;
+                            margin: 2px;
                         }
-                        .work-experience-item {
-                            margin-bottom: 1.5rem;
-                        }
-                        .work-experience-header {
-                            display: flex;
-                            justify-content: space-between;
-                            align-items: baseline;
-                        }
-                        .work-experience-header h3 {
-                            font-weight: 700;
-                            font-size: 0.875rem;
-                            color: var(--text-light);
-                            margin: 0;
-                        }
-                        .work-experience-header span {
-                            font-size: 0.75rem;
-                            color: #6b7280;
-                        }
-                        .work-experience-item .job-title {
-                            font-size: 0.875rem;
-                            font-style: italic;
-                            color: #4b5563;
-                        }
-                        .work-experience-item .description {
-                            font-size: 0.875rem;
-                            color: var(--text-light);
-                            margin-top: 0.5rem;
-                            margin-bottom: 0.5rem;
-                        }@media (min-width: 768px) {
+                            
+                        @media (min-width: 768px) {
                             body {
                             }
                             main {
@@ -673,14 +659,17 @@ module.exports = [
                         }
         /* General list styling for HTML content in descriptions */
         ul, ol { margin: 0.15rem 0; padding-left: 0.8rem; }
-        ul li, ol li { margin-bottom: 0.1rem; color: #4b5563; line-height: 1.2; }
+        ul li, ol li { margin-bottom: 0.1rem; line-height: 1.2; }
         ul { list-style-type: disc; }
         ol { list-style-type: decimal; }
         
         /* Unified classes for consistent styling */
-        .institution, .location, .company, .issuer, .gpa, .dates, .job-dates, .edu-dates, .project-dates, .achievement-date, .cert-dates, .cert-expiry, .cert-id, .achievement-issuer, .cert-issuer { color: #64748b; }
-        .language-name, .skill-category-title, .job-title, .edu-degree, .project-name, .achievement-title, .cert-name, .custom-field-title { font-weight: bold; color: #1f2937; }
-        .project-links a, .cert-link a, .contact-item a { color: #64748b; text-decoration: none; }
+        .institution, .location, .company, .issuer, .gpa, .dates, .job-dates, .edu-dates, .project-dates, .achievement-date, .date { color: #64748b; }
+        .language-name, .job-title, .edu-degree, .project-name, .achievement-title, .cert-name, .custom-field-title { font-weight: bold; color: #1f2937; }
+        .cert-link a, .contact-item a { color: var(--text-dark-blue-sidebar); text-decoration: none; }
+        .project-links a {
+        color: var(--text-light); text-decoration: none;
+        }
         .project-links a:hover, .cert-link a:hover, .contact-item a:hover { text-decoration: underline; }`
         },
         creator: null,
