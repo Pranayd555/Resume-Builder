@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate, useLocation, Link, useBlocker } from 'react-router-dom';
 import { resumeAPI, apiHelpers, uploadAPI } from '../services/api';
 import { toast } from 'react-toastify';
 import { validators } from '../models/dataModels';
@@ -11,14 +11,17 @@ import AuthLoader from './AuthLoader';
 import AILoader from './annimations/AILoader';
 import CustomDatePicker from './DatePicker';
 import CustomDropdown from './CustomDropdown';
+import Swal from 'sweetalert2';
 
 import { 
   PlusIcon, 
   TrashIcon,
   ExclamationTriangleIcon,
   BoltIcon,
-  SparklesIcon
+  SparklesIcon,
+  BookmarkIcon
 } from '@heroicons/react/24/outline';
+
 
 // Utility functions
 const formatDateForInput = (dateString) => {
@@ -206,6 +209,38 @@ function ResumeForm() {
   const { scrollToFirstError } = useFormScroll(validationErrors, fieldOrder);
   const { scrollToTop } = useScrollToTop();
 
+  const [isDirty, setIsDirty] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(false);
+
+  useEffect(() => {
+    if (isInitialLoad) {
+      setIsDirty(true);
+    }
+  }, [formData, isInitialLoad]);
+
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      ((!isEditMode && currentStep > 2 && isDirty) || (isEditMode && isDirty)) &&
+      currentLocation.pathname !== nextLocation.pathname &&
+      !nextLocation.pathname.startsWith('/resume-preview') &&
+      !nextLocation.pathname.startsWith('/template-selection')
+  );
+
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      if ((!isEditMode && currentStep > 2 && isDirty) || (isEditMode && isDirty)) {
+        event.preventDefault();
+        event.returnValue = ''; // Needed for some browsers
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isDirty, currentStep, isEditMode]);
+
   // Get initial token balance
   useEffect(() => {
     const balance = apiHelpers.getTokenBalance();
@@ -315,6 +350,7 @@ function ResumeForm() {
             
             // Always load profile data to ensure name, email, phone are populated
             loadProfileData();
+            setIsInitialLoad(true);
             
             toast.success('Resume parsed and auto-filled successfully!');
           } else {
@@ -436,6 +472,8 @@ function ResumeForm() {
             fullName, email, phone
           }
         }));
+        setIsDirty(false)
+        setIsInitialLoad(false)
         
         return { fullName, email, phone };
       }
@@ -508,7 +546,7 @@ function ResumeForm() {
     return formattedErrors;
   };
 
-  const validateForm = (isDraft = false) => {
+  const validateForm = useCallback ((isDraft = false) => {
     const errors = {};
     
     // Check title
@@ -526,6 +564,24 @@ function ResumeForm() {
       if (!emailRegex.test(formData.personalInfo.email)) {
         errors.email = 'Please provide a valid email';
       }
+    }
+
+    // Work experience individual field validation (always run if entry started)
+    if (!formData.isFresher) {
+      formData.workExperience.forEach((exp, index) => {
+        // Only validate if the experience entry has been started (any field has content)
+        if (exp.jobTitle || exp.company || exp.startDate || exp.endDate || exp.description) {
+          if (!validators.required(exp.jobTitle)) {
+            errors[`workExperience_${index}_jobTitle`] = 'Job title is required';
+          }
+          if (!validators.required(exp.company)) {
+            errors[`workExperience_${index}_company`] = 'Company name is required';
+          }
+          if (!validators.required(exp.startDate)) {
+            errors[`workExperience_${index}_startDate`] = 'Start date is required';
+          }
+        }
+      });
     }
 
     if (!isDraft) {
@@ -580,7 +636,7 @@ function ResumeForm() {
       isValid: Object.keys(errors).length === 0,
       errors
     };
-  };
+  }, [formData]);
 
   // Event handlers
   const handleInputChange = (section, field, value, index = null) => {
@@ -629,6 +685,7 @@ function ResumeForm() {
       
       return newErrors;
     });
+    setIsInitialLoad(true)
   };
 
   const handleInputBlur = (section, field, index = null) => {
@@ -790,6 +847,7 @@ function ResumeForm() {
       setTimeout(() => saveToLocalStorage(newFormData, currentStep, isEditMode), 0);
       return newFormData;
     });
+    setIsInitialLoad(true);
   };
 
   const removeArrayItem = (section, index) => {
@@ -821,6 +879,7 @@ function ResumeForm() {
       setTimeout(() => saveToLocalStorage(newFormData, currentStep, isEditMode), 0);
       return newFormData;
     });
+    setIsInitialLoad(true);
   };
 
   // Detect edit mode and load existing resume data
@@ -912,8 +971,13 @@ function ResumeForm() {
                 proficiency: lang.proficiency || ''
               }))
             };
+
+            // Always load profile data to update name, email, phone fields
+            loadProfileData();
             
             setFormData(mappedFormData);
+            setIsDirty(false); // Reset isDirty after loading data
+            setIsInitialLoad(false);
             
             // Check for AI-enhanced data from localStorage
             if (state.fromAIEnhancement) {
@@ -995,6 +1059,7 @@ function ResumeForm() {
                   } else if (enhancementType === 'enhance-keywords') {
                     toast.success('Keywords have been enhanced! Review and save your changes.');
                   }
+                  setIsInitialLoad(true);
                   
                   // Clear the AI enhanced data from localStorage
                   localStorage.removeItem('ai_enhanced_resume_data');
@@ -1011,9 +1076,6 @@ function ResumeForm() {
               techInputState[index] = proj.technologies?.join(', ') || '';
             });
             setTechnologiesInput(techInputState);
-            
-            // Always load profile data to update name, email, phone fields
-            loadProfileData();
             
             toast.success('Resume data loaded for editing!');
           } else {
@@ -1041,6 +1103,7 @@ function ResumeForm() {
                 setFormData(prev => ({ ...prev, ...processedFormData }));
                 setCurrentStep(parsedData.currentStep || 1);
                 toast.info('Your previous form data has been restored.');
+                setIsInitialLoad(false);
               } catch (error) {
                 console.error('Error loading saved form data:', error);
                 localStorage.removeItem('resume_form_data');
@@ -1072,6 +1135,7 @@ function ResumeForm() {
             setCurrentStep(1);
             setValidationErrors({});
             setTechnologiesInput({});
+            setIsInitialLoad(false);
           }
           
           // Load profile data for read-only fields
@@ -1144,11 +1208,13 @@ function ResumeForm() {
     return cleanedData;
   };
 
+  
+  
   // Manual save functionality
-  const saveDraft = async () => {
+  const saveDraft = useCallback(async () => {
     try {
       // Check if form has minimal required content for draft saving
-      const validation = validateForm();
+      const validation = validateForm(true);
       if (!validation.isValid) {
         // setValidationErrors(validation.errors);
         
@@ -1175,12 +1241,13 @@ function ResumeForm() {
       const response = await resumeAPI.autoSaveDraft(cleanedFormData, editingResumeId);
       
       if (response.success) {
-        // Update the editing resume ID if this is a new draft
-        if (!editingResumeId && response.data.resumeId) {
-          setEditingResumeId(response.data.resumeId);
-        }
-        setLastSaved(new Date());
-        toast.success('Draft saved successfully!');
+          // Update the editing resume ID if this is a new draft
+          if (!editingResumeId && response.data.resumeId) {
+            setEditingResumeId(response.data.resumeId);
+          }
+          setLastSaved(new Date());
+          setIsDirty(false); // Reset isDirty after successful draft save
+          toast.success('Draft saved successfully!');
       }
     } catch (error) {
       console.error('Save failed:', error);
@@ -1206,7 +1273,40 @@ function ResumeForm() {
         toast.error('Failed to save draft. Please try again.');
       }
     }
-  };
+  }, [editingResumeId, formData, scrollToFirstError, validateForm]);
+
+  useEffect(() => {
+    if (blocker.state === 'blocked') {
+      Swal.fire({
+        title: 'Are you sure?',
+        text: 'You have unsaved changes. Do you really want to leave?',
+        icon: 'warning',
+        showCancelButton: true,
+        showDenyButton: true,
+        confirmButtonText: 'Yes, leave',
+        cancelButtonText: 'Stay',
+        denyButtonText: 'Save Draft and leave',
+        reverseButtons: true,
+        customClass: {
+          confirmButton:
+            "bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 cursor-not-allowed opacity-75",
+          cancelButton:
+            "bg-gray-200 text-gray-800 font-semibold px-4 py-2 rounded-md hover:bg-gray-300 focus:ring-2 focus:ring-gray-400",
+          denyButton: 'bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded',
+        },
+      }).then(async(result) => {
+        if (result.isConfirmed) {
+          blocker.proceed();
+        } else if(result.isDenied) {
+          await saveDraft();
+          Swal.close();
+          blocker.proceed();
+        } else {
+          blocker.reset();
+        }
+      });
+    }
+  }, [blocker, saveDraft]);
 
   const handleSubmit = async () => {
     try {
@@ -1246,6 +1346,7 @@ function ResumeForm() {
       }
       
       if (response.success) {
+        setIsDirty(false); // Reset isDirty after successful submission
         // Mark resume as completed
         try {
           await resumeAPI.markAsCompleted(resumeId);
@@ -1331,7 +1432,9 @@ function ResumeForm() {
         address: '',
         website: '',
         linkedin: '',
-        github: ''
+        github: '',
+        isAddPhoto: false,
+        profilePicture: ''
       },
       summary: '',
       workExperience: [],
@@ -1345,6 +1448,8 @@ function ResumeForm() {
     });
     setCurrentStep(1);
     setShowClearModal(false);
+    setIsDirty(false); // Reset isDirty state
+    setIsInitialLoad(true);
     toast.success('Form data cleared successfully!');
   };
 
@@ -3028,7 +3133,7 @@ function ResumeForm() {
           </div>
           
           {/* Navigation Buttons */}
-          <div className="flex justify-between items-center gap-2 sm:gap-3">
+          <div className="flex justify-between items-center gap-2 sm:gap-3 pt-4 sm:pt-6">
             <button
               onClick={prevStep}
               disabled={currentStep === 1}
@@ -3039,6 +3144,16 @@ function ResumeForm() {
               </svg>
               <span className="hidden sm:inline">Previous</span>
             </button>
+            {isEditMode && (
+              <button
+                type="button"
+                onClick={handleSubmit}
+                className="px-2 py-2 sm:px-6 sm:py-3 text-white rounded-lg bg-gradient-to-br from-green-400 to-green-600 rounded-md hover:from-green-500 hover:to-green-500 transition-all duration-200 flex items-center justify-center gap-1 sm:gap-2 font-semibold text-sm sm:text-base min-w-0 flex-shrink-0"
+              >
+                <BookmarkIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">Save Now</span>
+              </button>
+            )}
 
             <button
               onClick={nextStep}

@@ -51,23 +51,26 @@ module.exports = [
             <header class="header">
 
             {{#if personalInfo.isAddPhoto}}
+            {{#if personalInfo.profilePicture}}
             <div class="left-column">
                 <div class="profile-image-container">
                 <img alt="Profile picture of user" class="profile-image" src="{{personalInfo.profilePicture}}"/>
                 </div>
                 </div>
+                {{/if}}
             {{/if}}
             <div class="right-column">
             <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
             {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
             <div class="contact-info secondaryFont">
                 <div class="contact-grid">
-                 <div class="contact-item secondaryFont"><span class="label">Email:</span><span class="value" itemprop="email">{{personalInfo.email}}</span></div>
-                 {{#if personalInfo.address}}<div class="contact-item secondaryFont"><span class="label">Address:</span><span class="value" itemprop="address">{{personalInfo.address}}</span></div>{{/if}}
-                 {{#if personalInfo.phone}}<div class="contact-item secondaryFont"><span class="label">Phone:</span><span class="value" itemprop="telephone">{{personalInfo.phone}}</span></div>{{/if}}
-                 {{#if personalInfo.website}}<div class="contact-item secondaryFont"><span class="label">Website:</span><span class="value"><a href="{{personalInfo.website}}" target="_blank" itemprop="url">{{personalInfo.website}}</a></span></div>{{/if}}
-                 {{#if personalInfo.linkedin}}<div class="contact-item secondaryFont"><span class="label">LinkedIn:</span><span class="value"><a href="{{personalInfo.linkedin}}" target="_blank">{{personalInfo.linkedin}}</a></span></div>{{/if}}
-                 {{#if personalInfo.github}}<div class="contact-item secondaryFont"><span class="label">GitHub:</span><span class="value"><a href="{{personalInfo.github}}" target="_blank">{{personalInfo.github}}</a></span></div>{{/if}}
+                    <div class="contact-item secondaryFont"><span class="label">Email: {{personalInfo.email}}</span></div>
+                    {{#if personalInfo.phone}}<div class="contact-item secondaryFont"><span class="label">Phone: {{personalInfo.phone}}</span></div>{{/if}}
+                    {{#if personalInfo.website}}<div class="contact-item secondaryFont"><span class="label">Website: <a href="{{personalInfo.website}}" target="_blank" itemprop="url">{{personalInfo.website}}</a></span></div>{{/if}}
+                    {{#if personalInfo.linkedin}}<div class="contact-item secondaryFont"><span class="label">LinkedIn: <a href="{{personalInfo.linkedin}}" target="_blank">{{personalInfo.linkedin}}</a></span></div>{{/if}}
+                    {{#if personalInfo.github}}<div class="contact-item secondaryFont"><span class="label">GitHub: <a href="{{personalInfo.github}}" target="_blank">{{personalInfo.github}}</a></span></div>{{/if}}
+                    
+                    {{#if personalInfo.address}}<div class="contact-item secondaryFont"><span class="label">Address: {{personalInfo.address}}</span></div>{{/if}}
                 </div>
             </div>
             </div>
@@ -204,13 +207,22 @@ module.exports = [
         .header { display: flex; justify-content: space-between; align-items: center; text-align: center; justify-content:center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #059669; }
         .left-column { padding-right: 5px; border-right: 2px solid #059669; margin-right: 5px; border-radius: 99999px; margin-bottm:1rem; }
         .name { font-family: 'Georgia', serif; font-weight: 600; color: #059669; margin-bottom: 6px; letter-spacing: 0.5px; text-align: center; }
-        .contact-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-width: 800px; margin: 0 auto; }
-        .contact-item { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 2px; margin-bottom: 2px; }
+        .contact-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 5px 5px; 
+            margin: 0 auto; 
+            align-items: start;
+        }
+        .contact-item { display: flex; flex-wrap: wrap; align-items: flex-start; padding-top:5px }
         .contact-item .label { font-weight: 600; color: #6b7280; white-space: nowrap; flex-shrink: 0; }
         .contact-item .value { color: #1f2937; text-align: left; word-wrap: break-word; line-height: 1.2; }
         .contact-item a { color: #1f2937; text-decoration: none; word-wrap: break-word;}
         section { margin-bottom: 10px; }
-        h2 { font-family: 'Georgia', serif; font-weight: 600; color: #059669; padding-bottom: 2px; border-bottom: 1px solid #e5e7eb; text-transform: uppercase; letter-spacing: 0.5px; }
+        h1 {
+        font-family: 'roboto', serif; font-weight: 600; color: #059669; padding-bottom: 2px; border-bottom: 1px solid #059669; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        h2 { font-family: 'roboto', serif; font-weight: 600; color: #059669; padding-bottom: 2px; border-bottom: 1px solid #059669; text-transform: uppercase; letter-spacing: 0.5px; }
         .interests-text { line-height: 1.4; color: #4b5563; text-align: justify; font-style: italic; }
         .edu-entry, .position-entry, .publication-entry, .cert-entry, .achievement-entry { margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #f3f4f6; }
         .edu-header, .position-header, .cert-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px; }
@@ -236,6 +248,7 @@ module.exports = [
         ul li, ol li { margin-bottom: 0.1rem; color: #4b5563; line-height: 1.2; }
         ul { list-style-type: disc; }
         ol { list-style-type: decimal; }
+
         
         /* Unified classes for consistent styling */
         .institution, .location, .company, .issuer, .gpa, .dates, .job-dates, .edu-dates, .project-dates, .achievement-date, .cert-dates, .cert-expiry, .cert-id, .achievement-issuer, .cert-issuer { color: #64748b; }
@@ -298,10 +311,12 @@ module.exports = [
         html: `<article class="resume professional-academic-research" itemscope itemtype="http://schema.org/Person">
                 <main>
                 <div class="sidebar">
-                {{#if personalInfo.isAddPhoto}}
+                {{#if personalInfo.isAddPhoto}} 
+                {{#if personalInfo.profilePicture}}
                 <div class="profile-image-container">
                 <img alt="Profile picture of user" class="profile-image" src="{{personalInfo.profilePicture}}"/>
                 </div>
+                {{/if}}
                 {{/if}}
                 
                 <section class="contact-info">
@@ -476,7 +491,7 @@ module.exports = [
                 <h2 class="section-title primaryFont">LANGUAGES</h2>
                 {{#each languages}}
                 <div class="language-item secondaryFont {{#if @last}}style="margin-bottom:0;"{{/if}}">
-                <h3 class="language-name secondaryFont">{{name}}</h3>
+                <h2 class="language-name secondaryFont">{{name}}</h2>
                 <p class="proficiency secondaryFont">{{proficiency}}</p>
                 </div>
                 {{/each}}

@@ -350,7 +350,7 @@ const CKEditorComponent = ({
           addTargetToExternalLinks: true,
           defaultProtocol: 'https://'
         },
-        initialData: value || ` Welcome to Your Resume Template Builder `,
+        initialData: value || ``,
         placeholder: placeholder || 'Start designing your template here...',
         licenseKey: LICENSE_KEY,
         // Mobile-specific configuration
@@ -360,6 +360,9 @@ const CKEditorComponent = ({
           // Prevent zoom on double tap
           preventZoom: true
         },
+        typing: {
+        spellCheck: true
+       },
         // Ensure HTML output format
         htmlSupport: {
           allow: [
@@ -641,7 +644,7 @@ const CKEditorComponent = ({
         table: {
           contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
         },
-        initialData: value || ` Welcome to Your Resume Template Builder `,
+        initialData: value || ``,
         placeholder: placeholder || 'Start designing your template here...',
         licenseKey: LICENSE_KEY,
         // Mobile-specific configuration
@@ -650,7 +653,10 @@ const CKEditorComponent = ({
           enableMobileSupport: true,
           // Prevent zoom on double tap
           preventZoom: true
-        }
+        },
+        typing: {
+        spellCheck: true
+       },
       }
     };
   }, [value, placeholder]);
