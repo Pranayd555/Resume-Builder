@@ -173,7 +173,7 @@ const CreateTemplate = () => {
 							className={`px-8 py-3 rounded-lg font-semibold text-white transition-all duration-200 flex items-center space-x-2 ${
 								isGeneratingPDF 
 									? 'bg-gray-400 cursor-not-allowed' 
-									: 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 hover:shadow-lg transform hover:scale-105'
+									: 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 hover:shadow-lg transform hover:scale-105'
 							}`}
 						>
 							{isGeneratingPDF ? (

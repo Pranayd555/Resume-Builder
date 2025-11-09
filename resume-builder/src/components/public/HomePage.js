@@ -74,8 +74,12 @@ const HomePage = () => {
             />
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6">
               Build Your Perfect
-              <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Resume in Minutes
+              <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text">
+                {"Resume in Minutes".split("").map((char, index) => (
+                  <span key={index} className="inline-block animate-pulse-letter bg-clip-text text-purple-600" style={{ animationDelay: `${index * 0.05}s` }}>
+                    {char === ' ' ? '\u00A0' : char}
+                  </span>
+                ))}
               </span>
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
