@@ -891,7 +891,7 @@ function ResumeList() {
 
         
         {/* Search and Filter */}
-        <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-4 sm:p-6 mb-8">
+        {/* <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-4 sm:p-6 mb-8">
           <div className="flex flex-col gap-4">
             <div className="w-full">
               <form onSubmit={handleSearch} className="flex gap-3">
@@ -992,7 +992,7 @@ function ResumeList() {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
         
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -1107,7 +1107,7 @@ function ResumeList() {
                                  <PencilIcon className="w-4 h-4" />
                                  Edit Resume
                                </button>
-                               {resume.status === 'published' && (
+                               {/* {resume.status === 'published' && (
                                  <button
                                    onClick={(e) => {
                                      e.stopPropagation();
@@ -1126,7 +1126,7 @@ function ResumeList() {
                                    )}
                                    {resume.isActive ? 'Deactivate' : 'Activate'}
                                  </button>
-                               )}
+                               )} */}
                                <button
                                  disabled={resume.status === 'draft'}
                                  onClick={(e) => {
@@ -1269,20 +1269,12 @@ function ResumeList() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleToggleActive(resume.id, resume.status);
+                          handleOpenAtsModal(resume.id);
                         }}
-                        className={`px-3 py-2.5 rounded-lg transition-colors font-medium text-xs flex items-center justify-center gap-1 ${
-                          resume.isActive 
-                            ? 'bg-red-100 text-red-600 hover:bg-red-200' 
-                            : 'bg-green-100 text-green-600 hover:bg-green-200'
-                        }`}
+                        className="px-3 py-2.5 rounded-lg transition-colors font-medium text-xs flex items-center justify-center gap-1 bg-orange-100 text-orange-600 hover:bg-orange-200"
                       >
-                        {resume.isActive ? (
-                          <EyeSlashIcon className="w-3 h-3" />
-                        ) : (
-                          <EyeIcon className="w-3 h-3" />
-                        )}
-                        {resume.isActive ? 'Off' : 'On'}
+                        <SparklesIcon className="w-3 h-3 text-orange-500" />
+                        ATS
                       </button>
                     )}
                     <button
@@ -1417,7 +1409,7 @@ function ResumeList() {
             className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-6 hover:bg-white/80 transition-all duration-200 hover:shadow-2xl hover:scale-105 cursor-pointer text-left group"
           >
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200">
+              <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                 </svg>

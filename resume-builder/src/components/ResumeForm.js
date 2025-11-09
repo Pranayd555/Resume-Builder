@@ -3206,7 +3206,7 @@ function ResumeForm() {
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">Clear Form Data</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300">This action cannot be undone</p>
+                <p className="text-sm text-red-600 dark:text-red-500">This action cannot be undone</p>
               </div>
             </div>
             
