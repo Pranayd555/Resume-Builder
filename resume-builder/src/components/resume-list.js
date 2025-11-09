@@ -2,19 +2,12 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import AuthLoader from './AuthLoader';
-import { 
-  Bars3Icon,
+import {
   CheckCircleIcon,
   ClockIcon,
   PlusIcon,
-  MagnifyingGlassIcon,
-  FunnelIcon,
-  ChevronDownIcon,
-  CheckIcon,
   DocumentTextIcon,
   PencilIcon,
-  EyeIcon,
-  EyeSlashIcon,
   DocumentDuplicateIcon,
   ArrowDownTrayIcon,
   TrashIcon,
@@ -262,10 +255,10 @@ function ResumeList() {
     total: 0,
     pages: 0
   });
-  const [filters, setFilters] = useState({
-    status: '',
-    search: ''
-  });
+  // const [filters, setFilters] = useState({
+  //   status: '',
+  //   search: ''
+  // });
   
   // Track if we're already fetching to prevent duplicate calls
   const isFetchingRef = useRef(false);
@@ -335,41 +328,41 @@ function ResumeList() {
     };
   }, [showStatusDropdown, openDropdownId]);
 
-  const statusOptions = [
-    { 
-      value: '', 
-      label: 'All Status', 
-      icon: <Bars3Icon className="w-4 h-4" />,
-      color: 'text-gray-600'
-    },
-    { 
-      value: 'active', 
-      label: 'Active', 
-      icon: <CheckCircleIcon className="w-4 h-4" />,
-      color: 'text-green-600'
-    },
-    { 
-      value: 'published', 
-      label: 'Published', 
-      icon: <CheckCircleIcon className="w-4 h-4" />,
-      color: 'text-blue-600'
-    },
-    { 
-      value: 'draft', 
-      label: 'Draft', 
-      icon: <ClockIcon className="w-4 h-4" />,
-      color: 'text-yellow-600'
-    }
-  ];
+  // const statusOptions = [
+  //   { 
+  //     value: '', 
+  //     label: 'All Status', 
+  //     icon: <Bars3Icon className="w-4 h-4" />,
+  //     color: 'text-gray-600'
+  //   },
+  //   { 
+  //     value: 'active', 
+  //     label: 'Active', 
+  //     icon: <CheckCircleIcon className="w-4 h-4" />,
+  //     color: 'text-green-600'
+  //   },
+  //   { 
+  //     value: 'published', 
+  //     label: 'Published', 
+  //     icon: <CheckCircleIcon className="w-4 h-4" />,
+  //     color: 'text-blue-600'
+  //   },
+  //   { 
+  //     value: 'draft', 
+  //     label: 'Draft', 
+  //     icon: <ClockIcon className="w-4 h-4" />,
+  //     color: 'text-yellow-600'
+  //   }
+  // ];
 
-  const getSelectedOption = () => {
-    return statusOptions.find(option => option.value === filters.status) || statusOptions[0];
-  };
+  // const getSelectedOption = () => {
+  //   return statusOptions.find(option => option.value === filters.status) || statusOptions[0];
+  // };
 
-  const handleStatusSelect = (value) => {
-    handleFilterChange('status', value);
-    setShowStatusDropdown(false);
-  };
+  // const handleStatusSelect = (value) => {
+  //   handleFilterChange('status', value);
+  //   setShowStatusDropdown(false);
+  // };
 
   const fetchResumes = useCallback(async () => {
     // Prevent duplicate calls
@@ -385,7 +378,7 @@ function ResumeList() {
       const params = {
         page: pagination.page,
         limit: pagination.limit,
-        ...filters
+        // ...filters
       };
       
       const response = await resumeAPI.getResumes(params);
@@ -409,7 +402,7 @@ function ResumeList() {
       setLoading(false);
       isFetchingRef.current = false;
     }
-  }, [pagination.page, pagination.limit, filters]);
+  }, [pagination.page, pagination.limit]);
 
   // Load resumes on component mount
   useEffect(() => {
@@ -699,21 +692,21 @@ function ResumeList() {
 
 
 
-  const handleToggleActive = async (resumeId, currentStatus) => {
-    try {
-      const response = await resumeAPI.toggleActive(resumeId);
-      if (response.success) {
-        toast.success(response.data.message);
-        fetchResumes(); // Refresh the list
-      } else {
-        throw new Error(response.error || 'Failed to toggle resume status');
-      }
-    } catch (err) {
-      const errorMessage = apiHelpers.formatError(err);
-      toast.error(errorMessage);
-    }
-    setOpenDropdownId(null);
-  };
+  // const handleToggleActive = async (resumeId, currentStatus) => {
+  //   try {
+  //     const response = await resumeAPI.toggleActive(resumeId);
+  //     if (response.success) {
+  //       toast.success(response.data.message);
+  //       fetchResumes(); // Refresh the list
+  //     } else {
+  //       throw new Error(response.error || 'Failed to toggle resume status');
+  //     }
+  //   } catch (err) {
+  //     const errorMessage = apiHelpers.formatError(err);
+  //     toast.error(errorMessage);
+  //   }
+  //   setOpenDropdownId(null);
+  // };
 
   const handlePageChange = (newPage) => {
     setPagination(prev => ({
@@ -722,21 +715,21 @@ function ResumeList() {
     }));
   };
 
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value
-    }));
-    setPagination(prev => ({
-      ...prev,
-      page: 1 // Reset to first page when filters change
-    }));
-  };
+  // const handleFilterChange = (key, value) => {
+  //   setFilters(prev => ({
+  //     ...prev,
+  //     [key]: value
+  //   }));
+  //   setPagination(prev => ({
+  //     ...prev,
+  //     page: 1 // Reset to first page when filters change
+  //   }));
+  // };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    fetchResumes();
-  };
+  // const handleSearch = (e) => {
+  //   e.preventDefault();
+  //   fetchResumes();
+  // };
 
   const getStatusColor = (status) => {
     switch (status) {
