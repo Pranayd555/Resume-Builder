@@ -131,11 +131,11 @@ function Login({ isAdminLogin = false }) {
               </div>
             )}
 
-            <form onSubmit={handleLogin} className="space-y-6">
+            <form noValidate onSubmit={handleLogin} className="space-y-6">
               {/* Email Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
-                  Email Address
+                  Email Address *
                 </label>
                 <input
                   type="email"
@@ -158,7 +158,7 @@ function Login({ isAdminLogin = false }) {
               {/* Password Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
-                  Password
+                  Password *
                 </label>
                 <div className="relative">
                   <input

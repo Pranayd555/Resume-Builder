@@ -11,7 +11,7 @@
 function parseAIResponse(text, context = 'ai-response') {
   try {
     // Clean the response to extract JSON with better parsing
-    let jsonString = text.trim();
+    let jsonString = text.trim() || '{}';
     
     // Remove any markdown code blocks if present
     jsonString = jsonString.replace(/```json\s*|\s*```/g, '');
@@ -49,16 +49,37 @@ function parseAIResponse(text, context = 'ai-response') {
  * @returns {string} Cleaned JSON string
  */
 function cleanJSONString(jsonString) {
-  return jsonString
-    .replace(/\n\s*/g, ' ')  // Replace newlines with spaces
-    .replace(/\s+/g, ' ')    // Collapse multiple spaces
-    .replace(/,(\s*[}\]])/g, '$1')  // Remove trailing commas
-    .replace(/([{,]\s*)(\w+):/g, '$1"$2":')  // Quote unquoted keys
-    .replace(/:\s*([^",{\[\s][^,}\]\]]*?)(\s*[,}\]])/g, ': "$1"$2')  // Quote unquoted string values
-    .replace(/: "null"/g, ': null')  // Fix null values
-    .replace(/: "true"/g, ': true')  // Fix boolean true
-    .replace(/: "false"/g, ': false')  // Fix boolean false
-    .replace(/: "(\d+)"/g, ': $1');  // Fix numeric values
+  // Replace newlines and multiple spaces
+  jsonString = jsonString.replace(/\n\s*/g, ' ').replace(/\s+/g, ' ');
+
+  // Attempt to fix common JSON issues more robustly
+  // 1. Remove trailing commas (e.g., { "a": 1, })
+  jsonString = jsonString.replace(/,(\s*[}\]])/g, '$1');
+
+  // 2. Quote unquoted keys (e.g., { key: "value" } -> { "key": "value" })
+  // This regex is more specific to avoid quoting values that might look like keys
+  jsonString = jsonString.replace(/([{,])\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
+
+  // 3. Quote unquoted string values (e.g., { "key": value } -> { "key": "value" })
+  // This is the most problematic part. We need to be careful not to quote numbers, booleans, or null.
+  // Also, handle unescaped double quotes within string values.
+  jsonString = jsonString.replace(/:\s*([^"{\[\s,]+?)([}\]},])/g, (match, p1, p2) => {
+    // Only quote if it's not a number, boolean, or null
+    if (p1.toLowerCase() === 'true' || p1.toLowerCase() === 'false' || p1.toLowerCase() === 'null' || !isNaN(p1)) {
+      return `: ${p1}${p2}`;
+    }
+    // Escape internal double quotes and then wrap in quotes
+    const cleanedValue = p1.replace(/"/g, '\\"');
+    return `: "${cleanedValue}"${p2}`;
+  });
+
+  // 4. Fix null, true, false values that might have been quoted by previous regex
+  jsonString = jsonString.replace(/":\s*"null"/g, '": null');
+  jsonString = jsonString.replace(/":\s*"true"/g, '": true');
+  jsonString = jsonString.replace(/":\s*"false"/g, '": false');
+  jsonString = jsonString.replace(/":\s*"(\d+)"/g, '": $1'); // Fix numeric values
+
+  return jsonString;
 }
 
 /**

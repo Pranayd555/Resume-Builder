@@ -327,12 +327,14 @@ module.exports = [
                   </div>
                 {{/if}}
                 </div>
-              {{#if personalInfo.isAddPhoto}}
+              {{#if personalInfo.isAddPhoto}} 
+              {{#if personalInfo.profilePicture}}
               <div class="header=left">
                 <div class="profile-image-container">
                 <img alt="Profile picture of user" class="profile-image" src="{{personalInfo.profilePicture}}"/>
                 </div>
                 </div>
+                {{/if}}
               {{/if}}
               </header>
               
@@ -1002,7 +1004,6 @@ module.exports = [
                     {{/if}}
                     {{#if personalInfo.website}}
                     <div class="contact-item secondaryFont">
-                    <span class="material-symbols-outlined">language</span>
                     <a href="{{personalInfo.website}}" target="_blank">{{personalInfo.website}}</a>
                     </div>
                     {{/if}}
@@ -1028,31 +1029,7 @@ module.exports = [
                     {{/if}}
                     <main class="main-content">
                     <div class="left-column">
-                    {{#if education.length}}
-                    <section class="section">
-                    <h3 class="primaryFont">EDUCATION</h3>
-                    <hr class="separator"/>
-                    {{#each education}}
-                    <div class="education-item">
-                    <p class="date edu-dates">{{#if startDate}}<time itemprop="startDate">{{formatDate startDate}}</time> - {{/if}}
-                        {{#if isCurrentlyStudying}}<span>Present</span>{{else}}<time itemprop="endDate">{{formatDate endDate}}</time>{{/if}}</p>
-                    <p class="university">{{institution}}</p>
-                    <ul class="secondaryFont">
-                    <li class="edu-degree">{{degree}}</li>
-                    {{#if gpa}}
-                    <li class="edu-gpa">GPA: {{gpa}}</li>
-                    {{/if}}
-                    {{#if location}}
-                    <li class="location">{{location}}</li>
-                    {{/if}}
-                    {{#if description}}
-                    <li class="edu-description">{{{description}}}</li>
-                    {{/if}}
-                    </ul>
-                    </div>
-                    {{/each}}
-                    </section>
-                    {{/if}}
+
                     {{#if skills.length}}
                     <section class="section skills">
                     <h3 class="primaryFont">SKILLS</h3>
@@ -1067,6 +1044,31 @@ module.exports = [
                     {{/each}}
                     </section>
                     {{/if}}
+                    
+                    {{#if education.length}}
+                    <section class="section">
+                    <h3 class="primaryFont">EDUCATION</h3>
+                    <hr class="separator"/>
+                    {{#each education}}
+                    <div class="education-item secondaryFont">
+                    <p class="date edu-dates">{{#if startDate}}<time itemprop="startDate">{{formatDate startDate}}</time> - {{/if}}
+                        {{#if isCurrentlyStudying}}<span>Present</span>{{else}}<time itemprop="endDate">{{formatDate endDate}}</time>{{/if}}</p>
+                    <p class="university secondaryFont">{{institution}}</p>
+                    <p class="edu-degree secondaryFont">{{degree}}</p>
+                    {{#if gpa}}
+                    <p class="edu-gpa secondaryFont">GPA: {{gpa}}</p>
+                    {{/if}}
+                    {{#if location}}
+                    <p class="location secondaryFont">{{location}}</p>
+                    {{/if}}
+                    {{#if description}}
+                    <p class="edu-description secondaryFont">{{{description}}}</p>
+                    {{/if}}
+                    </div>
+                    {{/each}}
+                    </section>
+                    {{/if}}
+                    
                     {{#if languages.length}}
                     <section class="section">
                     <h3 class="primaryFont">LANGUAGES</h3>
@@ -1089,10 +1091,12 @@ module.exports = [
                     <div class="experience-item">
                     <div class="experience-header secondaryFont">
                     <h4 class="job-title">{{jobTitle}} - {{company}}</h4>
+                    <div class="job-items">
                     {{#if location}}<span class="location secondaryFont" itemprop="jobLocation">{{location}}</span>{{/if}}
                     <span class="job-dates secondaryFont">
                     <time itemprop="datePosted">{{formatDate startDate}}</time> - 
                             {{#if isCurrentJob}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
+                    </div>
                     </span>
                     </div>
             {{#if description}}<p class="job-description">{{{description}}}</p>{{/if}}
@@ -1217,7 +1221,7 @@ module.exports = [
                                 justify-content: center;
                                 align-items: center;
                                 flex-wrap: wrap;
-                                gap: 1rem;
+                                gap: 0.25rem;
                             }
                             .contact-item {
                                 display: flex;
@@ -1284,6 +1288,17 @@ module.exports = [
                                 align-items: baseline;
                                 margin-bottom: 0.25rem;
                             }
+
+                            .experience-header {
+                                flex-direction:column;
+                                }
+                            .job-items{
+                            display:flex;
+                            justify-content: space-between;
+                            align-items: baseline;
+                                width: 100%;
+                            }
+
                             .experience-header h4, .project-header h4, .achievement-header h4, .certification-header h4 {
                                 font-size: 1rem;
                                 font-weight: 700;

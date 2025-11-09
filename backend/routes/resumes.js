@@ -148,7 +148,7 @@ router.post('/auto-save', [
       const allowedFields = [
         'title', 'personalInfo', 'summary', 'workExperience',
         'education', 'skills', 'projects', 'achievements',
-        'certifications', 'languages', 'customFields'
+        'certifications', 'languages', 'customFields', 'isFresher'
       ];
 
       allowedFields.forEach(field => {
@@ -164,6 +164,7 @@ router.post('/auto-save', [
         user: req.user.id,
         title: req.body.title || 'Untitled Resume',
         personalInfo: req.body.personalInfo || {},
+        isFresher: req.body.isFresher || false,
         summary: req.body.summary || '',
         workExperience: req.body.workExperience || [],
         education: req.body.education || [],
@@ -942,9 +943,13 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
       styling: resume.styling || {}, // Include styling data
       isFresher: resume.isFresher
     };
+    const User = require('../models/User');
+    const profilePicture = await User.findById(req.user.id).populate('profilePicture');
     if(resumeData.personalInfo.isAddPhoto) {
       try {
-        const response = await fetch(resumeData.personalInfo.profilePicture, {
+        const url = profilePicture.profilePicture?.type === 'avatar' ? profilePicture.profilePicture.avatarUrl : profilePicture.profilePicture?.type === 'uploaded' ? profilePicture.profilePicture.uploadedPhoto.url : '';
+        if(url !== '') {
+        const response = await fetch(url, {
           signal: AbortSignal.timeout(8000) // 8-second timeout
         });
         if (!response.ok) {
@@ -955,6 +960,9 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
         const dataUri = `data:image/jpeg;base64,${base64}`;
         logger.info('profile picture uri: ' + dataUri.substring(0, 100) + '...'); // Log first 100 chars
         resumeData.personalInfo.profilePicture = dataUri;
+        } else {
+          resumeData.personalInfo.profilePicture = null; // Clear the profile picture to prevent further issues
+        }
       } catch (error) {
         logger.error(`Error processing profile picture: ${error.message}`);
         // Optionally, set a placeholder or handle the error gracefully in the UI
@@ -1052,7 +1060,7 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
               .profile-image-container {
                             display: flex;
                             justify-content: center;
-                            margin-bottom: 1rem;
+                            align-items:center;
                             }
                         .profile-image {
                             width: 10rem;height: 10rem;border-radius: 9999px;border: 4px solid white;

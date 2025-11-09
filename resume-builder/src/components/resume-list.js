@@ -23,7 +23,8 @@ import {
   ExclamationTriangleIcon,
   ChartBarIcon,
   SparklesIcon,
-  ArrowsRightLeftIcon
+  ArrowsRightLeftIcon,
+  ReceiptRefundIcon
 } from '@heroicons/react/24/outline';
 import { resumeAPI, analyticsAPI, apiHelpers } from '../services/api';
 import { createResumeModel } from '../models/dataModels';
@@ -31,6 +32,7 @@ import { toast } from 'react-toastify';
 import ATSScoreModal from './ATSScoreModal';
 import EmailVerification from './EmailVerification';
 import { useAuth } from '../contexts/AuthContext';
+import { PUBLIC_ROUTES } from '../constants/routes';
 
 // ATS Score Display Component
 const ATSScoreDisplay = ({ resume, isCardHovered }) => {
@@ -526,7 +528,7 @@ function ResumeList() {
 
   const handleResumeClick = (resumeId, resumeStatus) => {
     if (resumeStatus === 'draft') {
-      toast.error('Cannot preview draft resumes. Please publish the resume first.');
+      toast.warning('Cannot preview draft resumes. Please publish the resume first.');
       return;
     }
     navigate(`/resume-preview/${resumeId}`);
@@ -1387,29 +1389,29 @@ function ResumeList() {
                 </div>
               </div>
             </button>
+
+            <button
+            onClick={() => navigate(PUBLIC_ROUTES.CANCELLATION_REFUNDS)}
+            className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-6 hover:bg-white/80 transition-all duration-200 hover:shadow-2xl hover:scale-105 cursor-pointer text-left group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200">
+                <ReceiptRefundIcon class="w-6 h-6 text-white"/>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors duration-200">Cancellation & Refund Policy</h3>
+                <p className="text-gray-600 text-sm">Learn how we handle cancellations and refunds</p>
+              </div>
+            </div>
+          </button>
             
           </div>
+
+          
         )}
 
         {/* Legal Information Cards */}
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <button
-            onClick={() => navigate('/privacy-policy')}
-            className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-6 hover:bg-white/80 transition-all duration-200 hover:shadow-2xl hover:scale-105 cursor-pointer text-left group"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors duration-200">Privacy Policy</h3>
-                <p className="text-gray-600 text-sm">Learn how we protect and handle your personal information</p>
-              </div>
-            </div>
-          </button>
-          
           <button
             onClick={() => navigate('/terms-conditions')}
             className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-6 hover:bg-white/80 transition-all duration-200 hover:shadow-2xl hover:scale-105 cursor-pointer text-left group"
@@ -1423,6 +1425,23 @@ function ResumeList() {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-orange-600 transition-colors duration-200">Terms & Conditions</h3>
                 <p className="text-gray-600 text-sm">Review our terms of service and usage guidelines</p>
+              </div>
+            </div>
+          </button>
+          
+          <button
+            onClick={() => navigate('/privacy-policy')}
+            className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-6 hover:bg-white/80 transition-all duration-200 hover:shadow-2xl hover:scale-105 cursor-pointer text-left group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors duration-200">Privacy Policy</h3>
+                <p className="text-gray-600 text-sm">Learn how we protect and handle your personal information</p>
               </div>
             </div>
           </button>

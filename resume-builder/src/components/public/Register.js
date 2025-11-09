@@ -161,12 +161,12 @@ function Register() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form noValidate onSubmit={handleSubmit} className="space-y-6">
               {/* Name Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
-                    First Name
+                    First Name *
                   </label>
                   <input
                     type="text"
@@ -187,7 +187,7 @@ function Register() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
-                    Last Name
+                    Last Name *
                   </label>
                   <input
                     type="text"
@@ -210,7 +210,7 @@ function Register() {
               {/* Email Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
-                  Email Address
+                  Email Address *
                 </label>
                 <input
                   type="email"
@@ -232,7 +232,7 @@ function Register() {
               {/* Password Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
-                  Password
+                  Password *
                 </label>
                 <div className="relative">
                   <input
@@ -283,7 +283,7 @@ function Register() {
               {/* Confirm Password Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
-                  Confirm Password
+                  Confirm Password *
                 </label>
                 <div className="relative">
                   <input
