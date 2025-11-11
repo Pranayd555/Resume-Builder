@@ -67,11 +67,12 @@ const TermsConditions = () => {
               </p>
               <ul className="space-y-2 text-gray-600 dark:text-gray-300 ml-4">
                 <li>• Resume templates and design tools</li>
-                <li>• AI-powered content suggestions</li>
+                <li>• AI-powered content suggestions (token-based)</li>
                 <li>• ATS (Applicant Tracking System) compatibility analysis</li>
-                <li>• Resume export in multiple formats (PDF, DOCX)</li>
+                <li>• Resume export in ATS compatible format</li>
                 <li>• Cloud storage for resume data</li>
                 <li>• Professional guidance and tips</li>
+                <li>• Token-based AI features for enhanced resume optimization</li>
               </ul>
             </div>
           </section>
@@ -154,25 +155,59 @@ const TermsConditions = () => {
             </div>
           </section>
 
-          {/* Subscription and Payment */}
+          {/* Token System and Payment */}
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
-              7. Subscription and Payment Terms
+              7. Token System and Payment Terms
             </h2>
             <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-500 mb-4">Free Plan</h3>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-500 mb-4">Free Access</h3>
               <p className="text-gray-600 dark:text-gray-300 mb-4">
-                Our free plan provides basic resume building features at no cost.
+                All users receive 20 free AI tokens upon registration to experience our AI-powered features. Basic resume building features are available at no cost.
               </p>
               
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-500 mb-4">Pro Plan</h3>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-500 mb-4">Token Purchase</h3>
               <p className="text-gray-600 dark:text-gray-300 mb-4">
-                Pro plan subscriptions are billed monthly or annually. All fees are non-refundable except as required by law or as specified in our refund policy.
+                Additional tokens can be purchased to access AI-powered features. Tokens are delivered instantly upon successful payment and never expire.
+              </p>
+              
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-500 mb-4">Payment Processing</h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
+                All payments are processed securely through Razorpay. We accept major credit cards, debit cards, UPI, and net banking.
               </p>
               
               <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-500 mb-4">Price Changes</h3>
               <p className="text-gray-600 dark:text-gray-300">
-                We reserve the right to change our pricing at any time. Price changes will be communicated to existing subscribers with at least 30 days notice.
+                We reserve the right to change our token pricing at any time. Price changes will be communicated to users with at least 30 days notice.
+              </p>
+            </div>
+          </section>
+
+          {/* Token Usage Terms */}
+          <section className="mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
+              8. Token Usage Terms
+            </h2>
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-6">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4">Token Consumption</h3>
+              <p className="text-gray-600 dark:text-gray-500 mb-4">
+                AI-powered features consume tokens as follows:
+              </p>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-500 ml-4">
+                <li>• AI content suggestions: 1 token per request</li>
+                <li>• ATS compatibility analysis: 1 token per analysis</li>
+                <li>• Resume optimization: 1 token per optimization</li>
+                <li>• Smart formatting: 1 token per formatting request</li>
+              </ul>
+              
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4 mt-6">Token Validity</h3>
+              <p className="text-gray-600 dark:text-gray-500 mb-4">
+                Tokens do not expire and can be used at any time. Unused tokens remain in your account indefinitely.
+              </p>
+              
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4">Token Refunds</h3>
+              <p className="text-gray-600 dark:text-gray-500">
+                Tokens are non-refundable once purchased, except as required by law or as specified in our refund policy.
               </p>
             </div>
           </section>
@@ -180,7 +215,7 @@ const TermsConditions = () => {
           {/* Limitation of Liability */}
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
-              8. Limitation of Liability
+              9. Limitation of Liability
             </h2>
             <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl p-6">
               <p className="text-gray-600 dark:text-gray-500 mb-4">
@@ -195,7 +230,7 @@ const TermsConditions = () => {
           {/* Changes to Terms */}
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
-              9. Changes to Terms
+              10. Changes to Terms
             </h2>
             <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
               <p className="text-gray-600 dark:text-gray-300 mb-4">
@@ -210,16 +245,16 @@ const TermsConditions = () => {
           {/* Contact Information */}
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
-              10. Contact Information
+              11. Contact Information
             </h2>
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-6">
               <p className="text-gray-600 dark:text-gray-500 mb-4">
-                If you have any questions about these Terms of Service, please contact us:
+                If you have any questions about these Terms of Service, please contact me:
               </p>
               <div className="space-y-2 text-gray-600 dark:text-gray-500">
-                <p><strong>Email:</strong> legal@resumebuilder.com</p>
-                <p><strong>Support:</strong> support@resumebuilder.com</p>
-                <p><strong>Response Time:</strong> Within 48 hours</p>
+                <p><strong>Email:</strong> pranaydaspr@gmail.com</p>
+                <p><strong>Support:</strong> pranaydaspr@gmail.com</p>
+                <p><strong>Response Time:</strong> Within 24 hours</p>
               </div>
             </div>
           </section>

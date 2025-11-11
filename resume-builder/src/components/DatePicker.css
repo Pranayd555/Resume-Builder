@@ -212,6 +212,7 @@
 
 
 /* Read View Buttons */
+
 .react-datepicker__month-read-view,
 .react-datepicker__year-read-view {
   appearance: none !important;
@@ -220,7 +221,7 @@
   background-color: white !important;
   border: 1px solid #d1d5db !important;
   border-radius: 8px !important;
-  padding: 8px 32px 8px 12px !important;
+  padding: 8px 12px !important; /* Adjusted padding */
   font-size: 14px !important;
   font-weight: 500 !important;
   color: #374151 !important;
@@ -228,20 +229,11 @@
   transition: all 0.2s ease-in-out !important;
   outline: none !important;
   min-width: 100px !important;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e") !important;
-  background-position: right 8px center !important;
-  background-repeat: no-repeat !important;
-  background-size: 16px !important;
-  padding-right: 32px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
   visibility: visible !important;
-}
-
-.react-datepicker__month-read-view[style*="visibility: hidden"],
-.react-datepicker__year-read-view[style*="visibility: hidden"] {
-  visibility: visible !important;
+  position: relative !important; /* Added for pseudo-element positioning */
 }
 
 .react-datepicker__month-read-view:hover,
@@ -256,13 +248,32 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
 }
 
+.react-datepicker__month-dropdown-container select,
+.react-datepicker__year-dropdown-container select {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  border: none !important;
+  background: transparent !important;
+  width: 100% !important;
+  height: 100% !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  font-size: inherit !important;
+  color: inherit !important;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e") !important;
+  background-position: right 8px center !important;
+  background-repeat: no-repeat !important;
+  background-size: 16px !important;
+  padding-right: 32px !important;
+}
 /* Custom Scrollbar */
 .react-datepicker__year-dropdown,
 .react-datepicker__month-dropdown,
 .react-datepicker__year-dropdown--scrollable,
 .react-datepicker__month-dropdown--scrollable {
   scrollbar-width: thin !important;
-  scrollbar-color: #cbd5e1 #f1f5f9 !important;
+  scrollbar-color: #94a3b8 #f1f5f9 !important;
 }
 
 .react-datepicker__year-dropdown::-webkit-scrollbar,
@@ -276,7 +287,7 @@
 .react-datepicker__month-dropdown::-webkit-scrollbar-track,
 .react-datepicker__year-dropdown--scrollable::-webkit-scrollbar-track,
 .react-datepicker__month-dropdown--scrollable::-webkit-scrollbar-track {
-  background: #f1f5f9 !important;
+  background: #e2e8f0 !important;
   border-radius: 3px !important;
 }
 
@@ -284,7 +295,7 @@
 .react-datepicker__month-dropdown::-webkit-scrollbar-thumb,
 .react-datepicker__year-dropdown--scrollable::-webkit-scrollbar-thumb,
 .react-datepicker__month-dropdown--scrollable::-webkit-scrollbar-thumb {
-  background: #cbd5e1 !important;
+  background: #64748b !important;
   border-radius: 3px !important;
 }
 
@@ -293,6 +304,14 @@
 .react-datepicker__year-dropdown--scrollable::-webkit-scrollbar-thumb:hover,
 .react-datepicker__month-dropdown--scrollable::-webkit-scrollbar-thumb:hover {
   background: #94a3b8 !important;
+}
+
+.react-datepicker__year-read-view--down-arrow,
+.react-datepicker__month-read-view--down-arrow {
+  display: none !important;
+}
+.react-datepicker-popper{
+  z-index:99;
 }
 
 /* Mobile Responsive */

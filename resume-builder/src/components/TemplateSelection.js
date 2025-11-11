@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { templateAPI, resumeAPI, apiHelpers } from '../services/api';
 import { toast } from 'react-toastify';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+import { Navigation, Pagination, Autoplay, EffectCoverflow, FreeMode } from 'swiper/modules';
 import AuthLoader from './AuthLoader';
 
 // Import Swiper styles
@@ -90,6 +90,11 @@ function TemplateSelection() {
       setSelecting(false);
       setSelectedTemplate(null);
     }
+  };
+
+  // Back to dashboard function
+  const handleBackToDashboard = () => {
+    navigate('/dashboard');
   };
 
   const filteredTemplates = templates.filter(template => 
@@ -205,11 +210,27 @@ function TemplateSelection() {
     <div className="min-h-screen pt-16">
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-            Choose Your Template
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg">Select a professional template that matches your style</p>
+        <div className="mb-8">
+          {/* Back Button */}
+          <div className="flex items-center gap-3 mb-6">
+            <button
+              onClick={handleBackToDashboard}
+              className="flex items-center gap-2 text-gray-600 dark:text-gray-200 hover:text-gray-800 dark:hover:text-gray-100 transition-colors font-medium group"
+            >
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="text-sm sm:text-base">Back to Dashboard</span>
+            </button>
+          </div>
+          
+          {/* Title and Description */}
+          <div className="text-center">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+              Choose Your Template
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg">Select a professional template that matches your style</p>
+          </div>
         </div>
 
         {/* Category Filter */}
@@ -240,12 +261,23 @@ function TemplateSelection() {
         <div className="relative mb-8">
           <Swiper
             ref={swiperRef}
-            modules={[Navigation, Pagination, Autoplay]}
-            spaceBetween={20}
+            effect="coverflow"
+            coverflowEffect={{
+              rotate: 0,
+              stretch: 0,
+              depth: 100,
+              modifier: 1,
+              slideShadows: false,
+            }}
+            modules={[Navigation, Pagination, Autoplay, EffectCoverflow, FreeMode]}
+            spaceBetween={30}
             slidesPerView={1}
             centeredSlides={true}
             loop={true}
             loopFillGroupWithBlank={true}
+            freeMode={true}
+            freeModeMomentum={true}
+            grabCursor={true}
             navigation={{
               nextEl: '.swiper-button-next',
               prevEl: '.swiper-button-prev',
@@ -267,17 +299,17 @@ function TemplateSelection() {
               },
               768: {
                 slidesPerView: 2,
-                spaceBetween: 32,
+                spaceBetween: 24,
                 centeredSlides: true,
               },
               1024: {
                 slidesPerView: 3,
-                spaceBetween: 32,
+                spaceBetween: 16,
                 centeredSlides: true,
               },
               1280: {
                 slidesPerView: 3,
-                spaceBetween: 40,
+                spaceBetween: 20,
                 centeredSlides: true,
               }
             }}

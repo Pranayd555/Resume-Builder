@@ -104,30 +104,7 @@ const userSchema = new mongoose.Schema({
     default: 'user'
   },
   
-  // Subscription
-  subscription: {
-    plan: {
-      type: String,
-      enum: ['free', 'pro', 'enterprise'],
-      default: 'free'
-    },
-    isActive: {
-      type: Boolean,
-      default: true
-    },
-    startDate: {
-      type: Date,
-      default: Date.now
-    },
-    endDate: {
-      type: Date,
-      default: function() {
-        return new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year
-      }
-    },
-    stripeCustomerId: String,
-    stripeSubscriptionId: String
-  },
+  // Subscription data moved to separate Subscription model
   
   // Usage Limits
   usage: {
@@ -152,6 +129,74 @@ const userSchema = new mongoose.Schema({
     }
   },
   
+  // Token System
+  tokens: {
+    type: Number,
+    default: 20,
+    min: 0
+  },
+  bonusTokens: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  
+  // Razorpay Transaction History (last 20 transactions)
+  razorpayTransactions: [{
+    transactionId: {
+      type: String,
+      required: true
+    },
+    orderId: {
+      type: String,
+      required: true
+    },
+    amount: {
+      type: Number,
+      required: true
+    },
+    currency: {
+      type: String,
+      default: 'INR'
+    },
+    status: {
+      type: String,
+      enum: ['created', 'authorized', 'captured', 'refunded', 'refund_requested', 'failed'],
+      required: true
+    },
+    paymentId: String,
+    signature: String,
+    method: String,
+    bank: String,
+    wallet: String,
+    vpa: String,
+    email: String,
+    contact: String,
+    fee: Number,
+    tax: Number,
+    errorCode: String,
+    errorDescription: String,
+    errorSource: String,
+    errorStep: String,
+    errorReason: String,
+    createdAt: {
+      type: Date,
+      default: Date.now
+    },
+    capturedAt: Date,
+    refundedAt: Date,
+    notes: String,
+    // Refund tracking fields
+    refundRequestedAt: Date,
+    refundReason: String,
+    refundStatus: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected', 'processing', 'completed'],
+      sparse: true
+    },
+    metadata: mongoose.Schema.Types.Mixed
+  }],
+  
   // Security
   emailVerificationToken: String,
   emailVerificationExpire: Date,
@@ -159,6 +204,8 @@ const userSchema = new mongoose.Schema({
   emailOtpExpire: Date,
   resetPasswordToken: String,
   resetPasswordExpire: Date,
+  passwordResetOtp: String,
+  passwordResetOtpExpire: Date,
   loginAttempts: {
     type: Number,
     default: 0
@@ -196,14 +243,31 @@ userSchema.virtual('fullName').get(function() {
   return `${this.firstName} ${this.lastName}`;
 });
 
-// Virtual for subscription status
-userSchema.virtual('isSubscriptionActive').get(function() {
-  return this.subscription.isActive && this.subscription.endDate > new Date();
-});
+// Subscription status now handled by separate Subscription model
 
 // Virtual for account lock status
 userSchema.virtual('isLocked').get(function() {
   return !!(this.lockUntil && this.lockUntil > Date.now());
+});
+
+// Virtual for razorpay transactions with isRefundable field
+userSchema.virtual('razorpayTransactionsWithRefundStatus').get(function() {
+  if (!this.razorpayTransactions || !Array.isArray(this.razorpayTransactions)) {
+    return [];
+  }
+
+  return this.razorpayTransactions.map(transaction => {
+    const transactionDate = new Date(transaction.createdAt);
+    const currentDate = new Date();
+    const daysDifference = Math.floor((currentDate - transactionDate) / (1000 * 60 * 60 * 24));
+
+    return {
+      ...transaction.toObject(),
+      isRefundable: (transaction.status === 'captured' || transaction.status === 'refund_requested') &&
+                   !transaction.refundedAt &&
+                   daysDifference <= 7
+    };
+  });
 });
 
 // Pre-save middleware to hash password
@@ -260,16 +324,7 @@ userSchema.methods.getRefreshToken = function() {
   );
 };
 
-// Method to check subscription limits
-userSchema.methods.canCreateResume = function() {
-  const limits = {
-    free: 3,
-    pro: Infinity,
-    enterprise: Infinity
-  };
-  
-  return this.usage.resumesCreated < limits[this.subscription.plan];
-};
+// Resume creation limits now handled by Subscription model
 
 // Method to increment login attempts
 userSchema.methods.incLoginAttempts = function() {
@@ -340,10 +395,116 @@ userSchema.methods.clearEmailOtp = function() {
   this.emailOtpExpire = undefined;
 };
 
+// Method to check if user has enough tokens (bonus + regular)
+userSchema.methods.hasTokens = function(requiredTokens = 1) {
+  const totalTokens = (this.tokens || 0) + (this.bonusTokens || 0);
+  return totalTokens >= requiredTokens;
+};
+
+// Method to get total available tokens
+userSchema.methods.getTotalTokens = function() {
+  return (this.tokens || 0) + (this.bonusTokens || 0);
+};
+
+// Method to consume tokens (bonus first, then regular)
+userSchema.methods.consumeTokens = function(tokensToConsume = 1) {
+  const totalAvailable = this.getTotalTokens();
+  if (totalAvailable < tokensToConsume) {
+    throw new Error('Insufficient tokens');
+  }
+  
+  // Consume bonus tokens first
+  if (this.bonusTokens >= tokensToConsume) {
+    this.bonusTokens -= tokensToConsume;
+  } else {
+    const remainingFromBonus = tokensToConsume - this.bonusTokens;
+    this.bonusTokens = 0;
+    this.tokens -= remainingFromBonus;
+  }
+  
+  return this.save();
+};
+
+// Method to add regular tokens
+userSchema.methods.addTokens = function(tokensToAdd) {
+  this.tokens += tokensToAdd;
+  return this.save();
+};
+
+// Method to add bonus tokens
+userSchema.methods.addBonusTokens = function(tokensToAdd) {
+  this.bonusTokens += tokensToAdd;
+  return this.save();
+};
+
+// Method to add Razorpay transaction (maintains last 20 transactions)
+userSchema.methods.addRazorpayTransaction = function(transactionData) {
+  // Add new transaction to the beginning of the array
+  this.razorpayTransactions.unshift(transactionData);
+  
+  // Keep only the last 20 transactions
+  if (this.razorpayTransactions.length > 50) {
+    this.razorpayTransactions = this.razorpayTransactions.slice(0, 50);
+  }
+  
+  return this.save();
+};
+
+// Method to update transaction status
+userSchema.methods.updateTransactionStatus = function(transactionId, status, additionalData = {}) {
+  const transaction = this.razorpayTransactions.find(t => t.transactionId === transactionId);
+  if (transaction) {
+    transaction.status = status;
+    
+    // Set refund-related fields directly on transaction
+    if (additionalData.refundReason) {
+      transaction.refundReason = additionalData.refundReason;
+    }
+    if (additionalData.refundRequestedAt) {
+      transaction.refundRequestedAt = additionalData.refundRequestedAt;
+    }
+    if (additionalData.refundStatus) {
+      transaction.refundStatus = additionalData.refundStatus;
+    }
+    
+    // Merge additionalData into metadata for structured data storage
+    if (Object.keys(additionalData).length > 0) {
+      if (!transaction.metadata) {
+        transaction.metadata = {};
+      }
+      Object.assign(transaction.metadata, additionalData);
+    }
+    
+    // Set timestamps based on status
+    if (status === 'captured') {
+      transaction.capturedAt = new Date();
+    } else if (status === 'refunded') {
+      transaction.refundedAt = new Date();
+    }
+    
+    return this.save();
+  }
+  return false;
+};
+
+// Method to get transaction history
+userSchema.methods.getTransactionHistory = function(limit = 20) {
+  return this.razorpayTransactions.slice(0, limit);
+};
+
+// Method to get transaction by ID
+userSchema.methods.getTransactionById = function(transactionId) {
+  return this.razorpayTransactions.find(t => t.transactionId === transactionId);
+};
+
+// Subscription methods moved to separate Subscription model
+
 // Index for performance
 userSchema.index({ email: 1 });
 userSchema.index({ googleId: 1 });
 userSchema.index({ linkedinId: 1 });
-userSchema.index({ 'subscription.stripeCustomerId': 1 });
+userSchema.index({ 'razorpayTransactions.transactionId': 1 });
+userSchema.index({ 'razorpayTransactions.orderId': 1 });
+// Stripe indexes removed
 
-module.exports = mongoose.model('User', userSchema); 
+module.exports = mongoose.model('User', userSchema);

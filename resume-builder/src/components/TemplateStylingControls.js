@@ -202,6 +202,11 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
     setPendingStyling(defaultValues);
     setStyling(defaultValues);
     setHasChanges(true);
+    
+    // Close the modal after reset
+    if (onClose) {
+      onClose();
+    }
   };
 
   const headerLevels = [
@@ -222,8 +227,28 @@ const TemplateStylingControls = ({ resumeId, currentStyling, onStylingUpdate, de
     { value: 'Cambria', label: 'Cambria', fontFamily: 'Cambria', description: 'Designed for on-screen readability, ATS-compatible' },
     { value: 'Garamond', label: 'Garamond', fontFamily: 'Garamond', description: 'Elegant but still ATS-readable' },
     { value: 'Trebuchet MS', label: 'Trebuchet MS', fontFamily: 'Trebuchet MS', description: 'Slightly more modern but still standard' },
-    { value: 'Book Antiqua', label: 'Book Antiqua', fontFamily: 'Book Antiqua', description: 'A serif font that passes ATS scans reliably' }
-  ];
+    { value: 'Book Antiqua', label: 'Book Antiqua', fontFamily: 'Book Antiqua', description: 'A serif font that passes ATS scans reliably' },
+  { "value": "Roboto", "label": "Roboto", "fontFamily": "'Roboto', sans-serif", "description": "Clean, modern, and highly readable; default on Android and Google products" },
+  { "value": "Open Sans", "label": "Open Sans", "fontFamily": "'Open Sans', sans-serif", "description": "Friendly, neutral, and great for body text and interfaces" },
+  { "value": "Lato", "label": "Lato", "fontFamily": "'Lato', sans-serif", "description": "Elegant and contemporary; balances warmth and professionalism" },
+  { "value": "Montserrat", "label": "Montserrat", "fontFamily": "'Montserrat', sans-serif", "description": "Geometric and modern; ideal for headings and logos" },
+  { "value": "Poppins", "label": "Poppins", "fontFamily": "'Poppins', sans-serif", "description": "Rounded, geometric sans-serif; excellent for UI and branding" },
+  { "value": "Nunito", "label": "Nunito", "fontFamily": "'Nunito', sans-serif", "description": "Friendly and rounded font perfect for modern web designs" },
+  { "value": "Raleway", "label": "Raleway", "fontFamily": "'Raleway', sans-serif", "description": "Thin and stylish; great for titles and minimalistic designs" },
+  { "value": "Inter", "label": "Inter", "fontFamily": "'Inter', sans-serif", "description": "Designed for digital interfaces with excellent legibility" },
+  { "value": "Source Sans Pro", "label": "Source Sans Pro", "fontFamily": "'Source Sans Pro', sans-serif", "description": "Adobe’s first open-source font; highly professional and clean" },
+  { "value": "Ubuntu", "label": "Ubuntu", "fontFamily": "'Ubuntu', sans-serif", "description": "Modern, friendly, and distinctive; great for tech or startups" },
+  { "value": "Merriweather", "label": "Merriweather", "fontFamily": "'Merriweather', serif", "description": "Readable serif font for professional and editorial content" },
+  { "value": "Playfair Display", "label": "Playfair Display", "fontFamily": "'Playfair Display', serif", "description": "Classic and elegant serif; excellent for headings and luxury brands" },
+  { "value": "Oswald", "label": "Oswald", "fontFamily": "'Oswald', sans-serif", "description": "Reworked classic gothic font for bold, impactful headings" },
+  { "value": "Work Sans", "label": "Work Sans", "fontFamily": "'Work Sans', sans-serif", "description": "Optimized for on-screen text; clean and neutral" },
+  { "value": "PT Sans", "label": "PT Sans", "fontFamily": "'PT Sans', sans-serif", "description": "Versatile sans-serif for multilingual content and UI" },
+  { "value": "Quicksand", "label": "Quicksand", "fontFamily": "'Quicksand', sans-serif", "description": "Rounded, minimalist design ideal for modern and friendly UI" },
+  { "value": "Noto Sans", "label": "Noto Sans", "fontFamily": "'Noto Sans', sans-serif", "description": "Universal font with broad language support and clean style" },
+  { "value": "Rubik", "label": "Rubik", "fontFamily": "'Rubik', sans-serif", "description": "Slightly rounded corners give it a modern and approachable look" },
+  { "value": "Josefin Sans", "label": "Josefin Sans", "fontFamily": "'Josefin Sans', sans-serif", "description": "Vintage geometric font perfect for creative headings" },
+  { "value": "Manrope", "label": "Manrope", "fontFamily": "'Manrope', sans-serif", "description": "Modern sans-serif with elegant curves and excellent readability" }
+];
 
   return (
     <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4 max-w-md">

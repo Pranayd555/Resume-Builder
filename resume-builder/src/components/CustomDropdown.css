@@ -216,7 +216,13 @@
   }
   
   .dropdown-menu {
+    /* Ensure dropdown is not cut off and is positioned correctly on small screens */
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
     max-height: 250px;
+    z-index: 10001; /* Ensure it's above other elements */
   }
   
   .dropdown-options {

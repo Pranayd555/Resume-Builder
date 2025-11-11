@@ -36,8 +36,8 @@ const errorHandler = (err, req, res, next) => {
     error = { message, statusCode: 401 };
   }
 
-  // Stripe errors
-  if (err.type === 'StripeCardError') {
+  // razorpay errors
+  if (err.type === 'razorpayCardError') {
     const message = 'Payment failed';
     error = { message, statusCode: 402 };
   }

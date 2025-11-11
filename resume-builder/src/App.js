@@ -1,26 +1,34 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Context
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { DarkModeProvider, useDarkMode } from './contexts/DarkModeContext';
 
 // Components
 import AnimatedBackground from './components/AnimatedBackground';
 import Layout from './components/Layout';
-import Login from './components/login';
-import Register from './components/Register';
+import Login from './components/public/login';
+import Register from './components/public/Register';
 import ResumeList from './components/resume-list';
+import CreateTemplate from './components/CreateTemplate';
 import ResumeTemplates from './components/resume-templates';
 import ResumeForm from './components/ResumeForm';
 import TemplateSelection from './components/TemplateSelection';
 import Feedback from './components/feedback';
-import Subscription from './components/subscription';
+import Payment from './components/Payment';
 import Profile from './components/Profile';
 import PrivacyPolicy from './components/public/PrivacyPolicy';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
+import AdminDashboard from './components/admin/AdminDashboard';
+import AdminUsers from './components/admin/AdminUsers';
+import AdminFeedback from './components/admin/AdminFeedback';
+import AdminContacts from './components/admin/AdminContacts';
+import AdminTokens from './components/admin/AdminTokens';
+import AdminRefunds from './components/admin/AdminRefunds';
+import AdminLayout from './components/admin/AdminLayout';
 
 // Public Pages
 import HomePage from './components/public/HomePage';
@@ -29,135 +37,166 @@ import TermsConditions from './components/public/TermsConditions';
 import Shipping from './components/public/Shipping';
 import ContactUs from './components/public/ContactUs';
 
-import ProtectedRoute, { UnauthorizedPage } from './components/ProtectedRoute';
+import ProtectedRoute, { RoleProtectedRoute, UnauthorizedPage, ROLES } from './components/ProtectedRoute';
 import AuthCallback from './components/AuthCallback';
 import ResumePreviewEnhanced from './components/ResumePreviewEnhanced';
-import ErrorPage from './components/ErrorPage';
+import ErrorPage from './components/annimations/ErrorPage';
+import { PUBLIC_ROUTES, USER_ROUTES, ADMIN_ROUTES } from './constants/routes';
 
-function AppContent() {
+const AppContent = () => {
   const { isDarkMode } = useDarkMode();
-  
+  const { updateUser } = useAuth();
+
+  useEffect(() => {
+    const handleUserDataUpdate = (e) => {
+      // updateUser(e.detail);
+      // The event detail already contains the updated user data, so no need to call updateUser again.
+      // If there's a need to update local state in App.js based on this event, it should be done here directly.
+      // For now, we just prevent the recursive call.
+    };
+    window.addEventListener('userDataUpdated', handleUserDataUpdate);
+    return () => {
+      window.removeEventListener('userDataUpdated', handleUserDataUpdate);
+    };
+  }, [updateUser]);
+
+  const router = createBrowserRouter([
+    {
+      path: PUBLIC_ROUTES.HOME,
+      element: <Layout><HomePage /></Layout>,
+      errorElement: <Layout><ErrorPage /></Layout>,
+    },
+    {
+      path: PUBLIC_ROUTES.LOGIN,
+      element: <Layout><ProtectedRoute requireAuth={false}><Login /></ProtectedRoute></Layout>,
+    },
+    {
+      path: PUBLIC_ROUTES.ADMIN_LOGIN,
+      element: <Layout><ProtectedRoute requireAuth={false}><Login isAdminLogin={true} /></ProtectedRoute></Layout>,
+    },
+    {
+      path: PUBLIC_ROUTES.REGISTER,
+      element: <Layout><ProtectedRoute requireAuth={false}><Register /></ProtectedRoute></Layout>,
+    },
+    {
+      path: PUBLIC_ROUTES.PRIVACY_POLICY,
+      element: <Layout><PrivacyPolicy /></Layout>,
+    },
+    {
+      path: PUBLIC_ROUTES.TERMS_CONDITIONS,
+      element: <Layout><TermsConditions /></Layout>,
+    },
+    {
+      path: PUBLIC_ROUTES.CANCELLATION_REFUNDS,
+      element: <Layout><CancellationRefunds /></Layout>,
+    },
+    {
+      path: PUBLIC_ROUTES.SHIPPING,
+      element: <Layout><Shipping /></Layout>,
+    },
+    {
+      path: PUBLIC_ROUTES.CONTACT_US,
+      element: <Layout><ContactUs /></Layout>,
+    },
+    {
+      path: PUBLIC_ROUTES.UNAUTHORIZED,
+      element: <Layout><UnauthorizedPage /></Layout>,
+    },
+    {
+      path: PUBLIC_ROUTES.AUTH_CALLBACK,
+      element: <Layout><AuthCallback /></Layout>,
+    },
+    {
+      path: PUBLIC_ROUTES.ERROR,
+      element: <Layout><ErrorPage /></Layout>,
+    },
+    {
+      path: PUBLIC_ROUTES.NETWORK_TIMEOUT,
+      element: <Layout><ErrorPage errorCode="Network Timeout" /></Layout>,
+    },
+    {
+      path: USER_ROUTES.DASHBOARD,
+      element: <Layout><RoleProtectedRoute requiredRole={ROLES.USER}><ResumeList /></RoleProtectedRoute></Layout>,
+    },
+    {
+      path: USER_ROUTES.RESUMES,
+      element: <Layout><RoleProtectedRoute requiredRole={ROLES.USER}><ResumeList /></RoleProtectedRoute></Layout>,
+    },
+    {
+      path: USER_ROUTES.RESUME_FORM,
+      element: <Layout><RoleProtectedRoute requiredRole={ROLES.USER}><ResumeForm /></RoleProtectedRoute></Layout>,
+    },
+    {
+      path: `${USER_ROUTES.TEMPLATE_SELECTION}/:resumeId`,
+      element: <Layout><RoleProtectedRoute requiredRole={ROLES.USER}><TemplateSelection /></RoleProtectedRoute></Layout>,
+    },
+    {
+      path: `${USER_ROUTES.RESUME_PREVIEW}/:resumeId`,
+      element: <Layout><RoleProtectedRoute requiredRole={ROLES.USER}><ResumePreviewEnhanced /></RoleProtectedRoute></Layout>,
+    },
+    {
+      path: USER_ROUTES.RESUME_TEMPLATES,
+      element: <Layout><RoleProtectedRoute requiredRole={ROLES.USER}><ResumeTemplates /></RoleProtectedRoute></Layout>,
+    },
+    {
+      path: USER_ROUTES.FEEDBACK,
+      element: <Layout><RoleProtectedRoute requiredRole={ROLES.USER}><Feedback /></RoleProtectedRoute></Layout>,
+    },
+    {
+      path: USER_ROUTES.PAYMENT,
+      element: <Layout><RoleProtectedRoute requiredRole={ROLES.USER}><Payment /></RoleProtectedRoute></Layout>,
+    },
+    {
+      path: USER_ROUTES.PROFILE,
+      element: <Layout><RoleProtectedRoute requiredRole={ROLES.USER}><Profile /></RoleProtectedRoute></Layout>,
+    },
+    {
+      path: USER_ROUTES.ANALYTICS,
+      element: <Layout><RoleProtectedRoute requiredRole={ROLES.USER}><AnalyticsDashboard /></RoleProtectedRoute></Layout>,
+    },
+    {
+      path: USER_ROUTES.CREATE_TEMPLATE,
+      element: <Layout><RoleProtectedRoute requiredRole={ROLES.USER}><CreateTemplate /></RoleProtectedRoute></Layout>,
+    },
+    {
+      path: ADMIN_ROUTES.DASHBOARD,
+      element: <AdminLayout><RoleProtectedRoute requiredRole={ROLES.ADMIN}><AdminDashboard /></RoleProtectedRoute></AdminLayout>,
+    },
+    {
+      path: ADMIN_ROUTES.USERS,
+      element: <AdminLayout><RoleProtectedRoute requiredRole={ROLES.ADMIN}><AdminUsers /></RoleProtectedRoute></AdminLayout>,
+    },
+    {
+      path: ADMIN_ROUTES.FEEDBACK,
+      element: <AdminLayout><RoleProtectedRoute requiredRole={ROLES.ADMIN}><AdminFeedback /></RoleProtectedRoute></AdminLayout>,
+    },
+    {
+      path: ADMIN_ROUTES.CONTACTS,
+      element: <AdminLayout><RoleProtectedRoute requiredRole={ROLES.ADMIN}><AdminContacts /></RoleProtectedRoute></AdminLayout>,
+    },
+    {
+      path: ADMIN_ROUTES.TOKENS,
+      element: <AdminLayout><RoleProtectedRoute requiredRole={ROLES.ADMIN}><AdminTokens /></RoleProtectedRoute></AdminLayout>,
+    },
+    {
+      path: ADMIN_ROUTES.REFUNDS,
+      element: <AdminLayout><RoleProtectedRoute requiredRole={ROLES.ADMIN}><AdminRefunds /></RoleProtectedRoute></AdminLayout>,
+    },
+    {
+      path: ADMIN_ROUTES.PROFILE,
+      element: <AdminLayout><RoleProtectedRoute requiredRole={ROLES.ADMIN}><Profile isAdminLogin={true} /></RoleProtectedRoute></AdminLayout>,
+    },
+    {
+      path: "*",
+      element: <Layout><Navigate to="/" replace /></Layout>,
+    },
+  ]);
+
   return (
-    <Router>
-      <div className="App relative">
-        <AnimatedBackground />
-        <div className="relative z-10">
-          <Layout>
-              <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<HomePage />} />
-              <Route 
-                path="/login" 
-                element={
-                  <ProtectedRoute requireAuth={false}>
-                    <Login />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/register" 
-                element={
-                  <ProtectedRoute requireAuth={false}>
-                    <Register />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-              <Route path="/terms-conditions" element={<TermsConditions />} />
-              <Route path="/cancellation-refunds" element={<CancellationRefunds />} />
-              <Route path="/shipping" element={<Shipping />} />
-              <Route path="/contact-us" element={<ContactUs />} />
-              <Route path="/unauthorized" element={<UnauthorizedPage />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route path="/error" element={<ErrorPage />} />
-              <Route path="/network-timeout" element={<ErrorPage errorCode="Network Timeout" />} />
-              
-              {/* Protected Routes */}
-              <Route 
-                path="/dashboard" 
-                element={
-                  <ProtectedRoute>
-                    <ResumeList />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/resumes" 
-                element={
-                  <ProtectedRoute>
-                    <ResumeList />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/resume-form" 
-                element={
-                  <ProtectedRoute>
-                    <ResumeForm />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/template-selection/:resumeId" 
-                element={
-                  <ProtectedRoute>
-                    <TemplateSelection />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/resume-preview/:resumeId" 
-                element={
-                  <ProtectedRoute>
-                    <ResumePreviewEnhanced />
-                  </ProtectedRoute>
-                } 
-              />
-
-
-              <Route 
-                path="/resume-templates" 
-                element={
-                  <ProtectedRoute>
-                    <ResumeTemplates />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/feedback" 
-                element={<Feedback />} 
-              />
-              <Route 
-                path="/subscription" 
-                element={
-                  <ProtectedRoute>
-                    <Subscription />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/profile" 
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/analytics" 
-                element={
-                  <ProtectedRoute>
-                    <AnalyticsDashboard />
-                  </ProtectedRoute>
-                } 
-              />
-              
-              {/* 404 Route */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-              </Layout>
-            </div>
-            
+    <div className="App relative">
+      <AnimatedBackground />
+      <div className="relative z-10">
+        <RouterProvider router={router} />
           {/* Toast Notifications */}
           <ToastContainer
             position="top-right"
@@ -172,7 +211,7 @@ function AppContent() {
             theme={isDarkMode ? "dark" : "light"}
           />
         </div>
-      </Router>
+      </div>
     );
   }
 

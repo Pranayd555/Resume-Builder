@@ -3,7 +3,7 @@ const multer = require('multer');
 const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs').promises;
-const { protect, checkAIActionLimit, trackUsage } = require('../middleware/auth');
+const { protect, checkAIActionLimit, checkTokenLimit, trackUsage, refundTokenOnError } = require('../middleware/auth');
 const User = require('../models/User');
 const logger = require('../utils/logger');
 const DocumentParser = require('../utils/documentParser');
@@ -80,6 +80,8 @@ const handleMulterError = (error, req, res, next) => {
 router.post('/parse-resume', [
   protect,
   checkAIActionLimit,
+  checkTokenLimit,
+  refundTokenOnError,
   (req, res, next) => {
     upload.single('file')(req, res, (err) => {
       if (err) {
@@ -121,6 +123,8 @@ router.post('/parse-resume', [
 
     // Parse the extracted text using Gemini AI service
     let parsedData = null;
+    let aiError = null;
+    
     try {
       logger.info('Calling Gemini AI service to parse resume text');
       parsedData = await parseResumeText(extractedText);
@@ -128,20 +132,40 @@ router.post('/parse-resume', [
       
       // Set usage type for tracking AI action usage
       req.usageType = 'aiAction';
-    } catch (aiError) {
-      logger.error('AI parsing failed, returning original text only:', aiError);
+    } catch (error) {
+      aiError = error;
+      logger.error('AI parsing failed, returning original text only:', error);
       // Continue with original text if AI parsing fails
       // Don't set usageType since AI parsing failed
     }
 
+    // Get current user to include token balance
+    const currentUser = await User.findById(req.user.id);
+    
+    // If AI parsing failed, return error response to trigger token refund
+    if (aiError) {
+      return res.status(500).json({
+        success: false,
+        error: 'AI parsing failed. Please try again later.',
+        data: {
+          originalText: extractedText,
+          parsedData: null,
+          fileName: originalname,
+          message: 'Resume text extracted successfully (AI parsing failed)',
+          tokens: req.tokens || 0
+        },
+      });
+    }
+    
     res.json({
       success: true,
       data: {
         originalText: extractedText,
         parsedData: parsedData,
         fileName: originalname,
-        message: parsedData ? 'Resume text extracted and parsed successfully' : 'Resume text extracted successfully (AI parsing failed)'
-      }
+        message: 'Resume text extracted and parsed successfully',
+        tokens: req.tokens || 0
+      },
     });
 
   } catch (error) {
@@ -228,6 +252,7 @@ router.post('/profile-picture', protect, (req, res, next) => {
 
     // Generate URLs for frontend
     const baseUrl = `${req.protocol}://${req.get('host')}`;
+    // Fallback to request host if CLIENT_URL is not set (e.g., in development)
     const urls = {
       url: `${baseUrl}/uploads/profile-pictures/${baseFileName}${fileExtension}`,
       thumbnailUrl: `${baseUrl}/uploads/profile-pictures/${baseFileName}_thumb${fileExtension}`,
@@ -319,4 +344,4 @@ router.delete('/profile-picture', protect, async (req, res) => {
   }
 });
 
-module.exports = router; 
+module.exports = router;

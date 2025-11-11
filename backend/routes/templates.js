@@ -1,8 +1,8 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const { protect, authorize, requireSubscription } = require('../middleware/auth');
+const { protect, authorize } = require('../middleware/auth');
 const Template = require('../models/Template');
-const Subscription = require('../models/Subscription');
+// Subscription model no longer needed
 const logger = require('../utils/logger');
 
 const router = express.Router();
@@ -339,7 +339,7 @@ router.post('/seed', protect, authorize('admin'), async (req, res) => {
           id: t._id,
           name: t.name,
           category: t.category,
-          tier: t.availability.tier
+          tier: 'free' // All templates are now free
         }))
       }
     });
@@ -361,7 +361,6 @@ router.get('/', async (req, res) => {
     const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
     const category = req.query.category;
-    const tier = req.query.tier;
     const search = req.query.search;
 
     let query = {
@@ -371,10 +370,6 @@ router.get('/', async (req, res) => {
 
     if (category) {
       query.category = category;
-    }
-
-    if (tier) {
-      query['availability.tier'] = tier;
     }
 
     if (search) {
@@ -468,16 +463,6 @@ router.get('/:id/code', protect, async (req, res) => {
       return res.status(404).json({
         success: false,
         error: 'Template not found'
-      });
-    }
-
-    // Check if user has access to this template
-    const subscription = await Subscription.findOne({ user: req.user.id });
-    
-    if (!subscription.canAccessTemplate(template.availability.tier)) {
-      return res.status(403).json({
-        success: false,
-        error: 'Template not available in your subscription plan'
       });
     }
 
