@@ -188,8 +188,8 @@ class OptimizedTemplateRenderer {
 
     // Header level mapping
     const headerLevels = {
-      'h1': { fontSize: '2.5rem', fontWeight: '700', marginBottom: '0.25rem' },
-      'h2': { fontSize: '2rem', fontWeight: '600', marginBottom: '0.125rem' },
+      'h1': { fontSize: '2.5rem', fontWeight: '900', marginBottom: '0.25rem' },
+      'h2': { fontSize: '2rem', fontWeight: '700', marginBottom: '0.125rem' },
       'h3': { fontSize: '1.5rem', fontWeight: '600', marginBottom: '0.125rem' },
       'h4': { fontSize: '1.25rem', fontWeight: '500', marginBottom: '0.125rem' },
       'h5': { fontSize: '1.125rem', fontWeight: '500', marginBottom: '0.125rem' }
@@ -228,20 +228,20 @@ class OptimizedTemplateRenderer {
       `;
     }
     // Apply header level (fallback if headerFontSize not set)
-    else if (templateStyling.headerLevel && headerLevels[templateStyling.headerLevel]) {
-      const level = headerLevels[templateStyling.headerLevel];
-      css += `
-        .${uniqueId} .name,
-        .${uniqueId} h1,
-        .${uniqueId} h2,
-        .${uniqueId} h3,
-        .${uniqueId} h4,
-        .${uniqueId} h5 { 
-          font-size: ${level.fontSize} !important; 
-          font-weight: ${level.fontWeight} !important; 
-        }
-      `;
-    }
+    // else if (templateStyling.headerLevel && headerLevels[templateStyling.headerLevel]) {
+    //   const level = headerLevels[templateStyling.headerLevel];
+    //   css += `
+    //     .${uniqueId} .name,
+    //     .${uniqueId} h1,
+    //     .${uniqueId} h2,
+    //     .${uniqueId} h3,
+    //     .${uniqueId} h4,
+    //     .${uniqueId} h5 { 
+    //       font-size: ${level.fontSize} !important; 
+    //       font-weight: ${level.fontWeight} !important; 
+    //     }
+    //   `;
+    // }
 
     // Apply content font size with unified logic
     if (templateStyling.fontSize) {
@@ -299,11 +299,14 @@ class OptimizedTemplateRenderer {
         .${uniqueId} .issuer,
         .${uniqueId} .dates,
         .${uniqueId} .tech-tag,
-        .${uniqueId} .skill-item,
-        .${uniqueId} .project-links a,
-        .${uniqueId} .cert-link a,
-        .${uniqueId} .contact-item a { 
+        .${uniqueId} .skill-item, { 
           font-size: ${smallSize}px !important; 
+        }
+
+        
+        .${uniqueId} .project-links a,
+        .${uniqueId} .cert-link a, {
+        font-size: ${mediumSize}px !important;
         }
 
         .${uniqueId} .primaryFont strong {
@@ -371,7 +374,7 @@ class OptimizedTemplateRenderer {
       .${uniqueId} .primaryFont * {
         font-family: '${primaryFont}', sans-serif !important;
         font-size: ${headingSize}px !important;
-        font-weight: 600 !important;
+        font-weight: ${templateStyling.headerLevel == 'h1' ? '800' : templateStyling.headerLevel == 'h2' ? '700' : templateStyling.headerLevel == 'h3' ? '600' : templateStyling.headerLevel == 'h4' ? '500' : templateStyling.headerLevel == 'h5' ? '400' : '600'} !important;
       }
       .${uniqueId} .secondaryFont,
       .${uniqueId} .secondaryFont * {
@@ -385,17 +388,17 @@ class OptimizedTemplateRenderer {
       .${uniqueId} h1.primaryFont,
       .${uniqueId} .name.primaryFont {
         font-size: ${headingSize + 2}px !important;
-        font-weight: 700 !important;
+        font-weight: ${templateStyling.headerLevel == 'h1' ? '800' : templateStyling.headerLevel == 'h2' ? '700' : templateStyling.headerLevel == 'h3' ? '600' : templateStyling.headerLevel == 'h4' ? '500' : templateStyling.headerLevel == 'h5' ? '400' : '600'} !important;
       }
       .${uniqueId} .primaryFont h2,
       .${uniqueId} h2.primaryFont {
         font-size: ${headingSize}px !important;
-        font-weight: 600 !important;
+        font-weight: ${templateStyling.headerLevel == 'h1' ? '800' : templateStyling.headerLevel == 'h2' ? '700' : templateStyling.headerLevel == 'h3' ? '600' : templateStyling.headerLevel == 'h4' ? '500' : templateStyling.headerLevel == 'h5' ? '400' : '600'} !important;
       }
       .${uniqueId} .primaryFont h3,
       .${uniqueId} h3.primaryFont {
         font-size: ${subheadingSize}px !important;
-        font-weight: 600 !important;
+        font-weight: ${templateStyling.headerLevel == 'h1' ? '800' : templateStyling.headerLevel == 'h2' ? '700' : templateStyling.headerLevel == 'h3' ? '600' : templateStyling.headerLevel == 'h4' ? '500' : templateStyling.headerLevel == 'h5' ? '400' : '600'} !important;
       }
       
       /* Small text for secondaryFont */
