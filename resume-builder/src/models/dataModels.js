@@ -15,6 +15,7 @@ export const createUserModel = (data = {}) => ({
   isEmailVerified: data.isEmailVerified || false,
   isActive: data.isActive || true,
   role: data.role || 'user',
+  tokens: data.tokens || 0,
   subscription: data.subscription || createSubscriptionModel(),
   usage: data.usage || createUsageModel(),
   preferences: data.preferences || createPreferencesModel(),
@@ -27,14 +28,13 @@ export const createSubscriptionModel = (data = {}) => ({
   plan: data.plan || 'free',
   status: data.status || 'active',
   features: {
-    resumeLimit: data.features?.resumeLimit || 2,
+    resumeLimit: data.features?.resumeLimit || (data.plan === 'trial' ? 5 : 2),
     templateAccess: data.features?.templateAccess || ['free'],
     exportFormats: data.features?.exportFormats || ['pdf'],
     aiActionsLimit: data.features?.aiActionsLimit || 10,
     aiReview: data.features?.aiReview || false,
     prioritySupport: data.features?.prioritySupport || false,
     customBranding: data.features?.customBranding || false,
-    watermark: data.features?.watermark || true,
     unlimitedExports: data.features?.unlimitedExports || false
   },
   usage: {

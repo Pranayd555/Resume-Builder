@@ -79,6 +79,119 @@
             font-size: 14px;
             color: #64748b;
         }
+
+        /* Responsive Design */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+                margin: 0;
+            }
+
+            .container {
+                padding: 20px;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .header {
+                margin-bottom: 20px;
+            }
+
+            .logo {
+                font-size: 24px;
+            }
+
+            h1 {
+                font-size: 20px;
+                margin-bottom: 15px;
+            }
+
+            .otp-container {
+                padding: 15px;
+                margin: 20px 0;
+                border-radius: 6px;
+            }
+
+            .otp-code {
+                font-size: 28px;
+                letter-spacing: 3px;
+            }
+
+            .otp-label {
+                font-size: 13px;
+            }
+
+            .expiry-notice {
+                padding: 12px;
+                margin: 15px 0;
+                border-radius: 4px;
+            }
+
+            .security-notice {
+                padding: 12px;
+                margin: 15px 0;
+                border-radius: 4px;
+            }
+
+            .footer {
+                margin-top: 20px;
+                padding-top: 15px;
+                font-size: 12px;
+            }
+
+            .footer p {
+                margin: 5px 0;
+            }
+        }
+
+        @media only screen and (max-width: 400px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header {
+                margin-bottom: 15px;
+            }
+
+            .logo {
+                font-size: 20px;
+            }
+
+            h1 {
+                font-size: 18px;
+                margin-bottom: 12px;
+            }
+
+            .otp-container {
+                padding: 12px;
+                margin: 15px 0;
+            }
+
+            .otp-code {
+                font-size: 24px;
+                letter-spacing: 2px;
+            }
+
+            .otp-label {
+                font-size: 12px;
+            }
+
+            .expiry-notice {
+                padding: 10px;
+                margin: 12px 0;
+            }
+
+            .security-notice {
+                padding: 10px;
+                margin: 12px 0;
+            }
+
+            .footer {
+                margin-top: 15px;
+                padding-top: 12px;
+                font-size: 11px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -110,7 +223,7 @@
         <p>Need help? Contact our support team at <a href="mailto:support@resumebuilder.com">support@resumebuilder.com</a></p>
         
         <div class="footer">
-            <p>© 2024 Resume Builder. All rights reserved.</p>
+            <p>© {{year}} Resume Builder. All rights reserved.</p>
             <p>This is an automated message, please do not reply to this email.</p>
         </div>
     </div>

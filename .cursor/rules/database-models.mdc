@@ -1,0 +1,360 @@
+---
+globs: backend/models/**/*.js
+---
+
+# Database Models & Schema Rules
+
+## 🗄️ MongoDB Schema Guidelines
+
+### **User Model** - [backend/models/User.js](mdc:backend/models/User.js)
+```javascript
+// User schema with authentication and profile data
+const userSchema = new mongoose.Schema({
+  firstName: { type: String, required: true, trim: true },
+  lastName: { type: String, required: true, trim: true },
+  email: { type: String, required: true, unique: true, lowercase: true },
+  password: { type: String, required: true, minlength: 8 },
+  isEmailVerified: { type: Boolean, default: false },
+  profilePicture: { type: String },
+  tokens: { type: Number, default: 0 },
+  razorpayTransactions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Transaction' }],
+  subscription: { type: mongoose.Schema.Types.ObjectId, ref: 'Subscription' }
+}, { timestamps: true });
+```
+
+### **Resume Model** - [backend/models/Resume.js](mdc:backend/models/Resume.js)
+```javascript
+// Resume schema with comprehensive data structure
+const resumeSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  template: { type: mongoose.Schema.Types.ObjectId, ref: 'Template', required: true },
+  personalInfo: {
+    firstName: String,
+    lastName: String,
+    email: String,
+    phone: String,
+    address: String,
+    linkedin: String,
+    github: String,
+    website: String
+  },
+  summary: String,
+  experience: [{
+    company: String,
+    position: String,
+    startDate: Date,
+    endDate: Date,
+    current: Boolean,
+    description: String,
+    achievements: [String]
+  }],
+  education: [{
+    institution: String,
+    degree: String,
+    field: String,
+    startDate: Date,
+    endDate: Date,
+    gpa: String,
+    achievements: [String]
+  }],
+  skills: {
+    technical: [String],
+    soft: [String],
+    languages: [String]
+  },
+  projects: [{
+    name: String,
+    description: String,
+    technologies: [String],
+    startDate: Date,
+    endDate: Date,
+    url: String,
+    github: String
+  }],
+  certifications: [{
+    name: String,
+    issuer: String,
+    date: Date,
+    expiryDate: Date,
+    credentialId: String,
+    url: String
+  }]
+}, { timestamps: true });
+```
+
+### **Template Model** - [backend/models/Template.js](mdc:backend/models/Template.js)
+```javascript
+// Template schema for resume templates
+const templateSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  category: { type: String, required: true, enum: ['free', 'premium', 'academic', 'creative'] },
+  description: String,
+  thumbnail: String,
+  preview: String,
+  css: String,
+  html: String,
+  isActive: { type: Boolean, default: true },
+  features: [String],
+  compatibility: {
+    sections: [String],
+    layouts: [String]
+  }
+}, { timestamps: true });
+```
+
+### **Subscription Model** - [backend/models/Subscription.js](mdc:backend/models/Subscription.js)
+```javascript
+// Subscription schema for payment plans
+const subscriptionSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  plan: { type: String, required: true, enum: ['free', 'pro_monthly', 'pro_yearly'] },
+  status: { type: String, default: 'active', enum: ['active', 'inactive', 'cancelled', 'trialing'] },
+  startDate: { type: Date, default: Date.now },
+  endDate: Date,
+  trialEndDate: Date,
+  freeTokens: { type: Number, default: 0 },
+  freeTokensUsed: { type: Number, default: 0 },
+  resumeCount: { type: Number, default: 0 },
+  maxResumes: { type: Number, default: 2 }
+}, { timestamps: true });
+```
+
+### **Contact Model** - [backend/models/Contact.js](mdc:backend/models/Contact.js)
+```javascript
+// Contact form submissions
+const contactSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  subject: { type: String, required: true },
+  message: { type: String, required: true },
+  status: { type: String, default: 'new', enum: ['new', 'read', 'replied', 'closed'] },
+  priority: { type: String, default: 'medium', enum: ['low', 'medium', 'high'] }
+}, { timestamps: true });
+```
+
+### **Feedback Model** - [backend/models/Feedback.js](mdc:backend/models/Feedback.js)
+```javascript
+// User feedback and ratings
+const feedbackSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  type: { type: String, required: true, enum: ['bug', 'feature', 'improvement', 'general'] },
+  title: { type: String, required: true },
+  description: { type: String, required: true },
+  rating: { type: Number, min: 1, max: 5 },
+  status: { type: String, default: 'open', enum: ['open', 'in_progress', 'resolved', 'closed'] },
+  priority: { type: String, default: 'medium', enum: ['low', 'medium', 'high', 'critical'] }
+}, { timestamps: true });
+```
+
+### **Schema Relationships**
+```javascript
+// User relationships
+User.hasMany(Resume, { foreignKey: 'user' });
+User.hasOne(Subscription, { foreignKey: 'user' });
+User.hasMany(Contact, { foreignKey: 'user' });
+User.hasMany(Feedback, { foreignKey: 'user' });
+
+// Resume relationships
+Resume.belongsTo(User, { foreignKey: 'user' });
+Resume.belongsTo(Template, { foreignKey: 'template' });
+
+// Subscription relationships
+Subscription.belongsTo(User, { foreignKey: 'user' });
+```
+
+### **Indexing Strategy**
+```javascript
+// User indexes
+userSchema.index({ email: 1 }, { unique: true });
+userSchema.index({ createdAt: -1 });
+
+// Resume indexes
+resumeSchema.index({ user: 1, createdAt: -1 });
+resumeSchema.index({ template: 1 });
+resumeSchema.index({ 'personalInfo.email': 1 });
+
+// Template indexes
+templateSchema.index({ category: 1, isActive: 1 });
+templateSchema.index({ name: 1 });
+
+// Subscription indexes
+subscriptionSchema.index({ user: 1 }, { unique: true });
+subscriptionSchema.index({ status: 1, endDate: 1 });
+
+// Contact indexes
+contactSchema.index({ status: 1, createdAt: -1 });
+contactSchema.index({ email: 1 });
+
+// Feedback indexes
+feedbackSchema.index({ type: 1, status: 1 });
+feedbackSchema.index({ user: 1, createdAt: -1 });
+```
+
+### **Validation Rules**
+```javascript
+// Email validation
+email: {
+  type: String,
+  required: true,
+  unique: true,
+  lowercase: true,
+  match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
+}
+
+// Password validation
+password: {
+  type: String,
+  required: true,
+  minlength: 8,
+  match: [/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Password must contain at least one lowercase letter, one uppercase letter, and one number']
+}
+
+// Date validation
+startDate: {
+  type: Date,
+  validate: {
+    validator: function(value) {
+      return !this.endDate || value <= this.endDate;
+    },
+    message: 'Start date must be before end date'
+  }
+}
+```
+
+### **Virtual Fields**
+```javascript
+// User virtual fields
+userSchema.virtual('fullName').get(function() {
+  return `${this.firstName} ${this.lastName}`;
+});
+
+// Resume virtual fields
+resumeSchema.virtual('totalExperience').get(function() {
+  return this.experience.reduce((total, exp) => {
+    const start = new Date(exp.startDate);
+    const end = exp.current ? new Date() : new Date(exp.endDate);
+    return total + (end - start) / (1000 * 60 * 60 * 24 * 365);
+  }, 0);
+});
+
+// Subscription virtual fields
+subscriptionSchema.virtual('isActive').get(function() {
+  return this.status === 'active' && (!this.endDate || this.endDate > new Date());
+});
+```
+
+### **Pre/Post Hooks**
+```javascript
+// User pre-save hooks
+userSchema.pre('save', async function(next) {
+  if (this.isModified('password')) {
+    this.password = await bcrypt.hash(this.password, 12);
+  }
+  next();
+});
+
+// Resume pre-save hooks
+resumeSchema.pre('save', function(next) {
+  // Update resume count in subscription
+  if (this.isNew) {
+    Subscription.findOneAndUpdate(
+      { user: this.user },
+      { $inc: { resumeCount: 1 } }
+    ).exec();
+  }
+  next();
+});
+
+// Subscription pre-save hooks
+subscriptionSchema.pre('save', function(next) {
+  if (this.plan === 'free') {
+    this.maxResumes = 2;
+    this.freeTokens = 0;
+  } else if (this.plan === 'pro_monthly') {
+    this.maxResumes = 5;
+    this.freeTokens = 150;
+  } else if (this.plan === 'pro_yearly') {
+    this.maxResumes = 5;
+    this.freeTokens = 150;
+  }
+  next();
+});
+```
+
+### **Query Helpers**
+```javascript
+// User query helpers
+userSchema.query.byEmail = function(email) {
+  return this.where({ email: email.toLowerCase() });
+};
+
+// Resume query helpers
+resumeSchema.query.byUser = function(userId) {
+  return this.where({ user: userId });
+};
+
+resumeSchema.query.recent = function() {
+  return this.sort({ createdAt: -1 });
+};
+
+// Template query helpers
+templateSchema.query.active = function() {
+  return this.where({ isActive: true });
+};
+
+templateSchema.query.byCategory = function(category) {
+  return this.where({ category: category });
+};
+```
+
+### **Aggregation Pipelines**
+```javascript
+// User statistics aggregation
+const getUserStats = async (userId) => {
+  return await User.aggregate([
+    { $match: { _id: userId } },
+    {
+      $lookup: {
+        from: 'resumes',
+        localField: '_id',
+        foreignField: 'user',
+        as: 'resumes'
+      }
+    },
+    {
+      $project: {
+        totalResumes: { $size: '$resumes' },
+        lastResumeDate: { $max: '$resumes.createdAt' },
+        subscription: 1
+      }
+    }
+  ]);
+};
+```
+
+### **Data Migration Patterns**
+```javascript
+// Schema migration example
+const migrateUserData = async () => {
+  await User.updateMany(
+    { tokens: { $exists: false } },
+    { $set: { tokens: 0 } }
+  );
+};
+
+// Data cleanup example
+const cleanupExpiredSubscriptions = async () => {
+  await Subscription.updateMany(
+    { 
+      status: 'trialing',
+      trialEndDate: { $lt: new Date() }
+    },
+    { 
+      $set: { 
+        status: 'inactive',
+        endDate: new Date()
+      }
+    }
+  );
+};
+```

@@ -6,7 +6,8 @@ import {
   Bars3Icon,
   ArrowRightOnRectangleIcon,
   SunIcon,
-  MoonIcon
+  MoonIcon,
+  CurrencyDollarIcon
 } from '@heroicons/react/24/outline';
 import { apiHelpers } from '../services/api';
 
@@ -17,8 +18,11 @@ function Header() {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [showMenu, setShowMenu] = useState(false);
   const [profilePictureVersion, setProfilePictureVersion] = useState(0);
+  const [tokenBalance, setTokenBalance] = useState(0);
+  const [tokenData, setTokenData] = useState({ balance: 0, purchasedTokens: 0, bonusTokens: 0 });
   const mobileMenuRef = useRef(null);
   const mobileMenuButtonRef = useRef(null);
+
 
   // Helper function to get profile picture URL from user data
   const getProfilePictureUrl = (userData) => {
@@ -58,6 +62,58 @@ function Header() {
     // Increment version to force re-render when user data changes
     setProfilePictureVersion(prev => prev + 1);
   }, [user?.profilePicture]);
+
+  // Consolidated token data management
+  useEffect(() => {
+    // Helper function to update token data
+    const updateTokenData = () => {
+      const balance = apiHelpers.getTokenBalance();
+      const tokenData = apiHelpers.getTokenData();
+      const defaultTokenData = { balance: 0, purchasedTokens: 0, bonusTokens: 0 };
+      
+      setTokenData(tokenData || defaultTokenData);
+      setTokenBalance(balance || 0);
+    };
+
+    // Initial load and when user changes (e.g., after login)
+    updateTokenData();
+
+    // Event handlers for various scenarios
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        updateTokenData();
+      }
+    };
+
+    const handleFocus = () => {
+      updateTokenData();
+    };
+
+    // Listen for token balance updates from API responses
+    const handleTokenBalanceUpdate = (event) => {
+      setTokenBalance(event.detail.balance);
+    };
+
+    // Listen for token data updates from API responses
+    const handleTokenDataUpdate = (event) => {
+      console.log('🔄 Header: Token data updated:', event.detail);
+      setTokenData(event.detail);
+      setTokenBalance(event.detail.balance || 0);
+    };
+
+    // Add event listeners
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
+    window.addEventListener('tokenDataUpdated', handleTokenDataUpdate);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
+      window.removeEventListener('tokenDataUpdated', handleTokenDataUpdate);
+    };
+  }, [isAuthenticated, user]); // Dependencies: re-run when user changes
 
   // Handle click outside to close mobile menu
   useEffect(() => {
@@ -109,17 +165,15 @@ function Header() {
     navigate('/profile');
   };
 
-  const handleSubscription = () => {
-    navigate('/subscription');
+
+  const handleBuyTokens = () => {
+    navigate('/payment');
   };
 
   const handleAnalytics = () => {
     navigate('/analytics');
   };
 
-  const handlePrivacyPolicy = () => {
-    navigate('/privacy-policy');
-  };
 
   const handleDashboard = () => {
     navigate('/dashboard');
@@ -135,16 +189,21 @@ function Header() {
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo/Brand */}
-          <div className="flex items-center min-w-0 flex-1">
-            <h1 
-              className="text-base sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent cursor-pointer hover:from-blue-700 hover:to-purple-700 transition-all duration-200 truncate"
-              onClick={() => navigate('/')}
-            >
-              Resume Builder
-            </h1>
-          </div>
+                <div className="flex items-center min-w-0 flex-1">
+                <img 
+                  src={isDarkMode ? "/resume-builder-logo-512-dark.png" : "/resume-builder-logo-512-light.png"} 
+                  alt="Resume Builder logo featuring a stylized document icon with blue and purple gradient, representing a professional and modern resume creation tool. The logo is next to the text Resume Builder in bold gradient letters. The environment is a clean website header with a welcoming and professional tone." 
+                  className="h-8 mr-2" 
+                />
+                <h1 
+                  className="text-base sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent cursor-pointer hover:from-blue-700 hover:to-purple-700 transition-all duration-200 truncate"
+                  onClick={() => navigate('/')}
+                >
+                  Resume Builder
+                </h1>
+                </div>
 
-          {/* Desktop Navigation */}
+                {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-4 lg:space-x-6">
             {/* User Info */}
             {user && (
@@ -182,6 +241,23 @@ function Header() {
                 </span>
               </div>
             )}
+
+            <div className="h-5 w-px bg-gray-300 dark:bg-gray-600"></div>
+            
+            {/* Token Balance */}
+            <div className="flex items-center space-x-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-700/30 rounded-lg px-3 py-1.5">
+              <CurrencyDollarIcon className="w-4 h-4 text-green-600 dark:text-green-400" />
+              <div className="flex flex-col">
+                <span className="text-green-700 dark:text-green-300 text-xs font-semibold">
+                  {tokenData.balance || tokenBalance}
+                </span>
+                {tokenData.bonusTokens > 0 && (
+                  <span className="text-green-600 dark:text-green-400 text-xs">
+                    {tokenData.purchasedTokens || 0} + {tokenData.bonusTokens} bonus
+                  </span>
+                )}
+              </div>
+            </div>
             
             <div className="h-5 w-px bg-gray-300 dark:bg-gray-600"></div>
             
@@ -205,22 +281,16 @@ function Header() {
               Profile
             </button>
             <button
-              onClick={handleSubscription}
+              onClick={handleBuyTokens}
               className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 px-2 py-1 lg:px-3 lg:py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-200 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:shadow-sm"
             >
-              Subscription
+              Buy Tokens
             </button>
             <button
               onClick={handleAnalytics}
               className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 px-2 py-1 lg:px-3 lg:py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-200 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:shadow-sm"
             >
               Analytics
-            </button>
-            <button
-              onClick={handlePrivacyPolicy}
-              className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 px-2 py-1 lg:px-3 lg:py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-200 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:shadow-sm"
-            >
-              Privacy Policy
             </button>
             <button
               onClick={handleLogout}
@@ -288,6 +358,22 @@ function Header() {
                   </div>
                 </div>
               )}
+
+              {/* Token Balance - Mobile */}
+              <div className="flex items-center space-x-3 px-2 py-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-700/30 rounded-lg mb-2">
+                <CurrencyDollarIcon className="w-5 h-5 text-green-600 dark:text-green-400" />
+                <div>
+                  <div className="text-green-700 dark:text-green-300 text-sm font-semibold">
+                    {tokenData.balance || tokenBalance} Tokens
+                  </div>
+                  <div className="text-green-600 dark:text-green-400 text-xs">
+                    {tokenData.bonusTokens > 0 ? 
+                      `${tokenData.purchasedTokens || 0} regular + ${tokenData.bonusTokens} bonus` : 
+                      'Available Balance'
+                    }
+                  </div>
+                </div>
+              </div>
               
               {/* Dark Mode Toggle - Mobile */}
               <button
@@ -310,22 +396,16 @@ function Header() {
                 Profile
               </button>
               <button
-                onClick={handleSubscription}
+                onClick={handleBuyTokens}
                 className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 w-full text-left"
               >
-                Subscription
+                Buy Tokens
               </button>
               <button
                 onClick={handleAnalytics}
                 className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 w-full text-left"
               >
                 Analytics
-              </button>
-              <button
-                onClick={handlePrivacyPolicy}
-                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 w-full text-left"
-              >
-                Privacy Policy
               </button>
               <button
                 onClick={handleLogout}
@@ -342,4 +422,4 @@ function Header() {
   );
 }
 
-export default Header; 
+export default Header;

@@ -1,0 +1,145 @@
+---
+globs: resume-builder/src/**/*.js,resume-builder/src/**/*.jsx,resume-builder/src/**/*.css
+---
+
+# Frontend Development Rules
+
+## ⚛️ React Frontend Guidelines
+
+### **Application Structure**
+- **Main App**: [resume-builder/src/App.js](mdc:resume-builder/src/App.js) - Router configuration and context providers
+- **Entry Point**: [resume-builder/src/index.js](mdc:resume-builder/src/index.js) - React DOM rendering
+- **Build Config**: [resume-builder/craco.config.js](mdc:resume-builder/craco.config.js) - CRACO configuration for Tailwind
+
+### **Context Management**
+- **Auth Context**: [resume-builder/src/contexts/AuthContext.js](mdc:resume-builder/src/contexts/AuthContext.js) - User authentication state
+- **Dark Mode**: [resume-builder/src/contexts/DarkModeContext.js](mdc:resume-builder/src/contexts/DarkModeContext.js) - Theme management
+- **Global State**: Context-based state management (no Redux)
+
+### **Component Architecture**
+- **Layout**: [resume-builder/src/components/Layout.js](mdc:resume-builder/src/components/Layout.js) - Main layout wrapper
+- **Protected Routes**: [resume-builder/src/components/ProtectedRoute.js](mdc:resume-builder/src/components/ProtectedRoute.js) - Authentication guards
+- **Public Pages**: [resume-builder/src/components/public/](mdc:resume-builder/src/components/public/) - Marketing pages
+
+### **Key Components**
+- **Resume Builder**: [resume-builder/src/components/ResumeForm.js](mdc:resume-builder/src/components/ResumeForm.js) - Main resume creation
+- **Template Selection**: [resume-builder/src/components/TemplateSelection.js](mdc:resume-builder/src/components/TemplateSelection.js) - Template picker
+- **Resume Preview**: [resume-builder/src/components/ResumePreviewEnhanced.js](mdc:resume-builder/src/components/ResumePreviewEnhanced.js) - PDF preview
+- **Authentication**: [resume-builder/src/components/login.js](mdc:resume-builder/src/components/login.js) - Login/Register forms
+
+### **Styling Guidelines**
+- **Framework**: Tailwind CSS with custom configuration
+- **Config**: [resume-builder/tailwind.config.js](mdc:resume-builder/tailwind.config.js) - Tailwind setup
+- **PostCSS**: [resume-builder/postcss.config.js](mdc:resume-builder/postcss.config.js) - CSS processing
+- **Global Styles**: [resume-builder/src/index.css](mdc:resume-builder/src/index.css) - Base styles
+
+### **Routing Structure**
+```javascript
+// Public Routes
+/ - HomePage
+/login - Login
+/register - Register
+/privacy-policy - Privacy Policy
+/terms-conditions - Terms & Conditions
+
+// Protected Routes
+/dashboard - ResumeList
+/resume-form - ResumeForm
+/template-selection/:resumeId - TemplateSelection
+/resume-preview/:resumeId - ResumePreviewEnhanced
+/subscription - Subscription
+/profile - Profile
+/analytics - AnalyticsDashboard
+```
+
+### **State Management Patterns**
+- **Authentication**: Context-based with JWT tokens
+- **User Data**: Centralized in AuthContext
+- **Theme**: Dark/Light mode with localStorage persistence
+- **Form State**: Local component state with controlled inputs
+
+### **API Integration**
+- **Base URL**: `process.env.REACT_APP_API_URL` or `http://localhost:5000`
+- **Authentication**: JWT tokens in Authorization header
+- **Error Handling**: Toast notifications with react-toastify
+- **Loading States**: Component-level loading indicators
+
+### **Form Handling**
+- **Resume Forms**: Controlled components with validation
+- **File Uploads**: Multer integration for profile pictures
+- **Validation**: Client-side validation with error messages
+- **Submission**: Axios POST requests with error handling
+
+### **UI/UX Guidelines**
+- **Responsive Design**: Mobile-first approach with Tailwind breakpoints
+- **Accessibility**: ARIA labels and keyboard navigation
+- **Loading States**: Skeleton loaders and spinners
+- **Error States**: User-friendly error messages
+- **Success States**: Toast notifications for actions
+
+### **Performance Optimization**
+- **Code Splitting**: React.lazy() for route-based splitting
+- **Image Optimization**: WebP format for thumbnails
+- **Bundle Size**: Tree shaking and dynamic imports
+- **Caching**: Static assets with proper cache headers
+
+### **Development Tools**
+- **Build System**: Create React App with CRACO
+- **Styling**: Tailwind CSS with PostCSS
+- **Icons**: Heroicons for consistent iconography
+- **Animations**: Lottie animations for loading states
+
+### **Environment Configuration**
+```javascript
+// Development
+REACT_APP_API_URL=http://localhost:5000
+REACT_APP_ENVIRONMENT=development
+
+// Production
+REACT_APP_API_URL=https://your-backend-domain.com
+REACT_APP_ENVIRONMENT=production
+```
+
+### **Component Patterns**
+```javascript
+// Functional Components with Hooks
+const ComponentName = () => {
+  const { user, login, logout } = useAuth();
+  const [loading, setLoading] = useState(false);
+  
+  return (
+    <div className="container mx-auto">
+      {/* Component JSX */}
+    </div>
+  );
+};
+
+// Protected Route Wrapper
+<ProtectedRoute>
+  <ComponentName />
+</ProtectedRoute>
+```
+
+### **Styling Patterns**
+```css
+/* Tailwind Classes */
+.container {
+  @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+.button {
+  @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500;
+}
+```
+
+### **Error Handling**
+- **Network Errors**: Axios interceptors for global error handling
+- **Validation Errors**: Form-level error display
+- **Authentication Errors**: Redirect to login page
+- **404 Errors**: Custom error page component
+
+### **Mobile Support**
+- **Responsive Design**: Tailwind responsive utilities
+- **Touch Interactions**: Mobile-friendly button sizes
+- **Viewport**: Proper meta tags for mobile rendering
+- **PWA Ready**: Service worker configuration for offline support

@@ -1,0 +1,362 @@
+---
+globs: backend/services/**/*.js,backend/assets/**/*.js,backend/utils/**/*.js
+---
+
+# AI Integration & Template System Rules
+
+## 🤖 AI Services & Template Management
+
+### **AI Integration Architecture**
+- **Gemini Service**: [backend/services/geminiservice.js](mdc:backend/services/geminiservice.js) - Google AI integration
+- **Document Parser**: [backend/utils/documentParser.js](mdc:backend/utils/documentParser.js) - PDF/Word parsing
+- **Token System**: [backend/utils/tokenCalculator.js](mdc:backend/utils/tokenCalculator.js) - AI usage tracking
+- **Browser Manager**: [backend/utils/browserManager.js](mdc:backend/utils/browserManager.js) - Puppeteer management
+
+### **Gemini AI Service**
+```javascript
+// AI service configuration
+const geminiService = {
+  apiKey: process.env.GOOGLE_AI_API_KEY,
+  model: 'gemini-pro',
+  maxTokens: 4096,
+  temperature: 0.7
+};
+
+// Resume parsing with AI
+const parseResumeText = async (text) => {
+  const prompt = `Parse this resume text and extract structured data...`;
+  const response = await gemini.generateContent(prompt);
+  return JSON.parse(response.response.text());
+};
+```
+
+### **Document Processing Pipeline**
+```javascript
+// Document parsing workflow
+const parseDocument = async (buffer, mimetype, filename) => {
+  // 1. Validate file type
+  if (!isValidDocumentType(mimetype)) {
+    throw new Error('Unsupported file type');
+  }
+  
+  // 2. Extract text based on type
+  let extractedText = '';
+  if (mimetype === 'application/pdf') {
+    extractedText = await parsePDF(buffer);
+  } else if (mimetype.includes('wordprocessingml')) {
+    extractedText = await parseWord(buffer);
+  }
+  
+  // 3. AI parsing
+  const parsedData = await parseResumeText(extractedText);
+  
+  return {
+    originalText: extractedText,
+    parsedData: parsedData,
+    confidence: parsedData.confidence || 0.8
+  };
+};
+```
+
+### **Token Management System**
+```javascript
+// Token calculation and usage tracking
+const calculateTotalTokens = async (userId) => {
+  const user = await User.findById(userId);
+  const subscription = await Subscription.findOne({ user: userId });
+  
+  const purchasedTokens = user.tokens || 0;
+  const freeTokens = subscription.freeTokens || 0;
+  const freeTokensUsed = subscription.freeTokensUsed || 0;
+  const remainingFreeTokens = Math.max(0, freeTokens - freeTokensUsed);
+  
+  return {
+    totalTokenBalance: purchasedTokens + remainingFreeTokens,
+    purchasedTokens,
+    remainingFreeTokens,
+    freeTokens,
+    freeTokensUsed,
+    subscription
+  };
+};
+
+// Token usage tracking
+const trackTokenUsage = async (userId, usageType, tokensUsed) => {
+  const subscription = await Subscription.findOne({ user: userId });
+  
+  if (subscription.freeTokens > subscription.freeTokensUsed) {
+    subscription.freeTokensUsed += tokensUsed;
+  } else {
+    // Deduct from purchased tokens
+    const user = await User.findById(userId);
+    user.tokens = Math.max(0, user.tokens - tokensUsed);
+    await user.save();
+  }
+  
+  await subscription.save();
+};
+```
+
+### **Template System Architecture**
+- **Template Storage**: [backend/assets/](mdc:backend/assets/) - Template definitions
+- **Template Categories**: Free, Premium, Academic, Creative, Professional
+- **Template Rendering**: [backend/utils/templateRenderer.js](mdc:backend/utils/templateRenderer.js)
+- **Thumbnail Generation**: [backend/utils/puppeteerThumbnailGenerator.js](mdc:backend/utils/puppeteerThumbnailGenerator.js)
+
+### **Template Categories**
+```javascript
+// Template category definitions
+const templateCategories = {
+  free: {
+    name: 'Free Templates',
+    description: 'Basic templates available to all users',
+    features: ['Basic styling', 'Standard layouts', 'PDF export']
+  },
+  premium: {
+    name: 'Premium Templates',
+    description: 'Advanced templates for pro users',
+    features: ['Advanced styling', 'Custom layouts', 'Multiple formats']
+  },
+  academic: {
+    name: 'Academic Templates',
+    description: 'Templates for academic positions',
+    features: ['Research focus', 'Publication sections', 'Academic formatting']
+  },
+  creative: {
+    name: 'Creative Templates',
+    description: 'Creative and modern designs',
+    features: ['Modern design', 'Color customization', 'Creative layouts']
+  }
+};
+```
+
+### **Template Rendering Engine**
+```javascript
+// Template rendering with Handlebars
+const renderTemplate = async (templateId, resumeData) => {
+  const template = await Template.findById(templateId);
+  
+  if (!template) {
+    throw new Error('Template not found');
+  }
+  
+  // Compile Handlebars template
+  const compiledTemplate = Handlebars.compile(template.html);
+  
+  // Render with data
+  const html = compiledTemplate({
+    ...resumeData,
+    styles: template.css,
+    timestamp: new Date().toISOString()
+  });
+  
+  return html;
+};
+```
+
+### **Thumbnail Generation**
+```javascript
+// Puppeteer thumbnail generation
+const generateThumbnail = async (templateId, resumeData) => {
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
+  
+  try {
+    const page = await browser.newPage();
+    const html = await renderTemplate(templateId, resumeData);
+    
+    await page.setContent(html);
+    await page.setViewport({ width: 800, height: 1000 });
+    
+    const screenshot = await page.screenshot({
+      type: 'webp',
+      quality: 80,
+      fullPage: true
+    });
+    
+    return screenshot;
+  } finally {
+    await browser.close();
+  }
+};
+```
+
+### **AI-Powered Features**
+```javascript
+// Resume analysis with AI
+const analyzeResume = async (resumeData) => {
+  const prompt = `
+    Analyze this resume and provide feedback on:
+    1. ATS compatibility score (0-100)
+    2. Grammar and spelling issues
+    3. Content suggestions
+    4. Formatting recommendations
+    5. Missing sections
+  `;
+  
+  const analysis = await gemini.generateContent(prompt);
+  return JSON.parse(analysis.response.text());
+};
+
+// Content generation with AI
+const generateContent = async (section, context) => {
+  const prompt = `
+    Generate ${section} content for a resume based on:
+    - Experience: ${context.experience}
+    - Skills: ${context.skills}
+    - Target Role: ${context.targetRole}
+  `;
+  
+  const content = await gemini.generateContent(prompt);
+  return content.response.text();
+};
+```
+
+### **Template Asset Management**
+```javascript
+// Template asset structure
+const templateAssets = {
+  css: 'Template-specific CSS styles',
+  html: 'Handlebars template with placeholders',
+  thumbnail: 'WebP thumbnail image',
+  preview: 'Full preview image',
+  metadata: {
+    name: 'Template name',
+    category: 'free|premium|academic|creative',
+    features: ['Feature list'],
+    compatibility: {
+      sections: ['personal', 'experience', 'education'],
+      layouts: ['single-column', 'two-column']
+    }
+  }
+};
+```
+
+### **AI Usage Patterns**
+```javascript
+// AI action tracking
+const trackAIAction = async (userId, actionType, tokensUsed) => {
+  const usage = {
+    userId,
+    actionType, // 'parse-resume', 'analyze-resume', 'generate-content'
+    tokensUsed,
+    timestamp: new Date()
+  };
+  
+  // Log usage for analytics
+  await AIUsage.create(usage);
+  
+  // Update token balance
+  await trackTokenUsage(userId, actionType, tokensUsed);
+};
+
+// AI action limits
+const checkAIActionLimit = async (req, res, next) => {
+  const tokenData = await calculateTotalTokens(req.user.id);
+  
+  if (tokenData.totalTokenBalance <= 0) {
+    return res.status(402).json({
+      success: false,
+      error: 'Insufficient tokens for AI action',
+      data: { tokenBalance: tokenData.totalTokenBalance }
+    });
+  }
+  
+  next();
+};
+```
+
+### **Template Customization**
+```javascript
+// Template customization options
+const customizationOptions = {
+  colors: {
+    primary: '#2563eb',
+    secondary: '#64748b',
+    accent: '#f59e0b'
+  },
+  fonts: {
+    heading: 'Inter, sans-serif',
+    body: 'Inter, sans-serif'
+  },
+  spacing: {
+    section: '1.5rem',
+    paragraph: '0.75rem'
+  },
+  layout: {
+    columns: 1, // 1 or 2
+    sidebar: false
+  }
+};
+```
+
+### **Performance Optimization**
+```javascript
+// Template caching
+const templateCache = new Map();
+
+const getCachedTemplate = async (templateId) => {
+  if (templateCache.has(templateId)) {
+    return templateCache.get(templateId);
+  }
+  
+  const template = await Template.findById(templateId);
+  templateCache.set(templateId, template);
+  return template;
+};
+
+// Browser instance pooling
+const browserPool = {
+  instances: [],
+  maxInstances: 5,
+  
+  async getInstance() {
+    if (this.instances.length > 0) {
+      return this.instances.pop();
+    }
+    
+    return await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+  },
+  
+  async releaseInstance(instance) {
+    if (this.instances.length < this.maxInstances) {
+      this.instances.push(instance);
+    } else {
+      await instance.close();
+    }
+  }
+};
+```
+
+### **Error Handling**
+```javascript
+// AI service error handling
+const handleAIError = (error) => {
+  if (error.code === 'RATE_LIMIT_EXCEEDED') {
+    return { error: 'AI service rate limit exceeded', retryAfter: 60 };
+  }
+  
+  if (error.code === 'INSUFFICIENT_TOKENS') {
+    return { error: 'Insufficient AI tokens', code: 'TOKEN_LIMIT' };
+  }
+  
+  if (error.code === 'SERVICE_UNAVAILABLE') {
+    return { error: 'AI service temporarily unavailable', retryAfter: 300 };
+  }
+  
+  return { error: 'AI service error', code: 'UNKNOWN' };
+};
+```
+
+### **Template Development Workflow**
+1. **Create Template**: Define HTML structure and CSS styles
+2. **Generate Thumbnail**: Use Puppeteer to create preview image
+3. **Test Rendering**: Validate with sample resume data
+4. **Deploy Template**: Add to database with proper metadata
+5. **Update Assets**: Regenerate thumbnails and previews
+6. **User Testing**: Validate with real user data

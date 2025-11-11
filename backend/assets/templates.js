@@ -249,10 +249,10 @@ module.exports = [
       .skill-category-title { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
       .skill-items { display: flex; flex-wrap: wrap; gap: 4px; }
       .skill-item { background: #2563eb; color: white; padding: 3px 6px; border-radius: 3px; font-size: 10px; }
-      .skill-item[data-level="expert"] { background: #059669; }
-      .skill-item[data-level="advanced"] { background: #0ea5e9; }
-      .skill-item[data-level="intermediate"] { background: #2563eb; }
-      .skill-item[data-level="beginner"] { background: #6b7280; }
+      .skill-item[data-level="expert"] { background: rgb(1, 27, 111); }
+      .skill-item[data-level="advanced"] { background: rgb(15, 50, 165); }
+      .skill-item[data-level="intermediate"] { background: rgb(40, 78, 218); }
+      .skill-item[data-level="beginner"] { background: rgb(78, 117, 246); }
       
       .technologies { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 0.25rem; }
       .tech-tag { background: #0ea5e9; color: white; padding: 2px 5px; border-radius: 2px; font-size: 9px; }
@@ -521,10 +521,10 @@ module.exports = [
       .skill-category-title { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
       .skill-items { display: flex; flex-wrap: wrap; gap: 3px; }
       .skill-item { background: #f59e0b; color: white; padding: 2px 4px; border-radius: 2px; font-size: 9px; }
-      .skill-item[data-level="expert"] { background: #059669; }
-      .skill-item[data-level="advanced"] { background: #0ea5e9; }
-      .skill-item[data-level="intermediate"] { background: #f59e0b; }
-      .skill-item[data-level="beginner"] { background: #6b7280; }
+      .skill-item[data-level="expert"] { background: #d97706; }
+      .skill-item[data-level="advanced"] { background: #f59e0b; }
+      .skill-item[data-level="intermediate"] { background: #fbbf24; }
+      .skill-item[data-level="beginner"] { background: #fde68a; color: #92400e; }
       .technologies { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 0.25rem; }
       .tech-tag { background: #374151; color: white; padding: 1px 3px; border-radius: 2px; font-size: 8px; }
       .project-links { margin-top: 0.25rem; }
@@ -764,10 +764,10 @@ module.exports = [
       .skill-category-title { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
       .skill-items { display: flex; flex-wrap: wrap; gap: 0.3rem; }
       .skill-item { background: #06b6d4; color: white; padding: 0.2rem 0.4rem; border-radius: 3px; font-size: 9px; }
-      .skill-item[data-level="expert"] { background: #059669; }
-      .skill-item[data-level="advanced"] { background: #0ea5e9; }
-      .skill-item[data-level="intermediate"] { background: #06b6d4; }
-      .skill-item[data-level="beginner"] { background: #6b7280; }
+      .skill-item[data-level="expert"] { background: #0e7490; }
+      .skill-item[data-level="advanced"] { background: #06b6d4; }
+      .skill-item[data-level="intermediate"] { background: #22d3ee; }
+      .skill-item[data-level="beginner"] { background: #a5f3fc; color: #0e7490; }
       .job-item, .project-item, .edu-item, .achievement-item, .cert-item { margin-bottom: 0.5rem; padding: 0.6rem; background: #f8fafc; border-radius: 6px; border-left: 3px solid #06b6d4; }
       .job-header, .edu-header { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.6rem; margin-bottom: 0.25rem; }
       .job-title, .edu-degree, .project-name, .achievement-title, .cert-name { font-size: 15px; font-weight: 600; color: #1f2937; }
@@ -2263,10 +2263,10 @@ module.exports = [
       .skill-category-title { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
       .skill-items { display: flex; flex-wrap: wrap; gap: 3px; }
       .skill-item { background: #f3f4f6; color: #374151; padding: 2px 4px; border-radius: 2px; font-size: 15px; font-weight: 500; }
-      .skill-item[data-level="expert"] { background: #059669; color: white; }
-      .skill-item[data-level="advanced"] { background: #0ea5e9; color: white; }
+      .skill-item[data-level="expert"] { background: #1f2937; color: white; }
+      .skill-item[data-level="advanced"] { background: #374151; color: white; }
       .skill-item[data-level="intermediate"] { background: #6b7280; color: white; }
-      .skill-item[data-level="beginner"] { background: #d1d5db; color: #374151; }
+      .skill-item[data-level="beginner"] { background: #d1d5db; color: #1f2937; }
       .technologies { display: flex; flex-wrap: wrap; gap: 3px; margin: 2px 0; }
       .tech-label { font-size: 15px; font-weight: bold; display: inline; }
       .tech-tag { background: #1f2937; color: white; padding: 1px 3px; border-radius: 2px; font-size: 15px; }
@@ -2584,10 +2584,10 @@ module.exports = [
       .skill-category-title { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }
       .skill-items { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 2px; }
       .skill-item { background: #1e40af; color: white; padding: 1px 4px; border-radius: 2px; font-size: 15px; }
-      .skill-item[data-level="expert"] { background: #059669; }
-      .skill-item[data-level="advanced"] { background: #0ea5e9; }
-      .skill-item[data-level="intermediate"] { background: #1e40af; }
-      .skill-item[data-level="beginner"] { background: #6b7280; }
+      .skill-item[data-level="expert"] { background: rgb(1, 27, 111); }
+      .skill-item[data-level="advanced"] { background: rgb(15, 50, 165); }
+      .skill-item[data-level="intermediate"] { background: rgb(40, 78, 218); }
+      .skill-item[data-level="beginner"] { background: rgb(78, 117, 246); }
       
       .cert-item { margin-bottom: 2px; padding-bottom: 2px; border-bottom: 1px solid #f3f4f6; }
       .cert-item h3 { font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 2px; }

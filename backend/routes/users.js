@@ -3,7 +3,7 @@ const { body, validationResult } = require('express-validator');
 const { protect, authorize } = require('../middleware/auth');
 const User = require('../models/User');
 const Resume = require('../models/Resume');
-const Subscription = require('../models/Subscription');
+// Subscription model no longer needed
 const logger = require('../utils/logger');
 
 const router = express.Router();
@@ -14,14 +14,19 @@ const router = express.Router();
 router.get('/profile', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    const subscription = await Subscription.findOne({ user: req.user.id });
+    
+    // Calculate total token data
+    const { calculateTotalTokens } = require('../utils/tokenCalculator');
+    const tokenData = await calculateTotalTokens(user._id);
     
     res.json({
       success: true,
       data: {
-        user: {
-          ...user.toObject(),
-          subscription
+        user: user.toObject(),
+        tokens: {
+          balance: tokenData.totalTokenBalance,
+          purchasedTokens: tokenData.purchasedTokens,
+          bonusTokens: tokenData.bonusTokens
         }
       }
     });
@@ -90,7 +95,6 @@ router.put('/profile', [
 router.get('/dashboard', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    const subscription = await Subscription.findOne({ user: req.user.id });
     
     const resumeCount = await Resume.countDocuments({ user: req.user.id });
     const publishedResumeCount = await Resume.countDocuments({ 
@@ -113,25 +117,27 @@ router.get('/dashboard', protect, async (req, res) => {
       { $group: { _id: null, totalDownloads: { $sum: '$analytics.downloads' } } }
     ]);
 
+    // Calculate total token data
+    const { calculateTotalTokens } = require('../utils/tokenCalculator');
+    const tokenData = await calculateTotalTokens(user._id);
+
     const stats = {
       resumeCount,
       publishedResumeCount,
       totalViews: totalViews[0]?.totalViews || 0,
-      totalDownloads: totalDownloads[0]?.totalDownloads || 0,
-      subscription: subscription?.plan || 'free',
-      subscriptionStatus: subscription?.status || 'active',
-      remainingResumes: subscription?.canCreateResume() ? 
-        subscription.features.resumeLimit - subscription.usage.resumesCreated : 0,
-      remainingExports: subscription?.features.unlimitedExports ? 
-        'Unlimited' : 
-        Math.max(0, 10 - (subscription?.usage.exportsThisMonth || 0))
+      totalDownloads: totalDownloads[0]?.totalDownloads || 0
     };
 
     res.json({
       success: true,
       data: {
         stats,
-        recentResumes
+        recentResumes,
+        tokens: {
+          balance: tokenData.totalTokenBalance,
+          purchasedTokens: tokenData.purchasedTokens,
+          bonusTokens: tokenData.bonusTokens
+        }
       }
     });
   } catch (error) {
@@ -250,7 +256,6 @@ router.get('/activity', protect, async (req, res) => {
 router.get('/export', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    const subscription = await Subscription.findOne({ user: req.user.id });
     const resumes = await Resume.find({ user: req.user.id })
       .populate('template', 'name category');
 
@@ -265,12 +270,6 @@ router.get('/export', protect, async (req, res) => {
         createdAt: user.createdAt,
         preferences: user.preferences
       },
-      subscription: subscription ? {
-        plan: subscription.plan,
-        status: subscription.status,
-        startDate: subscription.startDate,
-        features: subscription.features
-      } : null,
       resumes: resumes.map(resume => ({
         title: resume.title,
         status: resume.status,
@@ -310,14 +309,29 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
+    const search = req.query.search ? req.query.search.trim() : '';
 
-    const users = await User.find()
+    // Build search query
+    let query = {};
+    if (search) {
+      // Create a case-insensitive regex for partial matching
+      const searchRegex = new RegExp(search, 'i');
+
+      query = {
+        $or: [
+          { email: searchRegex },
+          { firstName: searchRegex },
+          { lastName: searchRegex }
+        ]
+      };
+    }
+
+    const users = await User.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate('subscription');
 
-    const total = await User.countDocuments();
+    const total = await User.countDocuments(query);
 
     res.json({
       success: true,
@@ -346,7 +360,6 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
 router.get('/:id', protect, authorize('admin'), async (req, res) => {
   try {
     const user = await User.findById(req.params.id)
-      .populate('subscription');
 
     if (!user) {
       return res.status(404).json({
@@ -420,6 +433,144 @@ router.put('/:id/status', [
     res.status(500).json({
       success: false,
       error: 'Server error'
+    });
+  }
+});
+
+// @desc    Add tokens to user account
+// @route   POST /api/users/add-tokens
+// @access  Private
+router.post('/add-tokens', protect, async (req, res) => {
+  try {
+    const { tokens, paymentId, orderId, amount, plan, source } = req.body;
+
+    // Validate required fields
+    if (!tokens || tokens <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Valid token amount is required'
+      });
+    }
+
+    if (!paymentId || !orderId || !amount) {
+      return res.status(400).json({
+        success: false,
+        error: 'Payment details are required'
+      });
+    }
+
+    // Find user
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    // Add tokens to user account
+    const previousTokens = user.tokens || 0;
+    user.tokens = (user.tokens || 0) + tokens;
+    await user.save();
+
+    // Log the transaction
+    logger.info(`Added ${tokens} tokens to user ${user.email}. Previous: ${previousTokens}, New total: ${user.tokens}`);
+
+    res.json({
+      success: true,
+      data: {
+        message: `Successfully added ${tokens} tokens`,
+        tokens: {
+          added: tokens,
+          previous: previousTokens,
+          current: user.tokens
+        },
+        payment: {
+          paymentId,
+          orderId,
+          amount,
+          plan: plan || 'token_purchase',
+          source: source || 'direct_purchase'
+        }
+      }
+    });
+
+  } catch (error) {
+    logger.error('Add tokens error:', error);
+    
+    // Send error notification email
+    try {
+      const emailService = require('../utils/emailService');
+      const emailResult = await emailService.sendErrorNotification({
+        type: 'TOKEN_ADDITION_FAILED',
+        userEmail: req.user.email,
+        userId: req.user.id,
+        error: error.message,
+        requestData: {
+          tokens: req.body.tokens,
+          paymentId: req.body.paymentId,
+          orderId: req.body.orderId,
+          amount: req.body.amount,
+          plan: req.body.plan
+        },
+        timestamp: new Date()
+      });
+      
+      if (emailResult.success) {
+        logger.info('Error notification email sent successfully');
+      } else {
+        logger.error('Failed to send error notification email:', emailResult.error);
+      }
+    } catch (emailError) {
+      logger.error('Failed to send error notification email:', emailError);
+    }
+
+    res.status(500).json({
+      success: false,
+      error: 'Failed to add tokens. Support has been notified.'
+    });
+  }
+});
+
+// @desc    Test error notification email
+// @route   POST /api/users/test-error-email
+// @access  Private
+router.post('/test-error-email', protect, async (req, res) => {
+  try {
+    const emailService = require('../utils/emailService');
+    
+    const result = await emailService.sendErrorNotification({
+      type: 'TEST_ERROR_NOTIFICATION',
+      userEmail: req.user.email,
+      userId: req.user.id,
+      error: 'This is a test error notification',
+      requestData: {
+        test: true,
+        timestamp: new Date(),
+        userAgent: req.headers['user-agent']
+      },
+      timestamp: new Date()
+    });
+
+    if (result.success) {
+      res.json({
+        success: true,
+        message: 'Test error notification sent successfully',
+        result
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to send test error notification',
+        error: result.error
+      });
+    }
+  } catch (error) {
+    logger.error('Test error notification failed:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Test error notification failed',
+      error: error.message
     });
   }
 });

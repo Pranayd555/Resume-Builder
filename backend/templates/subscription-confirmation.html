@@ -90,9 +90,150 @@
             background-color: #f9fafb;
             border-radius: 6px;
         }
-        @media (max-width: 600px) {
+        /* Responsive Design */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+                margin: 0;
+            }
+
             .container {
                 padding: 20px;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .header {
+                margin-bottom: 20px;
+            }
+
+            .logo {
+                font-size: 24px;
+            }
+
+            h1 {
+                font-size: 20px;
+                margin-bottom: 15px;
+            }
+
+            .confirmation-badge {
+                padding: 15px;
+                margin: 15px 0;
+                border-radius: 8px;
+            }
+
+            .confirmation-badge h2 {
+                font-size: 18px;
+            }
+
+            .confirmation-badge p {
+                font-size: 14px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                margin: 15px 0;
+                font-size: 14px;
+            }
+
+            .plan-details {
+                padding: 15px;
+                margin: 15px 0;
+                border-radius: 6px;
+            }
+
+            .plan-details h3 {
+                font-size: 16px;
+                margin-bottom: 12px;
+            }
+
+            .plan-feature {
+                margin-bottom: 8px;
+                font-size: 14px;
+            }
+
+            .plan-feature .checkmark {
+                margin-right: 8px;
+            }
+
+            .footer {
+                margin-top: 20px;
+                padding-top: 15px;
+                font-size: 12px;
+            }
+
+            .support {
+                padding: 12px;
+                margin-top: 15px;
+                border-radius: 6px;
+            }
+        }
+
+        @media only screen and (max-width: 400px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header {
+                margin-bottom: 15px;
+            }
+
+            .logo {
+                font-size: 20px;
+            }
+
+            h1 {
+                font-size: 18px;
+                margin-bottom: 12px;
+            }
+
+            .confirmation-badge {
+                padding: 12px;
+                margin: 12px 0;
+            }
+
+            .confirmation-badge h2 {
+                font-size: 16px;
+            }
+
+            .confirmation-badge p {
+                font-size: 13px;
+            }
+
+            .btn {
+                padding: 10px 16px;
+                margin: 12px 0;
+                font-size: 13px;
+            }
+
+            .plan-details {
+                padding: 12px;
+                margin: 12px 0;
+            }
+
+            .plan-details h3 {
+                font-size: 15px;
+                margin-bottom: 10px;
+            }
+
+            .plan-feature {
+                margin-bottom: 6px;
+                font-size: 13px;
+            }
+
+            .plan-feature .checkmark {
+                margin-right: 6px;
+            }
+
+            .footer {
+                margin-top: 15px;
+                padding-top: 12px;
+                font-size: 11px;
+            }
+
+            .support {
+                padding: 10px;
+                margin-top: 12px;
             }
         }
     </style>

@@ -7,8 +7,6 @@ import CustomDropdown from '../CustomDropdown';
 import { 
   ArrowLeftIcon, 
   EnvelopeIcon, 
-  PhoneIcon, 
-  MapPinIcon,
   ClockIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon
@@ -86,26 +84,14 @@ const ContactUs = () => {
     {
       icon: EnvelopeIcon,
       title: 'Email Support',
-      details: ['support@resumebuilder.com', 'info@resumebuilder.com'],
+      details: ['pranaydaspr@gmail.com'],
       description: 'Get help with your account and technical issues'
-    },
-    {
-      icon: PhoneIcon,
-      title: 'Phone Support',
-      details: ['+1 (555) 123-4567', 'Mon-Fri: 9 AM - 6 PM EST'],
-      description: 'Speak directly with our support team'
-    },
-    {
-      icon: MapPinIcon,
-      title: 'Office Address',
-      details: ['123 Resume Street', 'Tech City, TC 12345', 'United States'],
-      description: 'Visit our headquarters'
     },
     {
       icon: ClockIcon,
       title: 'Business Hours',
-      details: ['Monday - Friday: 9 AM - 6 PM EST', 'Saturday: 10 AM - 4 PM EST', 'Sunday: Closed'],
-      description: 'When our team is available'
+      details: ['Monday - Friday: 9 AM - 6 PM IST', 'Saturday: 10 AM - 4 PM IST', 'Sunday: Closed'],
+      description: 'When I am available to respond'
     }
   ];
 
@@ -135,7 +121,7 @@ const ContactUs = () => {
         {/* Content */}
         
         {/* Contact Information Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
           {contactInfo.map((info, index) => (
             <div key={index} className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-6 text-center hover:shadow-2xl transition-all duration-200">
               <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center">
@@ -167,12 +153,12 @@ const ContactUs = () => {
             </h2>
             
             {submitStatus === 'success' && (
-              <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
-                <div className="flex items-center gap-2 text-green-800 dark:text-green-200">
+              <div className="mb-6 p-4 bg-green-50 dark:bg-green-90/20 border border-green-200 dark:border-green-800 rounded-xl">
+                <div className="flex items-center gap-2 text-green-800 dark:text-green-500">
                   <CheckCircleIcon className="w-5 h-5" />
                   <span className="font-semibold">Message sent successfully!</span>
                 </div>
-                <p className="text-green-700 dark:text-green-300 text-sm mt-1">
+                <p className="text-green-700 dark:text-green-500 text-sm mt-1">
                   We'll get back to you within 24 hours.
                 </p>
               </div>
@@ -203,7 +189,7 @@ const ContactUs = () => {
                     value={formData.name}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 backdrop-blur-md bg-white/80 dark:bg-orange-50/95 border border-white/30 dark:border-orange-200/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-gray-900 dark:text-gray-700 shadow-lg hover:shadow-xl transition-all duration-200"
+                    className="w-full px-4 py-3 backdrop-blur-md bg-white/80 dark:bg-white border border-white/30 dark:border-orange-200/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-gray-900 dark:text-gray-700 shadow-lg hover:shadow-xl transition-all duration-200"
                     placeholder="Your full name"
                   />
                 </div>
@@ -218,7 +204,7 @@ const ContactUs = () => {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 backdrop-blur-md bg-white/80 dark:bg-orange-50/95 border border-white/30 dark:border-orange-200/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-gray-900 dark:text-gray-700 shadow-lg hover:shadow-xl transition-all duration-200"
+                    className="w-full px-4 py-3 backdrop-blur-md bg-white/80 dark:bg-white border border-white/30 dark:border-orange-200/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-gray-900 dark:text-gray-700 shadow-lg hover:shadow-xl transition-all duration-200"
                     placeholder="your@email.com"
                   />
                 </div>
@@ -235,7 +221,8 @@ const ContactUs = () => {
                   onChange={(value) => handleInputChange({ target: { name: 'category', value } })}
                   options={categories}
                   placeholder="Select a category"
-                  className="w-full backdrop-blur-md bg-white/80 dark:bg-orange-50/95 border border-white/30 dark:border-orange-200/40 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                  disableSearch={true}
+                  className="w-full backdrop-blur-md bg-white/80 dark:bg-white border border-white/30 dark:border-orange-200/40 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
                 />
               </div>
 
@@ -250,7 +237,7 @@ const ContactUs = () => {
                   value={formData.subject}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3 backdrop-blur-md bg-white/80 dark:bg-orange-50/95 border border-white/30 dark:border-orange-200/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-gray-900 dark:text-gray-700 shadow-lg hover:shadow-xl transition-all duration-200"
+                  className="w-full px-4 py-3 backdrop-blur-md bg-white/80 dark:bg-white border border-white/30 dark:border-orange-200/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 text-gray-900 dark:text-gray-700 shadow-lg hover:shadow-xl transition-all duration-200"
                   placeholder="Brief description of your inquiry"
                 />
               </div>
@@ -266,7 +253,7 @@ const ContactUs = () => {
                   onChange={handleInputChange}
                   required
                   rows={6}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-orange-50/50 text-gray-900 dark:text-gray-700 resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-white text-gray-900 dark:text-gray-700 resize-none"
                   placeholder="Please provide details about your inquiry..."
                 />
               </div>
@@ -294,8 +281,7 @@ const ContactUs = () => {
                     How quickly do you respond to support requests?
                   </h3>
                   <p className="text-gray-600 dark:text-gray-500">
-                    We typically respond to all inquiries within 24 hours during business days. 
-                    Pro subscribers receive priority support with faster response times.
+                    We typically respond to all inquiries within 24 hours during business days.
                   </p>
                 </div>
 
@@ -311,11 +297,11 @@ const ContactUs = () => {
 
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-700 mb-2">
-                    Do you offer phone support?
+                    How can I get support?
                   </h3>
                   <p className="text-gray-600 dark:text-gray-500">
-                    Yes! Phone support is available for Pro subscribers during business hours. 
-                    Free users can contact us via email or through our contact form.
+                    We provide comprehensive email support for all users. You can contact us via email 
+                    or through our contact form, and we'll respond within 24 hours during business days.
                   </p>
                 </div>
 
@@ -341,7 +327,7 @@ const ContactUs = () => {
                 For urgent technical issues affecting your ability to access your account or resumes:
               </p>
               <p className="text-red-600 dark:text-red-400 font-semibold">
-                emergency@resumebuilder.com
+                pranaydaspr@gmail.com
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
                 Available 24/7 for critical issues

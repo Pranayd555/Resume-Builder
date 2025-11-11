@@ -42,12 +42,25 @@
             text-align: center;
             margin: 20px 0;
         }
+        .contact-badge h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+        .contact-badge p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
         .details-box {
             background-color: #f8fafc;
             padding: 20px;
             border-radius: 8px;
             margin: 20px 0;
             border: 1px solid #e2e8f0;
+        }
+        .details-box h3 {
+            margin-top: 0;
+            color: #1f2937;
+            font-size: 18px;
         }
         .details-row {
             display: flex;
@@ -74,6 +87,7 @@
         .message-box h3 {
             color: #1f2937;
             margin-bottom: 10px;
+            margin-top: 0;
         }
         .message-content {
             color: #374151;
@@ -87,15 +101,172 @@
             font-size: 14px;
             color: #6b7280;
         }
-        @media (max-width: 600px) {
+        .footer p {
+            margin: 5px 0;
+        }
+
+        /* Responsive Design */
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+                margin: 0;
+            }
+
             .container {
                 padding: 20px;
+                border-radius: 0;
+                box-shadow: none;
             }
+
+            .header {
+                margin-bottom: 20px;
+            }
+
+            .logo {
+                font-size: 24px;
+            }
+
+            h1 {
+                font-size: 20px;
+                margin-bottom: 15px;
+            }
+
+            .contact-badge {
+                padding: 15px;
+                margin: 15px 0;
+                border-radius: 8px;
+            }
+
+            .contact-badge h2 {
+                font-size: 18px;
+            }
+
+            .contact-badge p {
+                font-size: 14px;
+            }
+
+            .details-box {
+                padding: 15px;
+                margin: 15px 0;
+                border-radius: 6px;
+            }
+
+            .details-box h3 {
+                font-size: 16px;
+            }
+
             .details-row {
-                flex-direction: column;
+                margin-bottom: 8px;
             }
+
             .details-label {
-                margin-bottom: 5px;
+                font-size: 14px;
+                min-width: auto;
+                margin-bottom: 2px;
+            }
+
+            .details-value {
+                font-size: 14px;
+            }
+
+            .message-box {
+                padding: 15px;
+                margin: 15px 0;
+                border-radius: 6px;
+            }
+
+            .message-box h3 {
+                font-size: 16px;
+            }
+
+            .message-content {
+                font-size: 14px;
+            }
+
+            .footer {
+                margin-top: 20px;
+                padding-top: 15px;
+                font-size: 13px;
+            }
+
+            .footer p {
+                font-size: 12px;
+            }
+        }
+
+        @media only screen and (max-width: 400px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header {
+                margin-bottom: 15px;
+            }
+
+            .logo {
+                font-size: 20px;
+            }
+
+            h1 {
+                font-size: 18px;
+                margin-bottom: 12px;
+            }
+
+            .contact-badge {
+                padding: 12px;
+                margin: 12px 0;
+            }
+
+            .contact-badge h2 {
+                font-size: 16px;
+            }
+
+            .contact-badge p {
+                font-size: 13px;
+            }
+
+            .details-box {
+                padding: 12px;
+                margin: 12px 0;
+            }
+
+            .details-box h3 {
+                font-size: 15px;
+            }
+
+            .details-row {
+                margin-bottom: 6px;
+            }
+
+            .details-label {
+                font-size: 13px;
+            }
+
+            .details-value {
+                font-size: 13px;
+            }
+
+            .message-box {
+                padding: 12px;
+                margin: 12px 0;
+            }
+
+            .message-box h3 {
+                font-size: 15px;
+            }
+
+            .message-content {
+                font-size: 13px;
+            }
+
+            .footer {
+                margin-top: 15px;
+                padding-top: 12px;
+                font-size: 12px;
+            }
+
+            .footer p {
+                font-size: 11px;
             }
         }
     </style>

@@ -6,8 +6,7 @@ import { toast } from 'react-toastify';
 import { 
   ChevronLeftIcon, 
   EnvelopeIcon, 
-  PhoneIcon, 
-  MapPinIcon,
+  ClockIcon,
   InformationCircleIcon 
 } from '@heroicons/react/24/outline';
 
@@ -78,7 +77,7 @@ function Feedback() {
           </button>
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Feedback</h1>
-            <p className="text-gray-600 dark:text-gray-200 mt-1">We'd love to hear from you</p>
+            <p className="text-gray-600 dark:text-gray-200 mt-1">I'd love to hear from you</p>
           </div>
         </div>
 
@@ -95,7 +94,8 @@ function Feedback() {
                 Get in Touch
               </h2>
               <p className="text-gray-600 mb-8 leading-relaxed">
-                Have questions or suggestions? We'd love to hear from you. Reach out to us through any of these channels.
+                Have questions or suggestions about Resume Builder? I'd love to hear from you. As a solo developer, 
+                your feedback is incredibly valuable for improving the application.
               </p>
               
               <div className="space-y-6">
@@ -105,9 +105,9 @@ function Feedback() {
                       <EnvelopeIcon className="w-7 h-7 text-white" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-bold text-gray-900 text-lg group-hover:text-blue-700 transition-colors">Email</p>
+                      <p className="font-bold text-gray-900 text-lg group-hover:text-blue-700 transition-colors">Email Support</p>
                       <p className="text-gray-600 group-hover:text-gray-800 transition-colors">pranaydaspr@gmail.com</p>
-                      <p className="text-sm text-gray-500 mt-1">We'll respond within 24 hours</p>
+                      <p className="text-sm text-gray-500 mt-1">I'll respond within 24 hours</p>
                     </div>
                   </div>
                 </div>
@@ -115,25 +115,12 @@ function Feedback() {
                 <div className="group p-4 rounded-xl bg-gradient-to-r from-green-50/50 to-green-100/30 border border-green-200/30 hover:from-green-100/70 hover:to-green-200/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
-                      <PhoneIcon className="w-7 h-7 text-white" />
+                      <ClockIcon className="w-7 h-7 text-white" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-bold text-gray-900 text-lg group-hover:text-green-700 transition-colors">Phone</p>
-                      <p className="text-gray-600 group-hover:text-gray-800 transition-colors">+91 891805854</p>
-                      <p className="text-sm text-gray-500 mt-1">Available Mon-Fri, 9AM-6PM IST</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="group p-4 rounded-xl bg-gradient-to-r from-purple-50/50 to-purple-100/30 border border-purple-200/30 hover:from-purple-100/70 hover:to-purple-200/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
-                      <MapPinIcon className="w-7 h-7 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-bold text-gray-900 text-lg group-hover:text-purple-700 transition-colors">Address</p>
-                      <p className="text-gray-600 group-hover:text-gray-800 transition-colors">Gaighata, N 24 Parganas, WB, India - 743249</p>
-                      <p className="text-sm text-gray-500 mt-1">West Bengal, India</p>
+                      <p className="font-bold text-gray-900 text-lg group-hover:text-green-700 transition-colors">Business Hours</p>
+                      <p className="text-gray-600 group-hover:text-gray-800 transition-colors">Monday - Friday: 9 AM - 6 PM IST</p>
+                      <p className="text-sm text-gray-500 mt-1">When I am available to respond</p>
                     </div>
                   </div>
                 </div>
@@ -148,7 +135,8 @@ function Feedback() {
                   <p className="font-semibold text-gray-900">Response Time</p>
                 </div>
                 <p className="text-sm text-gray-600 leading-relaxed">
-                  We typically respond to all inquiries within 24 hours during business days. For urgent matters, please use the phone number above.
+                  I typically respond to all inquiries within 24 hours during business days. Your feedback helps me improve 
+                  Resume Builder and add features that matter to you.
                 </p>
               </div>
             </div>
@@ -156,7 +144,7 @@ function Feedback() {
 
           {/* Feedback Form */}
           <div className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-8">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Send Feedback</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Share Your Feedback</h2>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-900 mb-2">Name</label>
@@ -217,7 +205,7 @@ function Feedback() {
                   onChange={(e) => handleInputChange('message', e.target.value)}
                   rows={4}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm resize-none text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500"
-                  placeholder="Tell us about your experience..."
+                  placeholder="Tell me about your experience with Resume Builder..."
                   required
                 />
               </div>
@@ -231,7 +219,7 @@ function Feedback() {
                     : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transform hover:scale-105'
                 }`}
               >
-                {isSubmitting ? 'Sending...' : 'Send Feedback'}
+                {isSubmitting ? 'Sending...' : 'Share Feedback'}
               </button>
             </form>
           </div>

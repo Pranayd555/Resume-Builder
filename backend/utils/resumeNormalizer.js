@@ -226,11 +226,18 @@ class ResumeNormalizer {
       address: null,
       website: null,
       linkedin: null,
-      github: null
+      github: null,
+      profilePicture: null
     };
 
     // Extract from general section first
     const generalText = sections.general.slice(0, 10).join(' | ');
+    
+    // Extract profile picture URL
+    const profilePictureMatch = fullText.match(/(https?:\/\/[^\\s]+\\.(?:png|jpg|jpeg|gif|webp|svg))/i);
+    if (profilePictureMatch) {
+      personalInfo.profilePicture = profilePictureMatch[0];
+    }
     
     // Extract email
     const emailMatch = generalText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}/);

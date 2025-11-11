@@ -15,6 +15,7 @@ const CustomDropdown = ({
   name = "",
   id = "",
   showFontStyles = false,
+  disableSearch = false,
   ...props
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -151,7 +152,7 @@ const CustomDropdown = ({
 
       {isOpen && (
         <div className="dropdown-menu" id={`${id || 'dropdown'}-menu`}>
-          {options.length > 5 && (
+          {!disableSearch && options.length > 5 && (
             <div className="dropdown-search">
               <input
                 ref={searchInputRef}

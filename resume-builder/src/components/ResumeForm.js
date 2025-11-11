@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate, useLocation, Link, useBlocker } from 'react-router-dom';
 import { resumeAPI, apiHelpers, uploadAPI } from '../services/api';
 import { toast } from 'react-toastify';
 import { validators } from '../models/dataModels';
@@ -8,17 +8,20 @@ import { useAuth } from '../contexts/AuthContext';
 import CKEditor from './CKEditor';
 import { ensureHtmlContent } from '../utils/htmlUtils';
 import AuthLoader from './AuthLoader';
-import AILoader from './AILoader';
+import AILoader from './annimations/AILoader';
 import CustomDatePicker from './DatePicker';
 import CustomDropdown from './CustomDropdown';
+import Swal from 'sweetalert2';
 
 import { 
   PlusIcon, 
   TrashIcon,
   ExclamationTriangleIcon,
   BoltIcon,
-  SparklesIcon
+  SparklesIcon,
+  BookmarkIcon
 } from '@heroicons/react/24/outline';
+
 
 // Utility functions
 const formatDateForInput = (dateString) => {
@@ -54,20 +57,31 @@ const FormField = ({
   const readOnlyClasses = readOnly ? "bg-gray-50 dark:bg-gray-50 cursor-not-allowed" : "";
   
   return (
-    <div>
-      <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
+    <div className={`form-field ${type === 'checkbox' ? 'flex items-center space-x-2' : ''}`}>
+      <label className={`block text-sm font-medium text-gray-900 dark:text-gray-900  ${type === 'checkbox' ? 'order-2 ml-2' : 'mb-2'}`}>
         {label} {required && <span className="text-red-500">*</span>}
       </label>
-      <input
-        type={type}
-        value={value}
-        onChange={onChange}
-        onBlur={onBlur}
-        readOnly={readOnly}
-        className={`${baseClasses} ${errorClasses} ${readOnlyClasses} ${className}`}
-        placeholder={placeholder}
-        {...props}
-      />
+      {type === 'checkbox' ? (
+        <input
+          type="checkbox"
+          checked={value}
+          onChange={onChange}
+          onBlur={onBlur}
+          readOnly={readOnly}
+          className="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+        />
+      ) : (
+        <input
+          type={type}
+          value={value}
+          onChange={onChange}
+          onBlur={onBlur}
+          readOnly={readOnly}
+          className={`${baseClasses} ${errorClasses} ${readOnlyClasses} ${className}`}
+          placeholder={placeholder}
+          {...props}
+        />
+      )}
       {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
     </div>
   );
@@ -79,7 +93,8 @@ const TextAreaField = ({
   onChange, 
   rows = 3, 
   placeholder = "", 
-  className = ""
+  className = "",
+  isProMode = false
 }) => (
   <div>
     <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
@@ -89,6 +104,7 @@ const TextAreaField = ({
       value={value}
       onChange={onChange}
       placeholder={placeholder}
+      showAIButton={true}
       className={className}
     />
   </div>
@@ -129,6 +145,10 @@ const saveToLocalStorage = (formData, currentStep, isEditMode) => {
   }
 };
 
+function getProfilePicture(user) {
+  return user.profilePicture?.type === 'avatar' ? user.profilePicture.avatarUrl : user.profilePicture?.type === 'uploaded' ? user.profilePicture.uploadedPhoto.url : '' 
+}
+
 function ResumeForm() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -152,7 +172,9 @@ function ResumeForm() {
       address: '',
       website: '',
       linkedin: '',
-      github: ''
+      github: '',
+      isAddPhoto: false,
+      profilePicture: ''
     },
     summary: '',
     workExperience: [],
@@ -172,6 +194,8 @@ function ResumeForm() {
   const [isDragOver, setIsDragOver] = useState(false);
   // eslint-disable-next-line no-unused-vars
   const [dragCounter, setDragCounter] = useState(0);
+  const [tokenBalance, setTokenBalance] = useState(0);
+  const [isTokenExhausted, setIsTokenExhausted] = useState(false);
   const fileInputRef = useRef(null);
 
   const totalSteps = 8;
@@ -179,11 +203,72 @@ function ResumeForm() {
   const fieldOrder = [
     'title', 'fullName', 'email', 'phone', 'address',
     'workExperience_0_jobTitle', 'workExperience_0_company', 'workExperience_0_startDate',
-    'education_0_degree', 'education_0_institution', 'education_0_startDate'
+    'education_0_degree', 'education_0_institution', 'education_0_endDate'
   ];
   
   const { scrollToFirstError } = useFormScroll(validationErrors, fieldOrder);
   const { scrollToTop } = useScrollToTop();
+
+  const [isDirty, setIsDirty] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(false);
+
+  useEffect(() => {
+    if (isInitialLoad) {
+      setIsDirty(true);
+    }
+  }, [formData, isInitialLoad]);
+
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      ((!isEditMode && currentStep > 2 && isDirty) || (isEditMode && isDirty)) &&
+      currentLocation.pathname !== nextLocation.pathname &&
+      !nextLocation.pathname.startsWith('/resume-preview') &&
+      !nextLocation.pathname.startsWith('/template-selection')
+  );
+
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      if ((!isEditMode && currentStep > 2 && isDirty) || (isEditMode && isDirty)) {
+        event.preventDefault();
+        event.returnValue = ''; // Needed for some browsers
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isDirty, currentStep, isEditMode]);
+
+  // Get initial token balance
+  useEffect(() => {
+    const balance = apiHelpers.getTokenBalance();
+    setTokenBalance(balance);
+    setIsTokenExhausted(balance <= 0);
+  }, []);
+
+  // Listen for token balance updates
+  useEffect(() => {
+    const handleTokenBalanceUpdate = (event) => {
+      const { balance } = event.detail;
+      setTokenBalance(balance);
+      setIsTokenExhausted(balance <= 0);
+    };
+
+    window.addEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
+    return () => window.removeEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
+  }, []);
+
+  // Update token balance from user data if available
+  useEffect(() => {
+    if (user && user.tokens !== undefined) {
+      setTokenBalance(user.tokens);
+      setIsTokenExhausted(user.tokens <= 0);
+    }
+  }, [user]);
+
+
 
   // Resume upload functions
   const validateResumeFile = (file) => {
@@ -211,6 +296,13 @@ function ResumeForm() {
       event.target.value = '';
       return;
     }
+
+    // Check if tokens are exhausted
+    if (isTokenExhausted || tokenBalance <= 0) {
+      toast.error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
+      event.target.value = '';
+      return;
+    }
     
     try {
       setUploadingResume(true);
@@ -223,6 +315,7 @@ function ResumeForm() {
       const response = await uploadAPI.uploadResume(formData);
       
       if (response.success) {
+        
         // Store the extracted text data
         const extractedText = response.data.originalText;
         const parsedData = response.data.parsedData;
@@ -257,6 +350,7 @@ function ResumeForm() {
             
             // Always load profile data to ensure name, email, phone are populated
             loadProfileData();
+            setIsInitialLoad(true);
             
             toast.success('Resume parsed and auto-filled successfully!');
           } else {
@@ -274,8 +368,19 @@ function ResumeForm() {
       }
     } catch (error) {
       console.error('Resume upload error:', error);
-      const errorMessage = apiHelpers.formatError(error);
-      toast.error(errorMessage);
+      
+      // Handle token exhaustion specifically
+      if (error.message && error.message.includes('tokens') && error.message.includes('exhausted')) {
+        setIsTokenExhausted(true);
+        toast.error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
+      } else if (error.message && error.message.includes('insufficient tokens')) {
+        setIsTokenExhausted(true);
+        toast.error('Insufficient AI tokens! Please purchase more tokens to continue using AI features.');
+      } else {
+        const errorMessage = apiHelpers.formatError(error);
+        toast.error(errorMessage);
+      }
+      
       setUploadedFileName('');
     } finally {
       setUploadingResume(false);
@@ -331,7 +436,14 @@ function ResumeForm() {
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0];
+      
       if (validateResumeFile(file)) {
+        // Check if tokens are exhausted before processing
+        if (isTokenExhausted || tokenBalance <= 0) {
+          toast.error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
+          return;
+        }
+        
         // Create a synthetic event to reuse existing handleResumeUpload logic
         const syntheticEvent = {
           target: {
@@ -360,6 +472,8 @@ function ResumeForm() {
             fullName, email, phone
           }
         }));
+        setIsDirty(false)
+        setIsInitialLoad(false)
         
         return { fullName, email, phone };
       }
@@ -432,7 +546,7 @@ function ResumeForm() {
     return formattedErrors;
   };
 
-  const validateForm = (isDraft = false) => {
+  const validateForm = useCallback ((isDraft = false) => {
     const errors = {};
     
     // Check title
@@ -450,6 +564,24 @@ function ResumeForm() {
       if (!emailRegex.test(formData.personalInfo.email)) {
         errors.email = 'Please provide a valid email';
       }
+    }
+
+    // Work experience individual field validation (always run if entry started)
+    if (!formData.isFresher) {
+      formData.workExperience.forEach((exp, index) => {
+        // Only validate if the experience entry has been started (any field has content)
+        if (exp.jobTitle || exp.company || exp.startDate || exp.endDate || exp.description) {
+          if (!validators.required(exp.jobTitle)) {
+            errors[`workExperience_${index}_jobTitle`] = 'Job title is required';
+          }
+          if (!validators.required(exp.company)) {
+            errors[`workExperience_${index}_company`] = 'Company name is required';
+          }
+          if (!validators.required(exp.startDate)) {
+            errors[`workExperience_${index}_startDate`] = 'Start date is required';
+          }
+        }
+      });
     }
 
     if (!isDraft) {
@@ -473,13 +605,16 @@ function ResumeForm() {
 
       // Education validation
       let hasValidEducation = false;
-      formData.education.forEach((edu) => {
-        if (edu.degree && edu.institution && edu.startDate && edu.gpa) {
+      formData.education.forEach((edu, index) => {
+        if (edu.degree && edu.institution && edu.endDate && edu.gpa) {
           hasValidEducation = true;
+        }
+        if (edu.startDate && edu.endDate && new Date(edu.startDate) > new Date(edu.endDate)) {
+          errors[`education_${index}_dateRange`] = 'End date must be after start date';
         }
       });
       if (!hasValidEducation) {
-        errors.education = 'At least one education entry is required (Degree, Institution, Start Date, and GPA)';
+        errors.education = 'At least one education entry is required (Degree, Institution, End Date, and GPA)';
       }
 
       // Certification validation
@@ -501,7 +636,7 @@ function ResumeForm() {
       isValid: Object.keys(errors).length === 0,
       errors
     };
-  };
+  }, [formData]);
 
   // Event handlers
   const handleInputChange = (section, field, value, index = null) => {
@@ -514,6 +649,11 @@ function ResumeForm() {
           newArray[index] = { ...newArray[index], [field]: value };
           return { ...prev, [section]: newArray };
         } else {
+            if(field === 'isAddPhoto') {
+              const profilePicture = getProfilePicture(user);
+              handleInputChange('personalInfo', 'profilePicture', profilePicture)
+            console.log('profilePicture', profilePicture)
+            }
           return {
             ...prev,
             [section]: { ...prev[section], [field]: value }
@@ -545,6 +685,7 @@ function ResumeForm() {
       
       return newErrors;
     });
+    setIsInitialLoad(true)
   };
 
   const handleInputBlur = (section, field, index = null) => {
@@ -619,13 +760,39 @@ function ResumeForm() {
         const edu = formData.education[index];
         if (field === 'degree' && !validators.required(edu.degree)) {
           errors[`education_${index}_degree`] = 'Degree is required';
+        } else if (field === 'degree') {
+          setValidationErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors[`education_${index}_degree`];
+            return newErrors;
+          });
         }
+
         if (field === 'institution' && !validators.required(edu.institution)) {
           errors[`education_${index}_institution`] = 'Institution is required';
+        } else if (field === 'institution') {
+          setValidationErrors(prev => {
+            const newErrors = { ...prev };
+            delete newErrors[`education_${index}_institution`];
+            return newErrors;
+          });
         }
-        if (field === 'startDate' && !validators.required(edu.startDate)) {
-          errors[`education_${index}_startDate`] = 'Start date is required';
+
+        if (field === 'endDate') {
+          if (!edu.isCurrentlyStudying && !validators.required(edu.endDate)) {
+            errors[`education_${index}_endDate`] = 'End date is required';
+          } else if (edu.startDate && edu.endDate && new Date(edu.startDate) > new Date(edu.endDate)) {
+            errors[`education_${index}_dateRange`] = 'End date must be after start date';
+          } else {
+            setValidationErrors(prev => {
+              const newErrors = { ...prev };
+              delete newErrors[`education_${index}_endDate`];
+              delete newErrors[`education_${index}_dateRange`];
+              return newErrors;
+            });
+          }
         }
+
         if (field === 'gpa' && !validators.required(edu.gpa)) {
           errors[`education_${index}_gpa`] = 'GPA is required';
         } else if (field === 'gpa' && edu.gpa) {
@@ -680,6 +847,7 @@ function ResumeForm() {
       setTimeout(() => saveToLocalStorage(newFormData, currentStep, isEditMode), 0);
       return newFormData;
     });
+    setIsInitialLoad(true);
   };
 
   const removeArrayItem = (section, index) => {
@@ -711,6 +879,7 @@ function ResumeForm() {
       setTimeout(() => saveToLocalStorage(newFormData, currentStep, isEditMode), 0);
       return newFormData;
     });
+    setIsInitialLoad(true);
   };
 
   // Detect edit mode and load existing resume data
@@ -741,7 +910,9 @@ function ResumeForm() {
                 address: resumeData.personalInfo?.address || '',
                 website: resumeData.personalInfo?.website || '',
                 linkedin: resumeData.personalInfo?.linkedin || '',
-                github: resumeData.personalInfo?.github || ''
+                github: resumeData.personalInfo?.github || '',
+                isAddPhoto: resumeData.personalInfo?.isAddPhoto || false,
+                profilePicture: resumeData.personalInfo?.isAddPhoto ? getProfilePicture(user) : '' 
               },
               summary: ensureHtmlContent(resumeData.summary || ''),
               workExperience: (resumeData.workExperience || []).map(exp => ({
@@ -800,8 +971,13 @@ function ResumeForm() {
                 proficiency: lang.proficiency || ''
               }))
             };
+
+            // Always load profile data to update name, email, phone fields
+            loadProfileData();
             
             setFormData(mappedFormData);
+            setIsDirty(false); // Reset isDirty after loading data
+            setIsInitialLoad(false);
             
             // Check for AI-enhanced data from localStorage
             if (state.fromAIEnhancement) {
@@ -883,6 +1059,7 @@ function ResumeForm() {
                   } else if (enhancementType === 'enhance-keywords') {
                     toast.success('Keywords have been enhanced! Review and save your changes.');
                   }
+                  setIsInitialLoad(true);
                   
                   // Clear the AI enhanced data from localStorage
                   localStorage.removeItem('ai_enhanced_resume_data');
@@ -899,9 +1076,6 @@ function ResumeForm() {
               techInputState[index] = proj.technologies?.join(', ') || '';
             });
             setTechnologiesInput(techInputState);
-            
-            // Always load profile data to update name, email, phone fields
-            loadProfileData();
             
             toast.success('Resume data loaded for editing!');
           } else {
@@ -929,6 +1103,7 @@ function ResumeForm() {
                 setFormData(prev => ({ ...prev, ...processedFormData }));
                 setCurrentStep(parsedData.currentStep || 1);
                 toast.info('Your previous form data has been restored.');
+                setIsInitialLoad(false);
               } catch (error) {
                 console.error('Error loading saved form data:', error);
                 localStorage.removeItem('resume_form_data');
@@ -960,6 +1135,7 @@ function ResumeForm() {
             setCurrentStep(1);
             setValidationErrors({});
             setTechnologiesInput({});
+            setIsInitialLoad(false);
           }
           
           // Load profile data for read-only fields
@@ -968,7 +1144,7 @@ function ResumeForm() {
     };
 
     checkEditMode();
-  }, [location.state, navigate]); // Added navigate to dependencies to fix eslint warning
+  }, [location.state, navigate, user]); // Added navigate to dependencies to fix eslint warning
 
   // Clear validation errors when moving to step 1 (only title validation is relevant)
   useEffect(() => {
@@ -1032,11 +1208,13 @@ function ResumeForm() {
     return cleanedData;
   };
 
+  
+  
   // Manual save functionality
-  const saveDraft = async () => {
+  const saveDraft = useCallback(async () => {
     try {
       // Check if form has minimal required content for draft saving
-      const validation = validateForm();
+      const validation = validateForm(true);
       if (!validation.isValid) {
         // setValidationErrors(validation.errors);
         
@@ -1063,32 +1241,17 @@ function ResumeForm() {
       const response = await resumeAPI.autoSaveDraft(cleanedFormData, editingResumeId);
       
       if (response.success) {
-        // Update the editing resume ID if this is a new draft
-        if (!editingResumeId && response.data.resumeId) {
-          setEditingResumeId(response.data.resumeId);
-        }
-        setLastSaved(new Date());
-        toast.success('Draft saved successfully!');
-        
-        // Route to resume list page after successful draft save
-        setTimeout(() => {
-          navigate('/resumes-list');
-        }, 1500);
+          // Update the editing resume ID if this is a new draft
+          if (!editingResumeId && response.data.resumeId) {
+            setEditingResumeId(response.data.resumeId);
+          }
+          setLastSaved(new Date());
+          setIsDirty(false); // Reset isDirty after successful draft save
+          toast.success('Draft saved successfully!');
       }
     } catch (error) {
       console.error('Save failed:', error);
       
-      // Handle subscription limit exceeded error
-      if (error?.response?.data?.limitReached) {
-        const errorData = error.response.data;
-        toast.error(errorData.error);
-        
-        // Navigate to subscription page if limit is reached
-        setTimeout(() => {
-          navigate('/subscription');
-        }, 2000);
-        return;
-      }
       
       // Handle validation errors
       if (error?.response?.data?.errors) {
@@ -1110,7 +1273,40 @@ function ResumeForm() {
         toast.error('Failed to save draft. Please try again.');
       }
     }
-  };
+  }, [editingResumeId, formData, scrollToFirstError, validateForm]);
+
+  useEffect(() => {
+    if (blocker.state === 'blocked') {
+      Swal.fire({
+        title: 'Are you sure?',
+        text: 'You have unsaved changes. Do you really want to leave?',
+        icon: 'warning',
+        showCancelButton: true,
+        showDenyButton: true,
+        confirmButtonText: 'Yes, leave',
+        cancelButtonText: 'Stay',
+        denyButtonText: 'Save Draft and leave',
+        reverseButtons: true,
+        customClass: {
+          confirmButton:
+            "bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 cursor-not-allowed opacity-75",
+          cancelButton:
+            "bg-gray-200 text-gray-800 font-semibold px-4 py-2 rounded-md hover:bg-gray-300 focus:ring-2 focus:ring-gray-400",
+          denyButton: 'bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded',
+        },
+      }).then(async(result) => {
+        if (result.isConfirmed) {
+          blocker.proceed();
+        } else if(result.isDenied) {
+          await saveDraft();
+          Swal.close();
+          blocker.proceed();
+        } else {
+          blocker.reset();
+        }
+      });
+    }
+  }, [blocker, saveDraft]);
 
   const handleSubmit = async () => {
     try {
@@ -1150,23 +1346,13 @@ function ResumeForm() {
       }
       
       if (response.success) {
+        setIsDirty(false); // Reset isDirty after successful submission
         // Mark resume as completed
         try {
           await resumeAPI.markAsCompleted(resumeId);
         } catch (error) {
           console.error('Failed to mark resume as completed:', error);
           
-          // Handle subscription limit exceeded error
-          if (error?.response?.data?.limitReached) {
-            const errorData = error.response.data;
-            toast.error(errorData.error);
-            
-            // Navigate to subscription page if limit is reached
-            setTimeout(() => {
-              navigate('/subscription');
-            }, 2000);
-            return;
-          }
           
           // Continue anyway as the main save was successful for other errors
         }
@@ -1246,7 +1432,9 @@ function ResumeForm() {
         address: '',
         website: '',
         linkedin: '',
-        github: ''
+        github: '',
+        isAddPhoto: false,
+        profilePicture: ''
       },
       summary: '',
       workExperience: [],
@@ -1260,6 +1448,8 @@ function ResumeForm() {
     });
     setCurrentStep(1);
     setShowClearModal(false);
+    setIsDirty(false); // Reset isDirty state
+    setIsInitialLoad(true);
     toast.success('Form data cleared successfully!');
   };
 
@@ -1318,33 +1508,50 @@ function ResumeForm() {
         
         {/* Upload button or file info */}
         {!uploadedFileName ? (
-          <div
-            onDragEnter={handleDragEnter}
-            onDragLeave={handleDragLeave}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            className={`w-full px-3 py-4 border-2 border-dashed rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-center cursor-pointer ${
-              isDragOver 
-                ? 'border-blue-500 bg-blue-100 text-blue-700' 
-                : 'border-blue-300 hover:border-blue-400 hover:bg-blue-50 text-blue-600'
-            }`}
-            onClick={triggerFileUpload}
-          >
-            {uploadingResume ? (
-              <>
-                <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                <span className="font-medium text-sm">Processing...</span>
-              </>
-            ) : (
-              <>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                <span className="font-medium text-sm">
-                  {isDragOver ? 'Drop resume here' : 'Choose File or Drag & Drop'}
-                </span>
-              </>
-            )}
+          <div className="space-y-3">
+            
+            <div
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              className={`w-full px-3 py-4 border-2 border-dashed rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-center ${
+                !isTokenExhausted 
+                  ? 'cursor-pointer' 
+                  : 'cursor-not-allowed opacity-50'
+              } ${
+                isDragOver && !isTokenExhausted
+                  ? 'border-blue-500 bg-blue-100 text-blue-700' 
+                  : isTokenExhausted
+                  ? 'border-red-300 bg-red-50 text-red-500'
+                  : 'border-blue-300 hover:border-blue-400 hover:bg-blue-50 text-blue-600'
+              }`}
+              onClick={!isTokenExhausted ? triggerFileUpload : undefined}
+              title={isTokenExhausted ? 'AI tokens exhausted - Buy more tokens to continue' : ''}
+            >
+              {uploadingResume ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="font-medium text-sm">Processing...</span>
+                </>
+              ) : isTokenExhausted ? (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                  <span className="font-medium text-sm">Tokens Exhausted</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  <span className="font-medium text-sm">
+                    {isDragOver ? 'Drop resume here' : 'Choose File or Drag & Drop'}
+                  </span>
+                </>
+              )}
+            </div>
           </div>
         ) : (
           <div className="flex items-center justify-between p-2 bg-green-50 border border-green-200 rounded-lg">
@@ -1368,6 +1575,18 @@ function ResumeForm() {
         <p className="text-xs text-gray-500 text-center mt-2">
           PDF, DOCX, DOC (Max 10MB)
         </p>
+        
+        {/* Token exhaustion message */}
+        {isTokenExhausted && (
+          <div className="mt-2 text-center">
+            <span className="text-xs text-red-500">
+              ⚠️ AI tokens exhausted! 
+              <Link to="/payment" className="text-blue-500 hover:text-blue-700 underline ml-1">
+                Buy more tokens
+              </Link> to continue using AI features.
+            </span>
+          </div>
+        )}
       </div>
       
       {/* Basic Information Section */}
@@ -1538,6 +1757,12 @@ function ResumeForm() {
           value={formData.personalInfo.github}
           onChange={(e) => handleInputChange('personalInfo', 'github', e.target.value)}
           placeholder="https://github.com/johndoe"
+        />
+        <FormField
+          label="Add Photo(From Profile)"
+          type="checkbox"
+          value={formData.personalInfo.isAddPhoto}
+          onChange={(e) => handleInputChange('personalInfo', 'isAddPhoto', e.target.checked)}
         />
       </div>
     </div>
@@ -1716,6 +1941,7 @@ function ResumeForm() {
               value={job.description}
               onChange={(value) => handleInputChange('workExperience', 'description', value, index)}
               placeholder="Describe your role and responsibilities..."
+              showAIButton={true}
             />
           </div>
         </div>
@@ -1871,34 +2097,30 @@ function ResumeForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
-                Start Date *
+                Start Date
               </label>
               <CustomDatePicker
-                required
                 value={edu.startDate}
                 onChange={(value) => handleInputChange('education', 'startDate', value, index)}
                 onBlur={() => handleInputBlur('education', 'startDate', index)}
-                hasError={!!validationErrors[`education_${index}_startDate`]}
                 placeholder="Select start date"
               />
-              {validationErrors[`education_${index}_startDate`] && (
-                <p className="text-red-600 text-sm mt-1">{validationErrors[`education_${index}_startDate`]}</p>
-              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
-                End Date
+                End Date *
               </label>
               <CustomDatePicker
                 value={edu.endDate}
                 disabled={edu.isCurrentlyStudying}
                 onChange={(value) => handleInputChange('education', 'endDate', value, index)}
                 onBlur={() => handleInputBlur('education', 'endDate', index)}
-                hasError={!!validationErrors[`education_${index}_dateRange`]}
+                
+                hasError={!!(validationErrors[`education_${index}_endDate`] || validationErrors[`education_${index}_dateRange`])}
                 placeholder="Select end date"
               />
-              {validationErrors[`education_${index}_dateRange`] && (
-                <p className="text-red-600 text-sm mt-1">{validationErrors[`education_${index}_dateRange`]}</p>
+              {(validationErrors[`education_${index}_endDate`] || validationErrors[ `education_${index}_dateRange`]) && (
+                <p className="text-red-600 text-sm mt-1">{validationErrors[`education_${index}_dateRange`] || validationErrors[`education_${index}_endDate`]}</p>
               )}
             </div>
           </div>
@@ -1926,6 +2148,7 @@ function ResumeForm() {
               value={edu.description}
               onChange={(value) => handleInputChange('education', 'description', value, index)}
               placeholder="Relevant coursework, honors, activities..."
+              showAIButton={true}
             />
           </div>
         </div>
@@ -2262,6 +2485,7 @@ function ResumeForm() {
               value={project.description}
               onChange={(value) => handleInputChange('projects', 'description', value, index)}
               placeholder="Describe the project, your role, and key features..."
+              showAIButton={true}
             />
           </div>
         </div>
@@ -2358,6 +2582,7 @@ function ResumeForm() {
               value={achievement.description}
               onChange={(value) => handleInputChange('achievements', 'description', value, index)}
               placeholder="Describe the achievement..."
+              showAIButton={true}
             />
           </div>
         </div>
@@ -2671,15 +2896,15 @@ function ResumeForm() {
       case 4:
         // Validate education - check if any education has been started
         formData.education.forEach((edu, index) => {
-          if (edu.degree || edu.institution || edu.startDate || edu.endDate || edu.description) {
+          if (edu.degree || edu.institution || edu.endDate || edu.description) {
             if (!validators.required(edu.degree)) {
               errors[`education_${index}_degree`] = 'Degree is required';
             }
             if (!validators.required(edu.institution)) {
               errors[`education_${index}_institution`] = 'Institution is required';
             }
-            if (!validators.required(edu.startDate)) {
-              errors[`education_${index}_startDate`] = 'Start date is required';
+            if (!validators.required(edu.endDate)) {
+              errors[`education_${index}_endDate`] = 'End date is required';
             }
             if (edu.startDate && edu.endDate && !edu.isCurrentlyStudying) {
               if (!validators.dateRange(edu.startDate, edu.endDate)) {
@@ -2692,12 +2917,12 @@ function ResumeForm() {
         // Check if at least one complete education is required for final submission
         let hasValidEducation = false;
         formData.education.forEach((edu) => {
-          if (edu.degree && edu.institution && edu.startDate && edu.gpa) {
+          if (edu.degree && edu.institution && edu.endDate && edu.gpa) {
             hasValidEducation = true;
           }
         });
         if (!hasValidEducation) {
-          errors.education = 'At least one education entry is required (Degree, Institution, Start Date, and GPA)';
+          errors.education = 'At least one education entry is required (Degree, Institution, End Date, and GPA)';
         }
         break;
       default:
@@ -2908,7 +3133,7 @@ function ResumeForm() {
           </div>
           
           {/* Navigation Buttons */}
-          <div className="flex justify-between items-center gap-2 sm:gap-3">
+          <div className="flex justify-between items-center gap-2 sm:gap-3 pt-4 sm:pt-6">
             <button
               onClick={prevStep}
               disabled={currentStep === 1}
@@ -2919,6 +3144,16 @@ function ResumeForm() {
               </svg>
               <span className="hidden sm:inline">Previous</span>
             </button>
+            {isEditMode && (
+              <button
+                type="button"
+                onClick={handleSubmit}
+                className="px-2 py-2 sm:px-6 sm:py-3 text-white rounded-lg bg-gradient-to-br from-green-400 to-green-600 rounded-md hover:from-green-500 hover:to-green-500 transition-all duration-200 flex items-center justify-center gap-1 sm:gap-2 font-semibold text-sm sm:text-base min-w-0 flex-shrink-0"
+              >
+                <BookmarkIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">Save Now</span>
+              </button>
+            )}
 
             <button
               onClick={nextStep}
@@ -2971,7 +3206,7 @@ function ResumeForm() {
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">Clear Form Data</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300">This action cannot be undone</p>
+                <p className="text-sm text-red-600 dark:text-red-500">This action cannot be undone</p>
               </div>
             </div>
             
@@ -3000,4 +3235,4 @@ function ResumeForm() {
   );
 }
 
-export default ResumeForm; 
+export default ResumeForm;
