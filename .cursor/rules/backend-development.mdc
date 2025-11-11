@@ -1,0 +1,100 @@
+---
+globs: backend/**/*.js,backend/**/*.json
+---
+
+# Backend Development Rules
+
+## 🚀 Node.js/Express Backend Guidelines
+
+### **Server Configuration**
+- **Main Server**: [backend/server.js](mdc:backend/server.js) - Express app with security middleware
+- **Port**: Default 5000, configurable via `PORT` environment variable
+- **Environment**: Development/Production modes with appropriate configurations
+
+### **API Structure**
+- **Base URL**: `/api` prefix for all routes
+- **Authentication**: JWT-based with refresh tokens
+- **Rate Limiting**: 100 requests/15min (production), 1000 requests/15min (development)
+- **CORS**: Configured for mobile apps and web clients
+
+### **Route Organization**
+- **Auth Routes**: [backend/routes/auth.js](mdc:backend/routes/auth.js) - Login, register, OAuth
+- **User Routes**: [backend/routes/users.js](mdc:backend/routes/users.js) - Profile management
+- **Resume Routes**: [backend/routes/resumes.js](mdc:backend/routes/resumes.js) - CRUD operations
+- **Template Routes**: [backend/routes/templates.js](mdc:backend/routes/templates.js) - Template management
+- **Subscription Routes**: [backend/routes/subscriptions.js](mdc:backend/routes/subscriptions.js) - Payment plans
+- **Upload Routes**: [backend/routes/uploads.js](mdc:backend/routes/uploads.js) - File handling
+- **AI Routes**: [backend/routes/ai.js](mdc:backend/routes/ai.js) - AI-powered features
+
+### **Database Models**
+- **User Model**: [backend/models/User.js](mdc:backend/models/User.js) - User authentication and profile
+- **Resume Model**: [backend/models/Resume.js](mdc:backend/models/Resume.js) - Resume data structure
+- **Template Model**: [backend/models/Template.js](mdc:backend/models/Template.js) - Template definitions
+- **Subscription Model**: [backend/models/Subscription.js](mdc:backend/models/Subscription.js) - Payment plans
+- **Contact Model**: [backend/models/Contact.js](mdc:backend/models/Contact.js) - Contact form submissions
+
+### **Security Implementation**
+- **Authentication**: [backend/middleware/auth.js](mdc:backend/middleware/auth.js) - JWT protection
+- **XSS Protection**: Custom sanitization for resume content with CKEditor support
+- **MongoDB Injection**: `express-mongo-sanitize` middleware
+- **Rate Limiting**: `express-rate-limit` with OAuth exclusions
+- **CORS**: Configured for mobile and web clients
+
+### **AI Integration**
+- **Gemini Service**: [backend/services/geminiservice.js](mdc:backend/services/geminiservice.js) - Google AI integration
+- **Document Parser**: [backend/utils/documentParser.js](mdc:backend/utils/documentParser.js) - PDF/Word parsing
+- **Token System**: [backend/utils/tokenCalculator.js](mdc:backend/utils/tokenCalculator.js) - AI usage tracking
+
+### **File Handling**
+- **Uploads**: [backend/routes/uploads.js](mdc:backend/routes/uploads.js) - Profile pictures and documents
+- **Static Files**: Thumbnails and uploads served with proper caching
+- **Document Processing**: PDF and Word document parsing with AI
+
+### **Payment Integration**
+- **Razorpay**: [backend/routes/payment.js](mdc:backend/routes/payment.js) - Payment processing
+- **Subscription Plans**: Free, Pro Monthly, Pro Yearly with trial periods
+- **Token System**: AI action usage tracking and limits
+
+### **Development Scripts**
+- **Build Scripts**: [backend/scripts/](mdc:backend/scripts/) - Build and deployment utilities
+- **Template Management**: Template seeding and thumbnail generation
+- **Database Utilities**: User management and data migration scripts
+
+### **Error Handling**
+- **Global Handler**: [backend/middleware/errorHandler.js](mdc:backend/middleware/errorHandler.js)
+- **Logging**: Winston logger with file and console output
+- **Graceful Shutdown**: MongoDB connection cleanup
+
+### **Environment Variables**
+```env
+# Required
+JWT_SECRET=your-jwt-secret
+MONGODB_URI=mongodb://localhost:27017/resumebuilder
+CLIENT_URL=http://localhost:3000
+
+# Optional
+GOOGLE_CLIENT_ID=oauth-client-id
+RAZORPAY_SECRET_KEY=payment-secret
+CLOUDINARY_CLOUD_NAME=cloud-storage
+```
+
+### **API Response Format**
+```javascript
+// Success Response
+{
+  "success": true,
+  "data": { /* response data */ }
+}
+
+// Error Response
+{
+  "success": false,
+  "error": "Error message"
+}
+```
+
+### **Testing and Development**
+- **Health Check**: `GET /health` - Server status endpoint
+- **Development**: `npm run dev` with nodemon
+- **Production**: `npm start` with proper error handling
+- **Database**: MongoDB with Mongoose ODM

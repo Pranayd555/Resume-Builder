@@ -1,181 +1,85 @@
 const express = require('express');
 const router = express.Router();
-const { body, validationResult, query } = require('express-validator');
 const Contact = require('../models/Contact');
 const { protect, authorize } = require('../middleware/auth');
 const logger = require('../utils/logger');
 const emailService = require('../utils/emailService');
 
-// @desc    Submit contact form
-// @route   POST /api/contact
-// @access  Public
-router.post('/', [
-  body('name')
-    .trim()
-    .isLength({ min: 1, max: 100 })
-    .withMessage('Name is required and must be less than 100 characters'),
-  body('email')
-    .isEmail()
-    .normalizeEmail()
-    .withMessage('Please provide a valid email'),
-  body('subject')
-    .trim()
-    .isLength({ min: 1, max: 200 })
-    .withMessage('Subject is required and must be less than 200 characters'),
-  body('message')
-    .trim()
-    .isLength({ min: 1, max: 2000 })
-    .withMessage('Message is required and must be less than 2000 characters'),
-  body('category')
-    .optional()
-    .isIn(['general', 'technical', 'billing', 'feature', 'bug', 'partnership'])
-    .withMessage('Invalid category')
-], async (req, res) => {
-  try {
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
-    }
-
-    const { name, email, subject, message, category = 'general' } = req.body;
-
-    // Get client information
-    const userAgent = req.get('User-Agent') || '';
-    const ipAddress = req.ip || req.connection.remoteAddress || '';
-
-    // Create contact
-    const contact = await Contact.create({
-      name,
-      email,
-      subject,
-      message,
-      category,
-      userAgent,
-      ipAddress
-    });
-
-    // Send email notification to admin
-    try {
-      await emailService.sendContactNotification({
-        contactId: contact._id,
-        name,
-        email,
-        subject,
-        message,
-        category,
-        createdAt: contact.createdAt
-      });
-      
-      logger.info(`Contact email sent for contact ID: ${contact._id}`);
-    } catch (emailError) {
-      logger.error('Failed to send contact email:', emailError);
-      // Don't fail the request if email fails
-    }
-
-    // Send auto-reply to user
-    try {
-      await emailService.sendContactAutoReply({
-        name,
-        email,
-        subject,
-        category
-      });
-      
-      logger.info(`Contact auto-reply sent to: ${email}`);
-    } catch (emailError) {
-      logger.error('Failed to send contact auto-reply:', emailError);
-      // Don't fail the request if auto-reply fails
-    }
-
-    logger.info(`New contact submission: ${name} (${email}) - ${category}`);
-
-    res.status(201).json({
-      success: true,
-      message: 'Contact form submitted successfully. We will get back to you within 24 hours.',
-      data: {
-        contactId: contact._id,
-        status: contact.status,
-        category: contact.category
-      }
-    });
-
-  } catch (error) {
-    logger.error('Contact submission error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to submit contact form. Please try again later.',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
-    });
-  }
-});
-
-// @desc    Get all contacts (Admin only)
+// @desc    Get all contacts with pagination and filtering
 // @route   GET /api/contact
 // @access  Private/Admin
-router.get('/', protect, authorize('admin'), [
-  query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-  query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
-  query('status').optional().isIn(['new', 'in-progress', 'responded', 'resolved', 'closed']).withMessage('Invalid status'),
-  query('category').optional().isIn(['general', 'technical', 'billing', 'feature', 'bug', 'partnership']).withMessage('Invalid category'),
-  query('priority').optional().isIn(['low', 'medium', 'high', 'urgent']).withMessage('Invalid priority')
-], async (req, res) => {
+router.get('/', protect, authorize('admin'), async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
+    const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
-
+    
     // Build filter object
     const filter = {};
-    if (req.query.status) filter.status = req.query.status;
-    if (req.query.category) filter.category = req.query.category;
-    if (req.query.priority) filter.priority = req.query.priority;
+    if (req.query.status) {
+      filter.status = req.query.status;
+    }
+    if (req.query.category) {
+      filter.category = req.query.category;
+    }
+    if (req.query.priority) {
+      filter.priority = req.query.priority;
+    }
+    if (req.query.search) {
+      filter.$or = [
+        { name: { $regex: req.query.search, $options: 'i' } },
+        { email: { $regex: req.query.search, $options: 'i' } },
+        { subject: { $regex: req.query.search, $options: 'i' } }
+      ];
+    }
 
     // Get contacts with pagination
     const contacts = await Contact.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .select('-userAgent -ipAddress');
+      .populate('respondedBy', 'firstName lastName email');
 
-    // Get total count
+    // Get total count for pagination
     const total = await Contact.countDocuments(filter);
+
+    // Get contact statistics
+    const stats = await Contact.getStats();
 
     res.json({
       success: true,
-      data: contacts,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
+      data: {
+        contacts,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit)
+        },
+        stats
       }
     });
-
   } catch (error) {
     logger.error('Get contacts error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch contacts',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      error: 'Failed to fetch contacts'
     });
   }
 });
 
-// @desc    Get contact by ID (Admin only)
+// @desc    Get single contact by ID
 // @route   GET /api/contact/:id
 // @access  Private/Admin
 router.get('/:id', protect, authorize('admin'), async (req, res) => {
   try {
-    const contact = await Contact.findById(req.params.id);
-    
+    const contact = await Contact.findById(req.params.id)
+      .populate('respondedBy', 'firstName lastName email');
+
     if (!contact) {
       return res.status(404).json({
         success: false,
-        message: 'Contact not found'
+        error: 'Contact not found'
       });
     }
 
@@ -183,204 +87,262 @@ router.get('/:id', protect, authorize('admin'), async (req, res) => {
       success: true,
       data: contact
     });
-
   } catch (error) {
     logger.error('Get contact error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch contact',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      error: 'Failed to fetch contact'
     });
   }
 });
 
-// @desc    Update contact status (Admin only)
+// @desc    Update contact status
 // @route   PUT /api/contact/:id/status
 // @access  Private/Admin
-router.put('/:id/status', protect, authorize('admin'), [
-  body('status')
-    .isIn(['new', 'in-progress', 'responded', 'resolved', 'closed'])
-    .withMessage('Invalid status'),
-  body('priority')
-    .optional()
-    .isIn(['low', 'medium', 'high', 'urgent'])
-    .withMessage('Invalid priority'),
-  body('adminNotes')
-    .optional()
-    .isLength({ max: 1000 })
-    .withMessage('Admin notes cannot exceed 1000 characters')
-], async (req, res) => {
+router.put('/:id/status', protect, authorize('admin'), async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
+    const { status } = req.body;
+    
+    if (!['new', 'in-progress', 'responded', 'resolved', 'closed'].includes(status)) {
       return res.status(400).json({
         success: false,
-        errors: errors.array()
+        error: 'Invalid status'
       });
     }
 
-    const { status, priority, adminNotes } = req.body;
-    const updateData = { status };
-    
-    if (priority) updateData.priority = priority;
-    if (adminNotes) updateData.adminNotes = adminNotes;
-
-    const contact = await Contact.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true, runValidators: true }
-    );
-
+    const contact = await Contact.findById(req.params.id);
     if (!contact) {
       return res.status(404).json({
         success: false,
-        message: 'Contact not found'
+        error: 'Contact not found'
       });
     }
 
-    logger.info(`Contact ${req.params.id} status updated to ${status} by admin ${req.user.id}`);
+    contact.status = status;
+    if (status === 'responded' || status === 'resolved') {
+      contact.respondedBy = req.user.id;
+      contact.respondedAt = new Date();
+    }
+
+    await contact.save();
 
     res.json({
       success: true,
-      message: 'Contact status updated successfully',
       data: contact
     });
-
   } catch (error) {
     logger.error('Update contact status error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update contact status',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      error: 'Failed to update contact status'
     });
   }
 });
 
-// @desc    Add response to contact (Admin only)
-// @route   PUT /api/contact/:id/response
+// @desc    Update contact priority
+// @route   PUT /api/contact/:id/priority
 // @access  Private/Admin
-router.put('/:id/response', protect, authorize('admin'), [
-  body('response')
-    .trim()
-    .isLength({ min: 1, max: 2000 })
-    .withMessage('Response is required and must be less than 2000 characters')
-], async (req, res) => {
+router.put('/:id/priority', protect, authorize('admin'), async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
+    const { priority } = req.body;
+    
+    if (!['low', 'medium', 'high', 'urgent'].includes(priority)) {
       return res.status(400).json({
         success: false,
-        errors: errors.array()
+        error: 'Invalid priority'
       });
     }
 
-    const { response } = req.body;
-
-    const contact = await Contact.findByIdAndUpdate(
-      req.params.id,
-      {
-        response,
-        respondedBy: req.user.id,
-        respondedAt: new Date(),
-        status: 'responded'
-      },
-      { new: true, runValidators: true }
-    );
-
+    const contact = await Contact.findById(req.params.id);
     if (!contact) {
       return res.status(404).json({
         success: false,
-        message: 'Contact not found'
+        error: 'Contact not found'
       });
     }
 
-    // Send response email to user
+    contact.priority = priority;
+    await contact.save();
+
+    res.json({
+      success: true,
+      data: contact
+    });
+  } catch (error) {
+    logger.error('Update contact priority error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update contact priority'
+    });
+  }
+});
+
+// @desc    Add response to contact
+// @route   POST /api/contact/:id/response
+// @access  Private/Admin
+router.post('/:id/response', protect, authorize('admin'), async (req, res) => {
+  try {
+    const { response } = req.body;
+
+    if (!response || response.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Response is required'
+      });
+    }
+
+    const contact = await Contact.findById(req.params.id);
+    if (!contact) {
+      return res.status(404).json({
+        success: false,
+        error: 'Contact not found'
+      });
+    }
+
+    // Get admin information for the email
+    const adminUser = await require('../models/User').findById(req.user.id);
+    if (!adminUser) {
+      return res.status(404).json({
+        success: false,
+        error: 'Admin user not found'
+      });
+    }
+
+    const adminName = `${adminUser.firstName} ${adminUser.lastName}`.trim();
+
+    contact.response = response;
+    contact.status = 'responded';
+    contact.respondedBy = req.user.id;
+    contact.respondedAt = new Date();
+    await contact.save();
+
+    // Send email response to user using contact-response.html template
     try {
       await emailService.sendContactResponse({
         name: contact.name,
         email: contact.email,
         subject: contact.subject,
         response: response,
-        adminName: req.user.name || 'Support Team'
+        adminName: adminName
       });
-      
-      logger.info(`Contact response sent to: ${contact.email}`);
+
+      logger.info(`Contact response email sent to ${contact.email} for contact ID ${contact._id}`);
     } catch (emailError) {
       logger.error('Failed to send contact response email:', emailError);
-      // Don't fail the request if email fails
+      // Don't fail the entire request if email fails, but log it
+      // The response was still saved successfully
     }
-
-    logger.info(`Response added to contact ${req.params.id} by admin ${req.user.id}`);
 
     res.json({
       success: true,
-      message: 'Response added successfully',
       data: contact
     });
-
   } catch (error) {
     logger.error('Add contact response error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to add response',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      error: 'Failed to add response'
     });
   }
 });
 
-// @desc    Get contact statistics (Admin only)
-// @route   GET /api/contact/stats/overview
+// @desc    Add admin notes to contact
+// @route   POST /api/contact/:id/notes
 // @access  Private/Admin
-router.get('/stats/overview', protect, authorize('admin'), async (req, res) => {
+router.post('/:id/notes', protect, authorize('admin'), async (req, res) => {
   try {
-    const stats = await Contact.getStats();
-    const categoryStats = await Contact.getByCategory();
+    const { adminNotes } = req.body;
+    
+    const contact = await Contact.findById(req.params.id);
+    if (!contact) {
+      return res.status(404).json({
+        success: false,
+        error: 'Contact not found'
+      });
+    }
+
+    contact.adminNotes = adminNotes;
+    await contact.save();
 
     res.json({
       success: true,
-      data: {
-        overview: stats,
-        byCategory: categoryStats
-      }
+      data: contact
     });
-
   } catch (error) {
-    logger.error('Get contact stats error:', error);
+    logger.error('Add contact notes error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch contact statistics',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      error: 'Failed to add notes'
     });
   }
 });
 
-// @desc    Delete contact (Admin only)
+// @desc    Delete contact
 // @route   DELETE /api/contact/:id
 // @access  Private/Admin
 router.delete('/:id', protect, authorize('admin'), async (req, res) => {
   try {
-    const contact = await Contact.findByIdAndDelete(req.params.id);
-
+    const contact = await Contact.findById(req.params.id);
     if (!contact) {
       return res.status(404).json({
         success: false,
-        message: 'Contact not found'
+        error: 'Contact not found'
       });
     }
 
-    logger.info(`Contact ${req.params.id} deleted by admin ${req.user.id}`);
+    await Contact.findByIdAndDelete(req.params.id);
 
     res.json({
       success: true,
       message: 'Contact deleted successfully'
     });
-
   } catch (error) {
     logger.error('Delete contact error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to delete contact',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      error: 'Failed to delete contact'
+    });
+  }
+});
+
+// @desc    Get contact statistics
+// @route   GET /api/contact/stats/overview
+// @access  Private/Admin
+router.get('/stats/overview', protect, authorize('admin'), async (req, res) => {
+  try {
+    const stats = await Contact.getStats();
+    
+    // Get category distribution
+    const categoryStats = await Contact.getByCategory();
+    
+    // Get priority distribution
+    const priorityStats = await Contact.aggregate([
+      {
+        $group: {
+          _id: '$priority',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const priorityDistribution = priorityStats.reduce((acc, stat) => {
+      acc[stat._id] = stat.count;
+      return acc;
+    }, {});
+
+    res.json({
+      success: true,
+      data: {
+        ...stats,
+        categoryStats,
+        priorityDistribution
+      }
+    });
+  } catch (error) {
+    logger.error('Get contact stats error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch contact statistics'
     });
   }
 });

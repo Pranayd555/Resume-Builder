@@ -37,12 +37,15 @@ function PrivacyPolicy() {
               <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-4">1. Information We Collect</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
                 We collect information you provide directly to us, such as when you create an account, 
-                create or edit a resume, or contact us for support. This may include:
+                create or edit a resume, purchase tokens, or contact us for support. This may include:
               </p>
               <ul className="list-disc pl-6 text-gray-600 dark:text-gray-400 space-y-2">
                 <li>Name, email address, and contact information</li>
                 <li>Resume content and personal information you include</li>
                 <li>Account preferences and settings</li>
+                <li>Token purchase and usage history</li>
+                <li>AI feature usage patterns and preferences</li>
+                <li>Payment information (processed securely through Razorpay)</li>
                 <li>Communication history with our support team</li>
               </ul>
             </section>
@@ -55,9 +58,13 @@ function PrivacyPolicy() {
               <ul className="list-disc pl-6 text-gray-600 dark:text-gray-400 space-y-2">
                 <li>Provide, maintain, and improve our services</li>
                 <li>Process your resume creation and editing requests</li>
+                <li>Deliver AI-powered features and token-based services</li>
+                <li>Process token purchases and manage your account balance</li>
                 <li>Send you technical notices and support messages</li>
                 <li>Respond to your comments and questions</li>
+                <li>Analyze usage patterns to improve AI features</li>
                 <li>Protect against fraudulent or illegal activity</li>
+                <li>Comply with legal obligations and enforce our terms</li>
               </ul>
             </section>
 
@@ -69,6 +76,8 @@ function PrivacyPolicy() {
               </p>
               <ul className="list-disc pl-6 text-gray-600 dark:text-gray-400 space-y-2">
                 <li>With your explicit permission</li>
+                <li>With payment processors (Razorpay) for transaction processing</li>
+                <li>With AI service providers for feature delivery (anonymized data only)</li>
                 <li>To comply with legal obligations</li>
                 <li>To protect our rights and safety</li>
                 <li>In connection with a business transfer or merger</li>
@@ -79,8 +88,17 @@ function PrivacyPolicy() {
               <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-4">4. Data Security</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
                 We implement appropriate security measures to protect your personal information against 
-                unauthorized access, alteration, disclosure, or destruction. However, no method of 
-                transmission over the internet is 100% secure.
+                unauthorized access, alteration, disclosure, or destruction. Our security measures include:
+              </p>
+              <ul className="list-disc pl-6 text-gray-600 dark:text-gray-400 space-y-2">
+                <li>End-to-end encryption for all data transmission</li>
+                <li>Secure payment processing through Razorpay</li>
+                <li>Regular security audits and updates</li>
+                <li>Access controls and authentication protocols</li>
+                <li>Secure cloud storage with industry-standard encryption</li>
+              </ul>
+              <p className="text-gray-600 dark:text-gray-400 mt-4 leading-relaxed">
+                However, no method of transmission over the internet is 100% secure, and we cannot guarantee absolute security.
               </p>
             </section>
 
@@ -91,15 +109,35 @@ function PrivacyPolicy() {
               </p>
               <ul className="list-disc pl-6 text-gray-600 dark:text-gray-400 space-y-2">
                 <li>Access and update your personal information</li>
+                <li>View your token balance and usage history</li>
                 <li>Delete your account and associated data</li>
                 <li>Opt out of marketing communications</li>
-                <li>Request a copy of your data</li>
+                <li>Request a copy of your data (including resume data)</li>
+                <li>Withdraw consent for data processing</li>
+                <li>Request data portability</li>
                 <li>Lodge a complaint with supervisory authorities</li>
               </ul>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-4">6. Cookies and Tracking</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-4">6. AI and Token Data Processing</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
+                When you use our AI-powered features, we process your resume data to provide:
+              </p>
+              <ul className="list-disc pl-6 text-gray-600 dark:text-gray-400 space-y-2">
+                <li>Content suggestions and improvements</li>
+                <li>ATS compatibility analysis</li>
+                <li>Resume optimization recommendations</li>
+                <li>Formatting and structure enhancements</li>
+              </ul>
+              <p className="text-gray-600 dark:text-gray-400 mt-4 leading-relaxed">
+                Your resume data is processed securely and is not used to train AI models or shared with third parties. 
+                Token usage is tracked for billing purposes and service improvement.
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-4">7. Cookies and Tracking</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
                 We use cookies and similar tracking technologies to enhance your experience, 
                 analyze usage patterns, and provide personalized content. You can control 
@@ -108,7 +146,7 @@ function PrivacyPolicy() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-4">7. Children's Privacy</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-4">8. Children's Privacy</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
                 Our services are not intended for children under 13 years of age. We do not 
                 knowingly collect personal information from children under 13.
@@ -116,7 +154,7 @@ function PrivacyPolicy() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-4">8. Changes to This Policy</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-4">9. Changes to This Policy</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
                 We may update this privacy policy from time to time. We will notify you of 
                 any changes by posting the new policy on this page and updating the "Last updated" date.
@@ -124,7 +162,7 @@ function PrivacyPolicy() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-4">9. Contact Us</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-4">10. Contact Us</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
                 If you have any questions about this privacy policy, please contact us at:
               </p>

@@ -1,10 +1,9 @@
 import axios from 'axios';
-import { API_BASE_URL } from '../config/api';
 import { createApiConfig } from '../config/timeouts';
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: process.env.REACT_APP_API_URL,
   timeout: 30000, // Increased from 10 seconds to 30 seconds
   headers: {
     'Content-Type': 'application/json',
@@ -27,7 +26,34 @@ api.interceptors.request.use(
 
 // Normalize API error responses in one place and avoid duplicate UI toasts
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Check if response contains token balance and update it
+    if (response.data) {
+      // Check for tokens in multiple possible locations
+      let tokenBalance = null;
+      let tokenData = null;
+      
+      // Check direct tokens field
+      if (response.data.tokens !== undefined) {
+        tokenBalance = response.data.tokens;
+      }
+      // Check data.tokens (new structure with bonus tokens)
+      else if (response.data.data?.tokens !== undefined) {
+        tokenData = response.data.data.tokens;
+        tokenBalance = response.data.data.tokens?.balance;
+      }
+      
+      if (tokenBalance !== null) {
+        apiHelpers.updateTokenBalance(tokenBalance);
+      }
+      
+      if (tokenData) {
+        console.log('🔄 API Response: Updating token data:', tokenData);
+        apiHelpers.updateTokenData(tokenData);
+      }
+    }
+    return response;
+  },
   async (error) => {
     // If the backend returned a Blob (e.g., when responseType is 'blob'), try to parse JSON error
     if (error?.response?.data instanceof Blob) {
@@ -110,11 +136,18 @@ export const authAPI = {
     return response.data;
   },
 
-  forgotPassword: async (email) => {
+  forgotPassword: async (email, otp, newPassword) => {
     const config = createApiConfig('/auth/forgot-password');
-    const response = await api.post('/auth/forgot-password', { email }, config);
+    const response = await api.post('/auth/forgot-password', { email, otp, newPassword }, config);
     return response.data;
   },
+
+  forgotEmailVerification: async (email) => {
+    const config = createApiConfig('/auth/forgot-password-otp-verification');
+    const response = await api.post('/auth/forgot-password-otp-verification', { email }, config);
+    return response.data;
+  },
+
 
   resetPassword: async (resetData) => {
     const config = createApiConfig('/auth/reset-password');
@@ -324,6 +357,21 @@ export const analyticsAPI = {
     const response = await api.get('/analytics/summary', config);
     return response.data;
   },
+
+  getTokenBalance: async () => {
+    const config = createApiConfig('/analytics/tokens');
+    const response = await api.get('/analytics/tokens', config);
+    return response.data;
+  },
+
+  requestRefund: async (transactionId, reason) => {
+    const config = createApiConfig('/payment/request-refund');
+    const response = await api.post('/payment/request-refund', {
+      transactionId,
+      reason
+    }, config);
+    return response.data;
+  },
 };
 
 // Template API calls
@@ -359,77 +407,6 @@ export const templateAPI = {
   },
 };
 
-// Subscription API calls
-export const subscriptionAPI = {
-  getCurrentSubscription: async () => {
-    const config = createApiConfig('/subscriptions/current');
-    const response = await api.get('/subscriptions/current', config);
-    return response.data;
-  },
-
-  getPlans: async () => {
-    const config = createApiConfig('/subscriptions/plans');
-    const response = await api.get('/subscriptions/plans', config);
-    return response.data;
-  },
-
-  getTrialInfo: async () => {
-    const config = createApiConfig('/subscriptions/trial-info');
-    const response = await api.get('/subscriptions/trial-info', config);
-    return response.data;
-  },
-
-  getTrialEligibility: async () => {
-    const config = createApiConfig('/subscriptions/current');
-    const response = await api.get('/subscriptions/current', config);
-    return response.data;
-  },
-
-  startTrial: async (trialType) => {
-    const config = createApiConfig('/subscriptions/start-trial');
-    const response = await api.post('/subscriptions/start-trial', { trialType }, config);
-    return response.data;
-  },
-
-  createCheckoutSession: async (planId, billingCycle) => {
-    const config = createApiConfig('/subscriptions/create-checkout-session');
-    const response = await api.post('/subscriptions/create-checkout-session', { 
-      plan: planId, 
-      billing: billingCycle 
-    }, config);
-    return response.data;
-  },
-
-  handleSubscriptionSuccess: async (sessionId) => {
-    const config = createApiConfig('/subscriptions/success');
-    const response = await api.post('/subscriptions/success', { sessionId }, config);
-    return response.data;
-  },
-
-  cancelSubscription: async (reason) => {
-    const config = createApiConfig('/subscriptions/cancel');
-    const response = await api.post('/subscriptions/cancel', { reason }, config);
-    return response.data;
-  },
-
-  reactivateSubscription: async () => {
-    const config = createApiConfig('/subscriptions/reactivate');
-    const response = await api.post('/subscriptions/reactivate', {}, config);
-    return response.data;
-  },
-
-  getBillingHistory: async () => {
-    const config = createApiConfig('/subscriptions/billing-history');
-    const response = await api.get('/subscriptions/billing-history', config);
-    return response.data;
-  },
-
-  updatePaymentMethod: async (paymentMethodId) => {
-    const config = createApiConfig('/subscriptions/update-payment-method');
-    const response = await api.post('/subscriptions/update-payment-method', { paymentMethodId }, config);
-    return response.data;
-  },
-};
 
 // Upload API calls
 export const uploadAPI = {
@@ -483,78 +460,7 @@ export const uploadAPI = {
   },
 };
 
-// AI API calls
-export const aiAPI = {
-  generateATSScore: async (resumeId, inputType, jobDescription = null, jobDescriptionFile = null) => {
-    const formData = new FormData();
-    formData.append('resumeId', resumeId);
-    formData.append('inputType', inputType);
-    
-    if (inputType === 'text' && jobDescription) {
-      formData.append('jobDescription', jobDescription);
-    } else if (inputType === 'file' && jobDescriptionFile) {
-      formData.append('jobDescriptionFile', jobDescriptionFile);
-    }
-
-    const config = createApiConfig('/ai/ats-score', {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    const response = await api.post('/ai/ats-score', formData, config);
-    return response.data;
-  },
-
-  rewriteContent: async (content, tone = 'professional', style = 'action-oriented') => {
-    const config = createApiConfig('/ai/rewrite');
-    const response = await api.post('/ai/rewrite', {
-      content,
-      tone,
-      style
-    }, config);
-    return response.data;
-  },
-
-  summarizeContent: async (content, maxLength = 150) => {
-    const config = createApiConfig('/ai/summarize');
-    const response = await api.post('/ai/summarize', {
-      content,
-      maxLength
-    }, config);
-    return response.data;
-  },
-
-  // ATS-based AI endpoints
-  adjustTone: async (resumeId, requestData) => {
-    const config = createApiConfig('/ai/adjust-tone');
-    const response = await api.post('/ai/adjust-tone', {
-      resumeId,
-      ...requestData
-    }, config);
-    return response.data;
-  },
-
-  enhanceKeywords: async (resumeId, requestData) => {
-    const config = createApiConfig('/ai/enhance-keywords');
-    const response = await api.post('/ai/enhance-keywords', {
-      resumeId,
-      ...requestData
-    }, config);
-    return response.data;
-  },
-
-  getAIUsage: async () => {
-    const config = createApiConfig('/ai/usage');
-    const response = await api.get('/ai/usage', config);
-    return response.data;
-  },
-
-  getATSAnalysis: async (resumeId) => {
-    const config = createApiConfig('/ai/ats-score');
-    const response = await api.get(`/ai/ats-score/${resumeId}`, config);
-    return response.data;
-  },
-};
+// AI services have been moved to aiService.js
 
 // User API calls
 export const userAPI = {
@@ -683,13 +589,51 @@ export const contactAPI = {
   }
 };
 
+// Payment API
+export const paymentAPI = {
+  // Create Razorpay order
+  createOrder: async (orderData) => {
+    const config = createApiConfig('/payment/create-order');
+    const response = await api.post('/payment/create-order', orderData, config);
+    return response.data;
+  },
+
+  // Complete token purchase
+  completeTokenPurchase: async (paymentData) => {
+    const config = createApiConfig('/payment/complete-token-purchase');
+    const response = await api.post('/payment/complete-token-purchase', paymentData, config);
+    return response.data;
+  },
+
+  // Get payment history
+  getPaymentHistory: async () => {
+    const config = createApiConfig('/payment/history');
+    const response = await api.get('/payment/history', config);
+    return response.data;
+  },
+
+  // Get Razorpay key
+  getRazorpayKey: async () => {
+    const config = createApiConfig('/payment/razorpay-key');
+    const response = await api.get('/payment/razorpay-key', config);
+    return response.data;
+  },
+
+  // Verify payment signature
+  verifySignature: async (signatureData) => {
+    const config = createApiConfig('/payment/verify-signature');
+    const response = await api.post('/payment/verify-signature', signatureData, config);
+    return response.data;
+  }
+};
+
 // Helper functions
 export const apiHelpers = {
   //normalize url
     normalizeUrl: (url) => {
       try {
         // Ensure any localhost:5000 absolute URL is swapped to our backend origin
-        const apiOrigin = new URL(API_BASE_URL).origin;
+        const apiOrigin = new URL(process.env.REACT_APP_API_URL).origin;
         const resolved = new URL(url, apiOrigin); // resolves relative paths against apiOrigin
         const isLocalhost5000 = resolved.origin.startsWith('http://localhost:5000');
         if (isLocalhost5000) {
@@ -719,6 +663,8 @@ export const apiHelpers = {
   clearAuthData: () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
+    localStorage.removeItem('tokenBalance');
+    localStorage.removeItem('tokenData');
   },
 
   // Format error message
@@ -748,6 +694,62 @@ export const apiHelpers = {
   setCurrentUserData: (userData) => {
     localStorage.setItem('user', JSON.stringify(userData));
   },
+
+  // Token management functions
+  setTokenBalance: (balance) => {
+    localStorage.setItem('tokenBalance', JSON.stringify(balance));
+  },
+
+  getTokenBalance: () => {
+    const balance = localStorage.getItem('tokenBalance');
+    return balance ? JSON.parse(balance) : 0;
+  },
+
+  setTokenData: (tokenData) => {
+    localStorage.setItem('tokenData', JSON.stringify(tokenData));
+  },
+
+  getTokenData: () => {
+    const tokenData = localStorage.getItem('tokenData');
+    return tokenData ? JSON.parse(tokenData) : null;
+  },
+
+  clearTokenData: () => {
+    localStorage.removeItem('tokenBalance');
+    localStorage.removeItem('tokenData');
+  },
+
+  // Update token balance across the app
+  updateTokenBalance: (newBalance) => {
+    apiHelpers.setTokenBalance(newBalance);
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent('tokenBalanceUpdated', { 
+      detail: { balance: newBalance } 
+    }));
+  },
+
+  // Update token data with bonus tokens
+  updateTokenData: (tokenData) => {
+    apiHelpers.setTokenData(tokenData);
+    // Update balance as well
+    if (tokenData.balance !== undefined) {
+      apiHelpers.updateTokenBalance(tokenData.balance);
+    }
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent('tokenDataUpdated', { 
+      detail: tokenData 
+    }));
+  },
+
+  // Update user data
+  updateUserData: (userData) => {
+    apiHelpers.setCurrentUserData(userData);
+    
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent('userDataUpdated', {
+      detail: userData
+    }));
+  },
 };
 
-export default api; 
+export default api;

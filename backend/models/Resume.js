@@ -58,6 +58,15 @@ const resumeSchema = new mongoose.Schema({
       type: String,
       trim: true,
       maxlength: [200, 'GitHub URL cannot exceed 200 characters']
+    },
+    profilePicture: {
+      type: String,
+      trim: true,
+      maxlength: [5000, 'Profile picture URL cannot exceed 500 characters']
+    },
+    isAddPhoto: {
+      type: Boolean,
+      default: false
     }
   },
   
@@ -65,7 +74,7 @@ const resumeSchema = new mongoose.Schema({
   summary: {
     type: String,
     trim: true,
-    maxlength: [1000, 'Summary cannot exceed 1000 characters']
+    maxlength: [10000, 'Summary cannot exceed 10000 characters']
   },
   
   // Fresher status
@@ -119,7 +128,7 @@ const resumeSchema = new mongoose.Schema({
     description: {
       type: String,
       trim: true,
-      maxlength: [2000, 'Description cannot exceed 2000 characters']
+      maxlength: [10000, 'Description cannot exceed 10000 characters']
     },
     achievements: [{
       type: String,
@@ -148,14 +157,14 @@ const resumeSchema = new mongoose.Schema({
       maxlength: [100, 'Location cannot exceed 100 characters']
     },
     startDate: {
-      type: Date,
-      required: [true, 'Start date is required']
+      type: Date
     },
     endDate: {
       type: Date,
+      required: [true, 'End date is required'],
       validate: {
         validator: function(value) {
-          return !value || value > this.startDate;
+          return this.startDate ? value > this.startDate : true;
         },
         message: 'End date must be after start date'
       }
@@ -172,7 +181,7 @@ const resumeSchema = new mongoose.Schema({
     description: {
       type: String,
       trim: true,
-      maxlength: [1000, 'Description cannot exceed 1000 characters']
+      maxlength: [10000, 'Description cannot exceed 10000 characters']
     }
   }],
   
@@ -216,7 +225,7 @@ const resumeSchema = new mongoose.Schema({
     description: {
       type: String,
       trim: true,
-      maxlength: [1000, 'Description cannot exceed 1000 characters']
+      maxlength: [10000, 'Description cannot exceed 10000 characters']
     },
     technologies: [{
       type: String,
@@ -248,7 +257,7 @@ const resumeSchema = new mongoose.Schema({
     description: {
       type: String,
       trim: true,
-      maxlength: [500, 'Description cannot exceed 500 characters']
+      maxlength: [10000, 'Description cannot exceed 10000 characters']
     },
     date: Date,
     issuer: {
@@ -312,7 +321,7 @@ const resumeSchema = new mongoose.Schema({
     content: {
       type: String,
       trim: true,
-      maxlength: [2000, 'Content cannot exceed 2000 characters']
+      maxlength: [10000, 'Content cannot exceed 10000 characters']
     },
     type: {
       type: String,
@@ -379,12 +388,12 @@ const resumeSchema = new mongoose.Schema({
       },
       primaryFont: {
         type: String,
-        enum: ['Arial', 'Calibri', 'Times New Roman', 'Verdana', 'Helvetica', 'Georgia', 'Cambria', 'Garamond', 'Trebuchet MS', 'Book Antiqua'],
+        enum: ['Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins', 'Nunito', 'Raleway', 'Inter', 'Source Sans Pro', 'Ubuntu', 'Merriweather', 'Playfair Display', 'Oswald', 'Work Sans', 'PT Sans', 'Quicksand', 'Noto Sans', 'Rubik', 'Josefin Sans', 'Manrope', 'Arial', 'Calibri', 'Times New Roman', 'Verdana', 'Helvetica', 'Georgia', 'Cambria', 'Garamond', 'Trebuchet MS', 'Book Antiqua'],
         default: 'Arial'
       },
       secondaryFont: {
         type: String,
-        enum: ['Arial', 'Calibri', 'Times New Roman', 'Verdana', 'Helvetica', 'Georgia', 'Cambria', 'Garamond', 'Trebuchet MS', 'Book Antiqua'],
+        enum: ['Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins', 'Nunito', 'Raleway', 'Inter', 'Source Sans Pro', 'Ubuntu', 'Merriweather', 'Playfair Display', 'Oswald', 'Work Sans', 'PT Sans', 'Quicksand', 'Noto Sans', 'Rubik', 'Josefin Sans', 'Manrope', 'Arial', 'Calibri', 'Times New Roman', 'Verdana', 'Helvetica', 'Georgia', 'Cambria', 'Garamond', 'Trebuchet MS', 'Book Antiqua'],
         default: 'Arial'
       },
       colors: {
@@ -470,7 +479,17 @@ const resumeSchema = new mongoose.Schema({
     default: false
   },
   
-
+  // Deletion Management
+  markedForDeletion: {
+    type: Boolean,
+    default: false
+  },
+  deletionDate: Date,
+  deletionReason: {
+    type: String,
+    enum: ['subscription_expired', 'user_request', 'admin_action', null],
+    default: null
+  },
   
   // Analytics
   analytics: {
@@ -707,4 +726,4 @@ resumeSchema.pre('save', function(next) {
   next();
 });
 
-module.exports = mongoose.model('Resume', resumeSchema); 
+module.exports = mongoose.model('Resume', resumeSchema);

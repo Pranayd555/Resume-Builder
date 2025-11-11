@@ -36,12 +36,13 @@ const Shipping = () => {
                 <CheckCircleIcon className="w-8 h-8 text-blue-500" />
                 Digital Service - No Physical Shipping
               </h2>
-              <p className="text-gray-600 dark:text-gray-500 mb-4">
+              <p className="text-gray-600 mb-4">
                 Resume Builder is a digital service that provides online resume building tools and templates. 
                 We do not ship physical products. All our services are delivered digitally through our web platform.
               </p>
-              <p className="text-gray-600 dark:text-gray-500">
-                Your resumes, templates, and all related content are accessible immediately upon account creation and subscription activation.
+              <p className="text-gray-600">
+                Your resumes, templates, and all related content are accessible immediately upon account creation. 
+                AI-powered features are available through our token-based system for enhanced resume building.
               </p>
             </div>
           </section>
@@ -55,37 +56,45 @@ const Shipping = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-green-50 dark:bg-green-900/20 rounded-2xl p-6">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4">Free Plan</h3>
-                <ul className="space-y-2 text-gray-600 dark:text-gray-500">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4">Free Access</h3>
+                <ul className="space-y-2 text-gray-600 dark:text-gray-600">
                   <li className="flex items-start gap-2">
-                    <CheckCircleIcon className="w-5 h-5 text-green-500 dark:text-green-500 mt-0.5 flex-shrink-0" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 dark:text-green-600 mt-0.5 flex-shrink-0" />
                     <span>Immediate access upon registration</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <CheckCircleIcon className="w-5 h-5 text-green-500 dark:text-green-500 mt-0.5 flex-shrink-0" />
-                    <span>Basic templates available instantly</span>
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 dark:text-green-600 mt-0.5 flex-shrink-0" />
+                    <span>20 free AI tokens to get started</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <CheckCircleIcon className="w-5 h-5 text-green-500 dark:text-green-500 mt-0.5 flex-shrink-0" />
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 dark:text-green-600 mt-0.5 flex-shrink-0" />
+                    <span>All resume templates available</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircleIcon className="w-5 h-5 text-green-500 dark:text-green-600 mt-0.5 flex-shrink-0" />
                     <span>PDF export functionality</span>
                   </li>
                 </ul>
               </div>
 
               <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-6">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4">Pro Plan</h3>
-                <ul className="space-y-2 text-gray-600 dark:text-gray-500">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4">Token System</h3>
+                <ul className="space-y-2 text-gray-600 dark:text-gray-600">
                   <li className="flex items-start gap-2">
-                    <CheckCircleIcon className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                    <span>Immediate activation after payment</span>
+                    <CheckCircleIcon className="w-5 h-5 text-blue-500 dark:text-blue-600 mt-0.5 flex-shrink-0" />
+                    <span>Instant token delivery after purchase</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <CheckCircleIcon className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                    <span>All premium features unlocked instantly</span>
+                    <CheckCircleIcon className="w-5 h-5 text-blue-500 dark:text-blue-600 mt-0.5 flex-shrink-0" />
+                    <span>AI-powered resume optimization</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <CheckCircleIcon className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                    <span>Advanced templates and AI features</span>
+                    <CheckCircleIcon className="w-5 h-5 text-blue-500 dark:text-blue-600 mt-0.5 flex-shrink-0" />
+                    <span>ATS compatibility analysis</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircleIcon className="w-5 h-5 text-blue-500 dark:text-blue-600 mt-0.5 flex-shrink-0" />
+                    <span>Smart content suggestions</span>
                   </li>
                 </ul>
               </div>
@@ -96,37 +105,15 @@ const Shipping = () => {
           <section className="mb-12">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
               Digital Downloads & Exports
-            </h2>
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-400 mb-4">Available Formats</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-white dark:bg-gray-700 rounded-xl">
-                  <div className="text-2xl mb-2">📄</div>
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-700 mb-2">PDF</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">High-quality, print-ready format</p>
-                </div>
-                <div className="text-center p-4 bg-white dark:bg-gray-700 rounded-xl">
-                  <div className="text-2xl mb-2">📝</div>
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-700 mb-2">DOCX</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">Editable Microsoft Word format</p>
-                </div>
-                <div className="text-center p-4 bg-white dark:bg-gray-700 rounded-xl">
-                  <div className="text-2xl mb-2">🌐</div>
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-700 mb-2">HTML</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">Web-friendly format</p>
-                </div>
-              </div>
-              
-              <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-                <h4 className="font-semibold text-gray-900 dark:text-gray-400 mb-2">Download Process</h4>
-                <ol className="space-y-2 text-gray-600 dark:text-gray-300 ml-4">
+            </h2>              
+              <div className="mt-6 p-4 bg-blue-50 rounded-xl">
+                <h4 className="font-semibold text-gray-900 mb-2">Download Process</h4>
+                <ol className="space-y-2 text-gray-600 ml-4">
                   <li>1. Complete your resume using our builder</li>
                   <li>2. Click the "Download" or "Export" button</li>
-                  <li>3. Choose your preferred format</li>
-                  <li>4. File downloads immediately to your device</li>
+                  <li>3. File downloads immediately to your device</li>
                 </ol>
               </div>
-            </div>
           </section>
 
           {/* Cloud Storage */}
@@ -196,10 +183,10 @@ const Shipping = () => {
             </h2>
             <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-2xl p-6">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4">Uptime Commitment</h3>
-              <p className="text-gray-600 dark:text-gray-500 mb-4">
+              <p className="text-gray-600 dark:text-gray-600 mb-4">
                 We strive to maintain 99.9% uptime for our service. However, we cannot guarantee uninterrupted access due to:
               </p>
-              <ul className="space-y-2 text-gray-600 dark:text-gray-500 ml-4">
+              <ul className="space-y-2 text-gray-600 dark:text-gray-600 ml-4">
                 <li>• Scheduled maintenance windows</li>
                 <li>• Technical issues beyond our control</li>
                 <li>• Internet connectivity problems</li>
@@ -207,10 +194,37 @@ const Shipping = () => {
               </ul>
               
               <div className="mt-6 p-4 bg-white dark:bg-gray-800 rounded-xl">
-                <h4 className="font-semibold text-gray-900 dark:text-gray-500 mb-2">Maintenance Notices</h4>
+                <h4 className="font-semibold text-gray-900 dark:text-gray-600 mb-2">Maintenance Notices</h4>
                 <p className="text-gray-600 dark:text-gray-300">
                   We will provide advance notice of scheduled maintenance through email notifications and in-app announcements.
                 </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Token Purchase Information */}
+          <section className="mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
+              Token Purchase & Delivery
+            </h2>
+            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-2xl p-6 mb-6">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4">How Token Purchase Works</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-white dark:bg-gray-700 rounded-xl">
+                  <div className="text-2xl mb-2">💳</div>
+                  <h4 className="font-semibold text-gray-900 dark:text-gray-300 mb-2">Secure Payment</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Pay with Razorpay using cards, UPI, or net banking</p>
+                </div>
+                <div className="text-center p-4 bg-white dark:bg-gray-700 rounded-xl">
+                  <div className="text-2xl mb-2">⚡</div>
+                  <h4 className="font-semibold text-gray-900 dark:text-gray-300 mb-2">Instant Delivery</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Tokens are added to your account immediately</p>
+                </div>
+                <div className="text-center p-4 bg-white dark:bg-gray-700 rounded-xl">
+                  <div className="text-2xl mb-2">🎯</div>
+                  <h4 className="font-semibold text-gray-900 dark:text-gray-300 mb-2">Use Anytime</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">Tokens never expire and can be used for AI features</p>
+                </div>
               </div>
             </div>
           </section>
@@ -221,14 +235,14 @@ const Shipping = () => {
               Support & Contact
             </h2>
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-6">
-              <p className="text-gray-600 dark:text-gray-500 mb-4">
-                If you experience any issues with service delivery or have questions about accessing your account:
+              <p className="text-gray-600 dark:text-gray-600 mb-4">
+                If you experience any issues with service delivery, token purchases, or have questions about accessing your account, please contact me:
               </p>
-              <div className="space-y-2 text-gray-600 dark:text-gray-500">
-                <p><strong>Email Support:</strong> support@resumebuilder.com</p>
+              <div className="space-y-2 text-gray-600 dark:text-gray-600">
+                <p><strong>Email Support:</strong> pranaydaspr@gmail.com</p>
                 <p><strong>Response Time:</strong> Within 24 hours</p>
-                <p><strong>Business Hours:</strong> Monday - Friday, 9 AM - 6 PM EST</p>
-                <p><strong>Emergency Support:</strong> Available for Pro subscribers</p>
+                <p><strong>Business Hours:</strong> Monday - Friday, 9 AM - 6 PM IST</p>
+                <p><strong>Token Support:</strong> Help with token purchases and usage</p>
               </div>
             </div>
           </section>

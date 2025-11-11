@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { ChartBarIcon, XMarkIcon, DocumentTextIcon, DocumentArrowDownIcon, XCircleIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import CKEditor from './CKEditor';
-import AILoader from './AILoader';
-import { aiAPI } from '../services/api';
+import AILoader from './annimations/AILoader';
+import { apiHelpers } from '../services/api';
+import aiService from '../services/aiService';
+import { useAuth } from '../contexts/AuthContext';
 
 const ATSScoreModal = ({ 
   isOpen, 
@@ -15,6 +18,37 @@ const ATSScoreModal = ({
   const [atsFile, setAtsFile] = useState(null);
   const [atsInputType, setAtsInputType] = useState('text'); // 'text' or 'file'
   const [atsGenerating, setAtsGenerating] = useState(false);
+  const [tokenBalance, setTokenBalance] = useState(0);
+  const [isTokenExhausted, setIsTokenExhausted] = useState(false);
+  const { user } = useAuth();
+
+  // Get initial token balance
+  useEffect(() => {
+    const balance = apiHelpers.getTokenBalance();
+    setTokenBalance(balance);
+    setIsTokenExhausted(balance <= 0);
+  }, []);
+
+  // Listen for token balance updates
+  useEffect(() => {
+    const handleTokenBalanceUpdate = (event) => {
+      const { balance } = event.detail;
+      setTokenBalance(balance);
+      setIsTokenExhausted(balance <= 0);
+    };
+
+    window.addEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
+    return () => window.removeEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
+  }, []);
+
+  // Update token balance from user data if available
+  useEffect(() => {
+    if (user && user.tokens !== undefined) {
+      setTokenBalance(user.tokens);
+      setIsTokenExhausted(user.tokens <= 0);
+    }
+  }, [user]);
+
 
   // Helper function to strip HTML tags from CKEditor content
   const stripHtmlTags = (html) => {
@@ -23,6 +57,7 @@ const ATSScoreModal = ({
     temp.innerHTML = html;
     return temp.textContent || temp.innerText || '';
   };
+
 
   // Handle modal close
   const handleClose = () => {
@@ -50,14 +85,22 @@ const ATSScoreModal = ({
 
   // Handle API error
   const handleError = (error) => {
-    console.error('ATS Score generation error:', error);
-    toast.error(error.userMessage || 'Failed to generate ATS score');
+    console.error('ATS Score Error:', error);
+    // Use the standard error formatting from apiHelpers
+    const errorMessage = apiHelpers.formatError(error);
+    toast.error(errorMessage);
     setAtsGenerating(false);
     // Modal stays open for retry
   };
 
   // Handle form submission
   const handleSubmit = async () => {
+    // Check if tokens are exhausted
+    if (isTokenExhausted || tokenBalance <= 0) {
+      toast.error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
+      return;
+    }
+
     try {
       setAtsGenerating(true);
       
@@ -66,22 +109,18 @@ const ATSScoreModal = ({
       const jobDescriptionFile = atsInputType === 'file' ? atsFile : null;
       
       // Call the ATS score API
-      const response = await aiAPI.generateATSScore(
+      await aiService.generateATSScore(
         resumeId,
         atsInputType,
         jobDescription,
         jobDescriptionFile
       );
       
-      console.log('=== ATS SCORE RESPONSE ===');
-      console.log('Success:', response.success);
-      console.log('Resume Title:', response.data?.resumeTitle);
-      console.log('Template Name:', response.data?.templateName);
-      console.log('Job Description Length:', response.data?.jobDescriptionLength);
-      console.log('Input Type:', response.data?.inputType);
-      console.log('--- ATS Analysis ---');
-      console.log(response.data?.atsAnalysis);
-      console.log('=== END ATS RESPONSE ===');
+      
+      // Update token balance after successful operation
+      const currentBalance = apiHelpers.getTokenBalance();
+      const newBalance = Math.max(0, currentBalance - 1);
+      apiHelpers.updateTokenBalance(newBalance);
       
       toast.success('ATS Score generated successfully! Check console for details.');
       handleSuccess();
@@ -210,6 +249,7 @@ const ATSScoreModal = ({
                       placeholder="Paste the job description here..."
                       className="min-h-[180px]"
                       disabled={atsGenerating}
+                      showAIButton={false}
                     />
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
@@ -306,16 +346,34 @@ const ATSScoreModal = ({
                 </div>
               )}
 
+
               {/* Generate Button */}
               <div className="pt-2">
                 <button
                   onClick={handleSubmit}
-                  disabled={atsGenerating || (atsInputType === 'text' && !stripHtmlTags(atsJobDescription).trim()) || (atsInputType === 'file' && !atsFile)}
-                  className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-2.5 px-4 rounded-lg hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 font-medium"
+                  disabled={atsGenerating || isTokenExhausted || (atsInputType === 'text' && !stripHtmlTags(atsJobDescription).trim()) || (atsInputType === 'file' && !atsFile)}
+                  className={`w-full py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium ${
+                    isTokenExhausted 
+                      ? 'bg-gradient-to-r from-red-500 to-red-600 text-white cursor-not-allowed opacity-75' 
+                      : 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700'
+                  } ${atsGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  title={isTokenExhausted ? 'AI tokens exhausted - Buy more tokens to continue' : ''}
                 >
                   <ChartBarIcon className="h-4 w-4" />
-                  <span>Generate ATS Score</span>
+                  <span>{isTokenExhausted ? 'Tokens Exhausted' : 'Generate ATS Score'}</span>
                 </button>
+                
+                {/* Token exhaustion message */}
+                {isTokenExhausted && (
+                  <div className="mt-2 text-center">
+                    <span className="text-xs text-red-500">
+                      ⚠️ AI tokens exhausted! 
+                      <Link to="/payment" className="text-blue-500 hover:text-blue-700 underline ml-1">
+                        Buy more tokens
+                      </Link> to continue using AI features.
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           )}

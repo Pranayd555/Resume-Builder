@@ -133,17 +133,6 @@ const seedAllTemplates = async (templateName = null) => {
     
     // Find an admin user or create one
     let adminUser = await User.findOne({ role: 'admin' });
-    if (!adminUser) {
-      adminUser = await User.create({
-        firstName: 'Admin',
-        lastName: 'User',
-        email: 'admin@resumebuilder.com',
-        password: 'admin123',
-        role: 'admin',
-        isEmailVerified: true
-      });
-      console.log('✅ Created admin user');
-    }
 
     // Get existing templates to preserve usage data
     const existingTemplates = await Template.find({});

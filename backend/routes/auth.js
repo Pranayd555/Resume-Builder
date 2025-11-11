@@ -1,5 +1,4 @@
 const express = require('express');
-const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const passport = require('passport');
 const { body, validationResult } = require('express-validator');
@@ -7,10 +6,10 @@ const validator = require('validator');
 const rateLimit = require('express-rate-limit');
 
 const User = require('../models/User');
-const Subscription = require('../models/Subscription');
 const { protect } = require('../middleware/auth');
 const logger = require('../utils/logger');
 const emailService = require('../utils/emailService');
+const { calculateTotalTokens } = require('../utils/tokenCalculator');
 
 const router = express.Router();
 
@@ -62,13 +61,14 @@ router.post('/register', [
       });
     }
 
-    // Create user (unverified by default)
+    // Create user (unverified by default) with bonus tokens
     const user = new User({
       firstName,
       lastName,
       email,
       password,
-      isEmailVerified: false
+      isEmailVerified: false,
+      bonusTokens: 5 // Give 5 bonus tokens to new users
     });
 
     // Generate OTP for email verification
@@ -95,6 +95,9 @@ router.post('/register', [
     // Generate JWT token
     const token = user.getSignedJwtToken();
 
+    // Calculate total token data
+    const tokenData = await calculateTotalTokens(user._id);
+
     // Remove password and sensitive data from response
     const userResponse = user.toObject();
     delete userResponse.password;
@@ -107,8 +110,13 @@ router.post('/register', [
       success: true,
       message: 'Registration successful! Please check your email for verification code.',
       data: {
-        user: userResponse,
+        user: {...userResponse, tokens: tokenData.totalTokenBalance},
         token,
+        tokens: {
+          balance: tokenData.totalTokenBalance,
+          purchasedTokens: tokenData.purchasedTokens,
+          bonusTokens: tokenData.bonusTokens
+        },
         requiresEmailVerification: true
       }
     });
@@ -196,6 +204,9 @@ router.post('/login', [
     // Generate JWT token
     const token = user.getSignedJwtToken();
 
+    // Calculate total token data
+    const tokenData = await calculateTotalTokens(user._id);
+
     // Remove password from response
     const userResponse = user.toObject();
     delete userResponse.password;
@@ -205,8 +216,13 @@ router.post('/login', [
     res.json({
       success: true,
       data: {
-        user: userResponse,
-        token
+        user: {...userResponse, tokens: tokenData.totalTokenBalance},
+        token,
+        tokens: {
+          balance: tokenData.totalTokenBalance,
+          purchasedTokens: tokenData.purchasedTokens,
+          bonusTokens: tokenData.bonusTokens
+        }
       }
     });
   } catch (error) {
@@ -390,19 +406,52 @@ router.get('/email-status', protect, async (req, res) => {
 // @access  Private
 router.get('/me', protect, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).populate('subscription');
+    const user = await User.findById(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    // Calculate total token data
+    const tokenData = await calculateTotalTokens(user._id);
     
     res.json({
       success: true,
       data: {
-        user
+        user: {
+          id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          phone: user.phone,
+          location: user.location,
+          bio: user.bio,
+          profilePicture: user.profilePicture,
+          isEmailVerified: user.isEmailVerified,
+          isActive: user.isActive,
+          role: user.role,
+          preferences: user.preferences,
+          tokens: (user.tokens + user.bonusTokens),
+          bonusTokens: user.bonusTokens,
+          usage: user.usage,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt
+        },
+        tokens: {
+          balance: tokenData.totalTokenBalance,
+          purchasedTokens: tokenData.purchasedTokens,
+          bonusTokens: tokenData.bonusTokens
+        }
       }
     });
   } catch (error) {
     logger.error('Get current user error:', error);
     res.status(500).json({
       success: false,
-      error: 'Server error'
+      error: 'Error getting current user'
     });
   }
 });
@@ -481,6 +530,8 @@ router.put('/profile', [
         user.emailVerificationExpire = undefined;
         user.emailOtp = undefined;
         user.emailOtpExpire = undefined;
+        user.googleId = undefined;
+        user.linkedinId = undefined;
         
         logger.info(`Email changed for user ${user._id}: ${user.email} -> ${email} (unverified)`);
       }
@@ -636,62 +687,87 @@ router.put('/password', [
 // @access  Public
 router.post('/forgot-password', [
   authLimiter,
-  body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email')
+  body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
+  body('otp').isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits'),
+   body('newPassword').isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
+      return res.status(400).json({ success: false, errors: errors.array() });
     }
 
-    const { email } = req.body;
+    const { email, otp, newPassword } = req.body;
 
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
+      return res.status(404).json({ success: false, error: 'User not found' });
     }
 
-    // Generate reset token
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+    if (!user.passwordResetOtp || user.passwordResetOtp !== otp || user.passwordResetOtpExpire < Date.now()) {
+      return res.status(400).json({ success: false, error: 'Invalid or expired OTP' });
+    }
+    user.password = newPassword;
+    user.passwordResetOtp = undefined;
+    user.passwordResetOtpExpire = undefined;
 
     await user.save();
 
-    // Send password reset email
-    try {
-      await emailService.sendPasswordResetEmail(email, `${user.firstName} ${user.lastName}`, resetToken);
-      logger.info(`Password reset email sent to ${email}`);
-    } catch (emailError) {
-      logger.error('Failed to send password reset email:', emailError);
-      // Reset the token fields if email fails
-      user.resetPasswordToken = undefined;
-      user.resetPasswordExpire = undefined;
-      await user.save();
-      
-      return res.status(500).json({
-        success: false,
-        error: 'Email could not be sent. Please try again later.'
-      });
+    res.json({ success: true, message: 'Password has been reset successfully' });
+
+  } catch (error) {
+    logger.error('Forgot password reset error:', error);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
+
+// @desc    Send OTP for password reset
+// @route   POST /api/auth/forgot-password-otp-verification
+// @access  Public
+router.post('/forgot-password-otp-verification', authLimiter, async (req, res) => {
+  const { email } = req.body;
+
+  // Basic validation
+  if (!email) {
+    return res.status(400).json({ success: false, error: 'Please provide an email address' });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found with that email address' });
     }
 
-    res.json({
-      success: true,
-      message: 'Password reset email sent'
-    });
+    // Generate a 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.passwordResetOtp = otp;
+    user.passwordResetOtpExpire = Date.now() + 10 * 60 * 1000; // OTP valid for 10 minutes
+
+    await user.save();
+
+    // Send OTP email
+    try {
+      await emailService.sendPasswordResetOtp(user.email, `${user.firstName} ${user.lastName}`, otp);
+      logger.info(`Password reset OTP sent to ${user.email}`);
+    } catch (emailError) {
+      logger.error('Failed to send password reset OTP email:', emailError);
+      // Reset the OTP fields if email fails
+      user.passwordResetOtp = undefined;
+      user.passwordResetOtpExpire = undefined;
+      await user.save();
+      
+      return res.status(500).json({ success: false, error: 'OTP email could not be sent. Please try again later.' });
+    }
+
+    res.json({ success: true, message: 'Password reset OTP sent to your email' });
+
   } catch (error) {
-    logger.error('Forgot password error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error'
-    });
+    logger.error('Forgot password OTP verification error:', error);
+    res.status(500).json({ success: false, error: 'Server error' });
   }
 });
 
@@ -901,20 +977,43 @@ router.get('/google/callback',
 // @desc    LinkedIn OAuth
 // @route   GET /api/auth/linkedin
 // @access  Public
-router.get('/linkedin', passport.authenticate('linkedin'));
+router.get('/linkedin', passport.authenticate('linkedin', {scope: ['openid', 'profile', 'email']}));
 
 // @desc    LinkedIn OAuth callback
 // @route   GET /api/auth/linkedin/callback
 // @access  Public
 router.get('/linkedin/callback',
-  passport.authenticate('linkedin', { session: false }),
+  (req, res, next) => {
+    passport.authenticate('linkedin', { session: false }, (err, user, info) => {
+      if (err) {
+        logger.error('Passport LinkedIn authentication error:', err);
+        return res.redirect('/api/auth/linkedin/failure');
+      }
+      if (!user) {
+        logger.warn('Passport LinkedIn authentication failed: No user returned.', info);
+        return res.redirect('/api/auth/linkedin/failure');
+      }
+      req.logIn(user, (err) => {
+        if (err) {
+          logger.error('Passport LinkedIn login error:', err);
+          return res.redirect('/api/auth/linkedin/failure');
+        }
+        next();
+      });
+    })(req, res, next);
+  },
   async (req, res) => {
     try {
       const user = req.user;
       const token = user.getSignedJwtToken();
+      let clientUrl = process.env.CLIENT_URL;
+      
+      if (!clientUrl) {
+        clientUrl = 'https://resume-builder-pranay-das-projects.vercel.app';
+      }
+      
+      const redirectUrl = `${clientUrl}/auth/callback?token=${token}`;
 
-      // Redirect to frontend with token
-      const redirectUrl = `${process.env.CLIENT_URL}/auth/callback?token=${token}`;
       res.redirect(redirectUrl);
     } catch (error) {
       logger.error('LinkedIn OAuth callback error:', error);
@@ -922,6 +1021,15 @@ router.get('/linkedin/callback',
     }
   }
 );
+
+// @desc    LinkedIn OAuth failure
+// @route   GET /api/auth/linkedin/failure
+// @access  Public
+router.get('/linkedin/failure', (req, res) => {
+  logger.error('LinkedIn OAuth authentication failed.');
+  res.redirect(`${process.env.CLIENT_URL}/auth/error?message=LinkedIn authentication failed`);
+});
+
 
 // @desc    Logout user
 // @route   POST /api/auth/logout
@@ -948,9 +1056,6 @@ router.post('/logout', protect, async (req, res) => {
 // @access  Private
 router.delete('/account', protect, async (req, res) => {
   try {
-    // Delete user's subscription
-    await Subscription.findOneAndDelete({ user: req.user.id });
-
     // Delete user
     await User.findByIdAndDelete(req.user.id);
 
@@ -1015,4 +1120,4 @@ router.post('/contact', [
   }
 });
 
-module.exports = router; 
+module.exports = router;

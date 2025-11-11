@@ -12,7 +12,7 @@ This document describes all available resume templates in the system, organized 
 - Color scheme: Blue primary, gray secondary
 - Sections: Personal Info, Summary, Work Experience, Education, Skills, Projects
 
-**2. Modern Executive** (Pro)
+**2. Modern Executive** (Pro Monthly)
 - Sophisticated modern design for senior professionals and executives
 - Single-column layout with executive styling
 - Color scheme: Dark gray primary, amber accent
@@ -58,7 +58,7 @@ This document describes all available resume templates in the system, organized 
 - Color scheme: Blue primary, green accent
 - Sections: Personal Info, Summary, Work Experience, Education, Skills, Certifications, Projects
 
-**2. Professional Executive** (Pro)
+**2. Professional Executive** (Pro Yearly)
 - Executive-level professional template with sophisticated design
 - Single-column layout with executive header
 - Color scheme: Navy blue primary, red accent
@@ -66,13 +66,13 @@ This document describes all available resume templates in the system, organized 
 
 ### 🔸 CREATIVE TEMPLATES (2 templates)
 
-**1. Creative Designer** (Pro)
+**1. Creative Designer** (Pro Monthly)
 - Vibrant, creative design for designers and creative professionals
 - Two-column layout with colorful accents
 - Color scheme: Multiple vibrant colors, gradient backgrounds
 - Sections: Personal Info, Summary, Skills, Projects, Work Experience, Education
 
-**2. Creative Portfolio** (Pro)
+**2. Creative Portfolio** (Pro Yearly)
 - Vibrant, creative design for artists, designers, and creative professionals
 - Two-column layout with creative visual elements
 - Color scheme: Pink primary, purple secondary, amber accent
@@ -80,7 +80,7 @@ This document describes all available resume templates in the system, organized 
 
 ### 🔸 ACADEMIC TEMPLATES (1 template)
 
-**1. Academic Research** (Pro)
+**1. Academic Research** (Pro Monthly)
 - Formal academic template for researchers and scholars
 - Single-column layout with academic formatting
 - Color scheme: Gray primary, purple accent
@@ -103,7 +103,8 @@ This document describes all available resume templates in the system, organized 
 
 ### Availability Tiers
 - **Free**: Available to all users
-- **Pro**: Requires premium subscription
+- **Pro Monthly**: Requires premium monthly subscription
+- **Pro Yearly**: Requires premium yearly subscription
 - **Enterprise**: For enterprise accounts (future)
 
 ### Supported Sections
@@ -173,4 +174,4 @@ All templates must meet these standards:
 - **Accessibility**: Must meet basic accessibility requirements
 
 Last Updated: ${new Date().toLocaleDateString()}
-Total Templates: 13 
+Total Templates: 13

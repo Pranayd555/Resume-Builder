@@ -2,13 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { templateAPI, apiHelpers } from '../../services/api';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+import { Navigation, Pagination, Autoplay, FreeMode, EffectCoverflow } from 'swiper/modules';
 import { useAuth } from '../../contexts/AuthContext';
+import { AttentionSeeker, Fade, Flip } from 'react-awesome-reveal';
 
 // Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import 'swiper/css/free-mode';
 
 // Custom styles for pagination dots and navigation buttons matching TemplateSelection
 const customPaginationStyles = `
@@ -148,6 +150,7 @@ function TemplateShowcase() {
     <section className="py-16 sm:py-20 lg:py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
+        <Flip direction="vertical" duration={3000}>
         <div className="text-center mb-12 sm:mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">
             Professional Templates
@@ -157,16 +160,30 @@ function TemplateShowcase() {
             Each template is crafted to help you stand out and land your dream job.
           </p>
         </div>
+        </Flip>
 
         {/* Templates Carousel */}
         <div className="relative">
           <Swiper
-            modules={[Navigation, Pagination, Autoplay]}
+            ref={swiperRef}
+            effect="coverflow"
+            coverflowEffect={{
+              rotate: 0,
+              stretch: 0,
+              depth: 100,
+              modifier: 1,
+              scale: 0.95,
+              slideShadows: false,
+            }}
+            modules={[Navigation, Pagination, Autoplay, FreeMode, EffectCoverflow]}
             spaceBetween={24}
             slidesPerView={1}
             centeredSlides={true}
             loop={true}
-            loopFillGroupWithBlank={true}
+            loopfillgroupwithblank={true}
+            freeMode={true}
+            freeModeMomentum={true}
+            grabCursor={true}
             navigation={{
               nextEl: '.swiper-button-next',
               prevEl: '.swiper-button-prev',
@@ -176,18 +193,30 @@ function TemplateShowcase() {
               dynamicBullets: true,
             }}
             autoplay={{
-              delay: 4000,
+              delay: 3000,
               disableOnInteraction: false,
             }}
             breakpoints={{
               640: {
                 slidesPerView: 2,
-                spaceBetween: 20,
+                spaceBetween: 24,
+                centeredSlides: true,
+              },
+              768: {
+                slidesPerView: 2,
+                spaceBetween: 24,
+                centeredSlides: true,
               },
               1024: {
                 slidesPerView: 3,
-                spaceBetween: 24,
+                spaceBetween: 16,
+                centeredSlides: true,
               },
+              1280: {
+                slidesPerView: 3,
+                spaceBetween: 20,
+                centeredSlides: true,
+              }
             }}
             className="template-showcase-swiper"
             onSwiper={(swiper) => {
@@ -196,7 +225,7 @@ function TemplateShowcase() {
           >
             {templates.map((template) => (
               <SwiperSlide key={template._id}>
-                 <div className="backdrop-blur-md bg-white/70 dark:bg-white/70 rounded-xl shadow-xl border border-white/20 dark:border-white/20 overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 hover:rounded-xl mt-4">
+                 <div className="backdrop-blur-md bg-white/20 dark:bg-white/70 rounded-xl shadow-xl border border-white/20 dark:border-white/20 overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 hover:rounded-xl mt-4">
                   {/* Template Preview */}
                    <div className="relative aspect-[3/4] overflow-hidden rounded-t-xl">
                     <img
@@ -277,6 +306,7 @@ function TemplateShowcase() {
         </div>
 
         {/* Call to Action */}
+          <Fade direction="down">
         <div className="text-center mt-12 sm:mt-16">
           <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-8 sm:p-12 max-w-4xl mx-auto">
             <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-500 mb-4">
@@ -286,12 +316,14 @@ function TemplateShowcase() {
               Join thousands of professionals who have already created stunning resumes with our templates.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <AttentionSeeker duration={3000}>
               <button
                 onClick={handleGetStarted}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
               >
                 {isAuthenticated ? 'Go to Dashboard' : 'Get Started Free'}
               </button>
+            </AttentionSeeker>
               <button
                 onClick={() => navigate('/contact-us')}
                 className="bg-transparent border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-700 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-400 font-semibold py-3 px-8 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
@@ -301,6 +333,8 @@ function TemplateShowcase() {
             </div>
           </div>
         </div>
+            </Fade>
+        
       </div>
     </section>
   );

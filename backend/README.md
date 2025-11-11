@@ -7,7 +7,7 @@ A comprehensive Node.js/Express backend for the Resume Builder application, desi
 - **Authentication & Authorization**: JWT-based auth with Google/LinkedIn OAuth
 - **User Management**: Profile management, preferences, activity tracking
 - **Resume Builder**: CRUD operations, templates, export functionality
-- **Subscription System**: Stripe integration with multiple plans
+- **Subscription System**: razorpay integration with multiple plans
 - **File Upload**: Cloudinary integration for profile pictures
 - **Mobile Ready**: CORS configured for mobile app deployment
 - **Security**: Rate limiting, input validation, sanitization
@@ -20,7 +20,7 @@ A comprehensive Node.js/Express backend for the Resume Builder application, desi
 - **Framework**: Express.js
 - **Database**: MongoDB with Mongoose
 - **Authentication**: JWT, Passport.js (Google/LinkedIn OAuth)
-- **Payments**: Stripe
+- **Payments**: razorpay
 - **File Storage**: Cloudinary
 - **Validation**: express-validator, Joi
 - **Security**: Helmet, CORS, express-rate-limit
@@ -65,10 +65,10 @@ GOOGLE_CLIENT_SECRET=your-google-client-secret
 LINKEDIN_CLIENT_ID=your-linkedin-client-id
 LINKEDIN_CLIENT_SECRET=your-linkedin-client-secret
 
-# Stripe Configuration (optional)
-STRIPE_SECRET_KEY=sk_test_your-stripe-secret-key
-STRIPE_WEBHOOK_SECRET=whsec_your-webhook-secret
-STRIPE_PUBLISHABLE_KEY=pk_test_your-publishable-key
+# razorpay Configuration (optional)
+razorpay_SECRET_KEY=sk_test_your-razorpay-secret-key
+razorpay_WEBHOOK_SECRET=whsec_your-webhook-secret
+razorpay_PUBLISHABLE_KEY=pk_test_your-publishable-key
 
 # File Upload Configuration (optional)
 CLOUDINARY_CLOUD_NAME=your-cloudinary-cloud-name
@@ -151,13 +151,13 @@ Authorization: Bearer <jwt_token>
 #### Subscriptions
 - `GET /subscriptions/plans` - Get subscription plans
 - `GET /subscriptions/current` - Get current subscription
-- `POST /subscriptions/create-checkout-session` - Create Stripe session
+- `POST /subscriptions/create-checkout-session` - Create razorpay session
 - `POST /subscriptions/success` - Handle successful payment
 - `POST /subscriptions/cancel` - Cancel subscription
 - `POST /subscriptions/reactivate` - Reactivate subscription
 - `GET /subscriptions/billing-history` - Billing history
 - `POST /subscriptions/update-payment-method` - Update payment method
-- `POST /subscriptions/webhook` - Stripe webhook (public)
+- `POST /subscriptions/webhook` - razorpay webhook (public)
 
 #### File Uploads
 - `POST /uploads/profile-picture` - Upload profile picture
@@ -262,11 +262,11 @@ pm2 save
 2. Add redirect URLs
 3. Set `LINKEDIN_CLIENT_ID` and `LINKEDIN_CLIENT_SECRET`
 
-### Stripe Setup
-1. Create Stripe account
+### razorpay Setup
+1. Create razorpay account
 2. Get API keys from dashboard
 3. Set webhook endpoint: `/api/subscriptions/webhook`
-4. Configure `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET`
+4. Configure `razorpay_SECRET_KEY` and `razorpay_WEBHOOK_SECRET`
 
 ### Cloudinary Setup
 1. Create Cloudinary account

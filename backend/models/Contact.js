@@ -120,7 +120,7 @@ contactSchema.virtual('daysSinceCreation').get(function() {
   const now = new Date();
   const created = new Date(this.createdAt);
   const diffTime = Math.abs(now - created);
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return Math.floor(diffTime / (1000 * 60 * 60 * 24));
 });
 
 // Pre-save middleware to set priority based on category

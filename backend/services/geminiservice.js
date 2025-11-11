@@ -134,7 +134,7 @@ Guidelines:
 
   try {
     const response = await genAI.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       contents: prompt,
     });
     
@@ -153,7 +153,6 @@ Guidelines:
       // First, try to parse as-is
       JSON.parse(cleaned);
     } catch (firstError) {
-      console.log('Initial JSON parse failed, attempting to fix common issues...');
       
       // Fix common Gemini JSON issues
       cleaned = cleaned
@@ -163,7 +162,6 @@ Guidelines:
         .replace(/:\s*([^",{\[\s][^",}\]\s]*)\s*([,}])/g, ': "$1"$2') // Quote unquoted string values
         .replace(/:\s*([^",{\[\s][^",}\]\s]*)\s*([,}])/g, ': "$1"$2'); // Second pass for nested cases
       
-      console.log('Attempted to fix JSON formatting issues');
     }
     
     
@@ -184,7 +182,6 @@ Guidelines:
       
       try {
         parsedData = JSON.parse(cleaned);
-        console.log('Successfully parsed after aggressive cleaning');
       } catch (finalError) {
         throw new Error(`Failed to parse JSON after multiple attempts: ${finalError.message}`);
       }

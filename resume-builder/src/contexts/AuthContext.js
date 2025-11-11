@@ -117,6 +117,35 @@ export const AuthProvider = ({ children }) => {
     initializeAuth();
   }, []);
 
+  // Listen for token balance updates
+  useEffect(() => {
+    const handleTokenBalanceUpdate = (event) => {
+      const { balance } = event.detail;
+      if (state.user && balance !== undefined) {
+        const updatedUser = { ...state.user, tokens: balance };
+        apiHelpers.setCurrentUserData(updatedUser);
+        dispatch({ type: AUTH_ACTIONS.UPDATE_USER, payload: updatedUser });
+      }
+    };
+
+    const handleUserDataUpdate = (event) => {
+      const userData = event.detail;
+      if (userData) {
+        const updatedUser = createUserModel(userData);
+        apiHelpers.setCurrentUserData(updatedUser);
+        dispatch({ type: AUTH_ACTIONS.UPDATE_USER, payload: updatedUser });
+      }
+    };
+
+    window.addEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
+    window.addEventListener('userDataUpdated', handleUserDataUpdate);
+
+    return () => {
+      window.removeEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
+      window.removeEventListener('userDataUpdated', handleUserDataUpdate);
+    };
+  }, [state.user]);
+
   // Login function
   const login = async (credentials) => {
     try {
@@ -138,6 +167,7 @@ export const AuthProvider = ({ children }) => {
         apiHelpers.setAuthToken(token);
         const userData = createUserModel(user);
         apiHelpers.setCurrentUserData(userData);
+        apiHelpers.setTokenBalance(userData.tokens);
         
         dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: userData });
         toast.success('Login successful!');
@@ -293,7 +323,18 @@ export const AuthProvider = ({ children }) => {
   const updateUser = (userData) => {
     const updatedUser = createUserModel(userData);
     apiHelpers.setCurrentUserData(updatedUser);
+    
+    // Update token data if available
+    if (userData.tokens !== undefined) {
+      apiHelpers.setTokenBalance(userData.tokens);
+    }
+    
     dispatch({ type: AUTH_ACTIONS.UPDATE_USER, payload: updatedUser });
+
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent('userDataUpdated', {
+      detail: updatedUser
+    }));
   };
 
   // Change password
@@ -487,19 +528,8 @@ export const AuthProvider = ({ children }) => {
     return userPermissions.includes(requiredPermission);
   };
 
-  // Check if user has active subscription
-  const hasActiveSubscription = () => {
-    if (!state.user || !state.user.subscription) return false;
-    
-    const { subscription } = state.user;
-    return subscription.isActive && new Date(subscription.endDate) > new Date();
-  };
-
-  // Get subscription plan
-  const getSubscriptionPlan = () => {
-    if (!state.user || !state.user.subscription) return 'free';
-    return state.user.subscription.plan;
-  };
+  // Subscription-related methods have been moved to the subscription service
+  // Use the useSubscription hook instead for subscription functionality
 
   // Context value
   const contextValue = {
@@ -526,8 +556,6 @@ export const AuthProvider = ({ children }) => {
     
     // Utilities
     hasPermission,
-    hasActiveSubscription,
-    getSubscriptionPlan,
   };
 
   return (
@@ -576,4 +604,4 @@ export const withAuth = (Component) => {
   };
 };
 
-export default AuthContext; 
+export default AuthContext;

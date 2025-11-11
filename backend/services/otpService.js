@@ -33,7 +33,8 @@ class OtpService {
         type,
         expiryMinutes: 10,
         appName: process.env.APP_NAME || 'Resume Builder',
-        supportEmail: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER
+        supportEmail: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER,
+        year: new Date().getFullYear()
       });
 
       await emailService.sendEmail(email, subject, htmlContent);

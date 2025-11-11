@@ -1,0 +1,241 @@
+---
+globs: *.yml,*.yaml,*.json,Dockerfile,docker-compose.yml,vercel.json
+---
+
+# Deployment & CI/CD Rules
+
+## 🚀 Deployment Configuration
+
+### **Multi-Platform Deployment**
+- **Frontend**: Vercel (React app)
+- **Backend**: Render (Node.js API)
+- **Database**: MongoDB Atlas (cloud) or local MongoDB
+- **Development**: Docker Compose for local development
+
+### **Docker Configuration**
+- **Main Compose**: [docker-compose.yml](mdc:docker-compose.yml) - Full stack development
+- **Backend Dockerfile**: [backend/Dockerfile](mdc:backend/Dockerfile) - Node.js container
+- **Frontend Dockerfile**: [resume-builder/Dockerfile](mdc:resume-builder/Dockerfile) - React container
+- **Services**: MongoDB, Redis, Nginx reverse proxy
+
+### **Vercel Deployment (Frontend)**
+- **Configuration**: [vercel.json](mdc:vercel.json) - Vercel deployment settings
+- **Build Command**: `npm run build` with CRACO
+- **Output Directory**: `build/` directory
+- **Environment**: Production environment variables
+- **Domain**: Custom domain configuration
+
+### **Render Deployment (Backend)**
+- **Configuration**: [render.yaml](mdc:render.yaml) - Render services configuration
+- **Build Command**: `npm install && npm run build:render`
+- **Start Command**: `npm start`
+- **Environment**: Production environment variables
+- **Health Check**: `/health` endpoint monitoring
+
+### **Environment Variables**
+
+#### **Backend Environment**
+```env
+# Required
+NODE_ENV=production
+PORT=5000
+MONGODB_URI=mongodb+srv://...
+JWT_SECRET=production-jwt-secret
+CLIENT_URL=https://your-frontend-domain.com
+
+# Optional
+GOOGLE_CLIENT_ID=oauth-client-id
+RAZORPAY_SECRET_KEY=payment-secret
+CLOUDINARY_CLOUD_NAME=cloud-storage
+```
+
+#### **Frontend Environment**
+```env
+REACT_APP_API_URL=https://your-backend-domain.com
+REACT_APP_ENVIRONMENT=production
+```
+
+### **Build Scripts**
+- **Backend Build**: [backend/scripts/build.js](mdc:backend/scripts/build.js) - Production build
+- **Render Build**: [backend/scripts/render-build.js](mdc:backend/scripts/render-build.js) - Render-specific build
+- **Local Build**: [backend/scripts/local-build-for-render.js](mdc:backend/scripts/local-build-for-render.js) - Local testing
+
+### **Docker Services Configuration**
+
+#### **MongoDB Service**
+```yaml
+mongodb:
+  image: mongo:6.0
+  container_name: resume-builder-mongodb
+  restart: unless-stopped
+  ports:
+    - "27017:27017"
+  environment:
+    MONGO_INITDB_ROOT_USERNAME: admin
+    MONGO_INITDB_ROOT_PASSWORD: password
+  volumes:
+    - mongodb_data:/data/db
+```
+
+#### **Backend Service**
+```yaml
+backend:
+  build:
+    context: ./backend
+    dockerfile: Dockerfile
+  container_name: resume-builder-backend
+  restart: unless-stopped
+  ports:
+    - "5000:5000"
+  environment:
+    NODE_ENV: development
+    MONGODB_URI: mongodb://admin:password@mongodb:27017/resume_builder
+  depends_on:
+    - mongodb
+```
+
+#### **Frontend Service**
+```yaml
+frontend:
+  build:
+    context: ./resume-builder
+    dockerfile: Dockerfile
+  container_name: resume-builder-frontend
+  restart: unless-stopped
+  ports:
+    - "3000:3000"
+  environment:
+    REACT_APP_API_URL: http://localhost:5000
+  depends_on:
+    - backend
+```
+
+### **CI/CD Pipeline**
+
+#### **GitHub Actions Workflow**
+```yaml
+name: Deploy to Production
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Install dependencies
+        run: |
+          cd backend && npm install
+          cd ../resume-builder && npm install
+      - name: Run tests
+        run: |
+          cd backend && npm test
+          cd ../resume-builder && npm test
+
+  deploy-frontend:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v20
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.ORG_ID }}
+          vercel-project-id: ${{ secrets.PROJECT_ID }}
+
+  deploy-backend:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy to Render
+        uses: render-actions/deploy@v1
+        with:
+          service-id: ${{ secrets.RENDER_SERVICE_ID }}
+          api-key: ${{ secrets.RENDER_API_KEY }}
+```
+
+### **Deployment Commands**
+
+#### **Local Development**
+```bash
+# Start full stack
+docker-compose up
+
+# Start individual services
+docker-compose up mongodb backend
+docker-compose up frontend
+
+# Build and start
+docker-compose up --build
+```
+
+#### **Production Deployment**
+```bash
+# Backend deployment
+cd backend
+npm run build:render
+npm start
+
+# Frontend deployment
+cd resume-builder
+npm run build
+npm run vercel-build
+```
+
+### **Health Checks**
+- **Backend Health**: `GET /health` - Server status and uptime
+- **Database Health**: MongoDB connection status
+- **Frontend Health**: Static file serving
+- **API Health**: Endpoint availability
+
+### **Monitoring & Logging**
+- **Application Logs**: Winston logger with file and console output
+- **Error Tracking**: Centralized error handling
+- **Performance Monitoring**: Response time tracking
+- **Uptime Monitoring**: Health check endpoints
+
+### **Security Configuration**
+- **HTTPS**: SSL/TLS certificates for production
+- **CORS**: Configured for production domains
+- **Rate Limiting**: Production-appropriate limits
+- **Environment Variables**: Secure secret management
+
+### **Database Migration**
+- **Schema Updates**: Mongoose schema migrations
+- **Data Migration**: Scripts in [backend/scripts/](mdc:backend/scripts/)
+- **Backup Strategy**: MongoDB Atlas backups
+- **Rollback Plan**: Database version management
+
+### **Deployment Checklist**
+1. **Environment Variables**: All required variables set
+2. **Database Connection**: MongoDB Atlas connection string
+3. **API Endpoints**: Backend API accessible from frontend
+4. **File Uploads**: Cloudinary configuration
+5. **Authentication**: JWT secrets configured
+6. **Payment Integration**: Razorpay keys set
+7. **Email Service**: SMTP configuration
+8. **Domain Configuration**: Custom domains set up
+9. **SSL Certificates**: HTTPS enabled
+10. **Monitoring**: Health checks configured
+
+### **Rollback Procedures**
+- **Frontend Rollback**: Vercel deployment rollback
+- **Backend Rollback**: Render service rollback
+- **Database Rollback**: MongoDB Atlas point-in-time recovery
+- **Configuration Rollback**: Environment variable rollback
+
+### **Performance Optimization**
+- **Frontend**: Code splitting and lazy loading
+- **Backend**: Compression and caching headers
+- **Database**: Index optimization and query performance
+- **CDN**: Static asset delivery optimization
+- **Caching**: Redis for session and data caching

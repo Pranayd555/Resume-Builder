@@ -188,8 +188,8 @@ class OptimizedTemplateRenderer {
 
     // Header level mapping
     const headerLevels = {
-      'h1': { fontSize: '2.5rem', fontWeight: '700', marginBottom: '0.25rem' },
-      'h2': { fontSize: '2rem', fontWeight: '600', marginBottom: '0.125rem' },
+      'h1': { fontSize: '2.5rem', fontWeight: '900', marginBottom: '0.25rem' },
+      'h2': { fontSize: '2rem', fontWeight: '700', marginBottom: '0.125rem' },
       'h3': { fontSize: '1.5rem', fontWeight: '600', marginBottom: '0.125rem' },
       'h4': { fontSize: '1.25rem', fontWeight: '500', marginBottom: '0.125rem' },
       'h5': { fontSize: '1.125rem', fontWeight: '500', marginBottom: '0.125rem' }
@@ -210,6 +210,7 @@ class OptimizedTemplateRenderer {
         .${uniqueId} .name {
           font-size: ${templateStyling.headerFontSize + 2}px !important;  
           font-weight: 600 !important; 
+          margin-bottom: 0.25rem !important; 
         }
           
         
@@ -227,20 +228,20 @@ class OptimizedTemplateRenderer {
       `;
     }
     // Apply header level (fallback if headerFontSize not set)
-    else if (templateStyling.headerLevel && headerLevels[templateStyling.headerLevel]) {
-      const level = headerLevels[templateStyling.headerLevel];
-      css += `
-        .${uniqueId} .name,
-        .${uniqueId} h1,
-        .${uniqueId} h2,
-        .${uniqueId} h3,
-        .${uniqueId} h4,
-        .${uniqueId} h5 { 
-          font-size: ${level.fontSize} !important; 
-          font-weight: ${level.fontWeight} !important; 
-        }
-      `;
-    }
+    // else if (templateStyling.headerLevel && headerLevels[templateStyling.headerLevel]) {
+    //   const level = headerLevels[templateStyling.headerLevel];
+    //   css += `
+    //     .${uniqueId} .name,
+    //     .${uniqueId} h1,
+    //     .${uniqueId} h2,
+    //     .${uniqueId} h3,
+    //     .${uniqueId} h4,
+    //     .${uniqueId} h5 { 
+    //       font-size: ${level.fontSize} !important; 
+    //       font-weight: ${level.fontWeight} !important; 
+    //     }
+    //   `;
+    // }
 
     // Apply content font size with unified logic
     if (templateStyling.fontSize) {
@@ -274,7 +275,8 @@ class OptimizedTemplateRenderer {
         .${uniqueId} .summary-text,
         .${uniqueId} .project-description,
         .${uniqueId} .achievement-description,
-        .${uniqueId} .edu-description { 
+        .${uniqueId} .edu-description
+        .${uniqueId} .achievements { 
           font-size: ${baseSize}px !important; 
         }
         
@@ -297,11 +299,14 @@ class OptimizedTemplateRenderer {
         .${uniqueId} .issuer,
         .${uniqueId} .dates,
         .${uniqueId} .tech-tag,
-        .${uniqueId} .skill-item,
-        .${uniqueId} .project-links a,
-        .${uniqueId} .cert-link a,
-        .${uniqueId} .contact-item a { 
+        .${uniqueId} .skill-item, { 
           font-size: ${smallSize}px !important; 
+        }
+
+        
+        .${uniqueId} .project-links a,
+        .${uniqueId} .cert-link a, {
+        font-size: ${mediumSize}px !important;
         }
 
         .${uniqueId} .primaryFont strong {
@@ -369,7 +374,7 @@ class OptimizedTemplateRenderer {
       .${uniqueId} .primaryFont * {
         font-family: '${primaryFont}', sans-serif !important;
         font-size: ${headingSize}px !important;
-        font-weight: 600 !important;
+        font-weight: ${templateStyling.headerLevel == 'h1' ? '800' : templateStyling.headerLevel == 'h2' ? '700' : templateStyling.headerLevel == 'h3' ? '600' : templateStyling.headerLevel == 'h4' ? '500' : templateStyling.headerLevel == 'h5' ? '400' : '600'} !important;
       }
       .${uniqueId} .secondaryFont,
       .${uniqueId} .secondaryFont * {
@@ -383,17 +388,17 @@ class OptimizedTemplateRenderer {
       .${uniqueId} h1.primaryFont,
       .${uniqueId} .name.primaryFont {
         font-size: ${headingSize + 2}px !important;
-        font-weight: 700 !important;
+        font-weight: ${templateStyling.headerLevel == 'h1' ? '800' : templateStyling.headerLevel == 'h2' ? '700' : templateStyling.headerLevel == 'h3' ? '600' : templateStyling.headerLevel == 'h4' ? '500' : templateStyling.headerLevel == 'h5' ? '400' : '600'} !important;
       }
       .${uniqueId} .primaryFont h2,
       .${uniqueId} h2.primaryFont {
         font-size: ${headingSize}px !important;
-        font-weight: 600 !important;
+        font-weight: ${templateStyling.headerLevel == 'h1' ? '800' : templateStyling.headerLevel == 'h2' ? '700' : templateStyling.headerLevel == 'h3' ? '600' : templateStyling.headerLevel == 'h4' ? '500' : templateStyling.headerLevel == 'h5' ? '400' : '600'} !important;
       }
       .${uniqueId} .primaryFont h3,
       .${uniqueId} h3.primaryFont {
         font-size: ${subheadingSize}px !important;
-        font-weight: 600 !important;
+        font-weight: ${templateStyling.headerLevel == 'h1' ? '800' : templateStyling.headerLevel == 'h2' ? '700' : templateStyling.headerLevel == 'h3' ? '600' : templateStyling.headerLevel == 'h4' ? '500' : templateStyling.headerLevel == 'h5' ? '400' : '600'} !important;
       }
       
       /* Small text for secondaryFont */
@@ -401,6 +406,11 @@ class OptimizedTemplateRenderer {
       .${uniqueId} small.secondaryFont,
       .${uniqueId} .secondaryFont .dates {
         font-size: ${smallSize}px !important;
+      }
+
+      .${uniqueId} strong.secondaryFont, 
+      .${uniqueId} .secondaryFont strong {
+        font-weight: 600 !important;
       }
       
       /* Override any existing font rules for these classes */
@@ -612,6 +622,105 @@ class OptimizedTemplateRenderer {
       }
       .${uniqueId} ol { 
         list-style-type: decimal; 
+      }
+      
+      /* Preserve CKEditor formatting in all description fields */
+      .${uniqueId} .summary-text,
+      .${uniqueId} .about-text,
+      .${uniqueId} .executive-summary,
+      .${uniqueId} .summary-section,
+      .${uniqueId} .summary,
+      .${uniqueId} .project-description,
+      .${uniqueId} .job-description,
+      .${uniqueId} .edu-description,
+      .${uniqueId} .achievement-description,
+      .${uniqueId} .custom-content {
+        /* Don't override CKEditor styles */
+      }
+      
+      /* Preserve all CKEditor inline styles */
+      .${uniqueId} .summary-text span[style],
+      .${uniqueId} .about-text span[style],
+      .${uniqueId} .executive-summary span[style],
+      .${uniqueId} .summary-section span[style],
+      .${uniqueId} .summary span[style],
+      .${uniqueId} .project-description span[style],
+      .${uniqueId} .job-description span[style],
+      .${uniqueId} .edu-description span[style],
+      .${uniqueId} .achievement-description span[style],
+      .${uniqueId} .custom-content span[style] {
+        /* Let inline styles take precedence */
+      }
+      
+      /* Ensure CKEditor bold formatting is preserved */
+      .${uniqueId} .summary-text strong, .${uniqueId} .summary-text b,
+      .${uniqueId} .about-text strong, .${uniqueId} .about-text b,
+      .${uniqueId} .executive-summary strong, .${uniqueId} .executive-summary b,
+      .${uniqueId} .summary-section strong, .${uniqueId} .summary-section b,
+      .${uniqueId} .summary strong, .${uniqueId} .summary b,
+      .${uniqueId} .project-description strong, .${uniqueId} .project-description b,
+      .${uniqueId} .job-description strong, .${uniqueId} .job-description b,
+      .${uniqueId} .edu-description strong, .${uniqueId} .edu-description b,
+      .${uniqueId} .achievement-description strong, .${uniqueId} .achievement-description b,
+      .${uniqueId} .custom-content strong, .${uniqueId} .custom-content b {
+        font-weight: 700 !important;
+      }
+      
+      /* Ensure CKEditor italic formatting is preserved */
+      .${uniqueId} .summary-text em, .${uniqueId} .summary-text i,
+      .${uniqueId} .about-text em, .${uniqueId} .about-text i,
+      .${uniqueId} .executive-summary em, .${uniqueId} .executive-summary i,
+      .${uniqueId} .summary-section em, .${uniqueId} .summary-section i,
+      .${uniqueId} .summary em, .${uniqueId} .summary i,
+      .${uniqueId} .project-description em, .${uniqueId} .project-description i,
+      .${uniqueId} .job-description em, .${uniqueId} .job-description i,
+      .${uniqueId} .edu-description em, .${uniqueId} .edu-description i,
+      .${uniqueId} .achievement-description em, .${uniqueId} .achievement-description i,
+      .${uniqueId} .custom-content em, .${uniqueId} .custom-content i {
+        font-style: italic !important;
+      }
+      
+      /* Ensure CKEditor underline formatting is preserved */
+      .${uniqueId} .summary-text u,
+      .${uniqueId} .about-text u,
+      .${uniqueId} .executive-summary u,
+      .${uniqueId} .summary-section u,
+      .${uniqueId} .summary u,
+      .${uniqueId} .project-description u,
+      .${uniqueId} .job-description u,
+      .${uniqueId} .edu-description u,
+      .${uniqueId} .achievement-description u,
+      .${uniqueId} .custom-content u {
+        text-decoration: underline !important;
+      }
+      
+      /* Preserve CKEditor list formatting */
+      .${uniqueId} .summary-text ol, .${uniqueId} .summary-text ul,
+      .${uniqueId} .about-text ol, .${uniqueId} .about-text ul,
+      .${uniqueId} .executive-summary ol, .${uniqueId} .executive-summary ul,
+      .${uniqueId} .summary-section ol, .${uniqueId} .summary-section ul,
+      .${uniqueId} .summary ol, .${uniqueId} .summary ul,
+      .${uniqueId} .project-description ol, .${uniqueId} .project-description ul,
+      .${uniqueId} .job-description ol, .${uniqueId} .job-description ul,
+      .${uniqueId} .edu-description ol, .${uniqueId} .edu-description ul,
+      .${uniqueId} .achievement-description ol, .${uniqueId} .achievement-description ul,
+      .${uniqueId} .custom-content ol, .${uniqueId} .custom-content ul {
+        margin: 0.25rem 0;
+        padding-left: 1rem;
+      }
+      
+      .${uniqueId} .summary-text li, .${uniqueId} .summary-text li,
+      .${uniqueId} .about-text li, .${uniqueId} .about-text li,
+      .${uniqueId} .executive-summary li, .${uniqueId} .executive-summary li,
+      .${uniqueId} .summary-section li, .${uniqueId} .summary-section li,
+      .${uniqueId} .summary li, .${uniqueId} .summary li,
+      .${uniqueId} .project-description li, .${uniqueId} .project-description li,
+      .${uniqueId} .job-description li, .${uniqueId} .job-description li,
+      .${uniqueId} .edu-description li, .${uniqueId} .edu-description li,
+      .${uniqueId} .achievement-description li, .${uniqueId} .achievement-description li,
+      .${uniqueId} .custom-content li, .${uniqueId} .custom-content li {
+        margin-bottom: 0.125rem;
+        line-height: 1.3;
       }
       
       /* Also remove bottom spacing from last items within sections 
@@ -896,6 +1005,7 @@ class OptimizedTemplateRenderer {
   generateSampleData() {
     return {
       title: 'Software Engineer Resume',
+      isFresher: false,
       personalInfo: {
         fullName: 'John Doe',
         email: 'john.doe@email.com',
@@ -903,7 +1013,8 @@ class OptimizedTemplateRenderer {
         address: 'San Francisco, CA',
         website: 'https://johndoe.dev',
         linkedin: 'https://linkedin.com/in/johndoe',
-        github: 'https://github.com/johndoe'
+        github: 'https://github.com/johndoe',
+        profilePicture: 'https://cdn-icons-png.flaticon.com/512/3135/3135823.png',
       },
       summary: 'Experienced software engineer with 5+ years of experience in full-stack development. Passionate about creating scalable applications and leading development teams. Skilled in modern JavaScript frameworks, cloud technologies, and agile methodologies.',
       workExperience: [
@@ -981,7 +1092,7 @@ class OptimizedTemplateRenderer {
         {
           name: 'E-commerce Platform',
           description: 'Full-stack e-commerce application with payment processing and inventory management',
-          technologies: ['React', 'Node.js', 'MongoDB', 'Stripe API'],
+          technologies: ['React', 'Node.js', 'MongoDB', 'Razorpay API'],
           url: 'https://ecommerce-demo.com',
           githubUrl: 'https://github.com/johndoe/ecommerce-platform',
           startDate: '2020-01-01',

@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const Subscription = require('../models/Subscription');
 const logger = require('../utils/logger');
+const { calculateTotalTokens } = require('../utils/tokenCalculator');
 
 // Protect routes - require authentication
 const protect = async (req, res, next) => {
@@ -54,134 +54,29 @@ const authorize = (...roles) => {
   };
 };
 
-// Check if user has active subscription
-const requireSubscription = async (req, res, next) => {
-  if (!req.user) {
-    return res.status(401).json({
-      success: false,
-      error: 'Access denied. Not authenticated.'
-    });
-  }
-
-  try {
-    let subscription = await Subscription.findOne({ user: req.user.id });
-    
-    if (!subscription) {
-      return res.status(403).json({
-        success: false,
-        error: 'Access denied. No subscription found.'
-      });
-    }
-
-    // Check if trial has expired and update if necessary
-    if (subscription.status === 'trialing' && subscription.hasTrialExpired()) {
-      await subscription.expireTrial();
-      // Refresh the subscription data after expiration
-      subscription = await Subscription.findOne({ user: req.user.id });
-    }
-
-    if (subscription.status !== 'active' && subscription.status !== 'trialing') {
-      return res.status(403).json({
-        success: false,
-        error: 'Access denied. Active subscription required.'
-      });
-    }
-
-    // Add subscription to request for later use
-    req.subscription = subscription;
-    next();
-  } catch (error) {
-    logger.error('Require subscription error:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Error checking subscription status'
-    });
-  }
-};
-
-// Check subscription limits for resume creation
-const checkResumeLimit = async (req, res, next) => {
-  try {
-    let subscription = await Subscription.findOne({ user: req.user.id });
-    
-    if (!subscription) {
-      return res.status(403).json({
-        success: false,
-        error: 'No subscription found. Please upgrade to create resumes.'
-      });
-    }
-
-    // Check if trial has expired and update if necessary
-    if (subscription.status === 'trialing' && subscription.hasTrialExpired()) {
-      await subscription.expireTrial();
-      // Refresh the subscription data after expiration
-      subscription = await Subscription.findOne({ user: req.user.id });
-    }
-
-    const canCreate = await subscription.canCreateResume();
-    if (!canCreate) {
-      const currentUsage = subscription.usage.resumesCreated || 0;
-      const limit = subscription.features?.resumeLimit || 2;
-      const planName = subscription.plan === 'free' ? 'Free' : 'Pro';
-      return res.status(403).json({
-        success: false,
-        error: `Resume creation limit reached. You have created ${currentUsage}/${limit} resumes on your ${planName} plan. Please upgrade to create more resumes.`,
-        limitReached: true,
-        currentUsage,
-        limit,
-        plan: subscription.plan
-      });
-    }
-
-    // Add subscription to request for later use
-    req.subscription = subscription;
-    next();
-  } catch (error) {
-    logger.error('Check resume limit error:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Error checking subscription limits'
-    });
-  }
-};
-
 // Check AI action limits
 const checkAIActionLimit = async (req, res, next) => {
   try {
-    let subscription = await Subscription.findOne({ user: req.user.id });
+    const user = await User.findById(req.user.id);
     
-    if (!subscription) {
-      return res.status(403).json({
+    if (!user) {
+      return res.status(404).json({
         success: false,
-        error: 'No subscription found. Please upgrade to use AI features.'
+        error: 'User not found'
       });
     }
 
-    // Check if trial has expired and update if necessary
-    if (subscription.status === 'trialing' && subscription.hasTrialExpired()) {
-      await subscription.expireTrial();
-      // Refresh the subscription data after expiration
-      subscription = await Subscription.findOne({ user: req.user.id });
-    }
-
-    if (!subscription.canUseAIAction()) {
-      const currentUsage = subscription.usage.aiActionsThisCycle || 0;
-      const limit = subscription.features?.aiActionsLimit || 10;
-      const planName = subscription.plan === 'free' ? 'Free' : 'Pro';
-      const cycleType = subscription.plan === 'free' ? 'month' : (subscription.billing?.cycle || 'month');
+    // Check if user has tokens available
+    if (user.tokens <= 0 && user.bonusTokens <= 0) {
       return res.status(403).json({
         success: false,
-        error: `${cycleType.charAt(0).toUpperCase() + cycleType.slice(1)}ly AI action limit reached. You have used ${currentUsage}/${limit} AI actions this ${cycleType} on your ${planName} plan. Please upgrade to use more AI actions.`,
-        limitReached: true,
-        currentUsage,
-        limit,
-        plan: subscription.plan,
-        cycleType
+        error: 'No tokens available. Please purchase more tokens to use AI features.',
+        limitReached: true
       });
     }
 
-    // Add subscription to request for later use
-    req.subscription = subscription;
+    // Add user to request for later use
+    req.userData = user;
     next();
   } catch (error) {
     logger.error('Check AI action limit error:', error);
@@ -195,33 +90,17 @@ const checkAIActionLimit = async (req, res, next) => {
 // Check template access
 const checkTemplateAccess = async (req, res, next) => {
   try {
-    let subscription = await Subscription.findOne({ user: req.user.id });
     const templateTier = req.body.templateTier || req.params.templateTier || 'free';
     
-    if (!subscription) {
+    // For now, allow access to all templates (free tier only)
+    // This can be updated later if premium templates are added
+    if (templateTier !== 'free') {
       return res.status(403).json({
         success: false,
-        error: 'No subscription found. Please upgrade to access premium templates.'
+        error: 'Premium templates are not available. Please use free templates.'
       });
     }
 
-    // Check if trial has expired and update if necessary
-    if (subscription.status === 'trialing' && subscription.hasTrialExpired()) {
-      await subscription.expireTrial();
-      // Refresh the subscription data after expiration
-      subscription = await Subscription.findOne({ user: req.user.id });
-    }
-
-    if (!subscription.canAccessTemplate(templateTier)) {
-      const planType = subscription.isTrialActive() ? 'trial' : subscription.plan;
-      return res.status(403).json({
-        success: false,
-        error: `Template not available in your ${planType} plan. Please upgrade to Pro plan.`
-      });
-    }
-
-    // Add subscription to request for later use
-    req.subscription = subscription;
     next();
   } catch (error) {
     logger.error('Check template access error:', error);
@@ -235,33 +114,16 @@ const checkTemplateAccess = async (req, res, next) => {
 // Check export format access
 const checkExportFormat = async (req, res, next) => {
   try {
-    let subscription = await Subscription.findOne({ user: req.user.id });
     const format = req.body.format || req.params.format || 'pdf';
     
-    if (!subscription) {
+    // Allow PDF export for all users
+    if (format !== 'pdf') {
       return res.status(403).json({
         success: false,
-        error: 'No subscription found. Please upgrade to export resumes.'
+        error: `${format.toUpperCase()} export not available. Only PDF export is supported.`
       });
     }
 
-    // Check if trial has expired and update if necessary
-    if (subscription.status === 'trialing' && subscription.hasTrialExpired()) {
-      await subscription.expireTrial();
-      // Refresh the subscription data after expiration
-      subscription = await Subscription.findOne({ user: req.user.id });
-    }
-
-    if (!subscription.canExportFormat(format)) {
-      const planType = subscription.isTrialActive() ? 'trial' : subscription.plan;
-      return res.status(403).json({
-        success: false,
-        error: `${format.toUpperCase()} export not available in your ${planType} plan. Please upgrade to Pro plan.`
-      });
-    }
-
-    // Add subscription to request for later use
-    req.subscription = subscription;
     next();
   } catch (error) {
     logger.error('Check export format error:', error);
@@ -272,22 +134,77 @@ const checkExportFormat = async (req, res, next) => {
   }
 };
 
+// Check and consume tokens for AI actions
+const checkTokenLimit = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    // Check if user has enough tokens (1 token for AI actions)
+    if (!user.hasTokens(1)) {
+      return res.status(403).json({
+        success: false,
+        error: 'Insufficient tokens. You need 1 token to use AI features. Please buy tokens to continue.',
+        tokensRequired: 1,
+        currentTokens: user.tokens,
+        action: 'buy_tokens'
+      });
+    }
+
+    // Consume 1 token for AI action
+    try {
+      await user.consumeTokens(1);
+      logger.info(`Token consumed: 1 token for user ${req.user.id}, remaining: ${user.tokens + user.bonusTokens}`);
+      const tokenData = await calculateTotalTokens(req.user.id);
+      // Store user object and token data in request for potential refund and response
+      req.userForRefund = user;
+      req.tokens = {
+        balance: tokenData.totalTokenBalance,
+        purchasedTokens: tokenData.purchasedTokens,
+        bonusTokens: tokenData.bonusTokens,
+      };
+    } catch (error) {
+      logger.error(`Error consuming tokens: ${error.message}`);
+      return res.status(500).json({
+        success: false,
+        error: 'Error processing token consumption'
+      });
+    }
+    
+    next();
+  } catch (error) {
+    logger.error('Check token limit error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Error checking token limits'
+    });
+  }
+};
+
 // Track usage after successful operations
 const trackUsage = async (req, res, next) => {
   const originalSend = res.json;
   
   res.json = function(data) {
     // Only track usage if the operation was successful
-    if (data.success && req.subscription) {
+    if (data.success && req.userData) {
       const usageType = req.usageType || 'resume';
       
-      req.subscription.incrementUsage(usageType)
-        .then(() => {
-          logger.info(`Usage tracked: ${usageType} for user ${req.user.id}`);
-        })
-        .catch(error => {
+      // Update user usage statistics
+      if (usageType === 'resume') {
+        req.userData.usage.resumesCreated = (req.userData.usage.resumesCreated || 0) + 1;
+        req.userData.save().catch(error => {
           logger.error(`Error tracking usage: ${error.message}`);
         });
+      }
+      
+      logger.info(`Usage tracked: ${usageType} for user ${req.user.id}`);
     }
     
     originalSend.call(this, data);
@@ -296,13 +213,64 @@ const trackUsage = async (req, res, next) => {
   next();
 };
 
+
+// Helper function to refund tokens on AI errors
+const refundTokenOnError = async (req, res, next) => {
+  const originalSend = res.json;
+  
+  res.json = function(data) {
+    // If the response indicates an error and we have a user for refund
+    if (!data.success && req.userForRefund) {
+      try {
+        // Refund the token back to the user
+        req.userForRefund.addTokens(1);
+        logger.info(`Token refunded: 1 token returned to user ${req.userForRefund._id} due to AI error`);
+      } catch (refundError) {
+        logger.error(`Error refunding token: ${refundError.message}`);
+      }
+    }
+    
+    originalSend.call(this, data);
+  };
+  
+  next();
+};
+
+// Check user status and handle cleanup
+const checkUserStatus = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return next();
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return next();
+    }
+
+    // Check if user is active
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        error: 'Account is inactive. Please contact support.'
+      });
+    }
+
+    next();
+  } catch (error) {
+    logger.error('Check user status error:', error);
+    next(); // Continue even if user status check fails
+  }
+};
+
 module.exports = {
   protect,
   authorize,
-  requireSubscription,
-  checkResumeLimit,
   checkAIActionLimit,
   checkTemplateAccess,
   checkExportFormat,
-  trackUsage
+  checkTokenLimit,
+  trackUsage,
+  checkUserStatus,
+  refundTokenOnError
 }; 
