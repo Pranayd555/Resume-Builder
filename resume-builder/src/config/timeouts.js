@@ -94,7 +94,7 @@ export const API_ENDPOINT_TIMEOUTS = {
   '/subscriptions/create-checkout-session': API_TIMEOUTS.PAYMENT,
   '/subscriptions/success': API_TIMEOUTS.PAYMENT,
   '/subscriptions/cancel': API_TIMEOUTS.PAYMENT,
-  '/subscriptions/reactivate': API_TIMEOUTS.PAYMENT,
+
   '/subscriptions/billing-history': API_TIMEOUTS.PAYMENT,
   '/subscriptions/update-payment-method': API_TIMEOUTS.PAYMENT,
   

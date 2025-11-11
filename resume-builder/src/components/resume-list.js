@@ -2,28 +2,22 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import AuthLoader from './AuthLoader';
-import { 
-  Bars3Icon,
+import {
   CheckCircleIcon,
   ClockIcon,
   PlusIcon,
-  MagnifyingGlassIcon,
-  FunnelIcon,
-  ChevronDownIcon,
-  CheckIcon,
   DocumentTextIcon,
   PencilIcon,
-  EyeIcon,
-  EyeSlashIcon,
   DocumentDuplicateIcon,
   ArrowDownTrayIcon,
   TrashIcon,
   EllipsisVerticalIcon,
   ChatBubbleLeftRightIcon,
-  CurrencyDollarIcon,
   ExclamationTriangleIcon,
   ChartBarIcon,
-  SparklesIcon
+  SparklesIcon,
+  ArrowsRightLeftIcon,
+  ReceiptRefundIcon
 } from '@heroicons/react/24/outline';
 import { resumeAPI, analyticsAPI, apiHelpers } from '../services/api';
 import { createResumeModel } from '../models/dataModels';
@@ -31,6 +25,7 @@ import { toast } from 'react-toastify';
 import ATSScoreModal from './ATSScoreModal';
 import EmailVerification from './EmailVerification';
 import { useAuth } from '../contexts/AuthContext';
+import { PUBLIC_ROUTES } from '../constants/routes';
 
 // ATS Score Display Component
 const ATSScoreDisplay = ({ resume, isCardHovered }) => {
@@ -244,28 +239,15 @@ function ResumeList() {
     }
   }, [user]);
 
-  // Refresh user data when page becomes visible (e.g., returning from profile)
+  // Add refs to track state and prevent infinite loops
+  const userRef = useRef(user);
+  const updateUserRef = useRef(updateUser);
+
+  // Update refs when values change
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden && user) {
-        apiHelpers.setCurrentUserData(user);
-      }
-    };
-
-    const handleFocus = () => {
-      if (user) {
-        apiHelpers.setCurrentUserData(user);
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocus);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [user]);
+    userRef.current = user;
+    updateUserRef.current = updateUser;
+  }, [user, updateUser]);
 
   const [pagination, setPagination] = useState({
     page: 1,
@@ -273,10 +255,10 @@ function ResumeList() {
     total: 0,
     pages: 0
   });
-  const [filters, setFilters] = useState({
-    status: '',
-    search: ''
-  });
+  // const [filters, setFilters] = useState({
+  //   status: '',
+  //   search: ''
+  // });
   
   // Track if we're already fetching to prevent duplicate calls
   const isFetchingRef = useRef(false);
@@ -294,55 +276,12 @@ function ResumeList() {
   const cardRefs = useRef({});
   const observerRef = useRef(null);
 
-  // Get subscription info from localStorage
-  const getSubscriptionInfo = () => {
-    try {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        const user = JSON.parse(userData);
-        return user.subscription || { plan: 'free', isActive: false };
-      }
-    } catch (error) {
-      console.error('Error parsing user data from localStorage:', error);
-    }
-    return { plan: 'free', isActive: false };
-  };
-
-  // Check if user can create new resume based on subscription and current count
+  // Check if user can create new resume - limit to 3 resumes
   const canCreateNewResume = () => {
-    const subscription = getSubscriptionInfo();
-    const currentResumeCount = resumes.length;
-    
-    if (subscription.plan === 'free') {
-      return currentResumeCount < 2;
-    } else if (subscription.plan === 'pro') {
-      return currentResumeCount < 5;
-    }
-    
-    return true; // Default fallback
+    return resumes.length < 3; // Allow only 3 resumes maximum
   };
 
-  // Get subscription limit message
-  const getSubscriptionLimitMessage = () => {
-    const subscription = getSubscriptionInfo();
-    const currentResumeCount = resumes.length;
-    
-    if (subscription.plan === 'free' && currentResumeCount >= 2) {
-      return {
-        type: 'warning',
-        message: 'Free plan limit reached! Delete old resumes or upgrade to Pro to create more resumes.',
-        action: 'Upgrade to Pro'
-      };
-    } else if (subscription.plan === 'pro' && currentResumeCount >= 5) {
-      return {
-        type: 'info',
-        message: 'Total resume limit reached! Please delete some old resumes to create new ones.',
-        action: null
-      };
-    }
-    
-    return null;
-  };
+  // No subscription limits for free plan
 
   // Handle click outside to close status dropdown
   useEffect(() => {
@@ -389,41 +328,41 @@ function ResumeList() {
     };
   }, [showStatusDropdown, openDropdownId]);
 
-  const statusOptions = [
-    { 
-      value: '', 
-      label: 'All Status', 
-      icon: <Bars3Icon className="w-4 h-4" />,
-      color: 'text-gray-600'
-    },
-    { 
-      value: 'active', 
-      label: 'Active', 
-      icon: <CheckCircleIcon className="w-4 h-4" />,
-      color: 'text-green-600'
-    },
-    { 
-      value: 'published', 
-      label: 'Published', 
-      icon: <CheckCircleIcon className="w-4 h-4" />,
-      color: 'text-blue-600'
-    },
-    { 
-      value: 'draft', 
-      label: 'Draft', 
-      icon: <ClockIcon className="w-4 h-4" />,
-      color: 'text-yellow-600'
-    }
-  ];
+  // const statusOptions = [
+  //   { 
+  //     value: '', 
+  //     label: 'All Status', 
+  //     icon: <Bars3Icon className="w-4 h-4" />,
+  //     color: 'text-gray-600'
+  //   },
+  //   { 
+  //     value: 'active', 
+  //     label: 'Active', 
+  //     icon: <CheckCircleIcon className="w-4 h-4" />,
+  //     color: 'text-green-600'
+  //   },
+  //   { 
+  //     value: 'published', 
+  //     label: 'Published', 
+  //     icon: <CheckCircleIcon className="w-4 h-4" />,
+  //     color: 'text-blue-600'
+  //   },
+  //   { 
+  //     value: 'draft', 
+  //     label: 'Draft', 
+  //     icon: <ClockIcon className="w-4 h-4" />,
+  //     color: 'text-yellow-600'
+  //   }
+  // ];
 
-  const getSelectedOption = () => {
-    return statusOptions.find(option => option.value === filters.status) || statusOptions[0];
-  };
+  // const getSelectedOption = () => {
+  //   return statusOptions.find(option => option.value === filters.status) || statusOptions[0];
+  // };
 
-  const handleStatusSelect = (value) => {
-    handleFilterChange('status', value);
-    setShowStatusDropdown(false);
-  };
+  // const handleStatusSelect = (value) => {
+  //   handleFilterChange('status', value);
+  //   setShowStatusDropdown(false);
+  // };
 
   const fetchResumes = useCallback(async () => {
     // Prevent duplicate calls
@@ -439,7 +378,7 @@ function ResumeList() {
       const params = {
         page: pagination.page,
         limit: pagination.limit,
-        ...filters
+        // ...filters
       };
       
       const response = await resumeAPI.getResumes(params);
@@ -463,7 +402,7 @@ function ResumeList() {
       setLoading(false);
       isFetchingRef.current = false;
     }
-  }, [pagination.page, pagination.limit, filters]);
+  }, [pagination.page, pagination.limit]);
 
   // Load resumes on component mount
   useEffect(() => {
@@ -484,8 +423,9 @@ function ResumeList() {
   // Update subscription info when resumes change (for reactive UI updates)
   useEffect(() => {
     // This effect ensures the UI updates when resume count changes
-    // The subscription info is read from localStorage on each render
+    // The subscription info is now managed by state
   }, [resumes.length]);
+
 
   // Handle error navigation - must be at top level to avoid hook rules violation
   useEffect(() => {
@@ -548,25 +488,6 @@ function ResumeList() {
   }, []);
 
   const handleCreateNew = () => {
-    if (!canCreateNewResume()) {
-      const limitMessage = getSubscriptionLimitMessage();
-      if (limitMessage) {
-        if (limitMessage.action === 'Upgrade to Pro') {
-          toast.warning(limitMessage.message, {
-            onClick: () => navigate('/subscription'),
-            closeButton: true,
-            autoClose: 5000
-          });
-        } else {
-          toast.info(limitMessage.message, {
-            closeButton: true,
-            autoClose: 4000
-          });
-        }
-      }
-      return;
-    }
-
     const userData = apiHelpers.getCurrentUserData();
     if (!userData) {
       toast.error('Please login to create a new resume');
@@ -579,6 +500,12 @@ function ResumeList() {
         onClick: () => navigate('/profile'),
         closeButton: true,
         autoClose: 5000
+      });
+      return;
+    } else if (resumes.length >= 3) {
+      toast.error('You have reached the maximum limit of 3 resumes. Please delete an existing resume to create a new one.', {
+        closeButton: true,
+        autoClose: 8000
       });
       return;
     }
@@ -594,7 +521,7 @@ function ResumeList() {
 
   const handleResumeClick = (resumeId, resumeStatus) => {
     if (resumeStatus === 'draft') {
-      toast.error('Cannot preview draft resumes. Please publish the resume first.');
+      toast.warning('Cannot preview draft resumes. Please publish the resume first.');
       return;
     }
     navigate(`/resume-preview/${resumeId}`);
@@ -613,6 +540,16 @@ function ResumeList() {
   };
 
   const handleDuplicateResume = async (resumeId) => {
+    // Check resume limit before duplication
+    if (resumes.length >= 3) {
+      toast.error('You have reached the maximum limit of 3 resumes. Please delete an existing resume to duplicate this one.', {
+        closeButton: true,
+        autoClose: 8000
+      });
+      setOpenDropdownId(null);
+      return;
+    }
+
     try {
       const response = await resumeAPI.duplicateResume(resumeId);
       if (response.success) {
@@ -693,9 +630,6 @@ function ResumeList() {
     navigate('/feedback');
   };
 
-  const handleUpgradeToPremium = () => {
-    navigate('/subscription');
-  };
 
   const handleDownload = async (resumeId) => {
     // Find the resume to check its status
@@ -734,47 +668,17 @@ function ResumeList() {
         const downloadAnalytics = await analyticsAPI.trackResumeDownload(resumeId, 'pdf');
         resume.analytics.downloads = downloadAnalytics.data.downloads;
         resume.analytics.lastDownloaded = downloadAnalytics.data.lastDownloaded;
-        console.log('Download analytics:', downloadAnalytics);
       } catch (analyticsError) {
-        console.warn('Failed to track download:', analyticsError);
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Failed to track download:', analyticsError);
+        }
       }
       
       toast.success('Resume downloaded successfully!');
     } catch (err) {
       const errorMessage = apiHelpers.formatError(err);
       
-      // Handle specific subscription-related errors
-      if (errorMessage.includes('upgrade to Pro') || errorMessage.includes('subscription plan')) {
-        toast.error(
-          <div>
-            <div className="font-semibold">Upgrade Required</div>
-            <div className="text-sm">{errorMessage}</div>
-            <button 
-              onClick={() => navigate('/subscription')}
-              className="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700"
-            >
-              Upgrade Now
-            </button>
-          </div>,
-          { duration: 5000 }
-        );
-      } else if (errorMessage.includes('Export limit reached')) {
-        toast.error(
-          <div>
-            <div className="font-semibold">Export Limit Reached</div>
-            <div className="text-sm">{errorMessage}</div>
-            <button 
-              onClick={() => navigate('/subscription')}
-              className="mt-2 bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700"
-            >
-              Upgrade for Unlimited Exports
-            </button>
-          </div>,
-          { duration: 5000 }
-        );
-      } else {
-        toast.error(errorMessage);
-      }
+      toast.error(errorMessage);
     } finally {
       // Remove resume from downloading set
       setDownloadingResumes(prev => {
@@ -788,21 +692,21 @@ function ResumeList() {
 
 
 
-  const handleToggleActive = async (resumeId, currentStatus) => {
-    try {
-      const response = await resumeAPI.toggleActive(resumeId);
-      if (response.success) {
-        toast.success(response.data.message);
-        fetchResumes(); // Refresh the list
-      } else {
-        throw new Error(response.error || 'Failed to toggle resume status');
-      }
-    } catch (err) {
-      const errorMessage = apiHelpers.formatError(err);
-      toast.error(errorMessage);
-    }
-    setOpenDropdownId(null);
-  };
+  // const handleToggleActive = async (resumeId, currentStatus) => {
+  //   try {
+  //     const response = await resumeAPI.toggleActive(resumeId);
+  //     if (response.success) {
+  //       toast.success(response.data.message);
+  //       fetchResumes(); // Refresh the list
+  //     } else {
+  //       throw new Error(response.error || 'Failed to toggle resume status');
+  //     }
+  //   } catch (err) {
+  //     const errorMessage = apiHelpers.formatError(err);
+  //     toast.error(errorMessage);
+  //   }
+  //   setOpenDropdownId(null);
+  // };
 
   const handlePageChange = (newPage) => {
     setPagination(prev => ({
@@ -811,21 +715,21 @@ function ResumeList() {
     }));
   };
 
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value
-    }));
-    setPagination(prev => ({
-      ...prev,
-      page: 1 // Reset to first page when filters change
-    }));
-  };
+  // const handleFilterChange = (key, value) => {
+  //   setFilters(prev => ({
+  //     ...prev,
+  //     [key]: value
+  //   }));
+  //   setPagination(prev => ({
+  //     ...prev,
+  //     page: 1 // Reset to first page when filters change
+  //   }));
+  // };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    fetchResumes();
-  };
+  // const handleSearch = (e) => {
+  //   e.preventDefault();
+  //   fetchResumes();
+  // };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -862,7 +766,7 @@ function ResumeList() {
     }
   };
 
-  // Loading state - || true Always show for testing
+  // Loading state
   if (loading) {
     return (
       <AuthLoader 
@@ -892,30 +796,44 @@ function ResumeList() {
       <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-              My Resumes
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg">Create and manage your professional resumes</p>
-            
+          <div className="flex-1">
+            <div className="flex flex-col sm:flex-column sm:items-left gap-1 mb-2">
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  My Resumes
+                </h1>
+              </div>
+              
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg">
+              Create and manage your professional resumes
+            </p>
           </div>
-                     {canCreateNewResume() && (
-             <div className="flex flex-col items-end gap-2">
-               <button
-                 onClick={handleCreateNew}
-                 className={`px-6 sm:px-8 py-3 sm:py-4 rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2 sm:gap-3 font-semibold text-sm sm:text-base min-w-[140px] sm:min-w-auto ${
-                   isEmailVerificationRequired() 
-                     ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 cursor-not-allowed opacity-75' 
-                     : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 hover:shadow-xl transform hover:scale-105'
-                 }`}
-               >
-                 <PlusIcon className="w-5 h-5 sm:w-6 sm:h-6" />
-                 <span className="whitespace-nowrap">
-                   {isEmailVerificationRequired() ? 'Verify Email First' : 'Create New'}
-                 </span>
-               </button>
-             </div>
-           )}
+          <div className="flex flex-wrap items-center gap-4 justify-end">
+            {canCreateNewResume() && (
+              <button
+                onClick={handleCreateNew}
+                disabled={isEmailVerificationRequired()}
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl transition-all duration-200 shadow-lg font-semibold text-sm sm:text-base min-w-[140px] sm:min-w-auto ${
+                  isEmailVerificationRequired()
+                    ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 cursor-not-allowed opacity-75'
+                    : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 hover:shadow-xl transform hover:scale-105'
+                }`}
+              >
+                <PlusIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+                <span className="whitespace-nowrap">
+                  {isEmailVerificationRequired() ? 'Verify Email First' : 'Create New Resume'}
+                </span>
+              </button>
+            )}
+            <button
+              onClick={() => navigate('/create-template')}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl shadow-lg hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 hover:shadow-xl transform hover:scale-105"
+            >
+              <PlusIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+              Create Your Own Template
+            </button>
+          </div>
         </div>
         
         {/* Email Verification Banner */}
@@ -945,55 +863,28 @@ function ResumeList() {
           </div>
         )}
 
-        {/* Subscription Limit Banner */}
-        {!canCreateNewResume() && !isEmailVerificationRequired() && getSubscriptionInfo().plan === 'free' && (
+        {/* Resume Limit Banner */}
+        {!canCreateNewResume() && (
           <div className="backdrop-blur-md bg-orange-50/80 border border-orange-200 rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0">
-                  <CurrencyDollarIcon className="w-6 h-6 text-orange-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-orange-800 mb-1">
-                    Free Plan Limit Reached
-                  </h3>
-                  <p className="text-orange-700 text-sm sm:text-base">
-                    You've reached the maximum of 2 resumes on the free plan. Upgrade to Pro for unlimited resumes and premium features.
-                  </p>
-                </div>
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <ExclamationTriangleIcon className="w-6 h-6 text-orange-600" />
               </div>
-              <button
-                onClick={() => navigate('/subscription')}
-                className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-xl hover:from-orange-600 hover:to-red-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 font-semibold text-sm sm:text-base whitespace-nowrap"
-              >
-                Upgrade to Pro
-              </button>
-            </div>
-          </div>
-        )}
-        
-        {!canCreateNewResume() && !isEmailVerificationRequired() && getSubscriptionInfo().plan === 'pro' && (
-          <div className="backdrop-blur-md bg-blue-50/80 border border-blue-200 rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0">
-                  <DocumentTextIcon className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-blue-800 mb-1">
-                    Total Resume Limit Reached
-                  </h3>
-                  <p className="text-blue-700 text-sm sm:text-base">
-                    You can create up to 5 resumes. Please delete some old resumes to create new ones.
-                  </p>
-                </div>
+              <div>
+                <h3 className="text-lg font-semibold text-orange-800 mb-1">
+                  Resume Limit Reached
+                </h3>
+                <p className="text-orange-700 text-sm sm:text-base">
+                  You have reached the maximum limit of 3 resumes. Please delete an existing resume to create a new one.
+                </p>
               </div>
             </div>
           </div>
         )}
+
         
         {/* Search and Filter */}
-        <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-4 sm:p-6 mb-8">
+        {/* <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-4 sm:p-6 mb-8">
           <div className="flex flex-col gap-4">
             <div className="w-full">
               <form onSubmit={handleSearch} className="flex gap-3">
@@ -1094,7 +985,7 @@ function ResumeList() {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
         
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -1102,9 +993,16 @@ function ResumeList() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Total Resumes</p>
-                <p className="text-3xl font-bold text-gray-900">{resumes.length}</p>
+                <p className="text-3xl font-bold text-gray-900">{resumes.length}/3</p>
+                {resumes.length >= 3 && (
+                  <p className="text-xs text-red-600 font-medium mt-1">Limit Reached</p>
+                )}
               </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg ${
+                resumes.length >= 3 
+                  ? 'bg-gradient-to-br from-red-400 to-red-600' 
+                  : 'bg-gradient-to-br from-blue-400 to-blue-600'
+              }`}>
                 <DocumentTextIcon className="w-6 h-6 text-white" />
               </div>
             </div>
@@ -1202,7 +1100,7 @@ function ResumeList() {
                                  <PencilIcon className="w-4 h-4" />
                                  Edit Resume
                                </button>
-                               {resume.status === 'published' && (
+                               {/* {resume.status === 'published' && (
                                  <button
                                    onClick={(e) => {
                                      e.stopPropagation();
@@ -1221,7 +1119,23 @@ function ResumeList() {
                                    )}
                                    {resume.isActive ? 'Deactivate' : 'Activate'}
                                  </button>
-                               )}
+                               )} */}
+                               <button
+                                 disabled={resume.status === 'draft'}
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   navigate(`/template-selection/${resume.id}`);
+                                 }}
+                                 className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
+                                  resume.status === 'draft'
+                                    ? 'text-gray-400 cursor-not-allowed'
+                                    : 'text-gray-700 hover:bg-gray-100'
+                                }`}
+                               >
+                                 <ArrowsRightLeftIcon className="h-4 w-4" />
+                                 Change Template
+                               </button>
+
                                <button
                                  disabled={resume.status === 'draft' || !canCreateNewResume()}
                                  onClick={(e) => {
@@ -1233,10 +1147,12 @@ function ResumeList() {
                                     ? 'text-gray-400 cursor-not-allowed'
                                     : 'text-gray-700 hover:bg-gray-100'
                                 }`}
+                                 title={!canCreateNewResume() ? 'Maximum of 3 resumes allowed. Delete an existing resume to duplicate this one.' : ''}
                                >
                                  <DocumentDuplicateIcon className="w-4 h-4" />
-                                 Duplicate
+                                 {!canCreateNewResume() ? 'Duplicate (Limit Reached)' : 'Duplicate'}
                                </button>
+                               
                                <button
                                  onClick={(e) => {
                                    e.stopPropagation();
@@ -1270,28 +1186,7 @@ function ResumeList() {
                                  ATS Analysis
                                  <SparklesIcon className="w-3 h-3 text-purple-500" />
                                </button>
-                               {/* <button
-                                 onClick={(e) => {
-                                   e.stopPropagation();
-                                   handleDownloadDOCX(resume.id);
-                                 }}
-                                 disabled={resume.status === 'draft' || downloadingResumes.has(resume.id)}
-                                 className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
-                                   resume.status === 'draft' || downloadingResumes.has(resume.id)
-                                     ? 'text-gray-400 cursor-not-allowed'
-                                     : 'text-gray-700 hover:bg-gray-100'
-                                 }`}
-                                 title={resume.status === 'draft' ? 'Publish resume to download' : 'Download DOCX'}
-                               >
-                                 {downloadingResumes.has(resume.id) ? (
-                                   <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                   </svg>
-                                 ) : (
-                                   <ArrowDownTrayIcon className="w-4 h-4" />
-                                 )}
-                                 {downloadingResumes.has(resume.id) ? 'Downloading...' : 'Download DOCX'}
-                               </button> */}
+
                                <button
                                  onClick={(e) => {
                                    e.stopPropagation();
@@ -1367,20 +1262,12 @@ function ResumeList() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleToggleActive(resume.id, resume.status);
+                          handleOpenAtsModal(resume.id);
                         }}
-                        className={`px-3 py-2.5 rounded-lg transition-colors font-medium text-xs flex items-center justify-center gap-1 ${
-                          resume.isActive 
-                            ? 'bg-red-100 text-red-600 hover:bg-red-200' 
-                            : 'bg-green-100 text-green-600 hover:bg-green-200'
-                        }`}
+                        className="px-3 py-2.5 rounded-lg transition-colors font-medium text-xs flex items-center justify-center gap-1 bg-orange-100 text-orange-600 hover:bg-orange-200"
                       >
-                        {resume.isActive ? (
-                          <EyeSlashIcon className="w-3 h-3" />
-                        ) : (
-                          <EyeIcon className="w-3 h-3" />
-                        )}
-                        {resume.isActive ? 'Off' : 'On'}
+                        <SparklesIcon className="w-3 h-3 text-orange-500" />
+                        ATS
                       </button>
                     )}
                     <button
@@ -1417,16 +1304,19 @@ function ResumeList() {
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No resumes found</h3>
                 <p className="text-gray-600 mb-6">Get started by creating your first professional resume.</p>
-                <button
-                  onClick={handleCreateNew}
-                  className={`px-6 py-3 rounded-lg transition-all duration-200 ${
-                    isEmailVerificationRequired()
-                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 cursor-not-allowed opacity-75'
-                      : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
-                  }`}
-                >
-                  {isEmailVerificationRequired() ? 'Verify Email First' : 'Create Your First Resume'}
-                </button>
+                {canCreateNewResume() && (
+                  <button
+                    onClick={handleCreateNew}
+                    disabled={isEmailVerificationRequired()}
+                    className={`px-6 py-3 rounded-lg transition-all duration-200 ${
+                      isEmailVerificationRequired()
+                        ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 cursor-not-allowed opacity-75'
+                        : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
+                    }`}
+                  >
+                    {isEmailVerificationRequired() ? 'Verify Email First' : 'Create Your First Resume'}
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -1484,23 +1374,63 @@ function ResumeList() {
                 </div>
               </div>
             </button>
-            
+
             <button
-              onClick={handleUpgradeToPremium}
-              className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-6 hover:bg-white/80 transition-all duration-200 hover:shadow-2xl hover:scale-105 cursor-pointer text-left group"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200">
-                  <CurrencyDollarIcon className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors duration-200">Upgrade to Premium</h3>
-                  <p className="text-gray-600 text-sm">Unlock unlimited templates and advanced features</p>
-                </div>
+            onClick={() => navigate(PUBLIC_ROUTES.CANCELLATION_REFUNDS)}
+            className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-6 hover:bg-white/80 transition-all duration-200 hover:shadow-2xl hover:scale-105 cursor-pointer text-left group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200">
+                <ReceiptRefundIcon class="w-6 h-6 text-white"/>
               </div>
-            </button>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors duration-200">Cancellation & Refund Policy</h3>
+                <p className="text-gray-600 text-sm">Learn how we handle cancellations and refunds</p>
+              </div>
+            </div>
+          </button>
+            
           </div>
+
+          
         )}
+
+        {/* Legal Information Cards */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <button
+            onClick={() => navigate('/terms-conditions')}
+            className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-6 hover:bg-white/80 transition-all duration-200 hover:shadow-2xl hover:scale-105 cursor-pointer text-left group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-orange-600 transition-colors duration-200">Terms & Conditions</h3>
+                <p className="text-gray-600 text-sm">Review our terms of service and usage guidelines</p>
+              </div>
+            </div>
+          </button>
+          
+          <button
+            onClick={() => navigate('/privacy-policy')}
+            className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-6 hover:bg-white/80 transition-all duration-200 hover:shadow-2xl hover:scale-105 cursor-pointer text-left group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors duration-200">Privacy Policy</h3>
+                <p className="text-gray-600 text-sm">Learn how we protect and handle your personal information</p>
+              </div>
+            </div>
+          </button>
+        </div>
 
         {/* Delete Confirmation Modal */}
         {showDeleteModal && resumeToDelete && (

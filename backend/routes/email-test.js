@@ -61,10 +61,22 @@ router.post('/send', protect, authorize('admin'), async (req, res) => {
       case 'contact-form':
         result = await emailService.sendContactFormEmail('test@example.com', 'Test User', 'Test Subject', 'This is a test message from the email service.');
         break;
+      case 'payment-invoice':
+        result = await emailService.sendPaymentInvoice({
+          email: email,
+          name: 'Test User',
+          transactionId: 'order_test_1234567890',
+          paymentId: 'pay_test_1234567890',
+          amount: 500,
+          tokensAdded: 50,
+          paymentMethod: 'Razorpay',
+          paymentDate: new Date()
+        });
+        break;
       default:
         return res.status(400).json({
           success: false,
-          error: 'Invalid email type. Available types: welcome, password-reset, email-verification, subscription-confirmation, subscription-cancellation, contact-form'
+          error: 'Invalid email type. Available types: welcome, password-reset, email-verification, subscription-confirmation, subscription-cancellation, contact-form, payment-invoice'
         });
     }
 

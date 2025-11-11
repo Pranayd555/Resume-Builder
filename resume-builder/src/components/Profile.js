@@ -647,10 +647,10 @@ function Profile() {
       setShowEmailVerification(true);
       
       // Optionally send a new OTP if needed
-      // const response = await resendOtp();
-      // if (response.success) {
-      //   toast.success('New verification code sent to your email!');
-      // }
+      const response = await authAPI.resendOtp();
+      if (response.success) {
+        toast.success('New verification code sent to your email!');
+      }
     } catch (error) {
       console.error('Failed to show email verification modal:', error);
     }
@@ -1043,7 +1043,7 @@ function Profile() {
         {showPasswordModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-              <h3 className="text-lg font-semibold mb-4">Change Password</h3>
+              <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-900">Change Password</h3>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-900 mb-1">
@@ -1127,7 +1127,6 @@ function Profile() {
                 <ul className="list-disc list-inside text-gray-600 space-y-1">
                   <li>Your profile information</li>
                   <li>All your resumes</li>
-                  <li>Your subscription data</li>
                   <li>All uploaded files</li>
                 </ul>
               </div>

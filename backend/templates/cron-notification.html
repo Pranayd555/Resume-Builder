@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cron Job Notification</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-top: 5px solid {{statusColor}};
+        }
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .header .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        h1 {
+            color: #333;
+            font-size: 22px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .status-badge {
+            background-color: {{statusColor}};
+            color: #ffffff;
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        p {
+            margin-bottom: 15px;
+        }
+        .details {
+            background-color: #f9f9f9;
+            border-left: 5px solid #ddd;
+            padding: 15px;
+            margin-top: 20px;
+            word-break: break-all;
+        }
+        .details strong {
+            color: #555;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #777;
+        }
+        .footer a {
+            color: #007bff;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">{{appName}}</div>
+        </div>
+        
+        <h1>Cron Job Notification: {{jobName}}</h1>
+        
+        <div class="status-badge">
+            {{statusText}}
+        </div>
+        
+        <p>Hello Admin,</p>
+        
+        <p>This is an automated notification regarding the status of your scheduled cron job.</p>
+        
+        <div class="details">
+            <p><strong>Job Name:</strong> {{jobName}}</p>
+            <p><strong>Status:</strong> {{statusText}}</p>
+            <p><strong>Timestamp:</strong> {{timestamp}}</p>
+            {{#if errorMessage}}
+            <p><strong>Error Message:</strong> <pre>{{errorMessage}}</pre></p>
+            {{/if}}
+            {{#if details}}
+            <p><strong>Details:</strong> <pre>{{details}}</pre></p>
+            {{/if}}
+        </div>
+        
+        <p>Please review the details above. If this is a failure notification, further investigation may be required.</p>
+        
+        <div class="footer">
+            <p>Best regards,<br>
+            The {{appName}} Automated System</p>
+            
+            <p style="font-size: 12px; color: #9ca3af;">
+                This email was sent from {{appName}}.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -8,19 +8,23 @@ const morgan = require('morgan');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss');
 const passport = require('passport');
+const session = require('express-session'); // Import express-session
+const MongoStore = require('connect-mongo'); // Import connect-mongo
 require('dotenv').config();
+
 
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const resumeRoutes = require('./routes/resumes');
 const templateRoutes = require('./routes/templates');
-const subscriptionRoutes = require('./routes/subscriptions');
 const uploadRoutes = require('./routes/uploads');
 const emailTestRoutes = require('./routes/email-test');
 const feedbackRoutes = require('./routes/feedback');
 const contactRoutes = require('./routes/contact');
 const analyticsRoutes = require('./routes/analytics');
 const aiRoutes = require('./routes/ai');
+const createTemplateRoutes = require('./routes/createTemplate');
+const paymentRoutes = require('./routes/payment');
 
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./utils/logger');
@@ -32,6 +36,26 @@ const app = express();
 
 // Trust proxy for deployment
 app.set('trust proxy', 1);
+
+// Configure express-session middleware
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'supersecretkey', // Use a strong secret from environment variables
+  resave: false,
+  saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGODB_URI || 'mongodb://localhost:27017/resumebuilder',
+    collectionName: 'sessions',
+    ttl: 14 * 24 * 60 * 60, // 14 days. Default
+    autoRemove: 'interval',
+    autoRemoveInterval: 10 // In minutes. Default
+  }),
+  cookie: {
+    secure: process.env.NODE_ENV === 'production' && !process.env.LOCAL_DEVELOPMENT, // Set to true in production (HTTPS), false in development (HTTP)
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === 'production' && !process.env.LOCAL_DEVELOPMENT ? 'none' : 'lax', // 'none' for cross-site cookies in production, 'lax' for development
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
 
 // Set server timeout for long-running requests (like AI model initialization)
 app.use((req, res, next) => {
@@ -125,6 +149,15 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Initialize passport
 app.use(passport.initialize());
+app.use(passport.session()); // Use passport.session() after express-session
+
+// serialize/deserialize user for session
+passport.serializeUser((user, done) => {
+  done(null, user); // in prod, serialize only user id
+});
+passport.deserializeUser((obj, done) => {
+  done(null, obj);
+});
 
 // Data sanitization against NoSQL query injection
 app.use(mongoSanitize());
@@ -132,11 +165,76 @@ app.use(mongoSanitize());
 // Data sanitization against XSS
 app.use((req, res, next) => {
   if (req.body) {
-    Object.keys(req.body).forEach(key => {
-      if (typeof req.body[key] === 'string') {
-        req.body[key] = xss(req.body[key]);
+    // Recursive function to sanitize nested objects and arrays
+    const sanitizeObject = (obj, isResumeRequest = false) => {
+      if (typeof obj === 'string') {
+        // Check if this is a resume content field
+        const resumeContentFields = ['summary', 'description', 'content'];
+        const isResumeContentField = isResumeRequest && resumeContentFields.some(field => 
+          obj.includes(`<span style=`) || obj.includes(`<strong>`) || obj.includes(`<em>`) || obj.includes(`<u>`)
+        );
+        
+        if (isResumeContentField) {
+          // For resume content fields, use a more permissive XSS filter that preserves CKEditor formatting
+          return xss(obj, {
+            whiteList: {
+              'p': ['style'],
+              'span': ['style'],
+              'strong': [],
+              'b': [],
+              'em': [],
+              'i': [],
+              'u': [],
+              'ol': ['class', 'style'],
+              'ul': ['class', 'style'],
+              'li': ['class', 'data-list-item-id', 'style'],
+              'br': [],
+              'div': ['style'],
+              'h1': ['style'],
+              'h2': ['style'],
+              'h3': ['style'],
+              'h4': ['style'],
+              'h5': ['style'],
+              'h6': ['style'],
+              'section': ['style'],
+              'article': ['style'],
+              'header': ['style'],
+              'footer': ['style'],
+              'main': ['style'],
+              'aside': ['style'],
+              'nav': ['style'],
+              'table': ['style'],
+              'tr': ['style'],
+              'td': ['style'],
+              'th': ['style'],
+              'tbody': ['style'],
+              'thead': ['style'],
+              'tfoot': ['style']
+            },
+            stripIgnoreTag: true,
+            stripIgnoreTagBody: ['script']
+          });
+        } else {
+          // For other fields, use standard XSS sanitization
+          return xss(obj);
+        }
+      } else if (Array.isArray(obj)) {
+        return obj.map(item => sanitizeObject(item, isResumeRequest));
+      } else if (obj && typeof obj === 'object') {
+        const sanitized = {};
+        Object.keys(obj).forEach(key => {
+          sanitized[key] = sanitizeObject(obj[key], isResumeRequest);
+        });
+        return sanitized;
       }
-    });
+      return obj;
+    };
+    
+    // Check if this is a resume or template creation request
+    const isResumeRequest = req.path.includes('/resumes') || req.path.includes('/createTemplate');
+    
+    // Sanitize the entire request body
+    req.body = sanitizeObject(req.body, isResumeRequest);
   }
   next();
 });
@@ -200,13 +298,14 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/resumes', resumeRoutes);
 app.use('/api/templates', templateRoutes);
-app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/email-test', emailTestRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/createTemplate', createTemplateRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -253,4 +352,4 @@ if (process.env.NODE_ENV !== 'test') {
   });
 }
 
-module.exports = app; 
+module.exports = app;

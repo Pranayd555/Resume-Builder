@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refund Policy - Insufficient Unused Tokens - {{appName}}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        .policy-notice {
+            background-color: #fffbeb;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
+            border-left: 4px solid #f59e0b;
+        }
+        .policy-notice h3 {
+            margin: 0 0 20px 0;
+            color: #92400e;
+            font-size: 20px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #fde68a;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: 500;
+            color: #92400e;
+        }
+        .detail-value {
+            font-weight: 600;
+            color: #92400e;
+        }
+        .explanation {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+            border: 1px solid #e5e7eb;
+        }
+        .explanation h3 {
+            margin: 0 0 15px 0;
+            color: #374151;
+            font-size: 18px;
+        }
+        .explanation p {
+            margin: 10px 0;
+            color: #6b7280;
+            line-height: 1.6;
+        }
+        .refund-policy {
+            background-color: #f0fdf4;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+            border: 1px solid #dcfce7;
+        }
+        .refund-policy h3 {
+            margin: 0 0 15px 0;
+            color: #15803d;
+            font-size: 18px;
+        }
+        .refund-policy ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .refund-policy li {
+            margin-bottom: 8px;
+            color: #166534;
+        }
+        .token-usage-details {
+            background-color: #eff6ff;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+            border: 1px solid #dbeafe;
+        }
+        .token-usage-details h3 {
+            margin: 0 0 15px 0;
+            color: #0c4a6e;
+            font-size: 18px;
+        }
+        .usage-item {
+            padding: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #dbeafe;
+        }
+        .usage-item:last-child {
+            border-bottom: none;
+        }
+        .usage-label {
+            font-weight: 500;
+            color: #075985;
+        }
+        .usage-value {
+            font-weight: 600;
+            color: #075985;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            margin: 20px 0;
+            transition: transform 0.2s;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+        .footer p {
+            margin: 5px 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .support-info {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .support-info h4 {
+            margin: 0 0 10px 0;
+            color: #991b1b;
+        }
+        .support-info p {
+            margin: 0;
+            color: #991b1b;
+            font-size: 14px;
+        }
+        .info-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        /* Responsive Design */
+        @media only screen and (max-width: 768px) {
+            body {
+                padding: 15px;
+                margin: 0;
+            }
+            .container {
+                max-width: 100%;
+                border-radius: 8px;
+            }
+            .header {
+                padding: 25px 20px;
+            }
+            .header h1 {
+                font-size: 24px;
+            }
+            .content {
+                padding: 25px 20px;
+            }
+            .detail-row {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .cta-button {
+                padding: 14px 25px;
+                font-size: 15px;
+            }
+        }
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+                margin: 0;
+            }
+            .container {
+                border-radius: 0;
+                box-shadow: none;
+            }
+            .header {
+                padding: 20px 15px;
+            }
+            .header h1 {
+                font-size: 20px;
+            }
+            .header p {
+                font-size: 14px;
+            }
+            .info-icon {
+                font-size: 36px;
+            }
+            .content {
+                padding: 20px 15px;
+            }
+            .greeting {
+                font-size: 16px;
+            }
+            .policy-notice {
+                padding: 15px;
+                margin: 15px 0;
+                border-radius: 6px;
+            }
+            .policy-notice h3 {
+                font-size: 16px;
+                margin-bottom: 15px;
+            }
+            .detail-row {
+                padding: 10px 0;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+            .detail-label {
+                font-size: 14px;
+                font-weight: 600;
+            }
+            .detail-value {
+                margin-top: 2px;
+                font-size: 14px;
+                word-break: break-all;
+            }
+            .explanation {
+                padding: 15px;
+                margin: 15px 0;
+            }
+            .explanation h3 {
+                font-size: 16px;
+            }
+            .refund-policy {
+                padding: 15px;
+                margin: 15px 0;
+            }
+            .refund-policy h3 {
+                font-size: 16px;
+            }
+            .refund-policy li {
+                font-size: 14px;
+                line-height: 1.4;
+            }
+            .token-usage-details {
+                padding: 15px;
+                margin: 15px 0;
+            }
+            .token-usage-details h3 {
+                font-size: 16px;
+                margin-bottom: 12px;
+            }
+            .usage-item {
+                font-size: 14px;
+            }
+            .cta-button {
+                padding: 12px 20px;
+                margin: 15px 0;
+                font-size: 14px;
+                width: 100%;
+                max-width: 300px;
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            .support-info {
+                padding: 12px;
+                margin: 15px 0;
+            }
+            .support-info h4 {
+                font-size: 15px;
+            }
+            .support-info p {
+                font-size: 13px;
+                line-height: 1.4;
+            }
+            .footer {
+                padding: 15px;
+                font-size: 12px;
+            }
+            .footer p {
+                line-height: 1.4;
+            }
+        }
+        @media only screen and (max-width: 480px) {
+            .header {
+                padding: 18px 12px;
+            }
+            .header h1 {
+                font-size: 18px;
+            }
+            .info-icon {
+                font-size: 32px;
+            }
+            .content {
+                padding: 18px 12px;
+            }
+            .greeting {
+                font-size: 15px;
+            }
+            .policy-notice {
+                padding: 12px;
+                margin: 12px 0;
+            }
+            .explanation {
+                padding: 12px;
+                margin: 12px 0;
+            }
+            .refund-policy {
+                padding: 12px;
+                margin: 12px 0;
+            }
+            .token-usage-details {
+                padding: 12px;
+                margin: 12px 0;
+            }
+            .cta-button {
+                padding: 12px 16px;
+                font-size: 13px;
+            }
+            .support-info {
+                padding: 10px;
+                margin: 12px 0;
+            }
+            .footer {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="info-icon">ℹ️</div>
+            <h1>Refund Not Eligible</h1>
+            <p>Your refund request cannot be processed as per our refund policy</p>
+        </div>
+
+        <div class="content">
+            <div class="greeting">
+                Hello {{name}},
+            </div>
+
+            <p>Thank you for contacting us regarding your refund request. After reviewing your account and token usage, we regret to inform you that your refund request cannot be processed under our current refund policy.</p>
+
+            <div class="policy-notice">
+                <h3>📋 Request Summary</h3>
+                <div class="detail-row">
+                    <span class="detail-label">Transaction ID:</span>
+                    <span class="detail-value">{{transactionId}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Order ID:</span>
+                    <span class="detail-value">{{orderId}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Amount Paid:</span>
+                    <span class="detail-value">₹{{amountPaid}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Request Date:</span>
+                    <span class="detail-value">{{requestDate}}</span>
+                </div>
+            </div>
+
+            <div class="explanation">
+                <h3>Why Your Refund Cannot Be Processed</h3>
+                <p>
+                    Your refund request cannot be processed because the tokens purchased in this transaction have been substantially used beyond our refund policy limits. According to our policy, we can only process refunds when there are sufficient unused tokens remaining.
+                </p>
+                <p style="font-weight: 600; color: #374151;">
+                    Reason: {{refundReason}}
+                </p>
+            </div>
+
+            <div class="token-usage-details">
+                <h3>📊 Token Usage Breakdown</h3>
+                <div class="usage-item">
+                    <span class="usage-label">Tokens Purchased:</span>
+                    <span class="usage-value">{{boughtTokens}} tokens</span>
+                </div>
+                <div class="usage-item">
+                    <span class="usage-label">Bonus Tokens Provided:</span>
+                    <span class="usage-value">{{bonusTokensAdded}} tokens</span>
+                </div>
+                <div class="usage-item">
+                    <span class="usage-label">Current Token Balance:</span>
+                    <span class="usage-value">{{currentTokenBalance}} tokens</span>
+                </div>
+                <div class="usage-item">
+                    <span class="usage-label">Total Available Now:</span>
+                    <span class="usage-value" style="color: #dc2626;">{{totalAvailable}} tokens (Below threshold)</span>
+                </div>
+            </div>
+
+            <div class="refund-policy">
+                <h3>🛡️ Our Refund Policy</h3>
+                <ul>
+                    <li><strong>Full Refund:</strong> Available when purchased tokens remain completely unused</li>
+                    <li><strong>Partial Refund:</strong> Available when sufficient tokens remain unused (calculated based on usage)</li>
+                    <li><strong>No Refund:</strong> When tokens have been used beyond the refundable threshold (less than 1 token equivalent value remaining)</li>
+                    <li><strong>Bonus Tokens:</strong> Bonus tokens count towards the refund eligibility calculation</li>
+                    <li><strong>Time Limit:</strong> Refund requests must be made within 7 days of purchase</li>
+                </ul>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{dashboardUrl}}" class="cta-button">
+                    📊 Go to Dashboard
+                </a>
+            </div>
+
+            <div class="support-info">
+                <h4>💬 Questions About This Decision?</h4>
+                <p>
+                    If you believe this decision was made in error or have any questions about our refund policy,
+                    please contact our support team at
+                    <a href="mailto:{{supportEmail}}" style="color: #dc2626;">{{supportEmail}}</a>
+                    with your transaction details. We're here to help!
+                </p>
+            </div>
+
+            <p style="text-align: center; margin-top: 30px; color: #6b7280; font-style: italic;">
+                You can continue using your purchased tokens for all AI features on {{appName}}.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p><strong>{{appName}}</strong></p>
+            <p>We appreciate your understanding of our refund policy.</p>
+            <p style="font-size: 12px; color: #adb5bd;">
+                This is a notification regarding your refund request. Please keep this email for your records.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

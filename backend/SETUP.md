@@ -66,13 +66,13 @@ GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 ```
 
-### Stripe (for subscriptions)
-1. Create [Stripe account](https://stripe.com)
+### razorpay (for subscriptions)
+1. Create [razorpay account](https://razorpay.com)
 2. Get API keys from dashboard
 3. Add to `.env`:
 ```env
-STRIPE_SECRET_KEY=sk_test_your-stripe-secret-key
-STRIPE_PUBLISHABLE_KEY=pk_test_your-publishable-key
+razorpay_SECRET_KEY=sk_test_your-razorpay-secret-key
+razorpay_PUBLISHABLE_KEY=pk_test_your-publishable-key
 ```
 
 ### Cloudinary (for file uploads)
@@ -209,7 +209,7 @@ Visit `http://localhost:5000/health` to verify server is running.
 1. ✅ Set up basic backend
 2. ✅ Connect frontend to API
 3. 🔄 Add OAuth providers (optional)
-4. 🔄 Set up Stripe for payments (optional)
+4. 🔄 Set up razorpay for payments (optional)
 5. 🔄 Configure file uploads (optional)
 6. 🚀 Deploy to production
 

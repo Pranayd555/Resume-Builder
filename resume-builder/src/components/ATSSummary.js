@@ -1,16 +1,49 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { ChevronDownIcon, CheckCircleIcon, ExclamationTriangleIcon, LightBulbIcon, SparklesIcon, AdjustmentsHorizontalIcon, KeyIcon } from '@heroicons/react/24/outline';
-import { aiAPI } from '../services/api';
-import AILoader from './AILoader';
+import { apiHelpers } from '../services/api';
+import aiService from '../services/aiService';
+import AILoader from './annimations/AILoader';
+import { useAuth } from '../contexts/AuthContext';
 
 const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, resume = null, resumeId = null }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showAllKeywords, setShowAllKeywords] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingType, setProcessingType] = useState(null);
+  const [tokenBalance, setTokenBalance] = useState(0);
+  const [isTokenExhausted, setIsTokenExhausted] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Get initial token balance
+  useEffect(() => {
+    const balance = apiHelpers.getTokenBalance();
+    setTokenBalance(balance);
+    setIsTokenExhausted(balance <= 0);
+  }, []);
+
+  // Listen for token balance updates
+  useEffect(() => {
+    const handleTokenBalanceUpdate = (event) => {
+      const { balance } = event.detail;
+      setTokenBalance(balance);
+      setIsTokenExhausted(balance <= 0);
+    };
+
+    window.addEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
+    return () => window.removeEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
+  }, []);
+
+  // Update token balance from user data if available
+  useEffect(() => {
+    if (user && user.tokens !== undefined) {
+      setTokenBalance(user.tokens);
+      setIsTokenExhausted(user.tokens <= 0);
+    }
+  }, [user]);
+
 
   // Auto-open when new analysis is available
   useEffect(() => {
@@ -48,6 +81,7 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
     return Math.min((score / maxScore) * 100, 100);
   };
 
+
   // Handle Adjust Tone action
   const handleAdjustTone = async () => {
     if (!resume || !resumeId) {
@@ -55,19 +89,23 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       return;
     }
 
+    if (isTokenExhausted || tokenBalance <= 0) {
+      toast.error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
+      return;
+    }
+
     try {
       setIsProcessing(true);
       setProcessingType('adjust-tone');
       
-      const requestData = {
-        resume_json: resume,
-        ats_analysis: atsAnalysis,
-        focus: ["summary", "experience", "projects"]
-      };
-
-      const response = await aiAPI.adjustTone(resumeId, requestData);
+      const response = await aiService.adjustTone(resumeId, resume, atsAnalysis, ["summary", "experience", "projects"]);
       
       if (response.success) {
+        // Update token balance after successful operation
+        const currentBalance = apiHelpers.getTokenBalance();
+        const newBalance = Math.max(0, currentBalance - 1);
+        apiHelpers.updateTokenBalance(newBalance);
+        
         // Store the AI-enhanced data in localStorage with a flag
         const aiEnhancedData = {
           ...response.data,
@@ -91,7 +129,7 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       }
     } catch (error) {
       console.error('Adjust tone error:', error);
-      toast.error(error.message || 'Failed to adjust resume tone');
+      toast.error(apiHelpers.formatError(error));
     } finally {
       setIsProcessing(false);
       setProcessingType(null);
@@ -105,21 +143,22 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       return;
     }
 
+    if (isTokenExhausted || tokenBalance <= 0) {
+      toast.error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
+      return;
+    }
+
     try {
       setIsProcessing(true);
       setProcessingType('enhance-keywords');
       
-      const requestData = {
-        resume_json: resume,
-        ats_analysis: {
-          missing_keywords: atsAnalysis.missing_keywords || []
-        },
-        target_sections: ["skills", "experience", "projects"]
-      };
-
-      const response = await aiAPI.enhanceKeywords(resumeId, requestData);
+      const response = await aiService.enhanceKeywords(resumeId, resume, atsAnalysis, ["skills", "experience", "projects"]);
       
       if (response.success) {
+        // Update token balance after successful operation
+        const currentBalance = apiHelpers.getTokenBalance();
+        const newBalance = Math.max(0, currentBalance - 1);
+        apiHelpers.updateTokenBalance(newBalance);
         
         // Store the AI-enhanced data in localStorage with a flag
         const aiEnhancedData = {
@@ -144,7 +183,7 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       }
     } catch (error) {
       console.error('Enhance keywords error:', error);
-      toast.error(error.message || 'Failed to enhance keywords');
+      toast.error(apiHelpers.formatError(error));
     } finally {
       setIsProcessing(false);
       setProcessingType(null);
@@ -425,28 +464,49 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
               <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
               AI-Powered Improvements
             </h4>
+            
+            
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
                 onClick={handleAdjustTone}
-                disabled={isProcessing}
-                className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium text-sm"
+                disabled={isProcessing || isTokenExhausted}
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-all duration-200 font-medium text-sm ${
+                  isTokenExhausted 
+                    ? 'bg-gradient-to-r from-red-500 to-red-600 text-white cursor-not-allowed opacity-75' 
+                    : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700'
+                } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                title={isTokenExhausted ? 'AI tokens exhausted - Buy more tokens to continue' : ''}
               >
                 <AdjustmentsHorizontalIcon className="w-4 h-4" />
-                Adjust Tone
+                {isTokenExhausted ? 'Tokens Exhausted' : 'Adjust Tone'}
                 <SparklesIcon className="w-3 h-3 text-yellow-300" />
               </button>
               <button
                 onClick={handleEnhanceKeywords}
-                disabled={isProcessing}
-                className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium text-sm"
+                disabled={isProcessing || isTokenExhausted}
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-all duration-200 font-medium text-sm ${
+                  isTokenExhausted 
+                    ? 'bg-gradient-to-r from-red-500 to-red-600 text-white cursor-not-allowed opacity-75' 
+                    : 'bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:from-purple-600 hover:to-purple-700'
+                } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                title={isTokenExhausted ? 'AI tokens exhausted - Buy more tokens to continue' : ''}
               >
                 <KeyIcon className="w-4 h-4" />
-                Enhance Keywords
+                {isTokenExhausted ? 'Tokens Exhausted' : 'Enhance Keywords'}
                 <SparklesIcon className="w-3 h-3 text-yellow-300" />
               </button>
             </div>
             <p className="text-xs text-gray-500 mt-2 text-center">
-              AI will analyze your resume and make targeted improvements
+              {isTokenExhausted ? (
+                <>
+                  <span className='text-red-500'>⚠️</span>AI tokens exhausted! 
+                  <Link to="/payment" className="text-blue-500 hover:text-blue-700 underline ml-1">
+                    Buy more tokens
+                  </Link> to continue using AI features.
+                </>
+              ) : (
+                'AI will analyze your resume and make targeted improvements'
+              )}
             </p>
           </div>
         </div>

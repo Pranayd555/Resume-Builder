@@ -1,0 +1,343 @@
+---
+globs: backend/middleware/**/*.js,backend/config/**/*.js,backend/routes/auth.js
+---
+
+# Security & Authentication Rules
+
+## 🔐 Security Implementation Guidelines
+
+### **Authentication System**
+- **JWT Tokens**: Access token (7 days) + Refresh token (30 days)
+- **OAuth Integration**: Google and LinkedIn social login
+- **Password Security**: bcryptjs hashing with salt rounds
+- **Session Management**: Stateless JWT with refresh token rotation
+
+### **Security Middleware Stack**
+```javascript
+// Security middleware order in server.js
+app.use(helmet());                    // Security headers
+app.use(rateLimit());                // Rate limiting
+app.use(cors());                     // CORS configuration
+app.use(compression());              // Response compression
+app.use(mongoSanitize());           // NoSQL injection protection
+app.use(xssSanitization());          // XSS protection
+app.use(passport.initialize());      // Authentication
+```
+
+### **JWT Implementation**
+- **Access Token**: Short-lived (7 days) for API requests
+- **Refresh Token**: Long-lived (30 days) for token renewal
+- **Token Storage**: HTTP-only cookies for web, localStorage for mobile
+- **Token Rotation**: New refresh token on each renewal
+
+### **Password Security**
+```javascript
+// Password hashing with bcryptjs
+const bcrypt = require('bcryptjs');
+const saltRounds = 12;
+
+// Hash password
+const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+// Verify password
+const isValid = await bcrypt.compare(password, hashedPassword);
+```
+
+### **OAuth Configuration**
+- **Google OAuth**: [backend/config/passport.js](mdc:backend/config/passport.js) - Google strategy
+- **LinkedIn OAuth**: LinkedIn OAuth 2.0 strategy
+- **Callback URLs**: Secure callback handling
+- **User Profile**: OAuth profile mapping to user model
+
+### **Rate Limiting**
+```javascript
+// Rate limiting configuration
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: process.env.NODE_ENV === 'development' ? 1000 : 100,
+  message: 'Too many requests from this IP',
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+// Apply to API routes, exclude OAuth
+app.use('/api/', (req, res, next) => {
+  if (req.path.startsWith('/auth/google') || req.path.startsWith('/auth/linkedin')) {
+    return next();
+  }
+  return limiter(req, res, next);
+});
+```
+
+### **CORS Security**
+```javascript
+// CORS configuration for mobile and web
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'https://your-frontend-domain.com',
+      'capacitor://localhost',
+      'ionic://localhost'
+    ];
+    
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+};
+```
+
+### **XSS Protection**
+```javascript
+// Custom XSS sanitization for resume content
+const sanitizeObject = (obj, isResumeRequest = false) => {
+  if (typeof obj === 'string') {
+    if (isResumeRequest && isResumeContentField(obj)) {
+      // Permissive XSS filter for CKEditor content
+      return xss(obj, {
+        whiteList: {
+          'p': ['style'], 'span': ['style'], 'strong': [], 'b': [],
+          'em': [], 'i': [], 'u': [], 'ol': ['class', 'style'],
+          'ul': ['class', 'style'], 'li': ['class', 'data-list-item-id', 'style']
+        },
+        stripIgnoreTag: true,
+        stripIgnoreTagBody: ['script']
+      });
+    } else {
+      // Standard XSS sanitization
+      return xss(obj);
+    }
+  }
+  // Recursive sanitization for nested objects
+};
+```
+
+### **MongoDB Injection Protection**
+```javascript
+// NoSQL injection protection
+app.use(mongoSanitize({
+  replaceWith: '_',
+  onSanitize: ({ req, key }) => {
+    logger.warn(`Sanitized key: ${key} in request: ${req.method} ${req.path}`);
+  }
+}));
+```
+
+### **Input Validation**
+```javascript
+// Express-validator patterns
+const validateUser = [
+  body('email').isEmail().normalizeEmail(),
+  body('password').isLength({ min: 8 }).matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/),
+  body('firstName').trim().isLength({ min: 2, max: 50 }),
+  body('lastName').trim().isLength({ min: 2, max: 50 })
+];
+
+const validateResume = [
+  body('personalInfo.firstName').notEmpty().trim(),
+  body('personalInfo.email').isEmail().normalizeEmail(),
+  body('experience').isArray(),
+  body('experience.*.company').notEmpty().trim()
+];
+```
+
+### **File Upload Security**
+```javascript
+// Multer configuration with security
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+    files: 1
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = [
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only PDF and DOCX files allowed.'), false);
+    }
+  }
+});
+```
+
+### **Authentication Middleware**
+```javascript
+// JWT authentication middleware
+const protect = async (req, res, next) => {
+  try {
+    let token;
+    
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+    
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: 'Access denied. No token provided.'
+      });
+    }
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Token is not valid.'
+      });
+    }
+    
+    req.user = user;
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      error: 'Token is not valid.'
+    });
+  }
+};
+```
+
+### **Authorization Patterns**
+```javascript
+// Role-based authorization
+const authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        error: 'Access denied. Insufficient permissions.'
+      });
+    }
+    next();
+  };
+};
+
+// Resource ownership authorization
+const authorizeResource = (Model) => {
+  return async (req, res, next) => {
+    const resource = await Model.findById(req.params.id);
+    
+    if (!resource) {
+      return res.status(404).json({
+        success: false,
+        error: 'Resource not found'
+      });
+    }
+    
+    if (resource.user.toString() !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        error: 'Access denied. Not authorized to access this resource.'
+      });
+    }
+    
+    req.resource = resource;
+    next();
+  };
+};
+```
+
+### **Security Headers**
+```javascript
+// Helmet security headers
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https:"],
+      scriptSrc: ["'self'", "https:"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https:"],
+      fontSrc: ["'self'", "https:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'", "https:"],
+      frameSrc: ["'none'"]
+    }
+  }
+}));
+```
+
+### **Session Security**
+```javascript
+// Session configuration for OAuth
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+```
+
+### **API Security Patterns**
+- **Authentication Required**: All protected routes use `protect` middleware
+- **Input Validation**: All inputs validated with express-validator
+- **Output Sanitization**: All outputs sanitized for XSS
+- **Rate Limiting**: API endpoints rate limited
+- **CORS Protection**: Origin validation for all requests
+- **Error Handling**: Secure error messages without sensitive data
+
+### **Token Management**
+```javascript
+// Token generation
+const generateTokens = (userId) => {
+  const accessToken = jwt.sign(
+    { id: userId },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' }
+  );
+  
+  const refreshToken = jwt.sign(
+    { id: userId },
+    process.env.JWT_REFRESH_SECRET,
+    { expiresIn: '30d' }
+  );
+  
+  return { accessToken, refreshToken };
+};
+
+// Token refresh
+const refreshAccessToken = async (refreshToken) => {
+  try {
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    const user = await User.findById(decoded.id);
+    
+    if (!user) {
+      throw new Error('User not found');
+    }
+    
+    return generateTokens(user.id);
+  } catch (error) {
+    throw new Error('Invalid refresh token');
+  }
+};
+```
+
+### **Security Best Practices**
+1. **Never log sensitive data** (passwords, tokens, personal info)
+2. **Use HTTPS in production** for all communications
+3. **Implement proper CORS** for cross-origin requests
+4. **Validate all inputs** on both client and server
+5. **Sanitize all outputs** to prevent XSS
+6. **Use environment variables** for all secrets
+7. **Implement rate limiting** to prevent abuse
+8. **Monitor for suspicious activity** with logging
+9. **Regular security audits** of dependencies
+10. **Keep dependencies updated** for security patches

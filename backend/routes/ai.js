@@ -1,8 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const multer = require('multer');
-const { protect, checkAIActionLimit, trackUsage } = require('../middleware/auth');
-const Subscription = require('../models/Subscription');
+const { protect, checkAIActionLimit, checkTokenLimit, trackUsage, refundTokenOnError } = require('../middleware/auth');
 const Resume = require('../models/Resume');
 const Template = require('../models/Template');
 const logger = require('../utils/logger');
@@ -135,6 +134,8 @@ const upload = multer({
 router.post('/rewrite', [
   protect,
   checkAIActionLimit,
+  checkTokenLimit,
+  refundTokenOnError,
   body('content').trim().isLength({ min: 10 }).withMessage('Content must be at least 10 characters'),
   body('tone').optional().isIn(['professional', 'casual', 'formal', 'creative']).withMessage('Invalid tone'),
   body('style').optional().isIn(['concise', 'detailed', 'action-oriented', 'achievement-focused']).withMessage('Invalid style')
@@ -153,22 +154,77 @@ router.post('/rewrite', [
 
     const { content, tone = 'professional', style = 'action-oriented' } = req.body;
 
-    // TODO: Implement actual AI rewriting logic here
-    // For now, return a mock response
-    const rewrittenContent = `[AI Rewritten] ${content} - Enhanced with ${tone} tone and ${style} style.`;
+    // Initialize Gemini AI
+    const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
 
-    logger.info(`AI rewrite request processed for user ${req.user.email}`);
+    // Create prompt for ATS-friendly professional enhancement
+    const prompt = `
+You are an expert resume writing assistant specializing in ATS-optimized, professional, and achievement-driven content.
 
-    res.json({
-      success: true,
-      data: {
-        originalContent: content,
-        rewrittenContent,
-        tone,
-        style,
-        message: 'Content rewritten successfully'
-      }
-    });
+Task:
+Enhance the following text to be ATS-friendly, keyword-rich, and professionally polished while maintaining its original meaning.
+
+Guidelines:
+- Use strong action verbs (Developed, Led, Implemented, Optimized, Managed, Created, etc.)
+- Include relevant industry keywords and technical terms naturally
+- Quantify achievements with numbers, percentages, and metrics where possible
+- Use bullet points for better ATS parsing and readability
+- Start sentences with action verbs to demonstrate impact
+- Avoid generic phrases like "responsible for" or "worked on"
+- Include specific technologies, tools, and methodologies
+- Keep content concise but impactful
+- Use professional terminology appropriate for the industry
+- Structure content for easy ATS scanning and human reading
+
+CRITICAL OUTPUT REQUIREMENTS:
+- Return ONLY clean HTML without any markdown formatting
+- Do NOT include code blocks - return clean html code
+- Do NOT include any markdown syntax
+- Return pure HTML that can be directly inserted into a CKEditor
+- Use proper HTML tags like <ul>, <li>, <p>, <strong>, etc.
+- Ensure the HTML is valid and well-formed
+
+User Input:
+"${content}"
+
+Return the final ATS-optimized, keyword-rich text as clean HTML only.
+    `;
+
+    try {
+      const response = await genAI.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+      });
+
+      let rewrittenContent = response.text;
+      
+      // Clean the response to remove markdown formatting
+      rewrittenContent = rewrittenContent
+        .replace(/```html\n?/g, '')
+        .replace(/```\n?/g, '')
+        .trim();
+
+      logger.info(`AI rewrite request processed for user ${req.user.email}`);
+
+      res.json({
+        success: true,
+        data: {
+          originalContent: content,
+          rewrittenContent,
+          tone,
+          style,
+          message: 'Content enhanced successfully',
+          tokens: req.tokens || 0
+        }
+      });
+
+    } catch (geminiError) {
+      logger.error('Gemini rewrite error:', geminiError);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to enhance content with AI'
+      });
+    }
   } catch (error) {
     logger.error('AI rewrite error:', error);
     res.status(500).json({
@@ -184,8 +240,9 @@ router.post('/rewrite', [
 router.post('/summarize', [
   protect,
   checkAIActionLimit,
-  body('content').trim().isLength({ min: 20 }).withMessage('Content must be at least 20 characters'),
-  body('maxLength').optional().isInt({ min: 50, max: 500 }).withMessage('Max length must be between 50 and 500 characters')
+  checkTokenLimit,
+  refundTokenOnError,
+  body('content').trim().isLength({ min: 20 }).withMessage('Content must be at least 20 characters')
 ], trackUsage, async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -199,23 +256,79 @@ router.post('/summarize', [
     // Set usage type for tracking
     req.usageType = 'aiAction';
 
-    const { content, maxLength = 150 } = req.body;
+    const { content } = req.body;
 
-    // TODO: Implement actual AI summarization logic here
-    // For now, return a mock response
-    const summary = `[AI Summary] ${content.substring(0, maxLength)}...`;
+    // Initialize Gemini AI
+    const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
 
-    logger.info(`AI summarize request processed for user ${req.user.email}`);
+    // Create prompt for ATS-friendly text enhancement
+    const prompt = `
+You are an expert resume writing assistant specializing in ATS-optimized, professional, and achievement-driven content.
 
-    res.json({
-      success: true,
-      data: {
-        originalContent: content,
-        summary,
-        maxLength,
-        message: 'Content summarized successfully'
-      }
-    });
+Task:
+Enhance the following text to be ATS-friendly, keyword-rich, and professionally polished while maintaining its original meaning.
+
+Guidelines:
+- Use strong action verbs (Developed, Led, Implemented, Optimized, Managed, Created, etc.)
+- Include relevant industry keywords and technical terms naturally
+- Quantify achievements with numbers, percentages, and metrics where possible
+- Start sentences with action verbs to demonstrate impact
+- Avoid generic phrases like "responsible for" or "worked on"
+- Include specific technologies, tools, and methodologies
+- Keep content concise but impactful
+- Use professional terminology appropriate for the industry
+- Structure content for easy ATS scanning and human reading
+- Format as flowing paragraphs, not bullet points or lists
+
+CRITICAL OUTPUT REQUIREMENTS:
+- Return ONLY clean HTML without any markdown formatting
+- Do NOT include code blocks - return clean html code
+- Do NOT include any markdown syntax
+- Return pure HTML that can be directly inserted into a CKEditor
+- Use paragraph tags <p> for content structure
+- Do NOT use bullet points <ul> or <li> tags
+- Ensure the HTML is valid and well-formed
+- Format as continuous, flowing text in paragraph form
+
+User Input:
+"${content}"
+
+Return the final summarized text as clean HTML paragraphs only.
+    `;
+
+    try {
+      const response = await genAI.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+      });
+
+      let enhancedText = response.text;
+      
+      // Clean the response to remove markdown formatting
+      enhancedText = enhancedText
+        .replace(/```html\n?/g, '')
+        .replace(/```\n?/g, '')
+        .trim();
+
+      logger.info(`AI summarize request processed for user ${req.user.email}`);
+
+      res.json({
+        success: true,
+        data: {
+          originalContent: content,
+          summary: enhancedText,
+          message: 'Content enhanced successfully',
+          tokens: req.tokens || 0
+        }
+      });
+
+    } catch (geminiError) {
+      logger.error('Gemini summarization error:', geminiError);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to enhance content with AI'
+      });
+    }
   } catch (error) {
     logger.error('AI summarize error:', error);
     res.status(500).json({
@@ -231,36 +344,33 @@ router.post('/summarize', [
 // @access  Private
 router.get('/usage', protect, async (req, res) => {
   try {
-    const subscription = await Subscription.findOne({ user: req.user.id });
+    const User = require('../models/User');
+    const user = await User.findById(req.user.id);
     
-    if (!subscription) {
+    if (!user) {
       return res.status(404).json({
         success: false,
-        error: 'No subscription found'
+        error: 'User not found'
       });
     }
 
-    const usage = subscription.usage || {};
-    
     res.json({
       success: true,
       data: {
-        aiActionsUsed: usage.aiActionsThisCycle || 0,
-        aiActionsLimit: subscription.features?.aiActionsLimit || 10,
-        plan: subscription.plan,
-        remainingActions: Math.max(0, (subscription.features?.aiActionsLimit || 10) - (usage.aiActionsThisCycle || 0)),
-        cycleStartDate: usage.cycleStartDate || subscription.startDate,
-        nextBillingDate: subscription.billing?.nextBillingDate || null,
-        billingCycle: subscription.billing?.cycle || 'monthly',
-        daysUntilReset: subscription.billing?.nextBillingDate ? 
-          Math.ceil((new Date(subscription.billing.nextBillingDate) - new Date()) / (1000 * 60 * 60 * 24)) : null
+        tokensAvailable: user.tokens || 0,
+        plan: 'free',
+        remainingActions: user.tokens || 0,
+        cycleStartDate: user.createdAt,
+        nextBillingDate: null,
+        billingCycle: 'token-based',
+        daysUntilReset: null
       }
     });
   } catch (error) {
     logger.error('Get AI usage error:', error);
     res.status(500).json({
       success: false,
-      error: 'Server error'
+      error: 'Error getting AI usage'
     });
   }
 });
@@ -271,6 +381,8 @@ router.get('/usage', protect, async (req, res) => {
 router.post('/ats-score', [
   protect,
   checkAIActionLimit,
+  checkTokenLimit,
+  refundTokenOnError,
   upload.single('jobDescriptionFile'), // Handle file upload for job description
   body('resumeId').isMongoId().withMessage('Valid resume ID is required'),
   body('jobDescription').optional().trim().isLength({ min: 10 }).withMessage('Job description must be at least 10 characters'),
@@ -410,33 +522,20 @@ router.post('/ats-score', [
 
     try {
       const response = await genAI.models.generateContent({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         contents: atsPrompt,
       });
 
       const rawResponse = response.text;
       
-      // Parse the JSON response from Gemini
-      let atsAnalysis;
-      try {
-        // Clean the response to extract JSON
-        const cleanedResponse = rawResponse
-          .replace(/```json\n?/g, '')
-          .replace(/```\n?/g, '')
-          .trim();
-        
-        atsAnalysis = JSON.parse(cleanedResponse);
-        
-        // Validate the response structure
-        if (!atsAnalysis.overall_score || !atsAnalysis.category_scores) {
-          throw new Error('Invalid response structure from Gemini');
-        }
-        
-      } catch (parseError) {
-        logger.error('Failed to parse Gemini response:', parseError);
-        logger.error('Raw response:', rawResponse);
-        
-        // Fallback to raw response if JSON parsing fails
+      // Parse the JSON response from Gemini using robust parsing
+      const { parseAIResponse, validateResumeJSON } = require('../utils/jsonParser');
+      
+      let atsAnalysis = parseAIResponse(rawResponse, 'analyze-resume');
+      
+      // Validate the response structure
+      if (!atsAnalysis.overall_score || !atsAnalysis.category_scores) {
+        logger.warn('ATS analysis structure validation failed, using fallback');
         atsAnalysis = {
           overall_score: 0,
           category_scores: {
@@ -479,7 +578,8 @@ router.post('/ats-score', [
           jobDescriptionLength: jobDescriptionText.length,
           inputType: inputType,
           atsAnalysis: atsAnalysis,
-          message: 'ATS score analysis completed and saved successfully'
+          message: 'ATS score analysis completed and saved successfully',
+          tokens: req.tokens || 0
         }
       });
 
@@ -553,6 +653,8 @@ router.get('/ats-score/:resumeId', protect, async (req, res) => {
 router.post('/adjust-tone', [
   protect,
   checkAIActionLimit,
+  checkTokenLimit,
+  refundTokenOnError,
   body('resumeId').isMongoId().withMessage('Valid resume ID is required'),
   body('resume_json').isObject().withMessage('Resume JSON is required'),
   body('ats_analysis').isObject().withMessage('ATS analysis is required'),
@@ -660,32 +762,28 @@ router.post('/adjust-tone', [
         `;
 
     const response = await genAI.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       contents: prompt,
     });
 
     const text = response.text;
 
-    // Parse the response
-    let updatedResumeData;
-    try {
-      // Clean the response to extract JSON
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        updatedResumeData = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error('No valid JSON found in response');
-      }
-    } catch (parseError) {
-      logger.error('Failed to parse adjust-tone response:', parseError);
-      logger.error('Raw response:', text);
-      throw new Error('Failed to parse AI response');
+    // Parse the response using robust JSON parsing utility
+    const { parseAIResponse, validateResumeJSON } = require('../utils/jsonParser');
+    
+    const updatedResumeData = parseAIResponse(text, 'adjust-tone');
+    
+    // Validate the parsed data
+    if (!validateResumeJSON(updatedResumeData, 'adjust-tone')) {
+      logger.warn('Parsed data failed validation, using fallback structure');
+      // The parseAIResponse function already provides a fallback structure
     }
 
     res.json({
       success: true,
       data: updatedResumeData,
-      message: 'Resume tone adjusted successfully'
+      message: 'Resume tone adjusted successfully',
+      tokens: req.tokens || 0
     });
 
   } catch (error) {
@@ -703,6 +801,8 @@ router.post('/adjust-tone', [
     router.post('/enhance-keywords', [
       protect,
       checkAIActionLimit,
+      checkTokenLimit,
+      refundTokenOnError,
       body('resumeId').isMongoId().withMessage('Valid resume ID is required'),
       body('resume_json').isObject().withMessage('Resume JSON is required'),
       body('ats_analysis').isObject().withMessage('ATS analysis is required'),
@@ -814,32 +914,28 @@ router.post('/adjust-tone', [
           `;
 
     const response = await genAI.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       contents: prompt,
     });
 
     const text = response.text;
 
-    // Parse the response
-    let updatedResumeData;
-    try {
-      // Clean the response to extract JSON
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        updatedResumeData = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error('No valid JSON found in response');
-      }
-    } catch (parseError) {
-      logger.error('Failed to parse enhance-keywords response:', parseError);
-      logger.error('Raw response:', text);
-      throw new Error('Failed to parse AI response');
+    // Parse the response using robust JSON parsing utility
+    const { parseAIResponse, validateResumeJSON } = require('../utils/jsonParser');
+    
+    const updatedResumeData = parseAIResponse(text, 'enhance-keywords');
+    
+    // Validate the parsed data
+    if (!validateResumeJSON(updatedResumeData, 'enhance-keywords')) {
+      logger.warn('Parsed data failed validation, using fallback structure');
+      // The parseAIResponse function already provides a fallback structure
     }
 
     res.json({
       success: true,
       data: updatedResumeData,
-      message: 'Keywords enhanced successfully'
+      message: 'Keywords enhanced successfully',
+      tokens: req.tokens || 0
     });
 
   } catch (error) {
@@ -847,6 +943,216 @@ router.post('/adjust-tone', [
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to enhance keywords'
+    });
+  }
+});
+
+// @desc    Generate PDF template from basic details using AI
+// @route   POST /api/ai/generate-pdf-template
+// @access  Private
+router.post('/generate-pdf-template', [
+  protect,
+  checkAIActionLimit,
+  checkTokenLimit,
+  refundTokenOnError,
+  body('content').trim().isLength({ min: 20 }).withMessage('Content must be at least 20 characters')
+], trackUsage, async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
+    }
+
+    // Set usage type for tracking
+    req.usageType = 'aiAction';
+
+    const { content } = req.body;
+
+    // Initialize Gemini AI
+    const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
+
+    // Create prompt for PDF template generation
+    const prompt = `
+      You are an expert resume template designer specializing in creating professional, ATS-optimized resume templates.
+
+      Task:
+      Generate a complete, professional resume template from the provided basic details. Create a well-structured, visually appealing, modern. professional template that can be used as a PDF template.
+
+      Guidelines:
+      - Create a complete resume structure with all essential sections
+      - Use professional formatting and layout
+      - Include proper HTML structure for PDF generation
+      - Make it ATS-friendly with clear sections and formatting
+      - Use modern, professional, visually appealing design principles
+      - Include proper spacing and typography
+      - Ensure the template is comprehensive and ready to use
+      - Structure content logically with clear hierarchy
+
+      CRITICAL OUTPUT REQUIREMENTS:
+      - Return ONLY clean HTML without any markdown formatting
+      - Do NOT include code blocks - return clean html code
+      - Do NOT include any markdown syntax
+      - Return pure HTML that can be directly inserted into a CKEditor
+      - Use proper HTML tags for structure: <div>, <h1>, <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>
+      - Do not border content with A4 size, ensure it fits within the page
+      - Include inline CSS styling for professional appearance
+      - Ensure the HTML is valid and well-formed
+      - Make it suitable for PDF generation
+      - Acceptable classes, styles and HTML structure for google chromium pdf generation
+
+      User Input:
+      "${content}"
+
+      Return a complete, professional resume template as clean HTML only.
+    `;
+
+    try {
+      const response = await genAI.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+      });
+
+      let templateContent = response.text;
+      
+      // Clean the response to remove markdown formatting
+      templateContent = templateContent
+        .replace(/```html\n?/g, '')
+        .replace(/```\n?/g, '')
+        .trim();
+
+      logger.info(`AI PDF template generation request processed for user ${req.user.email}`);
+
+      res.json({
+        success: true,
+        data: {
+          originalContent: content,
+          templateContent,
+          templateType: 'PDF Template',
+          message: 'PDF template generated successfully',
+          tokens: req.tokens || 0
+        }
+      });
+
+    } catch (geminiError) {
+      logger.error('Gemini PDF template generation error:', geminiError);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to generate PDF template with AI'
+      });
+    }
+  } catch (error) {
+    logger.error('AI PDF template generation error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+});
+
+// @desc    Restructure current template using AI (structured template required)
+// @route   POST /api/ai/restructure-template
+// @access  Private
+router.post('/restructure-template', [
+  protect,
+  checkAIActionLimit,
+  checkTokenLimit,
+  refundTokenOnError,
+  body('content').trim().isLength({ min: 50 }).withMessage('Content must be at least 50 characters for restructuring')
+], trackUsage, async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
+    }
+
+    // Set usage type for tracking
+    req.usageType = 'aiAction';
+
+    const { content } = req.body;
+
+    // Initialize Gemini AI
+    const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
+
+    // Create prompt for template restructuring
+    const prompt = `
+You are an expert resume template designer and ATS optimization specialist.
+
+Task:
+Restructure and improve the provided resume template to make it more professional, ATS-friendly, and visually appealing while maintaining all the original content.
+
+Guidelines:
+- Analyze the current template structure and identify areas for improvement
+- Reorganize content for better flow and readability
+- Improve formatting and visual hierarchy
+- Enhance ATS compatibility
+- Maintain all original content but improve presentation
+- Use modern design principles
+- Ensure proper spacing and typography
+- Create clear section divisions
+- Optimize for both human readers and ATS systems
+
+CRITICAL OUTPUT REQUIREMENTS:
+- Return ONLY clean HTML without any markdown formatting
+- Do NOT include code blocks - return clean html code
+- Do NOT include any markdown syntax
+- Return pure HTML that can be directly inserted into a CKEditor
+- Use proper HTML tags for structure: <div>, <h1>, <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>
+- Include inline CSS styling for professional appearance
+- Ensure the HTML is valid and well-formed
+- Preserve all original content but improve structure and presentation
+
+User Input:
+"${content}"
+
+Return the restructured and improved template as clean HTML only.
+    `;
+
+    try {
+      const response = await genAI.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+      });
+
+      let restructuredContent = response.text;
+      
+      // Clean the response to remove markdown formatting
+      restructuredContent = restructuredContent
+        .replace(/```html\n?/g, '')
+        .replace(/```\n?/g, '')
+        .trim();
+
+      logger.info(`AI template restructuring request processed for user ${req.user.email}`);
+
+      res.json({
+        success: true,
+        data: {
+          originalContent: content,
+          restructuredContent,
+          structureType: 'Restructured Template',
+          improvements: ['Enhanced formatting', 'Improved ATS compatibility', 'Better visual hierarchy', 'Professional styling'],
+          message: 'Template restructured successfully',
+          tokens: req.tokens || 0
+        }
+      });
+
+    } catch (geminiError) {
+      logger.error('Gemini template restructuring error:', geminiError);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to restructure template with AI'
+      });
+    }
+  } catch (error) {
+    logger.error('AI template restructuring error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
     });
   }
 });

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bonus Tokens Added - {{appName}}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        .bonus-announcement {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .bonus-announcement h2 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .tokens-count {
+            font-size: 48px;
+            font-weight: 700;
+            margin: 15px 0;
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 50px;
+            min-width: 120px;
+        }
+        .bonus-details {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
+            border-left: 4px solid #28a745;
+        }
+        .bonus-details h3 {
+            margin: 0 0 20px 0;
+            color: #2c3e50;
+            font-size: 20px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: 500;
+            color: #6c757d;
+        }
+        .detail-value {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .reason-section {
+            background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #2196f3;
+        }
+        .reason-section h4 {
+            margin: 0 0 10px 0;
+            color: #1565c0;
+            font-size: 16px;
+        }
+        .reason-text {
+            margin: 0;
+            color: #424242;
+            font-style: italic;
+        }
+        .cta-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: transform 0.2s ease;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 25px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+        .footer p {
+            margin: 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        .celebration-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .highlight-box h4 {
+            margin: 0 0 10px 0;
+            color: #856404;
+            font-size: 18px;
+        }
+        .highlight-box p {
+            margin: 0;
+            color: #856404;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .header, .content, .footer {
+                padding: 20px;
+            }
+            .tokens-count {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="celebration-icon">🎉</div>
+            <h1>Bonus Tokens Added!</h1>
+            <p>You've received a special token bonus</p>
+        </div>
+
+        <div class="content">
+            <div class="greeting">
+                Hi {{name}},
+            </div>
+
+            <p>Great news! We've added bonus tokens to your account as a special thank you for being an awesome user.</p>
+
+            <div class="bonus-announcement">
+                <h2>You Received</h2>
+                <div class="tokens-count">{{tokensAdded}} Tokens</div>
+                <p>Bonus tokens added to your account</p>
+            </div>
+
+            <div class="bonus-details">
+                <h3>Token Summary</h3>
+                <div class="detail-row">
+                    <span class="detail-label">Bonus Tokens Added</span>
+                    <span class="detail-value">{{tokensAdded}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">New Total Balance</span>
+                    <span class="detail-value">{{newTokenBalance}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Given By</span>
+                    <span class="detail-value">{{givenBy}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Date Added</span>
+                    <span class="detail-value">{{dateAdded}}</span>
+                </div>
+            </div>
+
+            <div class="reason-section" style="display: {{reasonDisplay}};">
+                <h4>💝 Reason for Bonus</h4>
+                <p class="reason-text">{{reason}}</p>
+            </div>
+
+            <div class="highlight-box">
+                <h4>🚀 What can you do with these tokens?</h4>
+                <p>Use them to generate resumes, parse documents, and access AI-powered features!</p>
+            </div>
+
+            <div class="cta-section">
+                <a href="{{dashboardUrl}}" class="btn">Start Using Your Tokens</a>
+            </div>
+
+            <p>If you have any questions about your bonus tokens or need assistance, feel free to reach out to our support team.</p>
+
+            <p>Happy resume building! 🎯</p>
+        </div>
+
+        <div class="footer">
+            <p>
+                This bonus was added by our admin team at {{appName}}.<br>
+                Need help? <a href="{{supportUrl}}">Contact Support</a> | <a href="{{dashboardUrl}}">Go to Dashboard</a>
+            </p>
+            <p style="margin-top: 10px; font-size: 12px; color: #adb5bd;">
+                © {{year}} {{appName}}. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
