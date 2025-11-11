@@ -388,12 +388,12 @@ const resumeSchema = new mongoose.Schema({
       },
       primaryFont: {
         type: String,
-        enum: ['Arial', 'Calibri', 'Times New Roman', 'Verdana', 'Helvetica', 'Georgia', 'Cambria', 'Garamond', 'Trebuchet MS', 'Book Antiqua'],
+        enum: ['Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins', 'Nunito', 'Raleway', 'Inter', 'Source Sans Pro', 'Ubuntu', 'Merriweather', 'Playfair Display', 'Oswald', 'Work Sans', 'PT Sans', 'Quicksand', 'Noto Sans', 'Rubik', 'Josefin Sans', 'Manrope', 'Arial', 'Calibri', 'Times New Roman', 'Verdana', 'Helvetica', 'Georgia', 'Cambria', 'Garamond', 'Trebuchet MS', 'Book Antiqua'],
         default: 'Arial'
       },
       secondaryFont: {
         type: String,
-        enum: ['Arial', 'Calibri', 'Times New Roman', 'Verdana', 'Helvetica', 'Georgia', 'Cambria', 'Garamond', 'Trebuchet MS', 'Book Antiqua'],
+        enum: ['Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins', 'Nunito', 'Raleway', 'Inter', 'Source Sans Pro', 'Ubuntu', 'Merriweather', 'Playfair Display', 'Oswald', 'Work Sans', 'PT Sans', 'Quicksand', 'Noto Sans', 'Rubik', 'Josefin Sans', 'Manrope', 'Arial', 'Calibri', 'Times New Roman', 'Verdana', 'Helvetica', 'Georgia', 'Cambria', 'Garamond', 'Trebuchet MS', 'Book Antiqua'],
         default: 'Arial'
       },
       colors: {

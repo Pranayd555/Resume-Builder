@@ -976,35 +976,37 @@ router.post('/generate-pdf-template', [
 
     // Create prompt for PDF template generation
     const prompt = `
-You are an expert resume template designer specializing in creating professional, ATS-optimized resume templates.
+      You are an expert resume template designer specializing in creating professional, ATS-optimized resume templates.
 
-Task:
-Generate a complete, professional resume template from the provided basic details. Create a well-structured, visually appealing template that can be used as a PDF template.
+      Task:
+      Generate a complete, professional resume template from the provided basic details. Create a well-structured, visually appealing, modern. professional template that can be used as a PDF template.
 
-Guidelines:
-- Create a complete resume structure with all essential sections
-- Use professional formatting and layout
-- Include proper HTML structure for PDF generation
-- Make it ATS-friendly with clear sections and formatting
-- Use modern, clean design principles
-- Include proper spacing and typography
-- Ensure the template is comprehensive and ready to use
-- Structure content logically with clear hierarchy
+      Guidelines:
+      - Create a complete resume structure with all essential sections
+      - Use professional formatting and layout
+      - Include proper HTML structure for PDF generation
+      - Make it ATS-friendly with clear sections and formatting
+      - Use modern, professional, visually appealing design principles
+      - Include proper spacing and typography
+      - Ensure the template is comprehensive and ready to use
+      - Structure content logically with clear hierarchy
 
-CRITICAL OUTPUT REQUIREMENTS:
-- Return ONLY clean HTML without any markdown formatting
-- Do NOT include code blocks - return clean html code
-- Do NOT include any markdown syntax
-- Return pure HTML that can be directly inserted into a CKEditor
-- Use proper HTML tags for structure: <div>, <h1>, <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>
-- Include inline CSS styling for professional appearance
-- Ensure the HTML is valid and well-formed
-- Make it suitable for PDF generation
+      CRITICAL OUTPUT REQUIREMENTS:
+      - Return ONLY clean HTML without any markdown formatting
+      - Do NOT include code blocks - return clean html code
+      - Do NOT include any markdown syntax
+      - Return pure HTML that can be directly inserted into a CKEditor
+      - Use proper HTML tags for structure: <div>, <h1>, <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>
+      - Do not border content with A4 size, ensure it fits within the page
+      - Include inline CSS styling for professional appearance
+      - Ensure the HTML is valid and well-formed
+      - Make it suitable for PDF generation
+      - Acceptable classes, styles and HTML structure for google chromium pdf generation
 
-User Input:
-"${content}"
+      User Input:
+      "${content}"
 
-Return a complete, professional resume template as clean HTML only.
+      Return a complete, professional resume template as clean HTML only.
     `;
 
     try {

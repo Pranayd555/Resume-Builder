@@ -355,8 +355,8 @@ router.put('/:id/template-styling', [
   body('styling.template.fontSize').optional().isInt({ min: 12, max: 18 }).withMessage('Font size must be between 12 and 18'),
   body('styling.template.lineSpacing').optional().isFloat({ min: 1, max: 3 }).withMessage('Line spacing must be between 1 and 3'),
   body('styling.template.sectionSpacing').optional().isFloat({ min: 1, max: 5 }).withMessage('Section spacing must be between 1 and 5'),
-  body('styling.template.primaryFont').optional().isIn(['Arial', 'Calibri', 'Times New Roman', 'Verdana', 'Helvetica', 'Georgia', 'Cambria', 'Garamond', 'Trebuchet MS', 'Book Antiqua']).withMessage('Invalid primary font'),
-  body('styling.template.secondaryFont').optional().isIn(['Arial', 'Calibri', 'Times New Roman', 'Verdana', 'Helvetica', 'Georgia', 'Cambria', 'Garamond', 'Trebuchet MS', 'Book Antiqua']).withMessage('Invalid secondary font'),
+  body('styling.template.primaryFont').optional().isIn(['Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins', 'Nunito', 'Raleway', 'Inter', 'Source Sans Pro', 'Ubuntu', 'Merriweather', 'Playfair Display', 'Oswald', 'Work Sans', 'PT Sans', 'Quicksand', 'Noto Sans', 'Rubik', 'Josefin Sans', 'Manrope', 'Arial', 'Calibri', 'Times New Roman', 'Verdana', 'Helvetica', 'Georgia', 'Cambria', 'Garamond', 'Trebuchet MS', 'Book Antiqua']).withMessage('Invalid primary font'),
+  body('styling.template.secondaryFont').optional().isIn(['Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins', 'Nunito', 'Raleway', 'Inter', 'Source Sans Pro', 'Ubuntu', 'Merriweather', 'Playfair Display', 'Oswald', 'Work Sans', 'PT Sans', 'Quicksand', 'Noto Sans', 'Rubik', 'Josefin Sans', 'Manrope', 'Arial', 'Calibri', 'Times New Roman', 'Verdana', 'Helvetica', 'Georgia', 'Cambria', 'Garamond', 'Trebuchet MS', 'Book Antiqua']).withMessage('Invalid secondary font'),
   // Color validation
   body('styling.template.colors.primary').optional().matches(/^#[0-9A-Fa-f]{6}$/).withMessage('Primary color must be a valid hex color'),
   body('styling.template.colors.secondary').optional().matches(/^#[0-9A-Fa-f]{6}$/).withMessage('Secondary color must be a valid hex color'),
@@ -987,6 +987,10 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
       <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+          <link href="https://fonts.googleapis.com/css2?family=${resumeData.styling.template.primaryFont}:wght@400;500;700;800&family=Noto+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=${resumeData.styling.template.secondaryFont}:wght@400;500;700;800&family=Noto+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
           <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/47.0.0/ckeditor5.css" />
           <title>${resume.title}</title>
           <style>
@@ -1074,6 +1078,8 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
       </html>
     `;
 
+    logger.info('HTML content generated for pdf', htmlContent)
+
     // Create PDF using Puppeteer. Use Sparticuz Chromium on Linux (Render), fallback locally
     const isLinux = process.platform === 'linux';
     let executablePath;
@@ -1103,7 +1109,6 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
       defaultViewport = null;
       headlessOption = 'new';
     }
-    console.log('debug log')
     // Use shared browser
     const pdfBuffer = await withPage(async (page) => {
       

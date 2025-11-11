@@ -214,8 +214,8 @@ module.exports = [
             margin: 0 auto; 
             align-items: start;
         }
-        .contact-item { display: flex; flex-wrap: wrap; align-items: flex-start; padding-top:5px }
-        .contact-item .label { font-weight: 600; color: #6b7280; white-space: nowrap; flex-shrink: 0; }
+        .contact-item { display: flex; flex-wrap: wrap; align-items: flex-start; padding-top:5px; text-align: left; }
+        .contact-item .label { font-weight: 600; color: #6b7280; word-wrap: break-word; line-height: 1.2; align-self: flex-start }
         .contact-item .value { color: #1f2937; text-align: left; word-wrap: break-word; line-height: 1.2; }
         .contact-item a { color: #1f2937; text-decoration: none; word-wrap: break-word;}
         section { margin-bottom: 10px; }

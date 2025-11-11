@@ -16,6 +16,7 @@ import {
   MoonIcon
 } from '@heroicons/react/24/outline';
 import { Fade, Slide, Roll, AttentionSeeker } from 'react-awesome-reveal';
+import {FlipText, WaveText} from '../../utils/animated-elements';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -72,19 +73,21 @@ const HomePage = () => {
               alt="Resume Builder Logo"
               className="mx-auto mb-8 w-32 h-32 rounded-full shadow-lg"
             />
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6">
-              Build Your Perfect
-              <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text">
-                {"Resume in Minutes".split("").map((char, index) => (
-                  <span key={index} className="inline-block animate-pulse-letter bg-clip-text text-purple-600" style={{ animationDelay: `${index * 0.05}s` }}>
-                    {char === ' ' ? '\u00A0' : char}
-                  </span>
-                ))}
-              </span>
+            <h1
+              className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 inline-grid gap-4"
+            >
+              <FlipText className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text">
+                Build Your Perfect
+              </FlipText>
+              <FlipText className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text">
+                Resume in Minutes
+              </FlipText>
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+              <WaveText>
               Create professional, ATS-friendly resumes with our AI-powered builder.
               Choose from premium templates and get expert guidance every step of the way.
+              </WaveText>
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {isAuthenticated ? (
@@ -128,16 +131,18 @@ const HomePage = () => {
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-          <Slide direction="down">
             <div className="text-center mb-16">
+          <Slide direction="right">
               <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
                 Why Choose Our Resume Builder?
               </h2>
+          </Slide>
+              <Slide direction="left">
               <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
                 Everything you need to create a standout resume that gets you noticed by employers.
               </p>
+              </Slide>
             </div>
-          </Slide>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
@@ -189,9 +194,11 @@ const HomePage = () => {
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
               Ready to Land Your Dream Job?
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
+            <div className="font-semibold py-4 inline-block">
+            <WaveText className="text-xl text-gray-600 dark:text-gray-300 mb-8">
               Join thousands of professionals who have successfully created their resumes with our builder.
-            </p>
+            </WaveText>
+            </div>
             <Fade direction="top-right">
               <button
                 onClick={() => navigate(isAuthenticated ? getDashboardRoute() : PUBLIC_ROUTES.REGISTER)}
@@ -285,5 +292,7 @@ const HomePage = () => {
     </div>
   );
 };
+
+
 
 export default HomePage;
