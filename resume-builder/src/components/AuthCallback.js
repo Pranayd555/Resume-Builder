@@ -35,6 +35,7 @@ function AuthCallback() {
           // Store the token and update auth context
           const result = await loginWithToken(token);
           if (result.success) {
+            setLoading(false);
             navigate('/dashboard', { replace: true });
           } else {
             setError(result.error || 'Authentication failed');
