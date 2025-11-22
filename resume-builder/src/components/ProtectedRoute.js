@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import AuthLoader from './AuthLoader';
+import AuthLoader from './annimations/AuthLoader';
 
 // Role hierarchy and permissions
 export const ROLES = {

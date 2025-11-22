@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-import AuthLoader from './AuthLoader';
+import AuthLoader from './annimations/AuthLoader';
 import {
   CheckCircleIcon,
   ClockIcon,
@@ -1381,7 +1381,7 @@ function ResumeList() {
           >
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-red-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200">
-                <ReceiptRefundIcon class="w-6 h-6 text-white"/>
+                <ReceiptRefundIcon className="w-6 h-6 text-white"/>
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors duration-200">Cancellation & Refund Policy</h3>
