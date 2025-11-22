@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import AuthLoader from './AuthLoader';
+import AuthLoader from './annimations/AuthLoader';
 
 function AuthCallback() {
   const navigate = useNavigate();

@@ -1,6 +1,6 @@
 import React from 'react';
 import Lottie from "lottie-react";
-import meditationLoaderAnimation from '../assets/meditation_loader.json';
+import meditationLoaderAnimation from '../../assets/meditation_loader.json';
 
 const AuthLoader = ({ 
   title = "Authenticating...", 
