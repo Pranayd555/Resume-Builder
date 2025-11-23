@@ -1,13 +1,21 @@
 const express = require("express");
 const { withPage } = require("../utils/browserManager");
 const router = express.Router();
+const logger = require("../utils/logger");
 
 // Create Template PDF Generation Route
 router.post("/", async (req, res) => {
   try {
     const { content, title = "Custom Template" } = req.body;
 
+    logger.info("Received PDF generation request", {
+      title,
+      contentLength: content ? content.length : 0,
+      hasContent: !!content
+    });
+
     if (!content?.trim()) {
+      logger.warn("PDF generation failed: Content is missing or empty");
       return res.status(400).json({
         success: false,
         message: "Content is required and cannot be empty.",
@@ -15,7 +23,18 @@ router.post("/", async (req, res) => {
     }
 
     const pdfBuffer = await withPage(async (page) => {
+      logger.info("Browser page initialized");
+
+      // Initialize with a minimal valid HTML page to ensure execution context is ready
+      await page.goto("data:text/html,<html><body></body></html>", {
+        waitUntil: "networkidle0",
+        timeout: 30000
+      });
+      logger.info("Page reset to blank state");
+
       await page.setViewport({ width: 1200, height: 800 });
+
+      logger.info("Page viewport set successfully.");
 
       // Construct the full HTML
       const html = `
@@ -27,7 +46,6 @@ router.post("/", async (req, res) => {
                 <title>${title}</title>
 
                 <!-- Include CKEditor base styles -->
-                <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/47.0.0/ckeditor5.css" />
                 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap" />
                 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" />
 
@@ -108,6 +126,7 @@ router.post("/", async (req, res) => {
                       line-height: 1.4;
                       margin: 0 0 8px 0;
                       padding: 0;
+                      line-height: 1.3;
                     }
 
                     .ck-content strong, .ck-content b {
@@ -203,6 +222,7 @@ router.post("/", async (req, res) => {
 
                     .ck-content ul ul, .ck-content ol ol, .ck-content ul ol, .ck-content ol ul {
                       margin: 4px 0;
+                      line-height: 1.4;
                     }
 
                     .ck-content ul ul {
@@ -488,6 +508,7 @@ router.post("/", async (req, res) => {
                       font-family: 'Courier New', 'Monaco', monospace;
                       font-size: 12px;
                       color: #1f2937;
+                      margin: 8px 0;
                     }
 
                     /* Variable */
@@ -724,10 +745,14 @@ router.post("/", async (req, res) => {
                 </html>
                 `;
 
+      logger.info("HTML generated successfully.", { htmlLength: html.length });
+
+      logger.info("Setting page content...");
       await page.setContent(html, {
         waitUntil: "networkidle0",
         timeout: 30000,
       });
+      logger.info("Page content set successfully");
 
       // Wait until fonts and styles fully load
       await page.evaluateHandle("document.fonts.ready");
@@ -736,7 +761,8 @@ router.post("/", async (req, res) => {
       await page.emulateMediaType("print");
 
       // Generate PDF
-      return await page.pdf({
+      logger.info("Generating PDF...");
+      const pdf = await page.pdf({
         format: "A4",
         printBackground: true,
         margin: {
@@ -748,7 +774,17 @@ router.post("/", async (req, res) => {
         scale: 1,
         preferCSSPageSize: true,
       });
+      logger.info("PDF generated successfully", { size: pdf.length });
+      return pdf;
     });
+
+    console.log("PDF Buffer Type:", typeof pdfBuffer);
+
+    if (!pdfBuffer || !Buffer.isBuffer(pdfBuffer)) {
+      throw new Error(`Invalid PDF Buffer generated. Type: ${typeof pdfBuffer}`);
+    }
+
+    console.log("PDF Buffer Length:", pdfBuffer.length);
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
@@ -760,6 +796,10 @@ router.post("/", async (req, res) => {
     res.send(pdfBuffer);
   } catch (error) {
     console.error("Error generating PDF:", error);
+    logger.error("Error generating PDF", {
+      message: error.message,
+      stack: error.stack
+    });
     res.status(500).json({
       success: false,
       message: "Failed to generate PDF",
