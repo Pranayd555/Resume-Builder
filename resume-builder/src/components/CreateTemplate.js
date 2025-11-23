@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import CKEditorComponent from './CKEditor';
 import AnimatedBackground from './AnimatedBackground';
 import AILoader from './annimations/AILoader';
 import ResumePreviewLoader from './annimations/ResumePreviewLoader';
-import api, { apiHelpers } from '../services/api';
+import { apiHelpers, resumeAPI } from '../services/api';
+import CustomCKEditorComponent from './customCkeditor';
 
 const CreateTemplate = () => {
 	const navigate = useNavigate();
@@ -73,6 +73,45 @@ const CreateTemplate = () => {
           </ul>`);
 	const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 	const [isAILoading, setIsAILoading] = useState(false);
+	const [isSavingDraft, setIsSavingDraft] = useState(false);
+
+	// Fetch draft on mount
+	React.useEffect(() => {
+		const fetchDraft = async () => {
+			try {
+				setIsAILoading(true);
+				const response = await resumeAPI.getDraftTemplate();
+				if (response.success && response.data && response.data.content) {
+					setTemplateContent(response.data.content);
+					toast.success('Draft loaded successfully');
+				}
+			} catch (error) {
+				console.error('Error fetching draft:', error);
+			} finally {
+				setIsAILoading(false);
+			}
+		};
+
+		fetchDraft();
+	}, []);
+
+	const handleSaveDraft = async () => {
+		if (!templateContent || templateContent.trim() === '') {
+			toast.error('Cannot save empty template');
+			return;
+		}
+
+		setIsSavingDraft(true);
+		try {
+			await resumeAPI.saveDraftTemplate({ content: templateContent });
+			toast.success('Draft saved successfully');
+		} catch (error) {
+			console.error('Error saving draft:', error);
+			toast.error('Failed to save draft');
+		} finally {
+			setIsSavingDraft(false);
+		}
+	};
 
 	const handleGeneratePDF = async () => {
 		if (!templateContent || templateContent.trim() === '') {
@@ -83,15 +122,9 @@ const CreateTemplate = () => {
 		console.log('Generating PDF...', updatedContent);
 		setIsGeneratingPDF(true);
 		try {
-			const response = await api.post('/createTemplate', {
-				content: updatedContent,
-				title: 'Custom Template'
-			}, {
-				responseType: 'blob' // Important for PDF downloads
-			});
+			// The API returns the Blob directly
+			const blob = await resumeAPI.createTemplate(updatedContent);
 
-			// Create blob from response data
-			const blob = new Blob([response.data], { type: 'application/pdf' });
 			const url = window.URL.createObjectURL(blob);
 			const a = document.createElement('a');
 			a.href = url;
@@ -100,7 +133,7 @@ const CreateTemplate = () => {
 			a.click();
 			window.URL.revokeObjectURL(url);
 			document.body.removeChild(a);
-			
+
 			// Show success message
 			toast.success('PDF generated successfully!');
 		} catch (error) {
@@ -145,36 +178,60 @@ const CreateTemplate = () => {
 							<span className="text-sm sm:text-base">Back to Dashboard</span>
 						</button>
 					</div>
-					
+
 					<h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent mb-4">
 						Create Your Own Template
 					</h1>
 					<p className="dark:text-white/80 text-gray-600 text-base sm:text-lg mb-4">
 						This is where you will create your custom resume template. Use the editor below to design your template.
-						(<span className="text-red-500 font-bold">* </span>We Do Not Store Templates created here.)
 					</p>
 					<div className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
-					<CKEditorComponent
-						value={templateContent}
-						onChange={setTemplateContent}
-						placeholder="Start designing your template here..."
-						configType="pro"
-						showAIButton={true}
-						isProMode={true}
-						onAIContentChange={handleAIContentChange}
-						onAILoading={handleAILoading}
-					/>
+						<CustomCKEditorComponent
+							value={templateContent}
+							onChange={setTemplateContent}
+							placeholder="Start designing your template here..."
+							configType="pro"
+							showAIButton={true}
+							isProMode={true}
+							onAIContentChange={handleAIContentChange}
+							onAILoading={handleAILoading}
+						/>
 					</div>
-					
-					<div className="mt-6 flex justify-center">
+
+					<div className="mt-6 flex justify-center gap-4">
+						<button
+							onClick={handleSaveDraft}
+							disabled={isSavingDraft || isGeneratingPDF}
+							className={`px-8 py-3 rounded-lg font-semibold text-white transition-all duration-200 flex items-center space-x-2 ${isSavingDraft
+								? 'bg-gray-400 cursor-not-allowed'
+								: 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg transform hover:scale-105'
+								}`}
+						>
+							{isSavingDraft ? (
+								<>
+									<svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+										<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+										<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+									</svg>
+									Saving...
+								</>
+							) : (
+								<>
+									<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+									</svg>
+									<span>Save Draft</span>
+								</>
+							)}
+						</button>
+
 						<button
 							onClick={handleGeneratePDF}
-							disabled={isGeneratingPDF}
-							className={`px-8 py-3 rounded-lg font-semibold text-white transition-all duration-200 flex items-center space-x-2 ${
-								isGeneratingPDF 
-									? 'bg-gray-400 cursor-not-allowed' 
-									: 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 hover:shadow-lg transform hover:scale-105'
-							}`}
+							disabled={isGeneratingPDF || isSavingDraft}
+							className={`px-8 py-3 rounded-lg font-semibold text-white transition-all duration-200 flex items-center space-x-2 ${isGeneratingPDF
+								? 'bg-gray-400 cursor-not-allowed'
+								: 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 hover:shadow-lg transform hover:scale-105'
+								}`}
 						>
 							{isGeneratingPDF ? (
 								<>
@@ -196,12 +253,12 @@ const CreateTemplate = () => {
 					</div>
 				</div>
 			</div>
-			
+
 			{/* AI Loader Modal */}
 			{isAILoading && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
 					<div className="bg-white dark:bg-orange-50/90 rounded-2xl shadow-2xl max-w-md w-full mx-4">
-						<AILoader 
+						<AILoader
 							title="AI is working on your template..."
 							subtitle="Our advanced AI is analyzing and enhancing your content to create the perfect resume template."
 							compact={false}
@@ -209,10 +266,10 @@ const CreateTemplate = () => {
 					</div>
 				</div>
 			)}
-			
+
 			{/* PDF Generation Loader */}
 			{isGeneratingPDF && (
-				<ResumePreviewLoader 
+				<ResumePreviewLoader
 					title="Generating Your PDF..."
 					subtitle="Our digital elves are crafting your professional resume document."
 				/>

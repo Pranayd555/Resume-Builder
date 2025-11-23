@@ -32,7 +32,7 @@ api.interceptors.response.use(
       // Check for tokens in multiple possible locations
       let tokenBalance = null;
       let tokenData = null;
-      
+
       // Check direct tokens field
       if (response.data.tokens !== undefined) {
         tokenBalance = response.data.tokens;
@@ -42,11 +42,11 @@ api.interceptors.response.use(
         tokenData = response.data.data.tokens;
         tokenBalance = response.data.data.tokens?.balance;
       }
-      
+
       if (tokenBalance !== null) {
         apiHelpers.updateTokenBalance(tokenBalance);
       }
-      
+
       if (tokenData) {
         console.log('🔄 API Response: Updating token data:', tokenData);
         apiHelpers.updateTokenData(tokenData);
@@ -69,7 +69,7 @@ api.interceptors.response.use(
 
     // Extract a single user-friendly message from backend
     let backendMessage = 'An unexpected error occurred';
-    
+
     if (error?.response?.data) {
       if (error.response.data.error) {
         backendMessage = error.response.data.error;
@@ -249,21 +249,12 @@ export const resumeAPI = {
   // NEW: Update individual color
   updateIndividualColor: async (resumeId, colorType, colorValue) => {
     const config = createApiConfig('/resumes/colors/individual');
-    const response = await api.put(`/resumes/${resumeId}/colors/individual`, { 
-      colorType, 
-      colorValue 
+    const response = await api.put(`/resumes/${resumeId}/colors/individual`, {
+      colorType,
+      colorValue
     }, config);
     return response.data;
   },
-
-  // NEW: Get color presets
-  getColorPresets: async () => {
-    const config = createApiConfig('/resumes/color-presets');
-    const response = await api.get('/resumes/color-presets', config);
-    return response.data;
-  },
-
-
 
   // NEW: Download resume as PDF
   downloadPDF: async (resumeId, timestamp = null) => {
@@ -328,6 +319,35 @@ export const resumeAPI = {
   toggleActive: async (resumeId) => {
     const config = createApiConfig('/resumes/toggle-active');
     const response = await api.put(`/resumes/${resumeId}/toggle-active`, {}, config);
+    return response.data;
+  },
+
+  getDraftTemplate: async () => {
+    const config = createApiConfig('/resumes/draft-template');
+    const response = await api.get(`/resumes/draft-template`, config);
+    return response.data;
+  },
+
+  saveDraftTemplate: async (templateData) => {
+    const config = createApiConfig('/resumes/draft-template');
+    const response = await api.post(`/resumes/draft-template`, templateData, config);
+    return response.data;
+  },
+
+  createTemplate: async (templateData) => {
+    const response = await api.post('/createTemplate', {
+      content: templateData,
+      title: 'Custom Template'
+    }, {
+      // CRITICAL: This tells Axios to treat the response as binary data, not JSON
+      responseType: 'blob',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/pdf'
+      }
+    });
+
+    // Return the Blob data directly
     return response.data;
   },
 };
@@ -630,20 +650,20 @@ export const paymentAPI = {
 // Helper functions
 export const apiHelpers = {
   //normalize url
-    normalizeUrl: (url) => {
-      try {
-        // Ensure any localhost:5000 absolute URL is swapped to our backend origin
-        const apiOrigin = new URL(process.env.REACT_APP_API_URL).origin;
-        const resolved = new URL(url, apiOrigin); // resolves relative paths against apiOrigin
-        const isLocalhost5000 = resolved.origin.startsWith('http://localhost:5000');
-        if (isLocalhost5000) {
-          return `${apiOrigin}${resolved.pathname}${resolved.search || ''}${resolved.hash || ''}`;
-        }
-        return resolved.href;
-      } catch (_) {
-        return url;
+  normalizeUrl: (url) => {
+    try {
+      // Ensure any localhost:5000 absolute URL is swapped to our backend origin
+      const apiOrigin = new URL(process.env.REACT_APP_API_URL).origin;
+      const resolved = new URL(url, apiOrigin); // resolves relative paths against apiOrigin
+      const isLocalhost5000 = resolved.origin.startsWith('http://localhost:5000');
+      if (isLocalhost5000) {
+        return `${apiOrigin}${resolved.pathname}${resolved.search || ''}${resolved.hash || ''}`;
       }
-    },
+      return resolved.href;
+    } catch (_) {
+      return url;
+    }
+  },
 
   // Set auth token
   setAuthToken: (token) => {
@@ -723,8 +743,8 @@ export const apiHelpers = {
   updateTokenBalance: (newBalance) => {
     apiHelpers.setTokenBalance(newBalance);
     // Dispatch custom event to notify other components
-    window.dispatchEvent(new CustomEvent('tokenBalanceUpdated', { 
-      detail: { balance: newBalance } 
+    window.dispatchEvent(new CustomEvent('tokenBalanceUpdated', {
+      detail: { balance: newBalance }
     }));
   },
 
@@ -736,15 +756,15 @@ export const apiHelpers = {
       apiHelpers.updateTokenBalance(tokenData.balance);
     }
     // Dispatch custom event to notify other components
-    window.dispatchEvent(new CustomEvent('tokenDataUpdated', { 
-      detail: tokenData 
+    window.dispatchEvent(new CustomEvent('tokenDataUpdated', {
+      detail: tokenData
     }));
   },
 
   // Update user data
   updateUserData: (userData) => {
     apiHelpers.setCurrentUserData(userData);
-    
+
     // Dispatch custom event to notify other components
     window.dispatchEvent(new CustomEvent('userDataUpdated', {
       detail: userData
