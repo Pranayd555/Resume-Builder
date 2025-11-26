@@ -778,13 +778,9 @@ router.post("/", async (req, res) => {
       return pdf;
     });
 
-    console.log("PDF Buffer Type:", typeof pdfBuffer);
-
     if (!pdfBuffer || !Buffer.isBuffer(pdfBuffer)) {
       throw new Error(`Invalid PDF Buffer generated. Type: ${typeof pdfBuffer}`);
     }
-
-    console.log("PDF Buffer Length:", pdfBuffer.length);
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
