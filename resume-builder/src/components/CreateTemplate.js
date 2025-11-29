@@ -123,7 +123,12 @@ const CreateTemplate = () => {
 		setIsGeneratingPDF(true);
 		try {
 			// The API returns the Blob directly
-			const blob = await resumeAPI.createTemplate(updatedContent);
+			let corrected = updatedContent.replace(
+				"data:application/octet-stream;base64,",
+				"data:image/png;base64,"
+			);
+
+			const blob = await resumeAPI.createTemplate(corrected);
 
 			const url = window.URL.createObjectURL(blob);
 			const a = document.createElement('a');
