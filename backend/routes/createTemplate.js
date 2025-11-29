@@ -30,16 +30,6 @@ router.post("/", async (req, res) => {
       hasHtmlEntities: content?.includes('&lt;')
     });
 
-
-    // Process images to base64
-    let processedContent = content;
-    try {
-      processedContent = await processContentImages(content);
-      logger.info("Images processed to base64 successfully");
-    } catch (err) {
-      logger.error("Error processing images to base64", err);
-    }
-
     const pdfBuffer = await withPage(async (page) => {
       logger.info("Browser page initialized");
 
@@ -769,7 +759,7 @@ router.post("/", async (req, res) => {
                 </head>
                 <body>
                 <div class="ck-content">
-                    ${processedContent}
+                    ${content}
                 </div>
                 </body>
                 </html>
@@ -857,46 +847,5 @@ router.post("/", async (req, res) => {
   }
 });
 
-async function processContentImages(content) {
-  if (!content) return content;
-
-  const imgTagRegex = /<img[^>]+>/g;
-  const srcRegex = /src="([^"]+)"/;
-
-  const matches = content.match(imgTagRegex);
-  if (!matches) return content;
-
-  let newContent = content;
-
-  for (const imgTag of matches) {
-    const srcMatch = imgTag.match(srcRegex);
-    if (srcMatch && srcMatch[1].startsWith('http')) {
-      const url = srcMatch[1];
-      try {
-        // Decode HTML entities in URL if any (e.g. &amp; -> &)
-        const decodedUrl = url.replace(/&amp;/g, '&');
-
-        const response = await fetch(decodedUrl);
-        if (response.ok) {
-          const arrayBuffer = await response.arrayBuffer();
-          const buffer = Buffer.from(arrayBuffer);
-          const contentType = response.headers.get('content-type') || 'image/jpeg';
-          const base64 = `data:${contentType};base64,${buffer.toString('base64')}`;
-          logger.log('image uri generated', base64.substring(0, 100))
-
-          // Replace the URL in the img tag first
-          const newImgTag = imgTag.replace(url, base64);
-          // Then replace the img tag in the content
-          newContent = newContent.replace(imgTag, newImgTag);
-        } else {
-          logger.error(`Failed to fetch image: ${decodedUrl} - ${response.statusText}`);
-        }
-      } catch (error) {
-        logger.error(`Error processing image: ${url}`, error);
-      }
-    }
-  }
-  return newContent;
-}
 
 module.exports = router;
