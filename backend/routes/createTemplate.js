@@ -21,6 +21,24 @@ router.post("/", async (req, res) => {
         message: "Content is required and cannot be empty.",
       });
     }
+    logger.info('Content analysis:', {
+      length: content?.length,
+      hasImgTag: content?.includes('<img'),
+      hasDataImage: content?.includes('data:image'),
+      preview: content?.substring(0, 500),
+      isEscaped: content?.includes('\\"'),
+      hasHtmlEntities: content?.includes('&lt;')
+    });
+
+
+    // Process images to base64
+    let processedContent = content;
+    try {
+      processedContent = await processContentImages(content);
+      logger.info("Images processed to base64 successfully");
+    } catch (err) {
+      logger.error("Error processing images to base64", err);
+    }
 
     const pdfBuffer = await withPage(async (page) => {
       logger.info("Browser page initialized");
@@ -735,11 +753,23 @@ router.post("/", async (req, res) => {
                     ck ck-widget__type-around__button ck-widget__type-around__button_after .page-break {
                     page-break-before: always;
                     }
+
+                    figure.image {
+                      display: block;
+                      width: auto !important;
+                      max-width: 100% !important;
+                    }
+
+                    figure.image img {
+                      display: block;
+                      width: 100% !important;
+                      height: auto !important;
+                    }
                 </style>
                 </head>
                 <body>
                 <div class="ck-content">
-                    ${content}
+                    ${processedContent}
                 </div>
                 </body>
                 </html>
@@ -753,12 +783,35 @@ router.post("/", async (req, res) => {
         timeout: 30000,
       });
       logger.info("Page content set successfully");
+      const htmlDebug = await page.content();
+      logger.info("DEBUG HTML:", htmlDebug);
+
+      // Wait for all images to load (including base64 images)
+      logger.info("Waiting for images to load...");
+      try {
+        // 2. CRITICAL: Wait for all images to be fully loaded and decoded
+        await page.evaluate(async () => {
+          const selectors = Array.from(document.querySelectorAll("img"));
+          await Promise.all(selectors.map(img => {
+            if (img.complete) return;
+            return new Promise((resolve, reject) => {
+              img.onload = resolve;
+              img.onerror = reject;
+            });
+          }));
+        });
+
+        // Give the browser a moment to paint the images
+        await page.waitForTimeout(500);
+      } catch (error) {
+        logger.warn("Image loading timeout, proceeding anyway", { error: error.message });
+      }
 
       // Wait until fonts and styles fully load
       await page.evaluateHandle("document.fonts.ready");
 
       // Emulate screen media (not print) for exact style rendering
-      await page.emulateMediaType("print");
+      await page.emulateMediaType("screen");
 
       // Generate PDF
       logger.info("Generating PDF...");
@@ -803,5 +856,47 @@ router.post("/", async (req, res) => {
     });
   }
 });
+
+async function processContentImages(content) {
+  if (!content) return content;
+
+  const imgTagRegex = /<img[^>]+>/g;
+  const srcRegex = /src="([^"]+)"/;
+
+  const matches = content.match(imgTagRegex);
+  if (!matches) return content;
+
+  let newContent = content;
+
+  for (const imgTag of matches) {
+    const srcMatch = imgTag.match(srcRegex);
+    if (srcMatch && srcMatch[1].startsWith('http')) {
+      const url = srcMatch[1];
+      try {
+        // Decode HTML entities in URL if any (e.g. &amp; -> &)
+        const decodedUrl = url.replace(/&amp;/g, '&');
+
+        const response = await fetch(decodedUrl);
+        if (response.ok) {
+          const arrayBuffer = await response.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
+          const contentType = response.headers.get('content-type') || 'image/jpeg';
+          const base64 = `data:${contentType};base64,${buffer.toString('base64')}`;
+          logger.log('image uri generated', base64.substring(0, 100))
+
+          // Replace the URL in the img tag first
+          const newImgTag = imgTag.replace(url, base64);
+          // Then replace the img tag in the content
+          newContent = newContent.replace(imgTag, newImgTag);
+        } else {
+          logger.error(`Failed to fetch image: ${decodedUrl} - ${response.statusText}`);
+        }
+      } catch (error) {
+        logger.error(`Error processing image: ${url}`, error);
+      }
+    }
+  }
+  return newContent;
+}
 
 module.exports = router;

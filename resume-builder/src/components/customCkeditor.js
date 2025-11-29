@@ -363,6 +363,11 @@ const CustomCKEditorComponent = ({
                     }
                 ]
             },
+            image: {
+                upload: {
+                    types: ['jpeg', 'png', 'jpg', 'gif'],
+                }
+            }
         };
 
         const proConfig = {
