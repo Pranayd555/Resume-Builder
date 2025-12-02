@@ -56,11 +56,19 @@ router.post("/", async (req, res) => {
                 <!-- Include CKEditor base styles -->
                 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap" />
                 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" />
+                <script src="https://unpkg.com/twemoji@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
 
                 <style>
 
                     :root {
                       --ck-content-font-family: 'Lato';
+                    }
+
+                    html, body {
+                      margin: 0;
+                      padding: 0;
+                      width: 100%;
+                      height: 100%;
                     }
 
                     /* Base HTML Elements - Consistent across editor and PDF */
@@ -755,6 +763,36 @@ router.post("/", async (req, res) => {
                       width: 100% !important;
                       height: auto !important;
                     }
+
+                    /* A4 Page Layout */
+                    .a4-page {
+                      width: 210mm;
+                      min-height: 297mm;
+                      box-sizing: border-box;
+                      background: #ffffff;
+                      margin: 0 auto;
+                      position: relative;
+                    }
+
+                    .a4-content {
+                      width: 100%;
+                      height: 100%;
+                      box-sizing: border-box;
+                      overflow-x: auto;
+                      overflow-y: hidden;
+                      word-wrap: break-word;
+                    }
+
+                    .a4-page + .a4-page {
+                      padding-top: 0 !important;
+                    }
+
+                    /* Page margins for PDF generation */
+                    
+                    @page {
+                        margin: 5mm;
+                    }
+                    
                 </style>
                 </head>
                 <body>
@@ -809,10 +847,10 @@ router.post("/", async (req, res) => {
         format: "A4",
         printBackground: true,
         margin: {
-          top: "5mm",
-          right: "5mm",
-          bottom: "5mm",
-          left: "5mm",
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0
         },
         scale: 1,
         preferCSSPageSize: true,
