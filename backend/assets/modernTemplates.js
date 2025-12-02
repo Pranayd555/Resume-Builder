@@ -901,7 +901,7 @@ module.exports = [
                 <h3 class="primaryFont">Technical Skills</h3>
                 {{#each skills}}
                 <div class="skill-category">
-                  <div class="skill-category-title primaryFont">{{category}}</div>
+                  <strong class="skill-category-title secondaryFont">{{category}}</strong>
                   <div class="skill-items secondaryFont">
                     {{#each items}}<span class="skill-item" data-level="{{level}}">{{name}}</span>{{/each}}
                   </div>
@@ -916,9 +916,9 @@ module.exports = [
                 {{#each workExperience}}
                 <div class="job-item" itemscope itemtype="http://schema.org/JobPosting">
                   <div class="job-header">
-                    <div class="job-title primaryFont" itemprop="title">{{jobTitle}}</div>
+                    <strong class="job-title secondaryFont" itemprop="title">{{jobTitle}}</strong>
                     <div class="job-meta">
-                      <span class="company secondaryFont" itemprop="hiringOrganization">{{company}}</span>
+                      <strong class="company secondaryFont" itemprop="hiringOrganization">{{company}}</strong>
                       {{#if location}}<span class="location secondaryFont" itemprop="jobLocation">{{location}}</span>{{/if}}
                     </div>
                     <div class="job-dates secondaryFont">
@@ -942,11 +942,11 @@ module.exports = [
                 <h3 class="primaryFont">Key Projects</h3>
                 {{#each projects}}
                 <div class="project-item">
-                  <div class="project-name primaryFont">{{name}}</div>
+                  <strong class="project-name secondaryFont">{{name}}</strong>
                   {{#if description}}<div class="project-description secondaryFont">{{{description}}}</div>{{/if}}
                   {{#if technologies}}
                   <div class="technologies">
-                    <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
+                    <strong class="secondaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
                   </div>
                   {{/if}}
                   {{#if url}}<div class="project-links secondaryFont"><a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
@@ -959,6 +959,14 @@ module.exports = [
             </div>
             
             <div class="sidebar">
+            {{#if personalInfo.isAddPhoto}} 
+                {{#if personalInfo.profilePicture}}
+                <div class="profile-image-container">
+                <img alt="Profile picture of user" class="profile-image" src="{{personalInfo.profilePicture}}"/>
+                </div>
+                {{/if}}
+                {{/if}}
+                
               {{#if education}}
               <section class="education secondaryFont">
                 <h3 class="primaryFont">Education</h3>
@@ -985,7 +993,7 @@ module.exports = [
                 <h3 class="primaryFont">Professional Certifications</h3>
                 {{#each certifications}}
                 <div class="cert-item">
-                  <div class="cert-name primaryFont">{{name}}</div>
+                  <strong class="cert-name secondaryFont">{{name}}</strong>
                   <div class="cert-meta">
                     <span class="issuer secondaryFont">{{issuer}}</span>
                     {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}</span>{{/if}}
@@ -1003,7 +1011,7 @@ module.exports = [
                 <h3 class="primaryFont">Achievements & Awards</h3>
                 {{#each achievements}}
                 <div class="achievement-item">
-                  {{#if title}}<div class="achievement-title primaryFont">{{title}}</div>{{/if}}
+                  {{#if title}}<strong class="achievement-title secondaryFont">{{title}}</strong>{{/if}}
                   {{#if description}}<div class="achievement-description secondaryFont">{{{description}}}</div>{{/if}}
                   {{#if date}}<div class="achievement-date secondaryFont">{{formatDate date}}</div>{{/if}}
                   {{#if issuer}}<div class="achievement-issuer secondaryFont">{{issuer}}</div>{{/if}}
@@ -1074,7 +1082,15 @@ module.exports = [
           .skill-item { display: inline-block; margin-right: 8px; margin-bottom: 2px; background: #0ea5e9; color: white; padding: 1px 4px; border-radius: 2px; }
           .project-name { font-weight: 600; color: #1f2937; margin-bottom: 3px; }
           .technologies { margin: 4px 0; color: #6b7280; }
-          .tech-tag { background: #a855f7; color: white; padding: 1px 4px; border-radius: 2px; margin-right: 4px; }
+          .tech-tag { background: #a855f7; color: white !important; 
+            padding: 2px 6px !important; 
+            border-radius: 4px !important; 
+            margin-right: 4px !important; 
+            margin-bottom: 2px !important; 
+            display: inline-block !important; 
+            font-size: 10px !important; 
+            font-weight: 500 !important; 
+            text-decoration: none !important; }
           .project-links { margin: 3px 0; }
           .project-links a { color: #38bdf8; text-decoration: none; }
           .project-links a:hover { text-decoration: underline; }
@@ -1114,6 +1130,18 @@ module.exports = [
           .language-name, .skill-category-title, .job-title, .edu-degree, .project-name, .achievement-title, .cert-name, .custom-field-title { font-weight: bold; color: #1f2937; }
           .project-links a, .cert-link a, .contact-item a { color: #38bdf8; text-decoration: none; }
           .project-links a:hover, .cert-link a:hover, .contact-item a:hover { text-decoration: underline; }
+
+          
+          
+                        .profile-image-container {
+                            display: flex;
+                            justify-content: center;
+                            margin-bottom: 1rem;
+                            }
+                        .profile-image {
+                            width: 10rem;height: 10rem;border-radius: 9999px;border: 4px solid white;
+            object-fit: cover;
+          }
           
           /* A4 Page Constraints - Ensure all content fits within A4 boundaries */
           * { box-sizing: border-box; }
@@ -1713,15 +1741,27 @@ module.exports = [
         "templateCode": {
           "html": `<article class="resume fresh-gradient" itemscope itemtype="http://schema.org/Person">
             <header class="header">
+            {{#if personalInfo.isAddPhoto}}
+            {{#if personalInfo.profilePicture}}
+            <div class="left-column">
+                <div class="profile-image-container">
+                <img alt="Profile picture of user" class="profile-image" src="{{personalInfo.profilePicture}}"/>
+                </div>
+                </div>
+                {{/if}}
+            {{/if}}
+            <div class="right-column">
               <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
               {{#if isFresher}}{{else}}<h2 class="name primaryFont" itemprop="title">{{title}}</h2>{{/if}}
               <div class="contact-info secondaryFont">
+              <div class="contact-grid">
                 <div class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</div>
                 {{#if personalInfo.phone}}<div class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
                 {{#if personalInfo.address}}<div class="contact-item secondaryFont" itemprop="address">{{personalInfo.address}}</div>{{/if}}
                 {{#if personalInfo.website}}<div class="contact-item secondaryFont"><a href="{{personalInfo.website}}" target="_blank" itemprop="url">{{personalInfo.website}}</a></div>{{/if}}
                 {{#if personalInfo.linkedin}}<div class="contact-item secondaryFont"><a href="{{personalInfo.linkedin}}" target="_blank">{{personalInfo.linkedin}}</a></div>{{/if}}
                 {{#if personalInfo.github}}<div class="contact-item secondaryFont"><a href="{{personalInfo.github}}" target="_blank">{{personalInfo.github}}</a></div>{{/if}}
+              </div>
               </div>
             </header>
             
@@ -1737,7 +1777,7 @@ module.exports = [
               <h2 class="primaryFont">Core Skills</h2>
               {{#each skills}}
               <div class="skill-category">
-                <div class="skill-category-title primaryFont">{{category}}</div>
+                <strong class="skill-category-title secondaryFont">{{category}}</strong>
                 <div class="skill-items secondaryFont">
                   {{#each items}}<span class="skill-item" data-level="{{level}}">{{name}}</span>{{/each}}
                 </div>
@@ -1752,14 +1792,14 @@ module.exports = [
               {{#each workExperience}}
               <div class="job-item" itemscope itemtype="http://schema.org/JobPosting">
                 <div class="job-header">
-                  <div class="job-title primaryFont" itemprop="title">{{jobTitle}}</div>
+                  <strong class="job-title secondaryFont" itemprop="title">{{jobTitle}}</strong>
                   <div class="job-meta">
                     <span class="company secondaryFont" itemprop="hiringOrganization">{{company}}</span>
                     {{#if location}}<span class="location secondaryFont" itemprop="jobLocation">{{location}}</span>{{/if}}
                   </div>
                   <div class="job-dates secondaryFont">
                     <time itemprop="datePosted">{{formatDate startDate}}</time> - 
-                    {{#if isCurrentJob}}<span>Present</span>{{else}}<time>{{formatDate endDate}}</time>{{/if}}
+                    {{#if isCurrentJob}}<span>Present</span>{{else}}{{#if endDate}}<time>{{formatDate endDate}}</time>{{/if}}{{/if}}
                   </div>
                 </div>
                 {{#if description}}<div class="job-description secondaryFont" itemprop="description">{{{description}}}</div>{{/if}}
@@ -1779,13 +1819,13 @@ module.exports = [
               {{#each projects}}
               <div class="project-item">
                 <div class="project-header">
-                  <div class="project-name primaryFont">{{name}}</div>
+                  <strong class="project-name secondaryFont">{{name}}</strong>
                   {{#if startDate}}<div class="project-dates secondaryFont">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</div>{{/if}}
                 </div>
                 {{#if description}}<div class="project-description secondaryFont">{{{description}}}</div>{{/if}}
                 {{#if technologies}}
                 <div class="technologies">
-                  <strong class="primaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
+                  <strong class="secondaryFont">Technologies:</strong> {{#each technologies}}<span class="tech-tag secondaryFont">{{this}}</span>{{/each}}
                 </div>
                 {{/if}}
                 {{#if url}}<div class="project-links secondaryFont"><a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
@@ -1801,7 +1841,7 @@ module.exports = [
               {{#each education}}
               <div class="edu-item" itemscope itemtype="http://schema.org/EducationalOccupationalCredential">
                 <div class="edu-header">
-                  <div class="edu-degree primaryFont" itemprop="credentialCategory">{{degree}}</div>
+                  <strong class="edu-degree secondaryFont" itemprop="credentialCategory">{{degree}}</strong>
                   <div class="edu-meta">
                     <span class="institution secondaryFont" itemprop="recognizedBy">{{institution}}</span>
                     {{#if location}}<span class="location secondaryFont">{{location}}</span>{{/if}}
@@ -1823,7 +1863,7 @@ module.exports = [
               <h2 class="primaryFont">Professional Certifications</h2>
               {{#each certifications}}
               <div class="cert-item">
-                <div class="cert-name primaryFont">{{name}}</div>
+                <strong class="cert-name secondaryFont">{{name}}</strong>
                 <div class="cert-meta">
                   <span class="issuer secondaryFont">{{issuer}}</span>
                   {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}</span>{{/if}}
@@ -1841,7 +1881,7 @@ module.exports = [
               <h2 class="primaryFont">Achievements & Awards</h2>
               {{#each achievements}}
               <div class="achievement-item">
-                {{#if title}}<div class="achievement-title primaryFont">{{title}}</div>{{/if}}
+                {{#if title}}<strong class="achievement-title secondaryFont">{{title}}</strong>{{/if}}
                 {{#if description}}<div class="achievement-description secondaryFont">{{{description}}}</div>{{/if}}
                 {{#if date}}<div class="achievement-date secondaryFont">{{formatDate date}}</div>{{/if}}
                 {{#if issuer}}<div class="achievement-issuer secondaryFont">{{issuer}}</div>{{/if}}
@@ -1882,6 +1922,18 @@ module.exports = [
             color: #111827; 
             line-height: 1.4; 
           }
+
+          .left-column { padding-right: 5px; border-right: 2px solid #ffffff; margin-right: 5px; border-radius: 99999px; margin-bottm:1rem; }
+
+          .contact-grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 5px 5px; 
+            margin: 0 auto; 
+            align-items: start;
+        }
+        .contact-item { display: flex; flex-wrap: wrap; align-items: flex-start; padding-top:5px; text-align: left; }
+        .contact-item { font-weight: 600; color: #6b7280; word-wrap: break-word; line-height: 1.2; align-self: flex-start }
           
           .header { 
             background: linear-gradient(135deg, #3b82f6 0%, #9333ea 50%, #14b8a6 100%); 
@@ -1889,7 +1941,8 @@ module.exports = [
             padding: 20px; 
             margin-bottom: 20px; 
             border-radius: 12px; 
-            text-align: center; 
+             display: flex; justify-content: space-between; align-items: center;
+             gap:12px;
           }
           
           .name { 
@@ -1897,7 +1950,6 @@ module.exports = [
             font-weight: 700; 
             margin-bottom: 8px; 
             color: white; 
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
           }
           
           .contact-info { 
@@ -2043,8 +2095,9 @@ module.exports = [
           }
           
           .skill-items { 
+            margin-top: 6px;
             color: #4b5563; 
-            line-height: 1.5; 
+            line-height: 1.2; 
           }
           
           .skill-item { 
@@ -2089,12 +2142,15 @@ module.exports = [
           
           .tech-tag { 
             background: linear-gradient(90deg, #3b82f6, #9333ea); 
-            color: white; 
-            padding: 2px 6px; 
-            border-radius: 4px; 
-            margin-right: 4px; 
-            font-size: 11px; 
-            font-weight: 500; 
+            color: white !important; 
+            padding: 2px 6px !important; 
+            border-radius: 4px !important; 
+            margin-right: 4px !important; 
+            margin-bottom: 2px !important; 
+            display: inline-block !important; 
+            font-size: 10px !important; 
+            font-weight: 500 !important; 
+            text-decoration: none !important;
           }
           
           .project-links { 

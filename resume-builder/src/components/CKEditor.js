@@ -159,6 +159,7 @@ const CKEditorComponent = ({
   isProMode = false, // Pro mode for different AI button functionality
   onAIContentChange = null, // Callback for AI content changes
   onAILoading = null, // Callback for AI loading state
+  originalText = null // if original resumeData available
 }) => {
   const [isLayoutReady, setIsLayoutReady] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -179,8 +180,8 @@ const CKEditorComponent = ({
       if (value !== editorInstance.getData()) {
         editorInstance.setData(value || "");
       }
-      setLastValue(value);
-    }
+  setLastValue(value);
+}
   }, [value, editorInstance, lastValue]);
 
   useEffect(() => {
@@ -522,11 +523,7 @@ const CKEditorComponent = ({
               {
                 label: "Insert",
                 icon: "importExport",
-                items: [
-                  "link",
-                  "horizontalLine",
-                  "insertTable",
-                ],
+                items: ["link", "horizontalLine", "insertTable"],
               },
             ],
             shouldNotGroupWhenFull: true,
@@ -771,77 +768,78 @@ const CKEditorComponent = ({
       style={{ position: "relative", overflow: "visible" }}
     >
       {showAIButton && (
-        <div
-          className="mt-2 ml-2"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-            flexWrap: "wrap",
-          }}
-        >
-          <AIButton
-            editorInstance={editorInstance}
-            onContentChange={onChange}
-            isProMode={isProMode}
-            onAIContentChange={onAIContentChange}
-            onAILoading={onAILoading}
-          />
-          {isProMode && (
-            <button
-              onClick={() => {
-                setShowTemplateDialog(true);
+          <div
+            className="mt-2 ml-2"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              flexWrap: "wrap",
+            }}
+          >
+            <AIButton
+              editorInstance={editorInstance}
+              onContentChange={onChange}
+              isProMode={isProMode}
+              onAIContentChange={onAIContentChange}
+              onAILoading={onAILoading}
+              originalText={originalText === value ? null : originalText}
+              isMobile={isMobile} />
+            {isProMode && (
+              <button
+                onClick={() => {
+                  setShowTemplateDialog(true);
               }}
-              className="template-button-simple"
-              style={{
-                background: "linear-gradient(to right, #f97316, #dc2626)",
-                border: "none",
-                borderRadius: "8px",
-                padding: "10px 16px",
-                color: "white",
-                fontSize: "14px",
-                fontWeight: "600",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                transition: "all 0.3s ease",
-                boxShadow: "0 2px 8px rgba(249, 115, 22, 0.3)",
-                height: "40px",
-                minWidth: "120px",
-                justifyContent: "center",
-                marginBottom: "10px",
+                className="template-button-simple"
+                style={{
+                  background: "linear-gradient(to right, #f97316, #dc2626)",
+                  border: "none",
+                  borderRadius: "8px",
+                  padding: "10px 16px",
+                  color: "white",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  transition: "all 0.3s ease",
+                  boxShadow: "0 2px 8px rgba(249, 115, 22, 0.3)",
+                  height: "40px",
+                  minWidth: "120px",
+                  justifyContent: "center",
+                  marginBottom: "10px",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background =
+                    "linear-gradient(to right, #ea580c, #b91c1c)";
+                  e.target.style.transform = "translateY(-2px)";
+                  e.target.style.boxShadow = "0 4px 12px rgba(249, 115, 22, 0.4)";
               }}
-              onMouseEnter={(e) => {
-                e.target.style.background =
-                  "linear-gradient(to right, #ea580c, #b91c1c)";
-                e.target.style.transform = "translateY(-2px)";
-                e.target.style.boxShadow = "0 4px 12px rgba(249, 115, 22, 0.4)";
+                onMouseLeave={(e) => {
+                  e.target.style.background =
+                    "linear-gradient(to right, #f97316, #dc2626)";
+                  e.target.style.transform = "translateY(0)";
+                  e.target.style.boxShadow = "0 2px 8px rgba(249, 115, 22, 0.3)";
               }}
-              onMouseLeave={(e) => {
-                e.target.style.background =
-                  "linear-gradient(to right, #f97316, #dc2626)";
-                e.target.style.transform = "translateY(0)";
-                e.target.style.boxShadow = "0 2px 8px rgba(249, 115, 22, 0.3)";
-              }}
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"
                 />
-              </svg>
-              Template
-            </button>
-          )}
+                </svg>
+                Template
+              </button>
+            )}
         </div>
       )}
       {ClassicEditor && editorConfig && (
@@ -875,27 +873,27 @@ const CKEditorComponent = ({
               setupTypeAroundButtons(editor);
             }}
             onChange={(event, editor) => {
-              const data = editor.getData();
-              // Ensure we always get HTML format
+              // const data = editor.getData();
+              // // Ensure we always get HTML format
 
-              // Force HTML output if the data looks like markdown
-              if (
-                data.includes("##") ||
-                data.includes("**") ||
-                (data.includes("*") && !data.includes("<"))
-              ) {
-                // Convert markdown to HTML as fallback
-                const htmlData = data
-                  .replace(/^### (.*$)/gim, "<h3>$1</h3>")
-                  .replace(/^## (.*$)/gim, "<h2>$1</h2>")
-                  .replace(/^# (.*$)/gim, "<h1>$1</h1>")
-                  .replace(/\*\*(.*?)\*\*/gim, "<strong>$1</strong>")
-                  .replace(/\*(.*?)\*/gim, "<em>$1</em>")
-                  .replace(/\n/gim, "<br>");
-                onChange(htmlData);
-              } else {
-                onChange(data);
-              }
+              // // Force HTML output if the data looks like markdown
+              // if (
+              //   data.includes("##") ||
+              //   data.includes("**") ||
+              //   (data.includes("*") && !data.includes("<"))
+              // ) {
+              //   // Convert markdown to HTML as fallback
+              //   const htmlData = data
+              //     .replace(/^### (.*$)/gim, "<h3>$1</h3>")
+              //     .replace(/^## (.*$)/gim, "<h2>$1</h2>")
+              //     .replace(/^# (.*$)/gim, "<h1>$1</h1>")
+              //     .replace(/\*\*(.*?)\*\*/gim, "<strong>$1</strong>")
+              //     .replace(/\*(.*?)\*/gim, "<em>$1</em>")
+              //     .replace(/\n/gim, "<br>");
+              //   onChange(htmlData);
+              // } else {
+              //   onChange(data);
+              // }
             }}
             onBlur={(event, editor) => {}}
             onFocus={(event, editor) => {}}

@@ -310,7 +310,7 @@ class OptimizedTemplateRenderer {
         }
 
         .${uniqueId} .primaryFont strong {
-          font-size: ${smallSize}px !important; 
+          font-size: ${mediumSize}px !important; 
         }
       `;
     }
@@ -373,7 +373,7 @@ class OptimizedTemplateRenderer {
       .${uniqueId} .primaryFont,
       .${uniqueId} .primaryFont * {
         font-family: '${primaryFont}', sans-serif !important;
-        font-size: ${headingSize}px !important;
+        font-size: ${headingSize - 2}px !important;
         font-weight: ${templateStyling.headerLevel == 'h1' ? '800' : templateStyling.headerLevel == 'h2' ? '700' : templateStyling.headerLevel == 'h3' ? '600' : templateStyling.headerLevel == 'h4' ? '500' : templateStyling.headerLevel == 'h5' ? '400' : '600'} !important;
       }
       .${uniqueId} .secondaryFont,
@@ -480,7 +480,6 @@ class OptimizedTemplateRenderer {
           color: ${userColors.primary} !important;
         }
         .${uniqueId} .skill-item,
-        .${uniqueId} .tech-tag,
         .${uniqueId} h2,
         .${uniqueId} h3 {
           border-bottom-color: ${userColors.primary} !important;
@@ -663,7 +662,7 @@ class OptimizedTemplateRenderer {
       .${uniqueId} .edu-description strong, .${uniqueId} .edu-description b,
       .${uniqueId} .achievement-description strong, .${uniqueId} .achievement-description b,
       .${uniqueId} .custom-content strong, .${uniqueId} .custom-content b {
-        font-weight: 700 !important;
+        font-weight: 600 !important;
       }
       
       /* Ensure CKEditor italic formatting is preserved */

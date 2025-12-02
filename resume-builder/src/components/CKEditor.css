@@ -3,106 +3,104 @@
 @import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
 @media print {
-	body {
-		margin: 0 !important;
-	}
+  body {
+    margin: 0 !important;
+  }
 }
 
 :root {
-	--ck-content-font-family: 'Lato';
+  --ck-content-font-family: 'Lato';
 }
 
 .main-container {
-	font-family: var(--ck-content-font-family);
-	width: fit-content;
-	margin-left: auto;
-	margin-right: auto;
+  font-family: var(--ck-content-font-family);
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .editor-container_classic-editor .editor-container__editor {
-	min-width: 795px;
-	max-width: 795px;
+  min-width: 795px;
+  max-width: 795px;
 }
 
 .ck-content h3.category {
-	font-family: 'Oswald';
-	font-size: 20px;
-	font-weight: bold;
-	color: #555;
-	letter-spacing: 10px;
-	margin: 0;
-	padding: 0;
+  font-family: 'Oswald';
+  font-size: 20px;
+  font-weight: bold;
+  color: #555;
+  letter-spacing: 10px;
+  margin: 0;
+  padding: 0;
 }
 
 .ck-content h2.document-title {
-	font-family: 'Oswald';
-	font-size: 50px;
-	font-weight: bold;
-	margin: 0;
-	padding: 0;
-	border: 0;
+  font-family: 'Oswald';
+  font-size: 50px;
+  font-weight: bold;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 
 .ck-content h3.document-subtitle {
-	font-family: 'Oswald';
-	font-size: 20px;
-	color: #555;
-	margin: 0 0 1em;
-	font-weight: bold;
-	padding: 0;
+  font-family: 'Oswald';
+  font-size: 20px;
+  color: #555;
+  margin: 0 0 1em;
+  font-weight: bold;
+  padding: 0;
 }
 
 .ck-content p.info-box {
-	--background-size: 30px;
-	--background-color: #e91e63;
-	padding: 1.2em 2em;
-	border: 1px solid var(--background-color);
-	background:
-		linear-gradient(135deg, var(--background-color) 0%, var(--background-color) var(--background-size), transparent var(--background-size)),
-		linear-gradient(
-			135deg,
-			transparent calc(100% - var(--background-size)),
-			var(--background-color) calc(100% - var(--background-size)),
-			var(--background-color)
-		);
-	border-radius: 10px;
-	margin: 1.5em 2em;
-	box-shadow: 5px 5px 0 #ffe6ef;
+  --background-size: 30px;
+  --background-color: #e91e63;
+  padding: 1.2em 2em;
+  border: 1px solid var(--background-color);
+  background:
+    linear-gradient(135deg, var(--background-color) 0%, var(--background-color) var(--background-size), transparent var(--background-size)),
+    linear-gradient(135deg,
+      transparent calc(100% - var(--background-size)),
+      var(--background-color) calc(100% - var(--background-size)),
+      var(--background-color));
+  border-radius: 10px;
+  margin: 1.5em 2em;
+  box-shadow: 5px 5px 0 #ffe6ef;
 }
 
 .ck-content span.marker {
-	background: yellow;
+  background: yellow;
 }
 
 .ck-content span.spoiler {
-	background: #000;
-	color: #000;
+  background: #000;
+  color: #000;
 }
 
 .ck-content span.spoiler:hover {
-	background: #000;
-	color: #fff;
+  background: #000;
+  color: #fff;
 }
 
 .ck-content .button {
-	display: inline-block;
-	width: 260px;
-	border-radius: 8px;
-	margin: 0 auto;
-	padding: 12px;
-	color: #ffffff;
-	font-size: 24px;
-	font-weight: 700;
-	text-align: center;
-	text-decoration: none;
+  display: inline-block;
+  width: 260px;
+  border-radius: 8px;
+  margin: 0 auto;
+  padding: 12px;
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
 }
 
 .ck-content .button--green {
-	background-color: #406b1e;
+  background-color: #406b1e;
 }
 
 .ck-content .button--black {
-	background-color: #141517;
+  background-color: #141517;
 }
 
 
@@ -120,6 +118,7 @@
   min-height: 300px;
   max-height: 500px;
   overflow-y: auto;
+  overflow-x: auto;
   border: none;
   border-radius: 0 0 0.5rem 0.5rem;
   padding: 1rem;
@@ -304,6 +303,9 @@
 .template-block-content {
   position: relative;
   z-index: 1;
+  width: max-content;
+  min-width: 100%;
+  max-width: none !important;
 }
 
 .template-block-content * {
@@ -364,6 +366,7 @@
 }
 
 @media (max-width: 768px) {
+
   /* On mobile: make toolbar scroll with content instead of sticking */
   .ck-sticky-panel__content_sticky {
     position: static !important;
@@ -371,7 +374,7 @@
 }
 
 .ck-toolbar {
-  background-color: #FFF7EDCC  !important;
+  background-color: #FFF7EDCC !important;
   border-bottom: 2px solid orange !important;
 }
 
@@ -478,11 +481,13 @@
   padding: 0;
 }
 
-.ck-content strong, .ck-content b {
+.ck-content strong,
+.ck-content b {
   font-weight: 600;
 }
 
-.ck-content em, .ck-content i {
+.ck-content em,
+.ck-content i {
   font-style: italic;
 }
 
@@ -490,7 +495,8 @@
   text-decoration: underline;
 }
 
-.ck-content s, .ck-content strike {
+.ck-content s,
+.ck-content strike {
   text-decoration: line-through;
   color: #6b7280;
 }
@@ -569,7 +575,10 @@
   color: #374151;
 }
 
-.ck-content ul ul, .ck-content ol ol, .ck-content ul ol, .ck-content ol ul {
+.ck-content ul ul,
+.ck-content ol ol,
+.ck-content ul ol,
+.ck-content ol ul {
   margin: 4px 0;
 }
 
@@ -587,7 +596,8 @@
   border-collapse: collapse;
   margin: 12px 0;
   font-size: 14px;
-  table-layout: fixed; /* Ensures consistent column widths */
+  table-layout: fixed;
+  /* Ensures consistent column widths */
 }
 
 /* Override CKEditor's default table behavior for template tables */
@@ -613,7 +623,8 @@
   padding: 8px 12px;
   border: 1px solid #e5e7eb;
   color: #374151;
-  vertical-align: top; /* Ensures content aligns to top */
+  vertical-align: top;
+  /* Ensures content aligns to top */
 }
 
 .ck-content tr:nth-child(even) {
@@ -636,7 +647,7 @@
 }
 
 .ck.ck-dropdown.ck-heading-dropdown .ck-dropdown__panel .ck-list__item {
-    min-width: fit-content !important;
+  min-width: fit-content !important;
 }
 
 /* Override CKEditor's default table behavior for template tables with colspan */
@@ -904,7 +915,7 @@
   border-radius: 6px 6px 0 0;
 }
 
-.ck-content details > *:not(summary) {
+.ck-content details>*:not(summary) {
   padding: 8px 12px;
 }
 
@@ -927,9 +938,8 @@
 }
 
 .ck-content meter {
-  width: 100%;
-  height: 8px;
-  border-radius: 4px;
+  color: #000;
+  background: white;
 }
 
 /* Print-specific styles for PDF generation */
@@ -940,103 +950,120 @@
     color: #000;
     background: white;
   }
-  
-  .ck-content h1 { font-size: 18px; }
-  .ck-content h2 { font-size: 16px; }
-  .ck-content h3 { font-size: 14px; }
-  .ck-content h4 { font-size: 13px; }
-  .ck-content h5 { font-size: 12px; }
-  .ck-content h6 { font-size: 11px; }
-  
+
+  .ck-content h1 {
+    font-size: 18px;
+  }
+
+  .ck-content h2 {
+    font-size: 16px;
+  }
+
+  .ck-content h3 {
+    font-size: 14px;
+  }
+
+  .ck-content h4 {
+    font-size: 13px;
+  }
+
+  .ck-content h5 {
+    font-size: 12px;
+  }
+
+  .ck-content h6 {
+    font-size: 11px;
+  }
+
   .ck-content a {
     color: #000;
     text-decoration: underline;
   }
-  
+
   .ck-content a[href]:after {
     content: " (" attr(href) ")";
     font-size: 10px;
     color: #666;
   }
-  
+
   .ck-content blockquote {
     border-left: 2px solid #ccc;
     background: #f9f9f9;
   }
-  
+
   .ck-content table {
     border-collapse: collapse;
     font-size: 11px;
     width: 100% !important;
   }
-  
+
   .ck-content th,
   .ck-content td {
     border: 1px solid #ccc;
     padding: 4px 6px;
     vertical-align: top;
   }
-  
+
   .ck-content th {
     background: #f0f0f0;
     font-weight: bold;
   }
-  
+
   /* Ensure table cells maintain their width in PDF */
   .ck-content table.template-table td {
     vertical-align: top !important;
   }
-  
+
   /* Override CKEditor's default table behavior for template tables with colspan in PDF */
   .ck-content table.template-table td[colspan="2"] {
     width: 33.33% !important;
     max-width: 33.33% !important;
     min-width: 33.33% !important;
   }
-  
+
   .ck-content table.template-table td[colspan="3"] {
     width: 50% !important;
     max-width: 50% !important;
     min-width: 50% !important;
   }
-  
+
   .ck-content table.template-table td[colspan="4"] {
     width: 60% !important;
     max-width: 60% !important;
     min-width: 60% !important;
   }
-  
+
   /* Specific width overrides for PDF */
   .ck-content table.template-table td[style*="width: 30%"] {
     width: 30% !important;
     max-width: 30% !important;
     min-width: 30% !important;
   }
-  
+
   .ck-content table.template-table td[style*="width: 40%"] {
     width: 40% !important;
     max-width: 40% !important;
     min-width: 40% !important;
   }
-  
+
   .ck-content table.template-table td[style*="width: 50%"] {
     width: 50% !important;
     max-width: 50% !important;
     min-width: 50% !important;
   }
-  
+
   .ck-content table.template-table td[style*="width: 60%"] {
     width: 60% !important;
     max-width: 60% !important;
     min-width: 60% !important;
   }
-  
+
   .ck-content table.template-table td[style*="width: 70%"] {
     width: 70% !important;
     max-width: 70% !important;
     min-width: 70% !important;
   }
-  
+
   .ck-content table.template-table td[style*="width: 33.33%"] {
     width: 33.33% !important;
     max-width: 33.33% !important;
@@ -1049,28 +1076,60 @@
   .ckeditor-container .ck-toolbar {
     flex-wrap: wrap;
   }
-  
+
   .ckeditor-container .ck-editor__editable {
     font-size: 14px;
+    overflow-x: auto;
   }
-  
+
   .ck-content {
     font-size: 14px;
   }
-  
-  .ck-content h1 { font-size: 20px; }
-  .ck-content h2 { font-size: 18px; }
-  .ck-content h3 { font-size: 16px; }
-  .ck-content h4 { font-size: 15px; }
-  .ck-content h5 { font-size: 14px; }
-  .ck-content h6 { font-size: 13px; }
-  
+
+  .ck-content h1 {
+    font-size: 20px;
+  }
+
+  .ck-content h2 {
+    font-size: 18px;
+  }
+
+  .ck-content h3 {
+    font-size: 16px;
+  }
+
+  .ck-content h4 {
+    font-size: 15px;
+  }
+
+  .ck-content h5 {
+    font-size: 14px;
+  }
+
+  .ck-content h6 {
+    font-size: 13px;
+  }
+
   .ck-content table {
     font-size: 12px;
   }
-  
+
   .ck-content th,
   .ck-content td {
     padding: 6px 8px;
   }
+}
+
+/* A4 Page Layout Support */
+.ck-content .a4-page {
+  width: 210mm;
+  min-height: 297mm;
+  box-sizing: border-box;
+  background: #ffffff;
+  display: block;
+  margin: 0 auto;
+  padding: 5mm;
+  min-width: 210mm;
+  margin-left: auto;
+  margin-right: auto;
 }
