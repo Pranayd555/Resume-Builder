@@ -121,7 +121,7 @@ const corsOptions = {
       'http://localhost',
       'https://localhost'
     ];
-    
+
     // Allow mobile apps (no origin) and allowed origins
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
@@ -170,10 +170,10 @@ app.use((req, res, next) => {
       if (typeof obj === 'string') {
         // Check if this is a resume content field
         const resumeContentFields = ['summary', 'description', 'content'];
-        const isResumeContentField = isResumeRequest && resumeContentFields.some(field => 
+        const isResumeContentField = isResumeRequest && resumeContentFields.some(field =>
           obj.includes(`<span style=`) || obj.includes(`<strong>`) || obj.includes(`<em>`) || obj.includes(`<u>`)
         );
-        
+
         if (isResumeContentField) {
           // For resume content fields, use a more permissive XSS filter that preserves CKEditor formatting
           return xss(obj, {
@@ -209,7 +209,9 @@ app.use((req, res, next) => {
               'th': ['style'],
               'tbody': ['style'],
               'thead': ['style'],
-              'tfoot': ['style']
+              'tfoot': ['style'],
+              'img': ['src', 'alt', 'width', 'height', 'style', 'class'],
+              'figure': ['class', 'style']
             },
             stripIgnoreTag: true,
             stripIgnoreTagBody: ['script']
@@ -229,10 +231,10 @@ app.use((req, res, next) => {
       }
       return obj;
     };
-    
+
     // Check if this is a resume or template creation request
     const isResumeRequest = req.path.includes('/resumes') || req.path.includes('/createTemplate');
-    
+
     // Sanitize the entire request body
     req.body = sanitizeObject(req.body, isResumeRequest);
   }
@@ -244,13 +246,13 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/resumebui
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => logger.info('Connected to MongoDB'))
-.catch(err => logger.error('MongoDB connection error:', err));
+  .then(() => logger.info('Connected to MongoDB'))
+  .catch(err => logger.error('MongoDB connection error:', err));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'OK', 
+  res.status(200).json({
+    status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'development'
@@ -309,7 +311,7 @@ app.use('/api/payment', paymentRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
-  res.status(404).json({ 
+  res.status(404).json({
     error: 'Route not found',
     message: `Cannot ${req.method} ${req.originalUrl}`
   });

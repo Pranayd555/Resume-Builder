@@ -11,6 +11,68 @@ const { withPage } = require('../utils/browserManager');
 const sharp = require('sharp');
 
 const router = express.Router();
+const DraftTemplate = require('../models/DraftTemplate');
+
+// @desc    Save custom template draft
+// @route   POST /api/resumes/draft-template
+// @access  Private
+router.post('/draft-template', protect, async (req, res) => {
+  try {
+    const { content } = req.body;
+
+    if (!content) {
+      return res.status(400).json({
+        success: false,
+        error: 'Content is required'
+      });
+    }
+
+    let draft = await DraftTemplate.findOne({ user: req.user.id });
+
+    if (draft) {
+      draft.content = content;
+      await draft.save();
+    } else {
+      draft = await DraftTemplate.create({
+        user: req.user.id,
+        content
+      });
+    }
+
+    res.json({
+      success: true,
+      data: draft,
+      message: 'Draft saved successfully'
+    });
+  } catch (error) {
+    logger.error('Save draft template error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+});
+
+// @desc    Get custom template draft
+// @route   GET /api/resumes/draft-template
+// @access  Private
+router.get('/draft-template', protect, async (req, res) => {
+  try {
+    const draft = await DraftTemplate.findOne({ user: req.user.id });
+
+    res.json({
+      success: true,
+      data: draft
+    });
+  } catch (error) {
+    logger.error('Get draft template error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error'
+    });
+  }
+});
+
 
 // Helper function to handle Mongoose validation errors
 const handleValidationError = (error, res) => {
@@ -926,7 +988,7 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
 
     // Initialize template renderer
     const renderer = new OptimizedTemplateRenderer();
-   
+
     // Prepare resume data for rendering
     const resumeData = {
       title: resume.title,
@@ -945,21 +1007,21 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
     };
     const User = require('../models/User');
     const profilePicture = await User.findById(req.user.id).populate('profilePicture');
-    if(resumeData.personalInfo.isAddPhoto) {
+    if (resumeData.personalInfo.isAddPhoto) {
       try {
         const url = profilePicture.profilePicture?.type === 'avatar' ? profilePicture.profilePicture.avatarUrl : profilePicture.profilePicture?.type === 'uploaded' ? profilePicture.profilePicture.uploadedPhoto.url : '';
-        if(url !== '') {
-        const response = await fetch(url, {
-          signal: AbortSignal.timeout(8000) // 8-second timeout
-        });
-        if (!response.ok) {
-          throw new Error(`Failed to fetch profile picture: ${response.statusText}`);
-        }
-        const imageBuffer = await response.arrayBuffer();
-        const base64 = Buffer.from(imageBuffer).toString('base64');
-        const dataUri = `data:image/jpeg;base64,${base64}`;
-        logger.info('profile picture uri: ' + dataUri.substring(0, 100) + '...'); // Log first 100 chars
-        resumeData.personalInfo.profilePicture = dataUri;
+        if (url !== '') {
+          const response = await fetch(url, {
+            signal: AbortSignal.timeout(8000) // 8-second timeout
+          });
+          if (!response.ok) {
+            throw new Error(`Failed to fetch profile picture: ${response.statusText}`);
+          }
+          const imageBuffer = await response.arrayBuffer();
+          const base64 = Buffer.from(imageBuffer).toString('base64');
+          const dataUri = `data:image/jpeg;base64,${base64}`;
+          logger.info('profile picture uri: ' + dataUri.substring(0, 100) + '...'); // Log first 100 chars
+          resumeData.personalInfo.profilePicture = dataUri;
         } else {
           resumeData.personalInfo.profilePicture = null; // Clear the profile picture to prevent further issues
         }
@@ -1111,7 +1173,7 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
     }
     // Use shared browser
     const pdfBuffer = await withPage(async (page) => {
-      
+
       await page.emulateMediaType('print');
       await page.setContent(htmlContent, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(2000);
@@ -2679,53 +2741,6 @@ router.put('/:id/colors/individual', [
   }
 });
 
-// @desc    Get available color presets
-// @route   GET /api/resumes/color-presets
-// @access  Private
-router.get('/color-presets', protect, async (req, res) => {
-  try {
-    const colorPresets = {
-      primary: [
-        { name: 'Blue', value: '#3b82f6', category: 'primary' },
-        { name: 'Indigo', value: '#6366f1', category: 'primary' },
-        { name: 'Purple', value: '#8b5cf6', category: 'primary' },
-        { name: 'Pink', value: '#ec4899', category: 'primary' },
-        { name: 'Red', value: '#ef4444', category: 'primary' },
-        { name: 'Orange', value: '#f97316', category: 'primary' },
-        { name: 'Yellow', value: '#eab308', category: 'primary' },
-        { name: 'Green', value: '#22c55e', category: 'primary' },
-        { name: 'Teal', value: '#14b8a6', category: 'primary' },
-        { name: 'Cyan', value: '#06b6d4', category: 'primary' }
-      ],
-      neutral: [
-        { name: 'Gray', value: '#6b7280', category: 'neutral' },
-        { name: 'Slate', value: '#64748b', category: 'neutral' },
-        { name: 'Zinc', value: '#71717a', category: 'neutral' },
-        { name: 'Stone', value: '#78716c', category: 'neutral' },
-        { name: 'Black', value: '#000000', category: 'neutral' },
-        { name: 'White', value: '#ffffff', category: 'neutral' }
-      ],
-      professional: [
-        { name: 'Navy Blue', value: '#1e3a8a', category: 'professional' },
-        { name: 'Dark Gray', value: '#374151', category: 'professional' },
-        { name: 'Charcoal', value: '#1f2937', category: 'professional' },
-        { name: 'Forest Green', value: '#059669', category: 'professional' },
-        { name: 'Burgundy', value: '#7c2d12', category: 'professional' }
-      ]
-    };
 
-    res.json({
-      success: true,
-      data: colorPresets
-    });
-
-  } catch (error) {
-    logger.error('Error fetching color presets:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error'
-    });
-  }
-});
 
 module.exports = router;

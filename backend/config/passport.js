@@ -17,15 +17,15 @@ const jwtOptions = {
 passport.use(new JwtStrategy(jwtOptions, async (payload, done) => {
   try {
     const user = await User.findById(payload.id).select('-password');
-    
+
     if (!user) {
       return done(null, false);
     }
-    
+
     if (!user.isActive) {
       return done(null, false);
     }
-    
+
     return done(null, user);
   } catch (error) {
     logger.error('JWT Strategy Error:', error);
@@ -43,28 +43,54 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     try {
       // Check if user already exists with Google ID
       let user = await User.findOne({ googleId: profile.id });
-      
+
       if (user) {
         // Update login count and last login
         user.usage.loginCount += 1;
         user.usage.lastLogin = new Date();
+
+        // Update profile picture if it's missing or if it's an avatar (not uploaded)
+        if (profile.photos && profile.photos[0] && profile.photos[0].value) {
+          if (!user.profilePicture || !user.profilePicture.type) {
+            user.profilePicture = {
+              type: 'avatar',
+              avatarUrl: profile.photos[0].value
+            };
+          } else if (user.profilePicture.type === 'avatar') {
+            user.profilePicture.avatarUrl = profile.photos[0].value;
+          }
+        }
+
         await user.save();
         return done(null, user);
       }
-      
+
       // Check if user exists with same email
       const existingUser = await User.findOne({ email: profile.emails[0].value });
-      
+
       if (existingUser) {
         // Link Google account to existing user
         existingUser.googleId = profile.id;
         existingUser.isEmailVerified = true;
         existingUser.usage.loginCount += 1;
         existingUser.usage.lastLogin = new Date();
+
+        // Update profile picture if it's missing or if it's an avatar (not uploaded)
+        if (profile.photos && profile.photos[0] && profile.photos[0].value) {
+          if (!existingUser.profilePicture || !existingUser.profilePicture.type) {
+            existingUser.profilePicture = {
+              type: 'avatar',
+              avatarUrl: profile.photos[0].value
+            };
+          } else if (existingUser.profilePicture.type === 'avatar') {
+            existingUser.profilePicture.avatarUrl = profile.photos[0].value;
+          }
+        }
+
         await existingUser.save();
         return done(null, existingUser);
       }
-      
+
       // Create new user
       const newUser = new User({
         firstName: profile.name.givenName,
@@ -81,9 +107,9 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
           lastLogin: new Date()
         }
       });
-      
+
       await newUser.save();
-      
+
       logger.info(`New user created via Google OAuth: ${newUser.email}`);
       return done(null, newUser);
     } catch (error) {
@@ -104,21 +130,34 @@ if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
     clientID: process.env.LINKEDIN_CLIENT_ID,
     clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
     callbackURL: process.env.LINKEDIN_CALLBACK_URL,
-  scope: ['openid', 'profile', 'email'],
+    scope: ['openid', 'profile', 'email'],
   }, async (issuer, sub, profile, jwtClaims, accessToken, refreshToken, done) => {
     try {
-    const decodedJwtClaims = jwt_decode(jwtClaims);
-    const linkedinId = decodedJwtClaims.sub;
-    const firstName = decodedJwtClaims.given_name;
-    const lastName = decodedJwtClaims.family_name;
-    const email = decodedJwtClaims.email;
-    const profilePicture = decodedJwtClaims.picture;
+      const decodedJwtClaims = jwt_decode(jwtClaims);
+      const linkedinId = decodedJwtClaims.sub;
+      const firstName = decodedJwtClaims.given_name;
+      const lastName = decodedJwtClaims.family_name;
+      const email = decodedJwtClaims.email;
+      const profilePicture = decodedJwtClaims.picture;
 
       // Step 2: Find or create user
       let user = await User.findOne({ linkedinId });
       if (user) {
         user.usage.loginCount += 1;
         user.usage.lastLogin = new Date();
+
+        // Update profile picture if it's missing or if it's an avatar (not uploaded)
+        if (profilePicture) {
+          if (!user.profilePicture || !user.profilePicture.type) {
+            user.profilePicture = {
+              type: 'avatar',
+              avatarUrl: profilePicture
+            };
+          } else if (user.profilePicture.type === 'avatar') {
+            user.profilePicture.avatarUrl = profilePicture;
+          }
+        }
+
         await user.save();
         return done(null, user);
       }
@@ -132,6 +171,19 @@ if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
           existingUser.isEmailVerified = true;
           existingUser.usage.loginCount += 1;
           existingUser.usage.lastLogin = new Date();
+
+          // Update profile picture if it's missing or if it's an avatar (not uploaded)
+          if (profilePicture) {
+            if (!existingUser.profilePicture || !existingUser.profilePicture.type) {
+              existingUser.profilePicture = {
+                type: 'avatar',
+                avatarUrl: profilePicture
+              };
+            } else if (existingUser.profilePicture.type === 'avatar') {
+              existingUser.profilePicture.avatarUrl = profilePicture;
+            }
+          }
+
           await existingUser.save();
           return done(null, existingUser);
         } else {

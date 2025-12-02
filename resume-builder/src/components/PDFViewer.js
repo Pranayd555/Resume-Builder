@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import { toast } from 'react-toastify';
-import AuthLoader from './AuthLoader';
+import AuthLoader from './annimations/AuthLoader';
 import { 
   ChevronLeftIcon, 
   ChevronRightIcon, 

@@ -4,12 +4,12 @@ import { templateAPI, resumeAPI, apiHelpers } from '../services/api';
 import { toast } from 'react-toastify';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay, EffectCoverflow, FreeMode } from 'swiper/modules';
-import AuthLoader from './AuthLoader';
 
 // Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import AuthLoader from './annimations/AuthLoader';
 
 function TemplateSelection() {
   const { resumeId } = useParams();
