@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { analyticsAPI } from '../services/api';
 import { toast } from 'react-toastify';
-import AuthLoader from './AuthLoader';
+import AuthLoader from './annimations/AuthLoader';
 import { 
   EyeIcon, 
   DocumentArrowDownIcon, 
@@ -316,7 +316,10 @@ function AnalyticsDashboard() {
               }`}
             >
               <div className="p-6">
-                <div className="max-h-80 overflow-y-auto">
+                <div className="max-h-80 overflow-y-auto payment-scrollbar" style={{
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: '#d1d5db #f3f4f6'
+                }}>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {templates.templates.map((template) => (
                       <div key={template.id} className="border border-gray-200 dark:border-orange-700/30 rounded-lg p-4 hover:shadow-md transition-shadow">

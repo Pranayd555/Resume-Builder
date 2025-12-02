@@ -4,6 +4,14 @@ import { createPortal } from 'react-dom';
 // Template data structure - PDF-compatible styles
 const templates = [
   {
+    title: 'A4 Page Layout',
+    content: `<div class="a4-page" >
+  <h2 style="margin-top: 0;">A4 Page Content</h2>
+  <p>This is an A4-sized page container. Add your content here. The page dimensions are 210mm × 297mm, matching standard A4 paper size.</p>
+</div>
+`
+  },
+  {
     title: 'Right Heavy Two Block',
     content: `<div style="margin: 5px 0; display: flex;">
     <div style="flex: 1; background: #f8f9fa; padding: 16px; border-radius: 8px; margin-right: 1%;">

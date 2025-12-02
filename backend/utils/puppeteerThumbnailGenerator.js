@@ -60,7 +60,7 @@ class PuppeteerThumbnailGenerator {
         profilePicture: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
         isAddPhoto: true,
       },
-      summary: 'Experienced software engineer with 5+ years of experience in full-stack development. Passionate about creating scalable applications and leading development teams. Skilled in modern JavaScript frameworks, cloud technologies, and agile methodologies.',
+      summary: '<p>Experienced software engineer with 5+ years of experience in full-stack development. Passionate about creating scalable applications and leading development teams. Skilled in modern JavaScript frameworks, cloud technologies, and agile methodologies.</p>',
       workExperience: [
         {
           jobTitle: 'Senior Software Engineer',
@@ -253,6 +253,17 @@ class PuppeteerThumbnailGenerator {
       // const compiledHTML = htmlTemplate(this.sampleData);
       const renderer = new OptimizedTemplateRenderer();
 
+      this.sampleData.styling = {
+        ...this.sampleData.styling,
+        template: {
+            headerLevel: 'h3',
+            fontSize: 16,
+            lineSpacing: 1.3,
+            sectionSpacing: 1,
+            fontFamily: 'Arial'
+          }
+      }
+
       // Prepare resume data for rendering
       const resumeData = {
         title: this.sampleData.title,
@@ -276,7 +287,10 @@ class PuppeteerThumbnailGenerator {
       <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>${template.name}</title>
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+          <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/47.0.0/ckeditor5.css" />
+          <title>${template.title}</title>
           <style>
               /* Basic reset and page setup */
               * {
@@ -286,13 +300,13 @@ class PuppeteerThumbnailGenerator {
               }
               
               :root { 
-                  --template-bg: ${template.styling.colors.background || '#ffffff'}; 
+                  --template-bg: ${resumeData.styling?.colors?.background || '#ffffff'}; 
               }
               
               body {
                   margin: 0;
                   padding: 0;
-                  background: ${template.styling.colors.background || '#ffffff'};
+                  background: ${resumeData.styling?.colors?.background || '#ffffff'};
               }
               
               /* Template CSS from renderer - HIGHEST PRIORITY */
@@ -304,18 +318,18 @@ class PuppeteerThumbnailGenerator {
               /* Print optimizations - minimal and non-conflicting */
               @media print {
                   body {
-                      background: ${template?.styling?.colors?.background || '#ffffff'} !important;
+                      background: ${resumeData.styling?.colors?.background || '#ffffff'} !important;
                   }
                   .resume { 
                       box-shadow: none;
-                      background: ${template?.styling?.colors?.background || '#ffffff'} !important;
+                      background: ${resumeData.styling?.colors?.background || '#ffffff'} !important;
                   }
                   * { 
                       -webkit-print-color-adjust: exact; 
                       color-adjust: exact;
                   }
               }
-
+              
               /* Page margins for PDF generation */
               @page :first {
                   margin: 0in 0in 0.5in 0in;
@@ -344,19 +358,6 @@ class PuppeteerThumbnailGenerator {
                 margin-bottom: 0 !important;
                 padding-bottom: 0 !important;
               }
-              
-              /* Also remove bottom spacing from last items within sections */
-              .resume .job-item:last-child,
-              .resume .edu-item:last-child,
-              .resume .project-item:last-child,
-              .resume .cert-item:last-child,
-              .resume .achievement-item:last-child,
-              .resume .skill-category:last-child,
-              .resume .language-item:last-child,
-              .resume .custom-field:last-child {
-                margin-bottom: 0 !important;
-                padding-bottom: 0 !important;
-              }
 
               .profile-image-container {
                             display: flex;
@@ -364,7 +365,7 @@ class PuppeteerThumbnailGenerator {
                             align-items:center;
                             }
                         .profile-image {
-                            width: 10rem;height: 10rem;border-radius: 9999px;border: 4px solid white;
+                            width: 10rem;height: 10rem;border-radius: 99999px;border: 4px solid white;
                             object-fit: cover;
                         }
           </style>
