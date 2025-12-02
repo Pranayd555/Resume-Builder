@@ -118,17 +118,42 @@ const CreateTemplate = () => {
 			toast.error('Please add some content to your template before generating PDF');
 			return;
 		}
-		const updatedContent = templateContent.replace(`<div class="ck ck-reset_all"><div class="ck ck-widget__type-around__button ck-widget__type-around__button_before" style="align-items:center;display:flex;justify-content:center;" title="Insert paragraph before block" aria-hidden="true"><span style="color:white;font-size:14px;"><span style="line-height:1;"><strong>+</strong></span></span></div><div class="ck ck-widget__type-around__button ck-widget__type-around__button_after" style="align-items:center;display:flex;justify-content:center;" title="Insert paragraph after block" aria-hidden="true"><span style="color:white;font-size:14px;"><span style="line-height:1;"><strong>+</strong></span></span></div><div class="ck ck-widget__type-around__fake-caret">&nbsp;</div>`, ``);
+
+		// Use DOMParser to safely remove CKEditor artifacts
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(templateContent, 'text/html');
+
+		// Remove the type-around widgets and other CKEditor artifacts
+		const artifacts = doc.querySelectorAll('.ck.ck-reset_all.ck-widget__type-around, .ck-widget__type-around__fake-caret, .ck-widget__type-around__button');
+		artifacts.forEach(el => el.remove());
+
+		// Remove CKEditor wrapper divs (.template-block-widget and .template-block-content)
+		// These add unwanted margins (margin:10px 0) to the PDF
+		const templateWidgets = doc.querySelectorAll('.template-block-widget');
+		templateWidgets.forEach(widget => {
+			// Find the .template-block-content div inside
+			const contentDiv = widget.querySelector('.template-block-content');
+			if (contentDiv) {
+				// Get the inner content (e.g., .a4-page)
+				const innerContent = contentDiv.innerHTML;
+				// Create a temporary div to hold the inner content
+				const temp = doc.createElement('div');
+				temp.innerHTML = innerContent;
+				// Replace the entire widget with just the inner content
+				while (temp.firstChild) {
+					widget.parentNode.insertBefore(temp.firstChild, widget);
+				}
+			}
+			// Remove the now-empty widget wrapper
+			widget.remove();
+		});
+
+		const updatedContent = doc.body.innerHTML;
 		console.log('Generating PDF...', updatedContent);
 		setIsGeneratingPDF(true);
 		try {
 			// The API returns the Blob directly
-			let corrected = updatedContent.replace(
-				"data:application/octet-stream;base64,",
-				"data:image/png;base64,"
-			);
-
-			const blob = await resumeAPI.createTemplate(corrected);
+			const blob = await resumeAPI.createTemplate(updatedContent);
 
 			const url = window.URL.createObjectURL(blob);
 			const a = document.createElement('a');
@@ -208,8 +233,7 @@ const CreateTemplate = () => {
 							onClick={handleSaveDraft}
 							disabled={isSavingDraft || isGeneratingPDF}
 							className={`px-8 py-3 rounded-lg font-semibold text-white transition-all duration-200 flex items-center space-x-2 ${isSavingDraft
-								? 'bg-gray-400 cursor-not-allowed'
-								: 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg transform hover:scale-105'
+								? 'bg-gray-400' : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg transform hover:scale-105'
 								}`}
 						>
 							{isSavingDraft ? (
