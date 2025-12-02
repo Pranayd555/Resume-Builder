@@ -220,13 +220,13 @@ router.post("/", async (req, res) => {
                     /* List Elements */
                     .ck-content ul {
                       margin: 8px 0;
-                      padding-left: 20px;
+                      padding-left: 20px !important;
                       list-style-type: disc;
                     }
 
                     .ck-content ol {
                       margin: 8px 0;
-                      padding-left: 20px;
+                      padding-left: 20px !important;
                       list-style-type: decimal;
                     }
 
