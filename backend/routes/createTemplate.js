@@ -1,21 +1,48 @@
 const express = require("express");
 const { withPage } = require("../utils/browserManager");
 const router = express.Router();
+const logger = require("../utils/logger");
 
 // Create Template PDF Generation Route
 router.post("/", async (req, res) => {
   try {
     const { content, title = "Custom Template" } = req.body;
 
+    logger.info("Received PDF generation request", {
+      title,
+      contentLength: content ? content.length : 0,
+      hasContent: !!content
+    });
+
     if (!content?.trim()) {
+      logger.warn("PDF generation failed: Content is missing or empty");
       return res.status(400).json({
         success: false,
         message: "Content is required and cannot be empty.",
       });
     }
+    logger.info('Content analysis:', {
+      length: content?.length,
+      hasImgTag: content?.includes('<img'),
+      hasDataImage: content?.includes('data:image'),
+      preview: content?.substring(0, 500),
+      isEscaped: content?.includes('\\"'),
+      hasHtmlEntities: content?.includes('&lt;')
+    });
 
     const pdfBuffer = await withPage(async (page) => {
+      logger.info("Browser page initialized");
+
+      // Initialize with a minimal valid HTML page to ensure execution context is ready
+      await page.goto("data:text/html,<html><body></body></html>", {
+        waitUntil: "networkidle0",
+        timeout: 30000
+      });
+      logger.info("Page reset to blank state");
+
       await page.setViewport({ width: 1200, height: 800 });
+
+      logger.info("Page viewport set successfully.");
 
       // Construct the full HTML
       const html = `
@@ -27,14 +54,21 @@ router.post("/", async (req, res) => {
                 <title>${title}</title>
 
                 <!-- Include CKEditor base styles -->
-                <link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/47.0.0/ckeditor5.css" />
                 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap" />
                 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" />
+                <script src="https://unpkg.com/twemoji@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
 
                 <style>
 
                     :root {
                       --ck-content-font-family: 'Lato';
+                    }
+
+                    html, body {
+                      margin: 0;
+                      padding: 0;
+                      width: 100%;
+                      height: 100%;
                     }
 
                     /* Base HTML Elements - Consistent across editor and PDF */
@@ -108,6 +142,7 @@ router.post("/", async (req, res) => {
                       line-height: 1.4;
                       margin: 0 0 8px 0;
                       padding: 0;
+                      line-height: 1.3;
                     }
 
                     .ck-content strong, .ck-content b {
@@ -185,13 +220,13 @@ router.post("/", async (req, res) => {
                     /* List Elements */
                     .ck-content ul {
                       margin: 8px 0;
-                      padding-left: 20px;
+                      padding-left: 20px !important;
                       list-style-type: disc;
                     }
 
                     .ck-content ol {
                       margin: 8px 0;
-                      padding-left: 20px;
+                      padding-left: 20px !important;
                       list-style-type: decimal;
                     }
 
@@ -203,6 +238,7 @@ router.post("/", async (req, res) => {
 
                     .ck-content ul ul, .ck-content ol ol, .ck-content ul ol, .ck-content ol ul {
                       margin: 4px 0;
+                      line-height: 1.4;
                     }
 
                     .ck-content ul ul {
@@ -488,6 +524,7 @@ router.post("/", async (req, res) => {
                       font-family: 'Courier New', 'Monaco', monospace;
                       font-size: 12px;
                       color: #1f2937;
+                      margin: 8px 0;
                     }
 
                     /* Variable */
@@ -714,6 +751,48 @@ router.post("/", async (req, res) => {
                     ck ck-widget__type-around__button ck-widget__type-around__button_after .page-break {
                     page-break-before: always;
                     }
+
+                    figure.image {
+                      display: block;
+                      width: auto !important;
+                      max-width: 100% !important;
+                    }
+
+                    figure.image img {
+                      display: block;
+                      width: 100% !important;
+                      height: auto !important;
+                    }
+
+                    /* A4 Page Layout */
+                    .a4-page {
+                      width: 210mm;
+                      min-height: 297mm;
+                      box-sizing: border-box;
+                      background: #ffffff;
+                      margin: 0 auto;
+                      position: relative;
+                    }
+
+                    .a4-content {
+                      width: 100%;
+                      height: 100%;
+                      box-sizing: border-box;
+                      overflow-x: auto;
+                      overflow-y: hidden;
+                      word-wrap: break-word;
+                    }
+
+                    .a4-page + .a4-page {
+                      padding-top: 0 !important;
+                    }
+
+                    /* Page margins for PDF generation */
+                    
+                    @page {
+                        margin: 5mm;
+                    }
+                    
                 </style>
                 </head>
                 <body>
@@ -724,31 +803,65 @@ router.post("/", async (req, res) => {
                 </html>
                 `;
 
+      logger.info("HTML generated successfully.", { htmlLength: html.length });
+
+      logger.info("Setting page content...");
       await page.setContent(html, {
         waitUntil: "networkidle0",
         timeout: 30000,
       });
+      logger.info("Page content set successfully");
+      const htmlDebug = await page.content();
+      logger.info("DEBUG HTML:", htmlDebug);
+
+      // Wait for all images to load (including base64 images)
+      logger.info("Waiting for images to load...");
+      try {
+        // 2. CRITICAL: Wait for all images to be fully loaded and decoded
+        await page.evaluate(async () => {
+          const selectors = Array.from(document.querySelectorAll("img"));
+          await Promise.all(selectors.map(img => {
+            if (img.complete) return;
+            return new Promise((resolve, reject) => {
+              img.onload = resolve;
+              img.onerror = reject;
+            });
+          }));
+        });
+
+        // Give the browser a moment to paint the images
+        await page.waitForTimeout(500);
+      } catch (error) {
+        logger.warn("Image loading timeout, proceeding anyway", { error: error.message });
+      }
 
       // Wait until fonts and styles fully load
       await page.evaluateHandle("document.fonts.ready");
 
       // Emulate screen media (not print) for exact style rendering
-      await page.emulateMediaType("print");
+      await page.emulateMediaType("screen");
 
       // Generate PDF
-      return await page.pdf({
+      logger.info("Generating PDF...");
+      const pdf = await page.pdf({
         format: "A4",
         printBackground: true,
         margin: {
-          top: "5mm",
-          right: "5mm",
-          bottom: "5mm",
-          left: "5mm",
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0
         },
         scale: 1,
         preferCSSPageSize: true,
       });
+      logger.info("PDF generated successfully", { size: pdf.length });
+      return pdf;
     });
+
+    if (!pdfBuffer || !Buffer.isBuffer(pdfBuffer)) {
+      throw new Error(`Invalid PDF Buffer generated. Type: ${typeof pdfBuffer}`);
+    }
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
@@ -760,6 +873,10 @@ router.post("/", async (req, res) => {
     res.send(pdfBuffer);
   } catch (error) {
     console.error("Error generating PDF:", error);
+    logger.error("Error generating PDF", {
+      message: error.message,
+      stack: error.stack
+    });
     res.status(500).json({
       success: false,
       message: "Failed to generate PDF",
@@ -767,5 +884,6 @@ router.post("/", async (req, res) => {
     });
   }
 });
+
 
 module.exports = router;

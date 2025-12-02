@@ -7,7 +7,7 @@ import { useFormScroll, useScrollToTop } from '../hooks/useAutoScroll';
 import { useAuth } from '../contexts/AuthContext';
 import CKEditor from './CKEditor';
 import { ensureHtmlContent } from '../utils/htmlUtils';
-import AuthLoader from './AuthLoader';
+import AuthLoader from './annimations/AuthLoader';
 import AILoader from './annimations/AILoader';
 import CustomDatePicker from './DatePicker';
 import CustomDropdown from './CustomDropdown';
@@ -94,7 +94,7 @@ const TextAreaField = ({
   rows = 3, 
   placeholder = "", 
   className = "",
-  isProMode = false
+  originalResumeData = null
 }) => (
   <div>
     <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
@@ -106,6 +106,7 @@ const TextAreaField = ({
       placeholder={placeholder}
       showAIButton={true}
       className={className}
+      originalText={originalResumeData}
     />
   </div>
 );
@@ -197,6 +198,7 @@ function ResumeForm() {
   const [tokenBalance, setTokenBalance] = useState(0);
   const [isTokenExhausted, setIsTokenExhausted] = useState(false);
   const fileInputRef = useRef(null);
+  const [originalResumeData, setOriginalResumeData] = useState(null);
 
   const totalSteps = 8;
   
@@ -242,11 +244,11 @@ function ResumeForm() {
   }, [isDirty, currentStep, isEditMode]);
 
   // Get initial token balance
-  useEffect(() => {
-    const balance = apiHelpers.getTokenBalance();
-    setTokenBalance(balance);
-    setIsTokenExhausted(balance <= 0);
-  }, []);
+  // useEffect(() => {
+  //   const balance = apiHelpers.getTokenBalance();
+  //   setTokenBalance(balance);
+  //   setIsTokenExhausted(balance <= 0);
+  // }, []);
 
   // Listen for token balance updates
   useEffect(() => {
@@ -976,6 +978,7 @@ function ResumeForm() {
             loadProfileData();
             
             setFormData(mappedFormData);
+            setOriginalResumeData(mappedFormData);
             setIsDirty(false); // Reset isDirty after loading data
             setIsInitialLoad(false);
             
@@ -1292,7 +1295,7 @@ function ResumeForm() {
             "bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 cursor-not-allowed opacity-75",
           cancelButton:
             "bg-gray-200 text-gray-800 font-semibold px-4 py-2 rounded-md hover:bg-gray-300 focus:ring-2 focus:ring-gray-400",
-          denyButton: 'bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded',
+          denyButton: 'bg-gradient-to-r from-blue-400 to-purple-500 hover:from-blue-500 hover:to-purple-600 text-white px-4 py-2 rounded',
         },
       }).then(async(result) => {
         if (result.isConfirmed) {
@@ -1618,6 +1621,7 @@ function ResumeForm() {
           onChange={(value) => handleInputChange('root', 'summary', value)}
           rows={4}
           placeholder="Write a brief summary of your professional background and key achievements..."
+          originalResumeData={originalResumeData?.summary}
         />
         
         {/* Extracted Text Reference - Only show when parsedData is NOT available */}
@@ -1942,6 +1946,7 @@ function ResumeForm() {
               onChange={(value) => handleInputChange('workExperience', 'description', value, index)}
               placeholder="Describe your role and responsibilities..."
               showAIButton={true}
+              originalText={originalResumeData?.workExperience[index]?.description}
             />
           </div>
         </div>
@@ -2149,6 +2154,7 @@ function ResumeForm() {
               onChange={(value) => handleInputChange('education', 'description', value, index)}
               placeholder="Relevant coursework, honors, activities..."
               showAIButton={true}
+              originalText={originalResumeData?.education[index]?.description}
             />
           </div>
         </div>
@@ -2486,6 +2492,7 @@ function ResumeForm() {
               onChange={(value) => handleInputChange('projects', 'description', value, index)}
               placeholder="Describe the project, your role, and key features..."
               showAIButton={true}
+              originalText={originalResumeData?.projects[index]?.description}
             />
           </div>
         </div>
@@ -2583,6 +2590,7 @@ function ResumeForm() {
               onChange={(value) => handleInputChange('achievements', 'description', value, index)}
               placeholder="Describe the achievement..."
               showAIButton={true}
+              originalText={originalResumeData?.achievements[index]?.description}
             />
           </div>
         </div>
