@@ -74,12 +74,12 @@ const HomePage = () => {
               className="mx-auto mb-8 w-32 h-32 rounded-full shadow-lg"
             />
             <h1
-              className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 inline-grid gap-4"
+              className="text-2xl sm:text-4xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 inline-grid gap-2 sm:gap-4"
             >
-              <FlipText className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text">
+              <FlipText className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text whitespace-nowrap">
                 Build Your Perfect
               </FlipText>
-              <FlipText className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text">
+              <FlipText className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text whitespace-nowrap">
                 Resume in Minutes
               </FlipText>
             </h1>
@@ -194,21 +194,21 @@ const HomePage = () => {
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
               Ready to Land Your Dream Job?
             </h2>
-            <div className="font-semibold py-4 inline-block">
-              <WaveText className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-                Join thousands of professionals who have successfully created their resumes with our builder.
-              </WaveText>
-            </div>
-            <Fade direction="top-right">
-              <button
-                onClick={() => navigate(isAuthenticated ? getDashboardRoute() : PUBLIC_ROUTES.REGISTER)}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2 mx-auto"
-              >
-                {isAuthenticated ? 'Go to Dashboard' : 'Start Building Now'}
-                <ArrowRightIcon className="w-5 h-5" />
-              </button>
-            </Fade>
           </Slide>
+          <div className="font-semibold py-4 inline-block">
+            <WaveText className="text-xl text-gray-600 dark:text-gray-300 mb-8">
+              Join thousands of professionals who have successfully created their resumes with our builder.
+            </WaveText>
+          </div>
+          <Fade direction="top-right">
+            <button
+              onClick={() => navigate(isAuthenticated ? getDashboardRoute() : PUBLIC_ROUTES.REGISTER)}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2 mx-auto"
+            >
+              {isAuthenticated ? 'Go to Dashboard' : 'Start Building Now'}
+              <ArrowRightIcon className="w-5 h-5" />
+            </button>
+          </Fade>
         </div>
       </section>
 
