@@ -2,17 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { ChartBarIcon, XMarkIcon, DocumentTextIcon, DocumentArrowDownIcon, XCircleIcon, SparklesIcon } from '@heroicons/react/24/outline';
-import CKEditor from './CKEditor';
+import CustomCKEditorComponent from './customCkeditor.js';
 import AILoader from './annimations/AILoader';
 import { apiHelpers } from '../services/api';
 import aiService from '../services/aiService';
 import { useAuth } from '../contexts/AuthContext';
 
-const ATSScoreModal = ({ 
-  isOpen, 
-  onClose, 
-  resumeId, 
-  onSuccess 
+const ATSScoreModal = ({
+  isOpen,
+  onClose,
+  resumeId,
+  onSuccess
 }) => {
   const [atsJobDescription, setAtsJobDescription] = useState('');
   const [atsFile, setAtsFile] = useState(null);
@@ -73,10 +73,10 @@ const ATSScoreModal = ({
     setAtsFile(null);
     setAtsInputType('text');
     setAtsGenerating(false);
-    
+
     // Close modal
     onClose();
-    
+
     // Call success callback if provided
     if (onSuccess) {
       onSuccess();
@@ -103,11 +103,11 @@ const ATSScoreModal = ({
 
     try {
       setAtsGenerating(true);
-      
+
       // Prepare data for API call
       const jobDescription = atsInputType === 'text' ? stripHtmlTags(atsJobDescription) : null;
       const jobDescriptionFile = atsInputType === 'file' ? atsFile : null;
-      
+
       // Call the ATS score API
       await aiService.generateATSScore(
         resumeId,
@@ -115,16 +115,16 @@ const ATSScoreModal = ({
         jobDescription,
         jobDescriptionFile
       );
-      
-      
+
+
       // Update token balance after successful operation
       const currentBalance = apiHelpers.getTokenBalance();
       const newBalance = Math.max(0, currentBalance - 1);
       apiHelpers.updateTokenBalance(newBalance);
-      
+
       toast.success('ATS Score generated successfully! Check console for details.');
       handleSuccess();
-      
+
     } catch (error) {
       handleError(error);
     }
@@ -164,7 +164,7 @@ const ATSScoreModal = ({
           {atsGenerating ? (
             // Show ATS Loader when generating
             <div className="flex items-center justify-center h-[400px] max-h-[400px]">
-              <AILoader 
+              <AILoader
                 title="Analyzing your resume..."
                 subtitle="Our advanced AI is meticulously scanning your resume to provide a comprehensive ATS score."
                 showProgress={true}
@@ -182,55 +182,47 @@ const ATSScoreModal = ({
                   <button
                     onClick={() => setAtsInputType('text')}
                     disabled={atsGenerating}
-                    className={`flex-1 p-2.5 rounded-lg border-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                      atsInputType === 'text'
-                        ? 'border-green-500 bg-green-50 text-green-700'
-                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
-                    }`}
+                    className={`flex-1 p-2.5 rounded-lg border-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${atsInputType === 'text'
+                      ? 'border-green-500 bg-green-50 text-green-700'
+                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                      }`}
                   >
                     <div className="text-center">
-                      <DocumentTextIcon className={`h-6 w-6 mx-auto mb-1.5 ${
-                        atsInputType === 'text' 
-                          ? 'text-green-600' 
-                          : 'text-gray-600 dark:text-gray-400'
-                      }`} />
-                      <span className={`font-medium text-sm ${
-                        atsInputType === 'text' 
-                          ? 'text-green-700' 
-                          : 'text-gray-900 dark:text-gray-700'
-                      }`}>Text Input</span>
-                      <p className={`text-xs mt-0.5 ${
-                        atsInputType === 'text' 
-                          ? 'text-green-600' 
-                          : 'text-gray-600 dark:text-gray-400'
-                      }`}>Paste job description text</p>
+                      <DocumentTextIcon className={`h-6 w-6 mx-auto mb-1.5 ${atsInputType === 'text'
+                        ? 'text-green-600'
+                        : 'text-gray-600 dark:text-gray-400'
+                        }`} />
+                      <span className={`font-medium text-sm ${atsInputType === 'text'
+                        ? 'text-green-700'
+                        : 'text-gray-900 dark:text-gray-700'
+                        }`}>Text Input</span>
+                      <p className={`text-xs mt-0.5 ${atsInputType === 'text'
+                        ? 'text-green-600'
+                        : 'text-gray-600 dark:text-gray-400'
+                        }`}>Paste job description text</p>
                     </div>
                   </button>
                   <button
                     onClick={() => setAtsInputType('file')}
                     disabled={atsGenerating}
-                    className={`flex-1 p-2.5 rounded-lg border-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                      atsInputType === 'file'
-                        ? 'border-green-500 bg-green-50 text-green-700'
-                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
-                    }`}
+                    className={`flex-1 p-2.5 rounded-lg border-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${atsInputType === 'file'
+                      ? 'border-green-500 bg-green-50 text-green-700'
+                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                      }`}
                   >
                     <div className="text-center">
-                      <DocumentArrowDownIcon className={`h-6 w-6 mx-auto mb-1.5 ${
-                        atsInputType === 'file' 
-                          ? 'text-green-600' 
-                          : 'text-gray-600 dark:text-gray-400'
-                      }`} />
-                      <span className={`font-medium text-sm ${
-                        atsInputType === 'file' 
-                          ? 'text-green-700' 
-                          : 'text-gray-900 dark:text-gray-700'
-                      }`}>File Upload</span>
-                      <p className={`text-xs mt-0.5 ${
-                        atsInputType === 'file' 
-                          ? 'text-green-600' 
-                          : 'text-gray-600 dark:text-gray-400'
-                      }`}>Upload PDF or DOC file</p>
+                      <DocumentArrowDownIcon className={`h-6 w-6 mx-auto mb-1.5 ${atsInputType === 'file'
+                        ? 'text-green-600'
+                        : 'text-gray-600 dark:text-gray-400'
+                        }`} />
+                      <span className={`font-medium text-sm ${atsInputType === 'file'
+                        ? 'text-green-700'
+                        : 'text-gray-900 dark:text-gray-700'
+                        }`}>File Upload</span>
+                      <p className={`text-xs mt-0.5 ${atsInputType === 'file'
+                        ? 'text-green-600'
+                        : 'text-gray-600 dark:text-gray-400'
+                        }`}>Upload PDF or DOC file</p>
                     </div>
                   </button>
                 </div>
@@ -243,11 +235,11 @@ const ATSScoreModal = ({
                     Job Description
                   </label>
                   <div className={`border border-gray-300 rounded-lg overflow-hidden ${atsGenerating ? 'opacity-50 pointer-events-none' : ''}`}>
-                    <CKEditor
+                    <CustomCKEditorComponent
                       value={atsJobDescription}
                       onChange={setAtsJobDescription}
                       placeholder="Paste the job description here..."
-                      className="min-h-[180px]"
+                      className="ats-editor"
                       disabled={atsGenerating}
                       showAIButton={false}
                     />
@@ -264,10 +256,9 @@ const ATSScoreModal = ({
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-600 mb-2">
                     Upload Job Description File
                   </label>
-                  <div 
-                    className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center transition-colors relative ${
-                      atsGenerating ? 'opacity-50 pointer-events-none' : 'hover:border-gray-400'
-                    } ${atsFile ? 'border-green-400 bg-green-50' : ''}`}
+                  <div
+                    className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center transition-colors relative ${atsGenerating ? 'opacity-50 pointer-events-none' : 'hover:border-gray-400'
+                      } ${atsFile ? 'border-green-400 bg-green-50' : ''}`}
                     onDragOver={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -287,7 +278,7 @@ const ATSScoreModal = ({
                       e.stopPropagation();
                       if (!atsGenerating) {
                         e.currentTarget.classList.remove('border-blue-400', 'bg-blue-50');
-                        
+
                         const files = e.dataTransfer.files;
                         if (files.length > 0) {
                           const file = files[0];
@@ -296,8 +287,13 @@ const ATSScoreModal = ({
                             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                             'application/msword'
                           ];
-                          
-                          if (allowedTypes.includes(file.type)) {
+
+                          // Check extension as fallback
+                          const fileName = file.name.toLowerCase();
+                          const allowedExtensions = ['.pdf', '.doc', '.docx'];
+                          const hasAllowedExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+
+                          if (allowedTypes.includes(file.type) || hasAllowedExtension) {
                             setAtsFile(file);
                           } else {
                             toast.error('Please upload a PDF, DOC, or DOCX file only.');
@@ -352,22 +348,21 @@ const ATSScoreModal = ({
                 <button
                   onClick={handleSubmit}
                   disabled={atsGenerating || isTokenExhausted || (atsInputType === 'text' && !stripHtmlTags(atsJobDescription).trim()) || (atsInputType === 'file' && !atsFile)}
-                  className={`w-full py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium ${
-                    isTokenExhausted 
-                      ? 'bg-gradient-to-r from-red-500 to-red-600 text-white cursor-not-allowed opacity-75' 
-                      : 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700'
-                  } ${atsGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`w-full py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium ${isTokenExhausted
+                    ? 'bg-gradient-to-r from-red-500 to-red-600 text-white cursor-not-allowed opacity-75'
+                    : 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700'
+                    } ${atsGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
                   title={isTokenExhausted ? 'AI tokens exhausted - Buy more tokens to continue' : ''}
                 >
                   <ChartBarIcon className="h-4 w-4" />
                   <span>{isTokenExhausted ? 'Tokens Exhausted' : 'Generate ATS Score'}</span>
                 </button>
-                
+
                 {/* Token exhaustion message */}
                 {isTokenExhausted && (
                   <div className="mt-2 text-center">
                     <span className="text-xs text-red-500">
-                      ⚠️ AI tokens exhausted! 
+                      ⚠️ AI tokens exhausted!
                       <Link to="/payment" className="text-blue-500 hover:text-blue-700 underline ml-1">
                         Buy more tokens
                       </Link> to continue using AI features.

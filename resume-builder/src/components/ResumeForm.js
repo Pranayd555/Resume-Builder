@@ -244,11 +244,12 @@ function ResumeForm() {
   }, [isDirty, currentStep, isEditMode]);
 
   // Get initial token balance
-  // useEffect(() => {
-  //   const balance = apiHelpers.getTokenBalance();
-  //   setTokenBalance(balance);
-  //   setIsTokenExhausted(balance <= 0);
-  // }, []);
+  // Get initial token balance
+  useEffect(() => {
+    const balance = apiHelpers.getTokenBalance();
+    setTokenBalance(balance);
+    setIsTokenExhausted(balance <= 0);
+  }, []);
 
   // Listen for token balance updates
   useEffect(() => {
@@ -262,13 +263,7 @@ function ResumeForm() {
     return () => window.removeEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
   }, []);
 
-  // Update token balance from user data if available
-  useEffect(() => {
-    if (user && user.tokens !== undefined) {
-      setTokenBalance(user.tokens);
-      setIsTokenExhausted(user.tokens <= 0);
-    }
-  }, [user]);
+
 
 
 
@@ -1519,8 +1514,8 @@ function ResumeForm() {
               onDragOver={handleDragOver}
               onDrop={handleDrop}
               className={`w-full px-3 py-4 border-2 border-dashed rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-center ${!isTokenExhausted
-                  ? 'cursor-pointer'
-                  : 'cursor-not-allowed opacity-50'
+                ? 'cursor-pointer'
+                : 'cursor-not-allowed opacity-50'
                 } ${isDragOver && !isTokenExhausted
                   ? 'border-blue-500 bg-blue-100 text-blue-700'
                   : isTokenExhausted
@@ -1844,8 +1839,8 @@ function ResumeForm() {
                 onChange={(e) => handleInputChange('workExperience', 'jobTitle', e.target.value, index)}
                 onBlur={() => handleInputBlur('workExperience', 'jobTitle', index)}
                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${validationErrors[`workExperience_${index}_jobTitle`]
-                    ? 'border-red-300 focus:border-red-500'
-                    : 'border-gray-300'
+                  ? 'border-red-300 focus:border-red-500'
+                  : 'border-gray-300'
                   }`}
                 placeholder="Software Engineer"
               />
@@ -1864,8 +1859,8 @@ function ResumeForm() {
                 onChange={(e) => handleInputChange('workExperience', 'company', e.target.value, index)}
                 onBlur={() => handleInputBlur('workExperience', 'company', index)}
                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${validationErrors[`workExperience_${index}_company`]
-                    ? 'border-red-300 focus:border-red-500'
-                    : 'border-gray-300'
+                  ? 'border-red-300 focus:border-red-500'
+                  : 'border-gray-300'
                   }`}
                 placeholder="Tech Company Inc."
               />
@@ -2019,8 +2014,8 @@ function ResumeForm() {
                 onChange={(e) => handleInputChange('education', 'degree', e.target.value, index)}
                 onBlur={() => handleInputBlur('education', 'degree', index)}
                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${validationErrors[`education_${index}_degree`]
-                    ? 'border-red-300 focus:border-red-500'
-                    : 'border-gray-300'
+                  ? 'border-red-300 focus:border-red-500'
+                  : 'border-gray-300'
                   }`}
                 placeholder="Bachelor of Science in Computer Science"
               />
@@ -2039,8 +2034,8 @@ function ResumeForm() {
                 onChange={(e) => handleInputChange('education', 'institution', e.target.value, index)}
                 onBlur={() => handleInputBlur('education', 'institution', index)}
                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${validationErrors[`education_${index}_institution`]
-                    ? 'border-red-300 focus:border-red-500'
-                    : 'border-gray-300'
+                  ? 'border-red-300 focus:border-red-500'
+                  : 'border-gray-300'
                   }`}
                 placeholder="University of California"
               />
@@ -2081,8 +2076,8 @@ function ResumeForm() {
                 }}
                 onBlur={() => handleInputBlur('education', 'gpa', index)}
                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${validationErrors[`education_${index}_gpa`]
-                    ? 'border-red-300 focus:border-red-500'
-                    : 'border-gray-300'
+                  ? 'border-red-300 focus:border-red-500'
+                  : 'border-gray-300'
                   }`}
                 placeholder="8.50"
               />
@@ -2666,8 +2661,8 @@ function ResumeForm() {
                   onChange={(e) => handleInputChange('certifications', 'name', e.target.value, index)}
                   onBlur={() => handleInputBlur('certifications', 'name', index)}
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${validationErrors[`certifications_${index}_name`]
-                      ? 'border-red-300 focus:border-red-500'
-                      : 'border-gray-300'
+                    ? 'border-red-300 focus:border-red-500'
+                    : 'border-gray-300'
                     }`}
                   placeholder="AWS Certified Solutions Architect"
                 />
@@ -2686,8 +2681,8 @@ function ResumeForm() {
                   onChange={(e) => handleInputChange('certifications', 'issuer', e.target.value, index)}
                   onBlur={() => handleInputBlur('certifications', 'issuer', index)}
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${validationErrors[`certifications_${index}_issuer`]
-                      ? 'border-red-300 focus:border-red-500'
-                      : 'border-gray-300'
+                    ? 'border-red-300 focus:border-red-500'
+                    : 'border-gray-300'
                     }`}
                   placeholder="Amazon Web Services"
                 />
@@ -3120,10 +3115,10 @@ function ResumeForm() {
                 <div
                   key={i}
                   className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-colors ${i + 1 === currentStep
-                      ? 'bg-blue-600'
-                      : i + 1 < currentStep
-                        ? 'bg-green-500'
-                        : 'bg-gray-300'
+                    ? 'bg-blue-600'
+                    : i + 1 < currentStep
+                      ? 'bg-green-500'
+                      : 'bg-gray-300'
                     }`}
                 />
               ))}
@@ -3157,8 +3152,8 @@ function ResumeForm() {
               onClick={nextStep}
               disabled={!isStepValid() || loading || uploadingResume}
               className={`px-2 py-2 sm:px-6 sm:py-3 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-1 sm:gap-2 font-semibold text-sm sm:text-base min-w-0 flex-shrink-0 ${!isStepValid() && Object.keys(validationErrors).length > 0
-                  ? 'bg-red-500 hover:bg-red-600'
-                  : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
+                ? 'bg-red-500 hover:bg-red-600'
+                : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
                 }`}
             >
               {currentStep === totalSteps ? (
