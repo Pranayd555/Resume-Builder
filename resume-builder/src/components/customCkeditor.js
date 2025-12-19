@@ -3,7 +3,7 @@ import Editor from "../ckeditor/ckeditor.js";
 import AIButton from "./AIButton";
 import TemplateDialog from "./TemplateDialog";
 import "../plugins/TemplateBlocksPlugin.css";
-// import "./CKEditor.css";
+import "./CKEditor.css";
 
 // Insert template into editor with type-around functionality
 const insertTemplate = (editor, templateContent) => {
@@ -159,6 +159,12 @@ const CustomCKEditorComponent = ({
 
     const editorRef = useRef(null);
     const editorInstanceRef = useRef(null);
+    const onChangeRef = useRef(onChange);
+
+    // Keep onChangeRef updated
+    useEffect(() => {
+        onChangeRef.current = onChange;
+    }, [onChange]);
 
     // Update lastValue when value prop changes
     useEffect(() => {
@@ -573,8 +579,8 @@ const CustomCKEditorComponent = ({
                 // Handle data change
                 editor.model.document.on("change:data", () => {
                     const data = editor.getData();
-                    if (onChange) {
-                        onChange(data);
+                    if (onChangeRef.current) {
+                        onChangeRef.current(data);
                     }
                 });
             })
@@ -597,7 +603,7 @@ const CustomCKEditorComponent = ({
                     });
             }
         };
-    }, [isLayoutReady, editorConfig, onChange]); // Re-initialize if config changes
+    }, [isLayoutReady, editorConfig]); // Removed onChange from dependencies to prevent re-initialization
 
     return (
         <div
