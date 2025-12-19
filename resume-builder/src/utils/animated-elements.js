@@ -1,10 +1,10 @@
 import { motion } from 'framer-motion';
 
 
-const FlipText = ({ children }) => {
+const FlipText = ({ children, className = "" }) => {
   return (
     <motion.span
-      className="relative overflow-hidden font-bold block"
+      className={`relative overflow-hidden font-bold block ${className}`}
       style={{
         display: 'block',
         position: 'relative',
