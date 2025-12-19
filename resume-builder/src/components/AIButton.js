@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import AIService from "../services/aiService";
-import { useAuth } from "../contexts/AuthContext";
+
 import { apiHelpers } from "../services/api";
 import "./AIButton.css";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
@@ -19,14 +19,13 @@ const AIButton = ({
   const [showDropdown, setShowDropdown] = useState(false);
   const [tokenBalance, setTokenBalance] = useState(0);
   const [isTokenExhausted, setIsTokenExhausted] = useState(false);
-  const { user } = useAuth();
+
 
   // Get initial token balance
   useEffect(() => {
     const balance = apiHelpers.getTokenBalance();
     setTokenBalance(balance);
     setIsTokenExhausted(balance <= 0);
-    console.log("AIButton: Initial token balance:", balance);
   }, []);
 
   // Listen for token balance updates
