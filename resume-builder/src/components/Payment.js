@@ -8,16 +8,16 @@ import {
   BoltIcon,
   ShieldCheckIcon,
   EnvelopeIcon,
-  CreditCardIcon
+  // CreditCardIcon
 } from '@heroicons/react/24/outline';
 import AnimatedBackground from './AnimatedBackground';
-import { paymentAPI, apiHelpers } from '../services/api';
+// import { paymentAPI, apiHelpers } from '../services/api';
 
 const Payment = () => {
   const navigate = useNavigate();
   const [tokenAmount, setTokenAmount] = useState(5);
-  const [loading, setLoading] = useState(false);
-  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  // const [loading, setLoading] = useState(false);
+  // const [razorpayLoaded, setRazorpayLoaded] = useState(false);
 
   // Token packages
   const tokenPackages = [
@@ -32,13 +32,13 @@ const Payment = () => {
     // Load Razorpay script
     const loadRazorpay = () => {
       if (window.Razorpay) {
-        setRazorpayLoaded(true);
+        // setRazorpayLoaded(true);
         return;
       }
 
       const script = document.createElement('script');
       script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.onload = () => setRazorpayLoaded(true);
+      // script.onload = () => setRazorpayLoaded(true);
       script.onerror = () => toast.error('Failed to load payment gateway');
       document.body.appendChild(script);
     };
@@ -46,6 +46,7 @@ const Payment = () => {
     loadRazorpay();
   }, []);
 
+  /*
   const handleTokenPurchase = async () => {
     if (tokenAmount < 5 || tokenAmount % 5 !== 0) {
       toast.error('Token amount must be in multiples of 5');
@@ -196,6 +197,7 @@ const Payment = () => {
       setLoading(false);
     }
   };
+  */
 
   const handleBack = () => {
     navigate('/dashboard');
