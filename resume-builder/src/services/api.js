@@ -40,7 +40,7 @@ api.interceptors.response.use(
       // Check data.tokens (new structure with bonus tokens)
       else if (response.data.data?.tokens !== undefined) {
         tokenData = response.data.data.tokens;
-        tokenBalance = response.data.data.tokens?.balance;
+        tokenBalance = (response.data.data.tokens?.balance || 0) + (response.data.data.tokens?.bonus || 0);
       }
 
       if (tokenBalance !== null) {
@@ -753,7 +753,8 @@ export const apiHelpers = {
     apiHelpers.setTokenData(tokenData);
     // Update balance as well
     if (tokenData.balance !== undefined) {
-      apiHelpers.updateTokenBalance(tokenData.balance);
+      const totalBalance = (tokenData.balance || 0) + (tokenData.bonus || 0);
+      apiHelpers.updateTokenBalance(totalBalance);
     }
     // Dispatch custom event to notify other components
     window.dispatchEvent(new CustomEvent('tokenDataUpdated', {
