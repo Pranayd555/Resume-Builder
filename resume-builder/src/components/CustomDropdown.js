@@ -60,7 +60,7 @@ const CustomDropdown = ({
   // Handle keyboard navigation
   const handleKeyDown = (e) => {
     if (disabled) return;
-    
+
     switch (e.key) {
       case 'Enter':
       case ' ':
@@ -110,7 +110,7 @@ const CustomDropdown = ({
   };
 
   return (
-    <div 
+    <div
       ref={dropdownRef}
       className={`custom-dropdown ${className} ${hasError ? 'error' : ''} ${disabled ? 'disabled' : ''}`}
     >
@@ -128,15 +128,22 @@ const CustomDropdown = ({
         name={name}
         {...props}
       >
-        <span className={`dropdown-value ${!selectedOption ? 'placeholder' : ''}`}>
+        <span className={`dropdown-value ${!selectedOption ? 'placeholder' : ''} w-full`}>
           {selectedOption ? (
-            showFontStyles && selectedOption.fontFamily ? (
-              <span style={{ fontFamily: selectedOption.fontFamily }}>
-                {selectedOption.label}
-              </span>
-            ) : (
-              selectedOption.label
-            )
+            <div className="flex items-center justify-between w-full gap-2">
+              {showFontStyles && selectedOption.fontFamily ? (
+                <span style={{ fontFamily: selectedOption.fontFamily }}>
+                  {selectedOption.label}
+                </span>
+              ) : (
+                <span>{selectedOption.label}</span>
+              )}
+              {selectedOption.badge && (
+                <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-[10px] font-bold uppercase tracking-wider shrink-0">
+                  {selectedOption.badge}
+                </div>
+              )}
+            </div>
           ) : (
             placeholder
           )}
@@ -164,7 +171,7 @@ const CustomDropdown = ({
               />
             </div>
           )}
-          
+
           <div className="dropdown-options">
             {filteredOptions.length > 0 ? (
               filteredOptions.map((option) => (
@@ -175,13 +182,20 @@ const CustomDropdown = ({
                   role="option"
                   aria-selected={option.value === value}
                 >
-                  {showFontStyles && option.fontFamily ? (
-                    <span style={{ fontFamily: option.fontFamily }}>
-                      {option.label}
-                    </span>
-                  ) : (
-                    option.label
-                  )}
+                  <div className="flex items-center justify-between w-full gap-2">
+                    {showFontStyles && option.fontFamily ? (
+                      <span style={{ fontFamily: option.fontFamily }}>
+                        {option.label}
+                      </span>
+                    ) : (
+                      <span>{option.label}</span>
+                    )}
+                    {option.badge && (
+                      <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-100  text-yellow-700 text-[10px] font-bold uppercase tracking-wider shrink-0">
+                        {option.badge}
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))
             ) : (

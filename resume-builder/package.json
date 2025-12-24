@@ -13,7 +13,6 @@
     "@lottiefiles/dotlottie-web": "^0.51.1",
     "@radix-ui/react-dialog": "^1.1.15",
     "axios": "^1.6.0",
-    "ckeditor5": "^47.0.0",
     "framer-motion": "^12.23.24",
     "lottie-react": "^2.4.1",
     "pdfjs-dist": "^4.0.379",

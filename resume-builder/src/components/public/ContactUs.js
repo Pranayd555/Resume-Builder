@@ -4,12 +4,13 @@ import { useRouteScrollToTop } from '../../hooks/useAutoScroll';
 import { contactAPI } from '../../services/api';
 import { toast } from 'react-toastify';
 import CustomDropdown from '../CustomDropdown';
-import { 
-  ArrowLeftIcon, 
-  EnvelopeIcon, 
+import {
+  ArrowLeftIcon,
+  EnvelopeIcon,
   ClockIcon,
   CheckCircleIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 
 const ContactUs = () => {
@@ -41,7 +42,7 @@ const ContactUs = () => {
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitStatus(null);
-    
+
     try {
       // Prepare contact data
       const contactData = {
@@ -54,11 +55,11 @@ const ContactUs = () => {
 
       // Submit contact using the new contact API
       const response = await contactAPI.submitContact(contactData);
-      
+
       if (response.success) {
         setSubmitStatus('success');
         toast.success('Message sent successfully! We\'ll get back to you within 24 hours.');
-        
+
         // Reset form
         setFormData({
           name: '',
@@ -99,8 +100,26 @@ const ContactUs = () => {
     { value: 'general', label: 'General Inquiry' },
     { value: 'technical', label: 'Technical Support' },
     { value: 'billing', label: 'Billing & Payments' },
-    { value: 'feature', label: 'Feature Request' },
-    { value: 'bug', label: 'Bug Report' },
+    {
+      value: 'feature',
+      label: 'Feature Request',
+      badge: (
+        <div className="flex items-center gap-1">
+          <SparklesIcon className="w-3 h-3" />
+          <span>Earn Tokens</span>
+        </div>
+      )
+    },
+    {
+      value: 'bug',
+      label: 'Bug Report',
+      badge: (
+        <div className="flex items-center gap-1">
+          <SparklesIcon className="w-3 h-3" />
+          <span>Earn Tokens</span>
+        </div>
+      )
+    },
     { value: 'partnership', label: 'Partnership' }
   ];
 
@@ -119,7 +138,7 @@ const ContactUs = () => {
         </div>
 
         {/* Content */}
-        
+
         {/* Contact Information Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
           {contactInfo.map((info, index) => (
@@ -145,13 +164,13 @@ const ContactUs = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          
+
           {/* Contact Form */}
           <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-8">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-6">
               Send us a Message
             </h2>
-            
+
             {submitStatus === 'success' && (
               <div className="mb-6 p-4 bg-green-50 dark:bg-green-90/20 border border-green-200 dark:border-green-800 rounded-xl">
                 <div className="flex items-center gap-2 text-green-800 dark:text-green-500">
@@ -274,7 +293,7 @@ const ContactUs = () => {
               <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-6">
                 Frequently Asked Questions
               </h2>
-              
+
               <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-700 mb-2">
@@ -290,7 +309,7 @@ const ContactUs = () => {
                     What information should I include in my message?
                   </h3>
                   <p className="text-gray-600 dark:text-gray-500">
-                    Please include your account email, a clear description of the issue, 
+                    Please include your account email, a clear description of the issue,
                     and any relevant screenshots or error messages to help us assist you better.
                   </p>
                 </div>
@@ -300,7 +319,7 @@ const ContactUs = () => {
                     How can I get support?
                   </h3>
                   <p className="text-gray-600 dark:text-gray-500">
-                    We provide comprehensive email support for all users. You can contact us via email 
+                    We provide comprehensive email support for all users. You can contact us via email
                     or through our contact form, and we'll respond within 24 hours during business days.
                   </p>
                 </div>
@@ -310,7 +329,7 @@ const ContactUs = () => {
                     Can I request new features?
                   </h3>
                   <p className="text-gray-600 dark:text-gray-500">
-                    Absolutely! We love hearing from our users. Use the "Feature Request" 
+                    Absolutely! We love hearing from our users. Use the "Feature Request"
                     category when submitting your message, and we'll consider it for future updates.
                   </p>
                 </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import AIService from "../services/aiService";
-import { useAuth } from "../contexts/AuthContext";
+
 import { apiHelpers } from "../services/api";
 import "./AIButton.css";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
@@ -13,19 +13,19 @@ const AIButton = ({
   onAIContentChange = null,
   onAILoading = null,
   isMobile = false,
-  originalText=null
+  originalText = null
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [tokenBalance, setTokenBalance] = useState(0);
   const [isTokenExhausted, setIsTokenExhausted] = useState(false);
-  const { user } = useAuth();
+
 
   // Get initial token balance
   useEffect(() => {
-    const tokendata = apiHelpers.getTokenData();
-    setTokenBalance(tokendata.balance);
-    setIsTokenExhausted(tokendata.balance <= 0);
+    const balance = apiHelpers.getTokenBalance();
+    setTokenBalance(balance);
+    setIsTokenExhausted(balance <= 0);
   }, []);
 
   // Listen for token balance updates
@@ -44,13 +44,7 @@ const AIButton = ({
       );
   }, []);
 
-  // Update token balance from user data if available
-  useEffect(() => {
-    if (user && user.tokens !== undefined) {
-      setTokenBalance(user.tokens);
-      setIsTokenExhausted(user.tokens <= 0);
-    }
-  }, [user]);
+
 
   const handleAIAction = async (action) => {
     if (!editorInstance) {
@@ -61,6 +55,7 @@ const AIButton = ({
       return;
     }
 
+    console.log("AIButton Action Check:", { isTokenExhausted, tokenBalance });
     if (isTokenExhausted || tokenBalance <= 0) {
       showNotification(
         "AI tokens exhausted! Please purchase more tokens to continue using AI features.",
@@ -162,8 +157,15 @@ const AIButton = ({
     if (!editorInstance) return "";
 
     try {
+      // Focus the editor to ensure any pending changes are committed
+      // This fixes the issue where getData() returns stale content
+      if (editorInstance.editing && editorInstance.editing.view) {
+        editorInstance.editing.view.focus();
+      }
+
       return editorInstance.getData();
     } catch (error) {
+      console.error("Error getting editor content:", error);
       return "";
     }
   };
@@ -172,20 +174,11 @@ const AIButton = ({
     if (!editorInstance) return;
 
     try {
-      // editorInstance.setData(newText);
-      console.log("set editor item", newText);
-      editorInstance.model.change((writer) => {
-        // Remove everything from the editor
-        const root = editorInstance.model.document.getRoot();
-        writer.remove(writer.createRangeIn(root));
-
-        // Insert HTML using the data pipeline
-        const viewFragment = editorInstance.data.processor.toView(newText);
-        const modelFragment = editorInstance.data.toModel(viewFragment);
-
-        writer.insert(modelFragment, root);
-      });
+      // Use setData to properly update the editor and trigger change events
+      editorInstance.setData(newText || "");
+      console.log("Editor content updated with:", newText);
     } catch (error) {
+      console.error("Error updating editor content:", error);
       showNotification(
         "Failed to update editor content. Please try again.",
         "error"
@@ -220,53 +213,52 @@ const AIButton = ({
 
   const menuItems = isProMode
     ? [
-        {
-          label: "Generate PDF Template",
-          action: "generatePDFTemplate",
-          icon: "📋",
-        },
-        {
-          label: "Restructure Template",
-          action: "restructureTemplate",
-          icon: "🔄",
-        },
-      ]
+      {
+        label: "Generate PDF Template",
+        action: "generatePDFTemplate",
+        icon: "📋",
+      },
+      {
+        label: "Restructure Template",
+        action: "restructureTemplate",
+        icon: "🔄",
+      },
+    ]
     : [
-        { label: "Summarize", action: "summarize", icon: "📝" },
-        { label: "Make Professional", action: "professional", icon: "💼" },
-      ];
+      { label: "Summarize", action: "summarize", icon: "📝" },
+      { label: "Make Professional", action: "professional", icon: "💼" },
+    ];
 
-      function resetToDefault() {
-        replaceEditorContent(originalText);
+  function resetToDefault() {
+    replaceEditorContent(originalText);
 
-      // Trigger content change event to update the editor
-      if (onContentChange) {
-        onContentChange(originalText);
-      }
+    // Trigger content change event to update the editor
+    if (onContentChange) {
+      onContentChange(originalText);
+    }
 
-      // Notify parent component about AI content change
-      if (onAIContentChange) {
-        onAIContentChange(originalText);
-      }
+    // Notify parent component about AI content change
+    if (onAIContentChange) {
+      onAIContentChange(originalText);
+    }
 
-      showNotification("Content processed successfully!", "success");
-      }
+    showNotification("Content processed successfully!", "success");
+  }
 
   return (
     <div className={`ai-button-container ${!isProMode ? 'w-full' : ''}`}>
       <div className="ai-button-wrapper flex justify-between">
         <button
-          className={`ai-button ${isLoading ? "loading" : ""} ${
-            !editorInstance ? "disabled" : ""
-          } ${isTokenExhausted ? "token-exhausted" : ""}`}
+          className={`ai-button ${isLoading ? "loading" : ""} ${!editorInstance ? "disabled" : ""
+            } ${isTokenExhausted ? "token-exhausted" : ""}`}
           onClick={() => setShowDropdown(!showDropdown)}
           disabled={isLoading || !editorInstance || isTokenExhausted}
           title={
             !editorInstance
               ? "Editor not available"
               : isTokenExhausted
-              ? "AI tokens exhausted - Buy more tokens to continue"
-              : ""
+                ? "AI tokens exhausted - Buy more tokens to continue"
+                : ""
           }
         >
           {isLoading ? (
@@ -287,50 +279,49 @@ const AIButton = ({
           )}
         </button>
 
-        { originalText && (<button
-                  onClick={() => {
-                    // setShowTemplateDialog(true);
-                    resetToDefault();
-                  } }
-                  className="ai-button template-button-simple"
-                  style={{
-                    background: "linear-gradient(to right, #1af916ff, #178104ff)",
-                    color: "white",
-                    fontSize: "14px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    transition: "all 0.3s ease",
-                    boxShadow: "0 2px 8px rgba(41, 249, 22, 0.3)",
-                    margin: "0 0.5rem 0 0",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.background =
-                      "linear-gradient(to right, #10c449ff, #08711fff)";
-                    e.target.style.transform = "translateY(-2px)";
-                    e.target.style.boxShadow = "0 4px 12px rgba(22, 118, 30, 0.4)";
-                  } }
-                  onMouseLeave={(e) => {
-                    e.target.style.background =
-                      "linear-gradient(to right, #1af916ff, #178104ff)";
-                    e.target.style.transform = "translateY(0)";
-                    e.target.style.boxShadow = "0 2px 8px rgba(41, 249, 22, 0.3)";
-                  } }
-                >
-                  <ArrowPathIcon className="w-5 h-5"/>
-                  Reset
-                </button>)}
+        {originalText && (<button
+          onClick={() => {
+            // setShowTemplateDialog(true);
+            resetToDefault();
+          }}
+          className="ai-button template-button-simple"
+          style={{
+            background: "linear-gradient(to right, #1af916ff, #178104ff)",
+            color: "white",
+            fontSize: "14px",
+            fontWeight: "600",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            transition: "all 0.3s ease",
+            boxShadow: "0 2px 8px rgba(41, 249, 22, 0.3)",
+            margin: "0 0.5rem 0 0",
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.background =
+              "linear-gradient(to right, #10c449ff, #08711fff)";
+            e.target.style.transform = "translateY(-2px)";
+            e.target.style.boxShadow = "0 4px 12px rgba(22, 118, 30, 0.4)";
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background =
+              "linear-gradient(to right, #1af916ff, #178104ff)";
+            e.target.style.transform = "translateY(0)";
+            e.target.style.boxShadow = "0 2px 8px rgba(41, 249, 22, 0.3)";
+          }}
+        >
+          <ArrowPathIcon className="w-5 h-5" />
+          Reset
+        </button>)}
 
         {showDropdown && (
           <div className="ai-dropdown">
             {menuItems.map((item, index) => (
               <button
                 key={index}
-                className={`ai-dropdown-item ${
-                  isTokenExhausted ? "token-exhausted" : ""
-                }`}
+                className={`ai-dropdown-item ${isTokenExhausted ? "token-exhausted" : ""
+                  }`}
                 onClick={() => handleAIAction(item.action)}
                 disabled={isLoading || isTokenExhausted}
                 title={

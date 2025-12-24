@@ -16,7 +16,7 @@ import {
   MoonIcon
 } from '@heroicons/react/24/outline';
 import { Fade, Slide, Roll, AttentionSeeker } from 'react-awesome-reveal';
-import {FlipText, WaveText} from '../../utils/animated-elements';
+import { FlipText, WaveText } from '../../utils/animated-elements';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -74,19 +74,19 @@ const HomePage = () => {
               className="mx-auto mb-8 w-32 h-32 rounded-full shadow-lg"
             />
             <h1
-              className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 inline-grid gap-4"
+              className="text-2xl sm:text-4xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 inline-grid gap-2 sm:gap-4"
             >
-              <FlipText className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text">
+              <FlipText className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text whitespace-nowrap">
                 Build Your Perfect
               </FlipText>
-              <FlipText className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text">
+              <FlipText className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text whitespace-nowrap">
                 Resume in Minutes
               </FlipText>
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
               <WaveText>
-              Create professional, ATS-friendly resumes with our AI-powered builder.
-              Choose from premium templates and get expert guidance every step of the way.
+                Create professional, ATS-friendly resumes with our AI-powered builder.
+                Choose from premium templates and get expert guidance every step of the way.
               </WaveText>
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -131,23 +131,23 @@ const HomePage = () => {
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            <div className="text-center mb-16">
-          <Slide direction="right">
+          <div className="text-center mb-16">
+            <Slide direction="right">
               <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
                 Why Choose Our Resume Builder?
               </h2>
-          </Slide>
-              <Slide direction="left">
+            </Slide>
+            <Slide direction="left">
               <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
                 Everything you need to create a standout resume that gets you noticed by employers.
               </p>
-              </Slide>
-            </div>
+            </Slide>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <Roll delay={index * 100}>
-                <div key={index} className="text-center p-6 backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 hover:shadow-2xl transition-all duration-200">
+              <Roll key={index} delay={index * 100}>
+                <div className="text-center p-6 backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 hover:shadow-2xl transition-all duration-200">
                   <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center">
                     <feature.icon className="w-8 h-8 text-white" />
                   </div>
@@ -172,8 +172,8 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
-              <Roll delay={index * 100}>
-                <div key={index} className="text-center backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-6">
+              <Roll key={index} delay={index * 100}>
+                <div className="text-center backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-6">
                   <div className="text-4xl sm:text-5xl font-bold mb-2 text-gray-900 dark:text-gray-600">
                     {stat.number}
                   </div>
@@ -188,29 +188,29 @@ const HomePage = () => {
       </section>
 
       {/* CTA Section */}
-        <section className="py-20">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <Slide direction="up">
+      <section className="py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <Slide direction="up">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
               Ready to Land Your Dream Job?
             </h2>
-            <div className="font-semibold py-4 inline-block">
+          </Slide>
+          <div className="font-semibold py-4 inline-block">
             <WaveText className="text-xl text-gray-600 dark:text-gray-300 mb-8">
               Join thousands of professionals who have successfully created their resumes with our builder.
             </WaveText>
-            </div>
-            <Fade direction="top-right">
-              <button
-                onClick={() => navigate(isAuthenticated ? getDashboardRoute() : PUBLIC_ROUTES.REGISTER)}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2 mx-auto"
-              >
-                {isAuthenticated ? 'Go to Dashboard' : 'Start Building Now'}
-                <ArrowRightIcon className="w-5 h-5" />
-              </button>
-            </Fade>
-      </Slide>
           </div>
-        </section>
+          <Fade direction="top-right">
+            <button
+              onClick={() => navigate(isAuthenticated ? getDashboardRoute() : PUBLIC_ROUTES.REGISTER)}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2 mx-auto"
+            >
+              {isAuthenticated ? 'Go to Dashboard' : 'Start Building Now'}
+              <ArrowRightIcon className="w-5 h-5" />
+            </button>
+          </Fade>
+        </div>
+      </section>
 
       {/* Footer */}
       <footer className="backdrop-blur-md bg-white/70 dark:bg-transparent border-t border-white/20 dark:border-none py-12">

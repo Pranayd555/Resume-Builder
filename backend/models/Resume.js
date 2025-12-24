@@ -7,7 +7,7 @@ const resumeSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  
+
   // Basic Info
   title: {
     type: String,
@@ -15,7 +15,7 @@ const resumeSchema = new mongoose.Schema({
     trim: true,
     maxlength: [100, 'Title cannot exceed 100 characters']
   },
-  
+
   // Personal Information
   personalInfo: {
     fullName: {
@@ -69,14 +69,14 @@ const resumeSchema = new mongoose.Schema({
       default: false
     }
   },
-  
+
   // Professional Summary
   summary: {
     type: String,
     trim: true,
     maxlength: [10000, 'Summary cannot exceed 10000 characters']
   },
-  
+
   // Fresher status
   isFresher: {
     type: Boolean,
@@ -87,7 +87,7 @@ const resumeSchema = new mongoose.Schema({
   workExperience: [{
     jobTitle: {
       type: String,
-      required: function() {
+      required: function () {
         return !this.parent().isFresher;
       },
       trim: true,
@@ -95,7 +95,7 @@ const resumeSchema = new mongoose.Schema({
     },
     company: {
       type: String,
-      required: function() {
+      required: function () {
         return !this.parent().isFresher;
       },
       trim: true,
@@ -108,14 +108,14 @@ const resumeSchema = new mongoose.Schema({
     },
     startDate: {
       type: Date,
-      required: function() {
+      required: function () {
         return !this.parent().isFresher;
       }
     },
     endDate: {
       type: Date,
       validate: {
-        validator: function(value) {
+        validator: function (value) {
           return !value || value > this.startDate;
         },
         message: 'End date must be after start date'
@@ -136,7 +136,7 @@ const resumeSchema = new mongoose.Schema({
       maxlength: [500, 'Achievement cannot exceed 500 characters']
     }]
   }],
-  
+
   // Education
   education: [{
     degree: {
@@ -163,7 +163,7 @@ const resumeSchema = new mongoose.Schema({
       type: Date,
       required: [true, 'End date is required'],
       validate: {
-        validator: function(value) {
+        validator: function (value) {
           return this.startDate ? value > this.startDate : true;
         },
         message: 'End date must be after start date'
@@ -184,28 +184,28 @@ const resumeSchema = new mongoose.Schema({
       maxlength: [10000, 'Description cannot exceed 10000 characters']
     }
   }],
-  
+
   // Skills
   skills: [{
     category: {
       type: String,
       required: [true, 'Skill category is required'],
       trim: true,
-      maxlength: [50, 'Category cannot exceed 50 characters']
+      maxlength: [500, 'Category cannot exceed 500 characters']
     },
     items: [{
       name: {
         type: String,
         required: [true, 'Skill name is required'],
         trim: true,
-        maxlength: [50, 'Skill name cannot exceed 50 characters']
+        maxlength: [500, 'Skill name cannot exceed 500 characters']
       },
       level: {
         type: String,
         enum: ['beginner', 'intermediate', 'advanced', 'expert'],
         default: 'intermediate',
         validate: {
-          validator: function(value) {
+          validator: function (value) {
             return value === null || value === undefined || ['beginner', 'intermediate', 'advanced', 'expert'].includes(value);
           },
           message: 'Level must be one of: beginner, intermediate, advanced, expert'
@@ -213,7 +213,7 @@ const resumeSchema = new mongoose.Schema({
       }
     }]
   }],
-  
+
   // Projects
   projects: [{
     name: {
@@ -245,7 +245,7 @@ const resumeSchema = new mongoose.Schema({
     startDate: Date,
     endDate: Date
   }],
-  
+
   // Achievements/Awards
   achievements: [{
     title: {
@@ -266,7 +266,7 @@ const resumeSchema = new mongoose.Schema({
       maxlength: [100, 'Issuer cannot exceed 100 characters']
     }
   }],
-  
+
   // Certifications
   certifications: [{
     name: {
@@ -294,7 +294,7 @@ const resumeSchema = new mongoose.Schema({
       maxlength: [200, 'URL cannot exceed 200 characters']
     }
   }],
-  
+
   // Languages
   languages: [{
     name: {
@@ -309,7 +309,7 @@ const resumeSchema = new mongoose.Schema({
       default: 'basic'
     }
   }],
-  
+
   // Custom Fields
   customFields: [{
     title: {
@@ -329,7 +329,7 @@ const resumeSchema = new mongoose.Schema({
       default: 'text'
     }
   }],
-  
+
   // Template and Styling
   template: {
     type: mongoose.Schema.Types.ObjectId,
@@ -401,7 +401,7 @@ const resumeSchema = new mongoose.Schema({
           type: String,
           default: null,
           validate: {
-            validator: function(v) {
+            validator: function (v) {
               return v === null || /^#[0-9A-Fa-f]{6}$/.test(v);
             },
             message: 'Primary color must be null or a valid hex color'
@@ -411,7 +411,7 @@ const resumeSchema = new mongoose.Schema({
           type: String,
           default: null,
           validate: {
-            validator: function(v) {
+            validator: function (v) {
               return v === null || /^#[0-9A-Fa-f]{6}$/.test(v);
             },
             message: 'Secondary color must be null or a valid hex color'
@@ -421,7 +421,7 @@ const resumeSchema = new mongoose.Schema({
           type: String,
           default: null,
           validate: {
-            validator: function(v) {
+            validator: function (v) {
               return v === null || /^#[0-9A-Fa-f]{6}$/.test(v);
             },
             message: 'Accent color must be null or a valid hex color'
@@ -431,7 +431,7 @@ const resumeSchema = new mongoose.Schema({
           type: String,
           default: null,
           validate: {
-            validator: function(v) {
+            validator: function (v) {
               return v === null || /^#[0-9A-Fa-f]{6}$/.test(v);
             },
             message: 'Text color must be null or a valid hex color'
@@ -463,7 +463,7 @@ const resumeSchema = new mongoose.Schema({
       }
     }
   },
-  
+
   // Status and Visibility
   status: {
     type: String,
@@ -478,7 +478,7 @@ const resumeSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  
+
   // Deletion Management
   markedForDeletion: {
     type: Boolean,
@@ -490,7 +490,7 @@ const resumeSchema = new mongoose.Schema({
     enum: ['subscription_expired', 'user_request', 'admin_action', null],
     default: null
   },
-  
+
   // Analytics
   analytics: {
     views: {
@@ -579,9 +579,9 @@ const resumeSchema = new mongoose.Schema({
   }
 }, {
   timestamps: true,
-  toJSON: { 
+  toJSON: {
     virtuals: true,
-    transform: function(doc, ret) {
+    transform: function (doc, ret) {
       // Transform dates to YYYY-MM-DD format for frontend
       if (ret.workExperience) {
         ret.workExperience = ret.workExperience.map(exp => ({
@@ -624,23 +624,23 @@ const resumeSchema = new mongoose.Schema({
 });
 
 // Virtual for total work experience
-resumeSchema.virtual('totalExperience').get(function() {
+resumeSchema.virtual('totalExperience').get(function () {
   if (!this.workExperience || this.workExperience.length === 0) return 0;
-  
+
   const totalMs = this.workExperience.reduce((total, job) => {
     const startDate = new Date(job.startDate);
     const endDate = job.endDate ? new Date(job.endDate) : new Date();
     return total + (endDate - startDate);
   }, 0);
-  
+
   return Math.floor(totalMs / (1000 * 60 * 60 * 24 * 365)); // Convert to years
 });
 
 // Virtual for completion percentage
-resumeSchema.virtual('completionPercentage').get(function() {
+resumeSchema.virtual('completionPercentage').get(function () {
   let completed = 0;
   let total = 8; // Total sections to check
-  
+
   if (this.personalInfo.fullName) completed++;
   if (this.personalInfo.email) completed++;
   if (this.summary) completed++;
@@ -649,7 +649,7 @@ resumeSchema.virtual('completionPercentage').get(function() {
   if (this.skills && this.skills.length > 0) completed++;
   if (this.projects && this.projects.length > 0) completed++;
   if (this.achievements && this.achievements.length > 0) completed++;
-  
+
   return Math.round((completed / total) * 100);
 });
 
@@ -660,7 +660,7 @@ resumeSchema.index({ template: 1 });
 resumeSchema.index({ status: 1, isPublic: 1 });
 
 // Pre-save middleware to clean and validate data
-resumeSchema.pre('save', function(next) {
+resumeSchema.pre('save', function (next) {
   // Clean skills data - remove null levels and set default
   if (this.skills && this.skills.length > 0) {
     this.skills.forEach(skill => {
@@ -690,11 +690,11 @@ resumeSchema.pre('save', function(next) {
 
   // Reset ATS analysis if resume content is modified
   const contentFields = [
-    'personalInfo', 'summary', 'workExperience', 'education', 
-    'skills', 'projects', 'achievements', 'certifications', 
+    'personalInfo', 'summary', 'workExperience', 'education',
+    'skills', 'projects', 'achievements', 'certifications',
     'languages', 'customFields', 'isFresher'
   ];
-  
+
   const isContentModified = contentFields.some(field => this.isModified(field));
   if (isContentModified && this.atsAnalysis) {
     // Reset ATS analysis data
@@ -722,7 +722,7 @@ resumeSchema.pre('save', function(next) {
   if (this.isModified('analytics.views')) {
     this.analytics.lastViewed = new Date();
   }
-  
+
   next();
 });
 
