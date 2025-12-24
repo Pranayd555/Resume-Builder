@@ -773,4 +773,12 @@ export const apiHelpers = {
   },
 };
 
+// Public API calls
+export const publicAPI = {
+  getHomeStats: async () => {
+    const response = await api.get('/public/home-stats');
+    return response.data;
+  },
+};
+
 export default api;
