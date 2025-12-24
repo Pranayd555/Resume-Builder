@@ -1,53 +1,53 @@
 module.exports = [
-    {
-        name: 'Classic Traditional',
-        description: 'A timeless, traditional resume template perfect for conservative industries',
-        category: 'classic',
-        preview: {
-          thumbnail: {
-            url: 'placeholder-will-be-replaced-by-puppeteer'
-          }
-        },
-        layout: {
-          type: 'single-column',
-          sections: [
-            { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
-            { name: 'summary', position: 2, isRequired: false, isVisible: true },
-            { name: 'workExperience', position: 3, isRequired: false, isVisible: true },
-            { name: 'education', position: 4, isRequired: false, isVisible: true },
-            { name: 'skills', position: 5, isRequired: false, isVisible: true },
-            { name: 'projects', position: 6, isRequired: false, isVisible: true },
-            { name: 'achievements', position: 7, isRequired: false, isVisible: true },
-            { name: 'certifications', position: 8, isRequired: false, isVisible: true },
-            { name: 'languages', position: 9, isRequired: false, isVisible: true },
-            { name: 'customFields', position: 10, isRequired: false, isVisible: true }
-          ]
-        },
-        styling: {
-          colors: {
-            primary: '#000000',
-            secondary: '#333333',
-            accent: '#666666',
-            text: '#000000',
-            background: '#ffffff'
-          },
-          fonts: {
-            primary: 'Times New Roman',
-            secondary: 'Times New Roman',
-            sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
-          },
-          template: {
-            headerLevel: 'h3',
-            headerFontSize: 18,
-            fontSize: 12,
-            lineSpacing: 1.3,
-            sectionSpacing: 1,
-            fontFamily: 'Arial'
-          }
-        },
-        availability: { tier: 'free', isPublic: true, isActive: true },
-        templateCode: {
-          html: `<article class="resume classic-traditional" itemscope itemtype="http://schema.org/Person">
+  {
+    name: 'Classic Traditional',
+    description: 'A timeless, traditional resume template perfect for conservative industries',
+    category: 'classic',
+    preview: {
+      thumbnail: {
+        url: 'placeholder-will-be-replaced-by-puppeteer'
+      }
+    },
+    layout: {
+      type: 'single-column',
+      sections: [
+        { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
+        { name: 'summary', position: 2, isRequired: false, isVisible: true },
+        { name: 'workExperience', position: 3, isRequired: false, isVisible: true },
+        { name: 'education', position: 4, isRequired: false, isVisible: true },
+        { name: 'skills', position: 5, isRequired: false, isVisible: true },
+        { name: 'projects', position: 6, isRequired: false, isVisible: true },
+        { name: 'achievements', position: 7, isRequired: false, isVisible: true },
+        { name: 'certifications', position: 8, isRequired: false, isVisible: true },
+        { name: 'languages', position: 9, isRequired: false, isVisible: true },
+        { name: 'customFields', position: 10, isRequired: false, isVisible: true }
+      ]
+    },
+    styling: {
+      colors: {
+        primary: '#000000',
+        secondary: '#333333',
+        accent: '#666666',
+        text: '#000000',
+        background: '#ffffff'
+      },
+      fonts: {
+        primary: 'Times New Roman',
+        secondary: 'Times New Roman',
+        sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+      },
+      template: {
+        headerLevel: 'h3',
+        headerFontSize: 18,
+        fontSize: 12,
+        lineSpacing: 1.3,
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
+      }
+    },
+    availability: { tier: 'free', isPublic: true, isActive: true },
+    templateCode: {
+      html: `<article class="resume classic-traditional" itemscope itemtype="http://schema.org/Person">
             <header class="header">
               <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
               {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
@@ -195,7 +195,7 @@ module.exports = [
             </section>
             {{/if}}
           </article>`,
-          css: `.resume.classic-traditional { font-family: 'Times New Roman', 'Georgia', serif; max-width: 8.5in; margin: 0 auto; background: white; color: black; font-size: 15px; line-height: 1; }
+      css: `.resume.classic-traditional { font-family: 'Times New Roman', 'Georgia', serif; max-width: 8.5in; margin: 0 auto; background: white; color: black; font-size: 15px; line-height: 1; }
           @media print { .resume.classic-traditional { max-width: none; margin: 0; padding: 0.5in; } }
           @media (max-width: 768px) { .resume.classic-traditional { padding: 0.5in; font-size: 13px; } }
           
@@ -248,61 +248,61 @@ module.exports = [
           .language-name, .skill-category-title, .job-title, .edu-degree, .project-name, .achievement-title, .cert-name, .custom-field-title { font-weight: bold; color: #000000; }
           .project-links a, .cert-link a, .contact-item a { color: #000000; text-decoration: none; }
           .project-links a:hover, .cert-link a:hover, .contact-item a:hover { text-decoration: underline; }`
-        },
-        creator: null,
-        tags: ['classic', 'traditional', 'formal', 'conservative', 'single-column', 'black']
+    },
+    creator: null,
+    tags: ['classic', 'traditional', 'formal', 'conservative', 'single-column', 'black']
+  },
+
+
+  {
+    name: 'Classic Professional',
+    description: 'Traditional professional template with conservative styling',
+    category: 'classic',
+    preview: {
+      thumbnail: {
+        url: 'https://via.placeholder.com/300x400/1f2937/ffffff?text=Classic%20Professional'
+      }
+    },
+    layout: {
+      type: 'single-column',
+      sections: [
+        { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
+        { name: 'summary', position: 2, isRequired: false, isVisible: true },
+        { name: 'workExperience', position: 3, isRequired: false, isVisible: true },
+        { name: 'education', position: 4, isRequired: false, isVisible: true },
+        { name: 'skills', position: 5, isRequired: false, isVisible: true },
+        { name: 'projects', position: 6, isRequired: false, isVisible: true },
+        { name: 'achievements', position: 7, isRequired: false, isVisible: true },
+        { name: 'certifications', position: 8, isRequired: false, isVisible: true },
+        { name: 'languages', position: 9, isRequired: false, isVisible: true },
+        { name: 'customFields', position: 10, isRequired: false, isVisible: true }
+      ]
+    },
+    styling: {
+      colors: {
+        primary: '#1f2937',
+        secondary: '#6b7280',
+        accent: '#4b5563',
+        text: '#000000',
+        background: '#ffffff'
       },
-
-
-      {
-          name: 'Classic Professional',
-          description: 'Traditional professional template with conservative styling',
-          category: 'classic',
-          preview: {
-            thumbnail: {
-              url: 'https://via.placeholder.com/300x400/1f2937/ffffff?text=Classic%20Professional'
-            }
-          },
-          layout: {
-            type: 'single-column',
-            sections: [
-              { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
-              { name: 'summary', position: 2, isRequired: false, isVisible: true },
-              { name: 'workExperience', position: 3, isRequired: false, isVisible: true },
-              { name: 'education', position: 4, isRequired: false, isVisible: true },
-              { name: 'skills', position: 5, isRequired: false, isVisible: true },
-              { name: 'projects', position: 6, isRequired: false, isVisible: true },
-              { name: 'achievements', position: 7, isRequired: false, isVisible: true },
-              { name: 'certifications', position: 8, isRequired: false, isVisible: true },
-              { name: 'languages', position: 9, isRequired: false, isVisible: true },
-              { name: 'customFields', position: 10, isRequired: false, isVisible: true }
-            ]
-          },
-          styling: {
-            colors: {
-              primary: '#1f2937',
-              secondary: '#6b7280',
-              accent: '#4b5563',
-              text: '#000000',
-              background: '#ffffff'
-            },
-            fonts: {
-              primary: 'Georgia',
-              secondary: 'Georgia',
-              sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
-            },
-            template: {
-              headerLevel: 'h3',
-              headerFontSize: 18,
-              fontSize: 12,
-              lineSpacing: 1.3,
-              sectionSpacing: 1,
-              fontFamily: 'Arial'
-            }
-          },
-          availability: { tier: 'free', isPublic: true, isActive: true },
-          templateCode: {
-            html: `<div class="resume classic-professional">
+      fonts: {
+        primary: 'Georgia',
+        secondary: 'Georgia',
+        sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+      },
+      template: {
+        headerLevel: 'h3',
+        headerFontSize: 18,
+        fontSize: 12,
+        lineSpacing: 1.3,
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
+      }
+    },
+    availability: { tier: 'free', isPublic: true, isActive: true },
+    templateCode: {
+      html: `<div class="resume classic-professional">
               <header class="header">
                <div class="right-column">
                 <h1 class="name primaryFont">{{personalInfo.fullName}}</h1>{{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
@@ -464,7 +464,7 @@ module.exports = [
                 </section>
               {{/if}}
             </div>`,
-            css: `.resume.classic-professional { font-family: 'Georgia', serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: black; line-height: 1; }
+      css: `.resume.classic-professional { font-family: 'Georgia', serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: black; line-height: 1; }
             .header {  display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; padding-bottom: 8px; border-bottom: 2px solid #1f2937; }
             .name { font-weight: bold; color: #1f2937; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
             .contact-details { color: #4b5563; margin-bottom: 2px; }
@@ -515,56 +515,56 @@ module.exports = [
             .language-name, .skill-category-title, .job-title, .edu-degree, .project-name, .achievement-title, .cert-name, .custom-field-title { font-weight: bold; color: #1f2937; }
             .project-links a, .cert-link a, .contact-item a { color: #1f2937; text-decoration: none; }
             .project-links a:hover, .cert-link a:hover, .contact-item a:hover { text-decoration: underline; }`
-          },
-          creator: null,
-          tags: ['classic', 'professional', 'conservative', 'formal']
-        },
+    },
+    creator: null,
+    tags: ['classic', 'professional', 'conservative', 'formal']
+  },
 
 
-        {
-            "name": "Classic Serif",
-            "description": "Traditional serif design for academic or formal applications.",
-            "category": "classic",
-            "preview": { "thumbnail": { "url": "placeholder-will-be-replaced-by-puppeteer" } },
-            "layout": {
-              "type": "single-column",
-              "sections": [
-                { "name": "personalInfo", "position": 1, "isRequired": true, "isVisible": true },
-                { "name": "summary", "position": 2, "isRequired": false, "isVisible": true },
-                { "name": "education", "position": 3, "isRequired": false, "isVisible": true },
-                { "name": "workExperience", "position": 4, "isRequired": false, "isVisible": true },
-                { "name": "skills", "position": 5, "isRequired": false, "isVisible": true },
-                { "name": "projects", "position": 6, "isRequired": false, "isVisible": true },
-                { "name": "certifications", "position": 7, "isRequired": false, "isVisible": true },
-                { "name": "achievements", "position": 8, "isRequired": false, "isVisible": true },
-                { "name": "languages", "position": 9, "isRequired": false, "isVisible": true },
-                { "name": "customFields", "position": 10, "isRequired": false, "isVisible": true }
-              ]
-            },
-            "styling": {
-              "colors": {
-                "primary": "#1f2937",
-                "secondary": "#6b7280",
-                "accent": "#4b5563",
-                "text": "#111827",
-                "background": "#ffffff"
-              },
-              "fonts": {
-                "primary": "Times New Roman",
-                "secondary": "Times New Roman",
-                "sizes": { "heading": 18, "subheading": 16, "body": 12, "small": 10 }
-              },
-              "template": {
-                "headerLevel": "h3",
-                "headerFontSize": 18,
-                "fontSize": 12,
-                "lineSpacing": 1.3,
-                "sectionSpacing": 1
-              }
-            },
-            "availability": { "tier": "free", "isPublic": true, "isActive": true },
-            "templateCode": {
-              "html": `<article class="resume classic-serif" itemscope itemtype="http://schema.org/Person">
+  {
+    "name": "Classic Serif",
+    "description": "Traditional serif design for academic or formal applications.",
+    "category": "classic",
+    "preview": { "thumbnail": { "url": "placeholder-will-be-replaced-by-puppeteer" } },
+    "layout": {
+      "type": "single-column",
+      "sections": [
+        { "name": "personalInfo", "position": 1, "isRequired": true, "isVisible": true },
+        { "name": "summary", "position": 2, "isRequired": false, "isVisible": true },
+        { "name": "education", "position": 3, "isRequired": false, "isVisible": true },
+        { "name": "workExperience", "position": 4, "isRequired": false, "isVisible": true },
+        { "name": "skills", "position": 5, "isRequired": false, "isVisible": true },
+        { "name": "projects", "position": 6, "isRequired": false, "isVisible": true },
+        { "name": "certifications", "position": 7, "isRequired": false, "isVisible": true },
+        { "name": "achievements", "position": 8, "isRequired": false, "isVisible": true },
+        { "name": "languages", "position": 9, "isRequired": false, "isVisible": true },
+        { "name": "customFields", "position": 10, "isRequired": false, "isVisible": true }
+      ]
+    },
+    "styling": {
+      "colors": {
+        "primary": "#1f2937",
+        "secondary": "#6b7280",
+        "accent": "#4b5563",
+        "text": "#111827",
+        "background": "#ffffff"
+      },
+      "fonts": {
+        "primary": "Times New Roman",
+        "secondary": "Times New Roman",
+        "sizes": { "heading": 18, "subheading": 16, "body": 12, "small": 10 }
+      },
+      "template": {
+        "headerLevel": "h3",
+        "headerFontSize": 18,
+        "fontSize": 12,
+        "lineSpacing": 1.3,
+        "sectionSpacing": 1
+      }
+    },
+    "availability": { "tier": "free", "isPublic": true, "isActive": true },
+    "templateCode": {
+      "html": `<article class="resume classic-serif" itemscope itemtype="http://schema.org/Person">
                 <header class="header">
                   <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
                   {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
@@ -727,7 +727,7 @@ module.exports = [
                 </section>
                 {{/if}}
               </article>`,
-              "css": `.resume.classic-serif {
+      "css": `.resume.classic-serif {
                 font-family: 'Times New Roman', serif;
                 max-width: 8.5in;
                 margin: 0 auto;
@@ -941,60 +941,60 @@ module.exports = [
               .language-name, .skill-category-title, .job-title, .edu-degree, .project-name, .achievement-title, .cert-name, .custom-field-title { font-weight: bold; color: #1f2937; }
               .project-links a, .cert-link a, .contact-item a { color: #374151; text-decoration: none; }
               .project-links a:hover, .cert-link a:hover, .contact-item a:hover { text-decoration: underline; }`
-            },
-            creator: null,
-            "tags": ["classic", "serif", "traditional", "academic", "single-column", "gray"]
-          },
+    },
+    creator: null,
+    "tags": ["classic", "serif", "traditional", "academic", "single-column", "gray"]
+  },
 
-          {
-            "name": "Classic two column",
-            "description": "A classic serif template with a two-column layout, white background, and serif font.",
-            "category": "classic",
-            "preview": { "thumbnail": { "url": "placeholder-will-be-replaced-by-puppeteer" } },
-            "layout": {
-              "type": "two-column",
-              "sections": [
-                { "name": "personalInfo", "position": 1, "isRequired": true, "isVisible": true },
-                { "name": "summary", "position": 2, "isRequired": false, "isVisible": true },
-                { "name": "education", "position": 3, "isRequired": false, "isVisible": true },
-                { "name": "workExperience", "position": 4, "isRequired": false, "isVisible": true },
-                { "name": "skills", "position": 5, "isRequired": false, "isVisible": true },
-                { "name": "projects", "position": 6, "isRequired": false, "isVisible": true },
-                { "name": "certifications", "position": 7, "isRequired": false, "isVisible": true },
-                { "name": "achievements", "position": 8, "isRequired": false, "isVisible": true },
-                { "name": "languages", "position": 9, "isRequired": false, "isVisible": true },
-                { "name": "customFields", "position": 10, "isRequired": false, "isVisible": true }
-              ]
-            },
-            "styling": {
-              "colors": {
-                "primary": "#1f2937",
-                "secondary": "#6b7280",
-                "accent": "#4b5563",
-                "text": "#111827",
-                "background": "#ffffff"
-              },
-              "fonts": {
-                "primary": "classic-serif",
-                "secondary": "classic-serif",
-                "sizes": { "heading": 16, "subheading": 14, "body": 12, "small": 10 }
-              },
-              "template": {
-                "headerLevel": "h3",
-                "headerFontSize": 16,
-                "fontSize": 13,
-                "lineSpacing": 1.3,
-                "sectionSpacing": 1
-              }
-            },
-            "availability": { "tier": "free", "isPublic": true, "isActive": true },
-            "templateCode": {
-              "html": `
+  {
+    "name": "Classic two column",
+    "description": "A classic serif template with a two-column layout, white background, and serif font.",
+    "category": "classic",
+    "preview": { "thumbnail": { "url": "placeholder-will-be-replaced-by-puppeteer" } },
+    "layout": {
+      "type": "two-column",
+      "sections": [
+        { "name": "personalInfo", "position": 1, "isRequired": true, "isVisible": true },
+        { "name": "summary", "position": 2, "isRequired": false, "isVisible": true },
+        { "name": "education", "position": 3, "isRequired": false, "isVisible": true },
+        { "name": "workExperience", "position": 4, "isRequired": false, "isVisible": true },
+        { "name": "skills", "position": 5, "isRequired": false, "isVisible": true },
+        { "name": "projects", "position": 6, "isRequired": false, "isVisible": true },
+        { "name": "certifications", "position": 7, "isRequired": false, "isVisible": true },
+        { "name": "achievements", "position": 8, "isRequired": false, "isVisible": true },
+        { "name": "languages", "position": 9, "isRequired": false, "isVisible": true },
+        { "name": "customFields", "position": 10, "isRequired": false, "isVisible": true }
+      ]
+    },
+    "styling": {
+      "colors": {
+        "primary": "#1f2937",
+        "secondary": "#6b7280",
+        "accent": "#4b5563",
+        "text": "#111827",
+        "background": "#ffffff"
+      },
+      "fonts": {
+        "primary": "classic-serif",
+        "secondary": "classic-serif",
+        "sizes": { "heading": 16, "subheading": 14, "body": 12, "small": 10 }
+      },
+      "template": {
+        "headerLevel": "h3",
+        "headerFontSize": 16,
+        "fontSize": 13,
+        "lineSpacing": 1.3,
+        "sectionSpacing": 1
+      }
+    },
+    "availability": { "tier": "free", "isPublic": true, "isActive": true },
+    "templateCode": {
+      "html": `
                     <body class="classic-two-column">
                     <div class="resume-container">
                     <header>
                     <h1 class="name primaryFont">{{personalInfo.fullName}}</h1>
-                    {{#if title}}<h2 class="primaryFont">{{title}}</h2>{{/if}}
+                    {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
                     </header>
                     <section class="contact-info secondaryFont">
                     {{#if personalInfo.address}}
@@ -1172,8 +1172,8 @@ module.exports = [
                     </div>
 
                     </body>`
-                ,
-                "css":`:root {
+      ,
+      "css": `:root {
                                 --primary-color: #4B5563;
                                 --background-light: #F9FAFB;
                                 --text-color-light: #374151;
@@ -1340,8 +1340,8 @@ module.exports = [
           .language-name, .skill-category-title, .job-title, .edu-degree, .project-name, .achievement-title, .cert-name, .custom-field-title { font-weight: bold; color: #1f2937; }
                            
                             }`
-            },
-            "creator": null,
-            "tags": ["classic", "serif", "traditional", "academic", "single-column", "gray"]
-          }
+    },
+    "creator": null,
+    "tags": ["classic", "serif", "traditional", "academic", "single-column", "gray"]
+  }
 ]

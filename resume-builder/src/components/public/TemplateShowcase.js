@@ -180,9 +180,6 @@ function TemplateShowcase() {
             slidesPerView={1}
             centeredSlides={true}
             loop={true}
-            loopfillgroupwithblank={true}
-            freeMode={true}
-            freeModeMomentum={true}
             grabCursor={true}
             navigation={{
               nextEl: '.swiper-button-next',

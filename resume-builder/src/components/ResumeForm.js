@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { validators } from '../models/dataModels';
 import { useFormScroll, useScrollToTop } from '../hooks/useAutoScroll';
 import { useAuth } from '../contexts/AuthContext';
-import CKEditor from './CKEditor';
+import CustomCKEditorComponent from './customCkeditor.js';
 import { ensureHtmlContent } from '../utils/htmlUtils';
 import AuthLoader from './annimations/AuthLoader';
 import AILoader from './annimations/AILoader';
@@ -13,8 +13,8 @@ import CustomDatePicker from './DatePicker';
 import CustomDropdown from './CustomDropdown';
 import Swal from 'sweetalert2';
 
-import { 
-  PlusIcon, 
+import {
+  PlusIcon,
   TrashIcon,
   ExclamationTriangleIcon,
   BoltIcon,
@@ -39,23 +39,23 @@ const formatDateForInput = (dateString) => {
 };
 
 // Reusable components
-const FormField = ({ 
-  label, 
-  type = "text", 
-  value, 
-  onChange, 
-  onBlur, 
-  required = false, 
-  placeholder = "", 
-  error = null, 
+const FormField = ({
+  label,
+  type = "text",
+  value,
+  onChange,
+  onBlur,
+  required = false,
+  placeholder = "",
+  error = null,
   readOnly = false,
   className = "",
-  ...props 
+  ...props
 }) => {
   const baseClasses = "w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 text-gray-900 dark:text-gray-900 bg-white dark:bg-white";
   const errorClasses = error ? "border-red-300 focus:border-red-500" : "border-gray-300";
   const readOnlyClasses = readOnly ? "bg-gray-50 dark:bg-gray-50 cursor-not-allowed" : "";
-  
+
   return (
     <div className={`form-field ${type === 'checkbox' ? 'flex items-center space-x-2' : ''}`}>
       <label className={`block text-sm font-medium text-gray-900 dark:text-gray-900  ${type === 'checkbox' ? 'order-2 ml-2' : 'mb-2'}`}>
@@ -87,12 +87,12 @@ const FormField = ({
   );
 };
 
-const TextAreaField = ({ 
-  label, 
-  value, 
-  onChange, 
-  rows = 3, 
-  placeholder = "", 
+const TextAreaField = ({
+  label,
+  value,
+  onChange,
+  rows = 3,
+  placeholder = "",
   className = "",
   originalResumeData = null
 }) => (
@@ -100,7 +100,7 @@ const TextAreaField = ({
     <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
       {label}
     </label>
-    <CKEditor
+    <CustomCKEditorComponent
       value={value}
       onChange={onChange}
       placeholder={placeholder}
@@ -133,7 +133,7 @@ const ErrorBanner = ({ message }) => (
 // Local storage utility
 const saveToLocalStorage = (formData, currentStep, isEditMode) => {
   if (isEditMode) return;
-  
+
   try {
     const dataToSave = {
       formData,
@@ -147,7 +147,7 @@ const saveToLocalStorage = (formData, currentStep, isEditMode) => {
 };
 
 function getProfilePicture(user) {
-  return user.profilePicture?.type === 'avatar' ? user.profilePicture.avatarUrl : user.profilePicture?.type === 'uploaded' ? user.profilePicture.uploadedPhoto.url : '' 
+  return user.profilePicture?.type === 'avatar' ? user.profilePicture.avatarUrl : user.profilePicture?.type === 'uploaded' ? user.profilePicture.uploadedPhoto.url : ''
 }
 
 function ResumeForm() {
@@ -161,9 +161,9 @@ function ResumeForm() {
   const [editingResumeId, setEditingResumeId] = useState(null);
   const [showClearModal, setShowClearModal] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
-  
+
   const hasInitializedRef = useRef(false);
-  
+
   const [formData, setFormData] = useState({
     title: '',
     personalInfo: {
@@ -201,13 +201,13 @@ function ResumeForm() {
   const [originalResumeData, setOriginalResumeData] = useState(null);
 
   const totalSteps = 8;
-  
+
   const fieldOrder = [
     'title', 'fullName', 'email', 'phone', 'address',
     'workExperience_0_jobTitle', 'workExperience_0_company', 'workExperience_0_startDate',
     'education_0_degree', 'education_0_institution', 'education_0_endDate'
   ];
-  
+
   const { scrollToFirstError } = useFormScroll(validationErrors, fieldOrder);
   const { scrollToTop } = useScrollToTop();
 
@@ -244,11 +244,12 @@ function ResumeForm() {
   }, [isDirty, currentStep, isEditMode]);
 
   // Get initial token balance
-  // useEffect(() => {
-  //   const balance = apiHelpers.getTokenBalance();
-  //   setTokenBalance(balance);
-  //   setIsTokenExhausted(balance <= 0);
-  // }, []);
+  // Get initial token balance
+  useEffect(() => {
+    const balance = apiHelpers.getTokenBalance();
+    setTokenBalance(balance);
+    setIsTokenExhausted(balance <= 0);
+  }, []);
 
   // Listen for token balance updates
   useEffect(() => {
@@ -262,13 +263,7 @@ function ResumeForm() {
     return () => window.removeEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
   }, []);
 
-  // Update token balance from user data if available
-  useEffect(() => {
-    if (user && user.tokens !== undefined) {
-      setTokenBalance(user.tokens);
-      setIsTokenExhausted(user.tokens <= 0);
-    }
-  }, [user]);
+
 
 
 
@@ -276,24 +271,24 @@ function ResumeForm() {
   const validateResumeFile = (file) => {
     const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword'];
     const maxSize = 10 * 1024 * 1024; // 10MB
-    
+
     if (!allowedTypes.includes(file.type)) {
       toast.error('Please upload a PDF or Word document');
       return false;
     }
-    
+
     if (file.size > maxSize) {
       toast.error('File size must be less than 10MB');
       return false;
     }
-    
+
     return true;
   };
 
   const handleResumeUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-    
+
     if (!validateResumeFile(file)) {
       event.target.value = '';
       return;
@@ -305,30 +300,30 @@ function ResumeForm() {
       event.target.value = '';
       return;
     }
-    
+
     try {
       setUploadingResume(true);
       setUploadedFileName(file.name);
-      
+
       const formData = new FormData();
       formData.append('file', file);
       formData.append('type', 'resume');
-      
+
       const response = await uploadAPI.uploadResume(formData);
-      
+
       if (response.success) {
-        
+
         // Store the extracted text data
         const extractedText = response.data.originalText;
         const parsedData = response.data.parsedData;
-        
+
         if (extractedText) {
           // Store the extracted text in form data for reference
           setFormData(prev => ({
             ...prev,
             extractedText: extractedText
           }));
-          
+
           // If AI parsed data is available, auto-fill the form
           if (parsedData) {
             setFormData(prev => ({
@@ -349,11 +344,11 @@ function ResumeForm() {
               languages: parsedData.languages || prev.languages,
               customFields: parsedData.customFields || prev.customFields
             }));
-            
+
             // Always load profile data to ensure name, email, phone are populated
             loadProfileData();
             setIsInitialLoad(true);
-            
+
             toast.success('Resume parsed and auto-filled successfully!');
           } else {
             // Even if no parsed data, still load profile data
@@ -370,7 +365,7 @@ function ResumeForm() {
       }
     } catch (error) {
       console.error('Resume upload error:', error);
-      
+
       // Handle token exhaustion specifically
       if (error.message && error.message.includes('tokens') && error.message.includes('exhausted')) {
         setIsTokenExhausted(true);
@@ -382,7 +377,7 @@ function ResumeForm() {
         const errorMessage = apiHelpers.formatError(error);
         toast.error(errorMessage);
       }
-      
+
       setUploadedFileName('');
     } finally {
       setUploadingResume(false);
@@ -438,14 +433,14 @@ function ResumeForm() {
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0];
-      
+
       if (validateResumeFile(file)) {
         // Check if tokens are exhausted before processing
         if (isTokenExhausted || tokenBalance <= 0) {
           toast.error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
           return;
         }
-        
+
         // Create a synthetic event to reuse existing handleResumeUpload logic
         const syntheticEvent = {
           target: {
@@ -466,7 +461,7 @@ function ResumeForm() {
         const fullName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim();
         const email = userData.email || '';
         const phone = userData.phone || '';
-        
+
         setFormData(prev => ({
           ...prev,
           personalInfo: {
@@ -476,7 +471,7 @@ function ResumeForm() {
         }));
         setIsDirty(false)
         setIsInitialLoad(false)
-        
+
         return { fullName, email, phone };
       }
     } catch (error) {
@@ -488,22 +483,22 @@ function ResumeForm() {
   const validateProfileData = () => {
     const errors = {};
     const userData = apiHelpers.getCurrentUserData();
-    
+
     if (!userData) {
       errors.fullName = 'Update your profile to populate full name';
       errors.email = 'Update your profile to populate email';
       errors.phone = 'Update your profile to populate phone number';
       return errors;
     }
-    
+
     const fullName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim();
     const email = userData.email || '';
     const phone = userData.phone || '';
-    
+
     if (!fullName) errors.fullName = 'Update your profile to populate full name';
     if (!email) errors.email = 'Update your profile to populate email';
     if (!phone) errors.phone = 'Update your profile to populate phone number';
-    
+
     return errors;
   };
 
@@ -548,18 +543,18 @@ function ResumeForm() {
     return formattedErrors;
   };
 
-  const validateForm = useCallback ((isDraft = false) => {
+  const validateForm = useCallback((isDraft = false) => {
     const errors = {};
-    
+
     // Check title
     if (!formData.title || formData.title.trim() === '') {
       errors.title = 'Resume title is required';
     }
-    
+
     // Check profile data availability
     const profileErrors = validateProfileData();
     Object.assign(errors, profileErrors);
-    
+
     // Email validation
     if (!profileErrors.email && formData.personalInfo.email) {
       const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
@@ -622,7 +617,7 @@ function ResumeForm() {
       // Certification validation
       formData.certifications.forEach((cert, index) => {
         const hasStartedCertification = cert.name || cert.issuer || cert.date || cert.expiryDate || cert.credentialId || cert.url;
-        
+
         if (hasStartedCertification) {
           if (!validators.required(cert.name)) {
             errors[`certifications_${index}_name`] = 'Certification name is required';
@@ -633,7 +628,7 @@ function ResumeForm() {
         }
       });
     }
-    
+
     return {
       isValid: Object.keys(errors).length === 0,
       errors
@@ -651,28 +646,28 @@ function ResumeForm() {
           newArray[index] = { ...newArray[index], [field]: value };
           return { ...prev, [section]: newArray };
         } else {
-            if(field === 'isAddPhoto') {
-              const profilePicture = getProfilePicture(user);
-              handleInputChange('personalInfo', 'profilePicture', profilePicture)
+          if (field === 'isAddPhoto') {
+            const profilePicture = getProfilePicture(user);
+            handleInputChange('personalInfo', 'profilePicture', profilePicture)
             console.log('profilePicture', profilePicture)
-            }
+          }
           return {
             ...prev,
             [section]: { ...prev[section], [field]: value }
           };
         }
       })();
-      
+
       // Save to localStorage
       setTimeout(() => saveToLocalStorage(newFormData, currentStep, isEditMode), 0);
-      
+
       return newFormData;
     });
-    
+
     // Clear validation errors
     setValidationErrors(prev => {
       const newErrors = { ...prev };
-      
+
       if (section === 'root') {
         delete newErrors[field];
       } else if (index !== null) {
@@ -684,7 +679,7 @@ function ResumeForm() {
       } else {
         delete newErrors[field];
       }
-      
+
       return newErrors;
     });
     setIsInitialLoad(true)
@@ -692,7 +687,7 @@ function ResumeForm() {
 
   const handleInputBlur = (section, field, index = null) => {
     const errors = {};
-    
+
     if (section === 'root') {
       if (field === 'title') {
         if (!validators.required(formData.title)) {
@@ -816,7 +811,7 @@ function ResumeForm() {
       } else if (section === 'certifications') {
         const cert = formData.certifications[index];
         const hasStartedCertification = cert.name || cert.issuer || cert.date || cert.expiryDate || cert.credentialId || cert.url;
-        
+
         if (hasStartedCertification) {
           if (field === 'name' && !validators.required(cert.name)) {
             errors[`certifications_${index}_name`] = 'Certification name is required';
@@ -827,7 +822,7 @@ function ResumeForm() {
         }
       }
     }
-    
+
     setValidationErrors(prev => ({ ...prev, ...errors }));
   };
 
@@ -837,7 +832,7 @@ function ResumeForm() {
         ...prev,
         [section]: [...prev[section], defaultItem]
       };
-      
+
       if (section === 'projects') {
         const newIndex = prev[section].length;
         setTechnologiesInput(prevTech => ({
@@ -845,7 +840,7 @@ function ResumeForm() {
           [newIndex]: ''
         }));
       }
-      
+
       setTimeout(() => saveToLocalStorage(newFormData, currentStep, isEditMode), 0);
       return newFormData;
     });
@@ -858,12 +853,12 @@ function ResumeForm() {
         ...prev,
         [section]: prev[section].filter((_, i) => i !== index)
       };
-      
+
       if (section === 'projects') {
         setTechnologiesInput(prevTech => {
           const newTech = { ...prevTech };
           delete newTech[index];
-          
+
           const reindexedTech = {};
           Object.keys(newTech).forEach(key => {
             const numKey = parseInt(key);
@@ -873,11 +868,11 @@ function ResumeForm() {
               reindexedTech[key] = newTech[key];
             }
           });
-          
+
           return reindexedTech;
         });
       }
-      
+
       setTimeout(() => saveToLocalStorage(newFormData, currentStep, isEditMode), 0);
       return newFormData;
     });
@@ -889,19 +884,19 @@ function ResumeForm() {
     // Prevent duplicate calls during React StrictMode in development
     if (hasInitializedRef.current) return;
     hasInitializedRef.current = true;
-    
+
     const checkEditMode = async () => {
       const state = location.state;
       if (state && state.editMode && state.resumeId) {
         setIsEditMode(true);
         setEditingResumeId(state.resumeId);
         setLoading(true);
-        
+
         try {
           const response = await resumeAPI.getResumeById(state.resumeId);
           if (response.success && response.data.resume) {
             const resumeData = response.data.resume;
-            
+
             // Map data with proper date handling
             const mappedFormData = {
               title: resumeData.title || '',
@@ -914,7 +909,7 @@ function ResumeForm() {
                 linkedin: resumeData.personalInfo?.linkedin || '',
                 github: resumeData.personalInfo?.github || '',
                 isAddPhoto: resumeData.personalInfo?.isAddPhoto || false,
-                profilePicture: resumeData.personalInfo?.isAddPhoto ? getProfilePicture(user) : '' 
+                profilePicture: resumeData.personalInfo?.isAddPhoto ? getProfilePicture(user) : ''
               },
               summary: ensureHtmlContent(resumeData.summary || ''),
               workExperience: (resumeData.workExperience || []).map(exp => ({
@@ -976,28 +971,28 @@ function ResumeForm() {
 
             // Always load profile data to update name, email, phone fields
             loadProfileData();
-            
+
             setFormData(mappedFormData);
             setOriginalResumeData(mappedFormData);
             setIsDirty(false); // Reset isDirty after loading data
             setIsInitialLoad(false);
-            
+
             // Check for AI-enhanced data from localStorage
             if (state.fromAIEnhancement) {
               try {
                 const aiEnhancedData = localStorage.getItem('ai_enhanced_resume_data');
                 if (aiEnhancedData) {
                   const parsedAIData = JSON.parse(aiEnhancedData);
-                  
+
                   // Apply AI-enhanced data to the form
                   setFormData(prev => {
                     const updatedData = { ...prev };
-                    
+
                     // Update summary if provided
                     if (parsedAIData.summary) {
                       updatedData.summary = ensureHtmlContent(parsedAIData.summary);
                     }
-                    
+
                     // Update work experience if provided
                     if (parsedAIData.workExperience && Array.isArray(parsedAIData.workExperience)) {
                       updatedData.workExperience = updatedData.workExperience.map((exp, index) => {
@@ -1011,7 +1006,7 @@ function ResumeForm() {
                         return exp;
                       });
                     }
-                    
+
                     // Handle legacy experience format (for adjust-tone)
                     if (parsedAIData.experience && Array.isArray(parsedAIData.experience)) {
                       updatedData.workExperience = updatedData.workExperience.map((exp, index) => {
@@ -1025,7 +1020,7 @@ function ResumeForm() {
                         return exp;
                       });
                     }
-                    
+
                     // Update projects if provided
                     if (parsedAIData.projects && Array.isArray(parsedAIData.projects)) {
                       updatedData.projects = updatedData.projects.map((proj, index) => {
@@ -1039,7 +1034,7 @@ function ResumeForm() {
                         return proj;
                       });
                     }
-                    
+
                     // Update skills if provided
                     if (parsedAIData.skills && Array.isArray(parsedAIData.skills)) {
                       // For enhance keywords, replace the entire skills structure
@@ -1051,10 +1046,10 @@ function ResumeForm() {
                         }))
                       }));
                     }
-                    
+
                     return updatedData;
                   });
-                  
+
                   // Show success message based on enhancement type
                   const enhancementType = parsedAIData._enhancementType;
                   if (enhancementType === 'adjust-tone') {
@@ -1063,7 +1058,7 @@ function ResumeForm() {
                     toast.success('Keywords have been enhanced! Review and save your changes.');
                   }
                   setIsInitialLoad(true);
-                  
+
                   // Clear the AI enhanced data from localStorage
                   localStorage.removeItem('ai_enhanced_resume_data');
                 }
@@ -1072,14 +1067,14 @@ function ResumeForm() {
                 toast.error('Failed to apply AI enhancements. Please try again.');
               }
             }
-            
+
             // Initialize technologies input state for edit mode
             const techInputState = {};
             (mappedFormData.projects || []).forEach((proj, index) => {
               techInputState[index] = proj.technologies?.join(', ') || '';
             });
             setTechnologiesInput(techInputState);
-            
+
             toast.success('Resume data loaded for editing!');
           } else {
             throw new Error('Resume not found');
@@ -1091,59 +1086,59 @@ function ResumeForm() {
         } finally {
           setLoading(false);
         }
-              } else {
-          // Not in edit mode, check if we should load from localStorage
-          // Only load if there's no explicit state indicating a fresh start
-          const state = location.state;
-          const shouldLoadFromStorage = !state || !state.freshStart;
-          
-          if (shouldLoadFromStorage) {
-            const savedData = localStorage.getItem('resume_form_data');
-            if (savedData) {
-              try {
-                const parsedData = JSON.parse(savedData);
-                const processedFormData = processLoadedFormData(parsedData.formData || {});
-                setFormData(prev => ({ ...prev, ...processedFormData }));
-                setCurrentStep(parsedData.currentStep || 1);
-                toast.info('Your previous form data has been restored.');
-                setIsInitialLoad(false);
-              } catch (error) {
-                console.error('Error loading saved form data:', error);
-                localStorage.removeItem('resume_form_data');
-              }
+      } else {
+        // Not in edit mode, check if we should load from localStorage
+        // Only load if there's no explicit state indicating a fresh start
+        const state = location.state;
+        const shouldLoadFromStorage = !state || !state.freshStart;
+
+        if (shouldLoadFromStorage) {
+          const savedData = localStorage.getItem('resume_form_data');
+          if (savedData) {
+            try {
+              const parsedData = JSON.parse(savedData);
+              const processedFormData = processLoadedFormData(parsedData.formData || {});
+              setFormData(prev => ({ ...prev, ...processedFormData }));
+              setCurrentStep(parsedData.currentStep || 1);
+              toast.info('Your previous form data has been restored.');
+              setIsInitialLoad(false);
+            } catch (error) {
+              console.error('Error loading saved form data:', error);
+              localStorage.removeItem('resume_form_data');
             }
-          } else {
-            // Fresh start - ensure form is completely reset
-            setFormData({
-              title: '',
-              personalInfo: {
-                fullName: '',
-                email: '',
-                phone: '',
-                address: '',
-                website: '',
-                linkedin: '',
-                github: ''
-              },
-              summary: '',
-              workExperience: [],
-              isFresher: false,
-              education: [],
-              skills: [],
-              projects: [],
-              achievements: [],
-              certifications: [],
-              languages: []
-            });
-            setCurrentStep(1);
-            setValidationErrors({});
-            setTechnologiesInput({});
-            setIsInitialLoad(false);
           }
-          
-          // Load profile data for read-only fields
-          loadProfileData();
+        } else {
+          // Fresh start - ensure form is completely reset
+          setFormData({
+            title: '',
+            personalInfo: {
+              fullName: '',
+              email: '',
+              phone: '',
+              address: '',
+              website: '',
+              linkedin: '',
+              github: ''
+            },
+            summary: '',
+            workExperience: [],
+            isFresher: false,
+            education: [],
+            skills: [],
+            projects: [],
+            achievements: [],
+            certifications: [],
+            languages: []
+          });
+          setCurrentStep(1);
+          setValidationErrors({});
+          setTechnologiesInput({});
+          setIsInitialLoad(false);
         }
+
+        // Load profile data for read-only fields
+        loadProfileData();
+      }
     };
 
     checkEditMode();
@@ -1185,7 +1180,7 @@ function ResumeForm() {
   // Function to clean data before sending to backend
   const cleanFormDataForBackend = (data) => {
     const cleanedData = JSON.parse(JSON.stringify(data)); // Deep clone
-    
+
     // Clean skills - remove items with null level
     if (cleanedData.skills) {
       cleanedData.skills = cleanedData.skills.map(skillCategory => ({
@@ -1193,12 +1188,12 @@ function ResumeForm() {
         items: skillCategory.items ? skillCategory.items.filter(item => item.level !== null) : []
       })).filter(skillCategory => skillCategory.items.length > 0);
     }
-    
+
     // Clean languages - remove items with null proficiency
     if (cleanedData.languages) {
       cleanedData.languages = cleanedData.languages.filter(lang => lang.proficiency !== null);
     }
-    
+
     // Clean other null values that might cause issues
     if (cleanedData.personalInfo) {
       Object.keys(cleanedData.personalInfo).forEach(key => {
@@ -1207,12 +1202,12 @@ function ResumeForm() {
         }
       });
     }
-    
+
     return cleanedData;
   };
 
-  
-  
+
+
   // Manual save functionality
   const saveDraft = useCallback(async () => {
     try {
@@ -1220,19 +1215,19 @@ function ResumeForm() {
       const validation = validateForm(true);
       if (!validation.isValid) {
         // setValidationErrors(validation.errors);
-        
+
         // Check if there are any basic field errors (title, fullName, email)
         const basicFieldErrors = ['title', 'fullName', 'email'];
-        const hasBasicFieldErrors = Object.keys(validation.errors).some(errorKey => 
+        const hasBasicFieldErrors = Object.keys(validation.errors).some(errorKey =>
           basicFieldErrors.includes(errorKey)
         );
-        
+
         if (hasBasicFieldErrors) {
           toast.warning('Please add Title, Full Name and Email before saving a draft');
         } else {
           toast.warning('Please fill missing fields before saving draft');
         }
-        
+
         setTimeout(() => {
           scrollToFirstError();
         }, 100);
@@ -1242,32 +1237,32 @@ function ResumeForm() {
       // Clean the data before sending to backend
       const cleanedFormData = cleanFormDataForBackend(formData);
       const response = await resumeAPI.autoSaveDraft(cleanedFormData, editingResumeId);
-      
+
       if (response.success) {
-          // Update the editing resume ID if this is a new draft
-          if (!editingResumeId && response.data.resumeId) {
-            setEditingResumeId(response.data.resumeId);
-          }
-          setLastSaved(new Date());
-          setIsDirty(false); // Reset isDirty after successful draft save
-          toast.success('Draft saved successfully!');
+        // Update the editing resume ID if this is a new draft
+        if (!editingResumeId && response.data.resumeId) {
+          setEditingResumeId(response.data.resumeId);
+        }
+        setLastSaved(new Date());
+        setIsDirty(false); // Reset isDirty after successful draft save
+        toast.success('Draft saved successfully!');
       }
     } catch (error) {
       console.error('Save failed:', error);
-      
-      
+
+
       // Handle validation errors
       if (error?.response?.data?.errors) {
         const validationErrors = error.response.data.errors;
         const formattedErrors = formatValidationErrors(validationErrors);
         setValidationErrors(formattedErrors);
-        
+
         // Show toast with first error message
         const firstError = validationErrors[0];
         if (firstError) {
           toast.error(firstError.msg);
         }
-        
+
         // Scroll to first error
         setTimeout(() => {
           scrollToFirstError();
@@ -1297,10 +1292,10 @@ function ResumeForm() {
             "bg-gray-200 text-gray-800 font-semibold px-4 py-2 rounded-md hover:bg-gray-300 focus:ring-2 focus:ring-gray-400",
           denyButton: 'bg-gradient-to-r from-blue-400 to-purple-500 hover:from-blue-500 hover:to-purple-600 text-white px-4 py-2 rounded',
         },
-      }).then(async(result) => {
+      }).then(async (result) => {
         if (result.isConfirmed) {
           blocker.proceed();
-        } else if(result.isDenied) {
+        } else if (result.isDenied) {
           await saveDraft();
           Swal.close();
           blocker.proceed();
@@ -1314,25 +1309,25 @@ function ResumeForm() {
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      
+
       // Validate form before submission with comprehensive requirements
       const validation = validateForm();
       if (!validation.isValid) {
         setValidationErrors(validation.errors);
         toast.error('Please complete all required fields before submitting');
-        
+
         // Scroll to first error after a short delay
         setTimeout(() => {
           scrollToFirstError();
         }, 100);
-        
+
         setLoading(false);
         return;
       }
-      
+
       // Clear validation errors if form is valid
       setValidationErrors({});
-      
+
       let response;
       let resumeId = editingResumeId;
 
@@ -1347,7 +1342,7 @@ function ResumeForm() {
         response = await resumeAPI.saveFormData(cleanedFormData);
         resumeId = response.data.resumeId;
       }
-      
+
       if (response.success) {
         setIsDirty(false); // Reset isDirty after successful submission
         // Mark resume as completed
@@ -1355,8 +1350,8 @@ function ResumeForm() {
           await resumeAPI.markAsCompleted(resumeId);
         } catch (error) {
           console.error('Failed to mark resume as completed:', error);
-          
-          
+
+
           // Continue anyway as the main save was successful for other errors
         }
 
@@ -1364,7 +1359,7 @@ function ResumeForm() {
         if (!isEditMode) {
           localStorage.removeItem('resume_form_data');
         }
-        
+
         if (isEditMode) {
           toast.success('Resume completed successfully!');
           navigate(`/resume-preview/${editingResumeId}`);
@@ -1390,21 +1385,21 @@ function ResumeForm() {
       if (!validation.isValid) {
         setValidationErrors(validation.errors);
         toast.error('Please fix the validation errors before continuing');
-        
+
         // Scroll to first error after a short delay
         setTimeout(() => {
           scrollToFirstError();
         }, 100);
         return;
       }
-      
+
       // Clear validation errors if step is valid
       setValidationErrors({});
-      
+
       const newStep = currentStep + 1;
       setCurrentStep(newStep);
       saveToLocalStorage(formData, newStep, isEditMode);
-      
+
       // Scroll to top when moving to next step
       scrollToTop();
     } else {
@@ -1499,7 +1494,7 @@ function ResumeForm() {
             </p>
           </div>
         </div>
-        
+
         {/* Hidden file input */}
         <input
           ref={fileInputRef}
@@ -1508,27 +1503,25 @@ function ResumeForm() {
           onChange={handleResumeUpload}
           className="hidden"
         />
-        
+
         {/* Upload button or file info */}
         {!uploadedFileName ? (
           <div className="space-y-3">
-            
+
             <div
               onDragEnter={handleDragEnter}
               onDragLeave={handleDragLeave}
               onDragOver={handleDragOver}
               onDrop={handleDrop}
-              className={`w-full px-3 py-4 border-2 border-dashed rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-center ${
-                !isTokenExhausted 
-                  ? 'cursor-pointer' 
-                  : 'cursor-not-allowed opacity-50'
-              } ${
-                isDragOver && !isTokenExhausted
-                  ? 'border-blue-500 bg-blue-100 text-blue-700' 
+              className={`w-full px-3 py-4 border-2 border-dashed rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-center ${!isTokenExhausted
+                ? 'cursor-pointer'
+                : 'cursor-not-allowed opacity-50'
+                } ${isDragOver && !isTokenExhausted
+                  ? 'border-blue-500 bg-blue-100 text-blue-700'
                   : isTokenExhausted
-                  ? 'border-red-300 bg-red-50 text-red-500'
-                  : 'border-blue-300 hover:border-blue-400 hover:bg-blue-50 text-blue-600'
-              }`}
+                    ? 'border-red-300 bg-red-50 text-red-500'
+                    : 'border-blue-300 hover:border-blue-400 hover:bg-blue-50 text-blue-600'
+                }`}
               onClick={!isTokenExhausted ? triggerFileUpload : undefined}
               title={isTokenExhausted ? 'AI tokens exhausted - Buy more tokens to continue' : ''}
             >
@@ -1574,16 +1567,16 @@ function ResumeForm() {
             </button>
           </div>
         )}
-        
+
         <p className="text-xs text-gray-500 text-center mt-2">
           PDF, DOCX, DOC (Max 10MB)
         </p>
-        
+
         {/* Token exhaustion message */}
         {isTokenExhausted && (
           <div className="mt-2 text-center">
             <span className="text-xs text-red-500">
-              ⚠️ AI tokens exhausted! 
+              ⚠️ AI tokens exhausted!
               <Link to="/payment" className="text-blue-500 hover:text-blue-700 underline ml-1">
                 Buy more tokens
               </Link> to continue using AI features.
@@ -1591,7 +1584,7 @@ function ResumeForm() {
           </div>
         )}
       </div>
-      
+
       {/* Basic Information Section */}
       <div className="space-y-6">
         <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900">Basic Information</h3>
@@ -1623,7 +1616,7 @@ function ResumeForm() {
           placeholder="Write a brief summary of your professional background and key achievements..."
           originalResumeData={originalResumeData?.summary}
         />
-        
+
         {/* Extracted Text Reference - Only show when parsedData is NOT available */}
         {formData.extractedText && !formData.parsedData && (
           <div className="bg-gray-50 dark:bg-gray-50/50 border border-gray-200 dark:border-gray-200/50 rounded-lg p-4">
@@ -1641,8 +1634,8 @@ function ResumeForm() {
             </div>
             <div className="max-h-40 overflow-y-auto">
               <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                {formData.extractedText.length > 500 
-                  ? `${formData.extractedText}` 
+                {formData.extractedText.length > 500
+                  ? `${formData.extractedText}`
                   : formData.extractedText
                 }
               </p>
@@ -1678,7 +1671,7 @@ function ResumeForm() {
             </p>
           </div>
         )}
-       
+
       </div>
     </>
   );
@@ -1686,7 +1679,7 @@ function ResumeForm() {
   const renderPersonalInfo = () => (
     <div className="space-y-6">
       <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900">Personal Information</h3>
-      
+
       {/* Profile Data Notice */}
       <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <div className="flex items-start gap-3">
@@ -1696,13 +1689,13 @@ function ResumeForm() {
           <div>
             <h3 className="text-sm font-medium text-blue-900 mb-1">Profile Data</h3>
             <p className="text-sm text-blue-700">
-              Your <strong>Full Name</strong>, <strong>Email</strong>, and <strong>Phone</strong> are automatically populated from your profile. 
+              Your <strong>Full Name</strong>, <strong>Email</strong>, and <strong>Phone</strong> are automatically populated from your profile.
               To update these details, please visit your <a href="/profile" className="underline hover:text-blue-800">profile page</a>.
             </p>
           </div>
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           label="Full Name"
@@ -1778,7 +1771,7 @@ function ResumeForm() {
       <div className="space-y-4">
         <div className="flex justify-between items-center gap-4">
           <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900">Work Experience</h3>
-          
+
           {/* Add Experience Button - Right aligned */}
           {!formData.isFresher && (
             <button
@@ -1799,7 +1792,7 @@ function ResumeForm() {
             </button>
           )}
         </div>
-        
+
         {/* Fresher Checkbox */}
         <div className="flex items-center gap-2">
           <input
@@ -1820,7 +1813,7 @@ function ResumeForm() {
           </label>
         </div>
       </div>
-      
+
       {!formData.isFresher && formData.workExperience.map((job, index) => (
         <div key={index} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-4 sm:p-6 space-y-4 bg-white dark:bg-orange-50/50">
           <div className="flex justify-between items-start gap-2">
@@ -1833,7 +1826,7 @@ function ResumeForm() {
               <TrashIcon className="w-4 h-4" />
             </button>
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
@@ -1845,11 +1838,10 @@ function ResumeForm() {
                 value={job.jobTitle}
                 onChange={(e) => handleInputChange('workExperience', 'jobTitle', e.target.value, index)}
                 onBlur={() => handleInputBlur('workExperience', 'jobTitle', index)}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${
-                  validationErrors[`workExperience_${index}_jobTitle`] 
-                    ? 'border-red-300 focus:border-red-500' 
-                    : 'border-gray-300'
-                }`}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${validationErrors[`workExperience_${index}_jobTitle`]
+                  ? 'border-red-300 focus:border-red-500'
+                  : 'border-gray-300'
+                  }`}
                 placeholder="Software Engineer"
               />
               {validationErrors[`workExperience_${index}_jobTitle`] && (
@@ -1866,11 +1858,10 @@ function ResumeForm() {
                 value={job.company}
                 onChange={(e) => handleInputChange('workExperience', 'company', e.target.value, index)}
                 onBlur={() => handleInputBlur('workExperience', 'company', index)}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${
-                  validationErrors[`workExperience_${index}_company`] 
-                    ? 'border-red-300 focus:border-red-500' 
-                    : 'border-gray-300'
-                }`}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${validationErrors[`workExperience_${index}_company`]
+                  ? 'border-red-300 focus:border-red-500'
+                  : 'border-gray-300'
+                  }`}
                 placeholder="Tech Company Inc."
               />
               {validationErrors[`workExperience_${index}_company`] && (
@@ -1936,12 +1927,12 @@ function ResumeForm() {
               <label className="text-sm text-gray-900">Currently working here</label>
             </div>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
               Job Description
             </label>
-            <CKEditor
+            <CustomCKEditorComponent
               value={job.description}
               onChange={(value) => handleInputChange('workExperience', 'description', value, index)}
               placeholder="Describe your role and responsibilities..."
@@ -1951,7 +1942,7 @@ function ResumeForm() {
           </div>
         </div>
       ))}
-      
+
       {formData.isFresher ? (
         <div className="text-center py-8 bg-blue-50 rounded-xl border border-blue-200">
           <div className="flex items-center justify-center mb-4">
@@ -1970,7 +1961,7 @@ function ResumeForm() {
           message="No work experience added yet. Click 'Add Experience' to get started."
         />
       )}
-      
+
       {validationErrors.workExperience && (
         <ErrorBanner message={validationErrors.workExperience} />
       )}
@@ -1998,7 +1989,7 @@ function ResumeForm() {
           Add Education
         </button>
       </div>
-      
+
       {formData.education.map((edu, index) => (
         <div key={index} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
           <div className="flex justify-between items-start">
@@ -2010,7 +2001,7 @@ function ResumeForm() {
               <TrashIcon className="w-4 h-4" />
             </button>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
@@ -2022,11 +2013,10 @@ function ResumeForm() {
                 value={edu.degree}
                 onChange={(e) => handleInputChange('education', 'degree', e.target.value, index)}
                 onBlur={() => handleInputBlur('education', 'degree', index)}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${
-                  validationErrors[`education_${index}_degree`] 
-                    ? 'border-red-300 focus:border-red-500' 
-                    : 'border-gray-300'
-                }`}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${validationErrors[`education_${index}_degree`]
+                  ? 'border-red-300 focus:border-red-500'
+                  : 'border-gray-300'
+                  }`}
                 placeholder="Bachelor of Science in Computer Science"
               />
               {validationErrors[`education_${index}_degree`] && (
@@ -2043,11 +2033,10 @@ function ResumeForm() {
                 value={edu.institution}
                 onChange={(e) => handleInputChange('education', 'institution', e.target.value, index)}
                 onBlur={() => handleInputBlur('education', 'institution', index)}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${
-                  validationErrors[`education_${index}_institution`] 
-                    ? 'border-red-300 focus:border-red-500' 
-                    : 'border-gray-300'
-                }`}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${validationErrors[`education_${index}_institution`]
+                  ? 'border-red-300 focus:border-red-500'
+                  : 'border-gray-300'
+                  }`}
                 placeholder="University of California"
               />
               {validationErrors[`education_${index}_institution`] && (
@@ -2086,11 +2075,10 @@ function ResumeForm() {
                   handleInputChange('education', 'gpa', value, index);
                 }}
                 onBlur={() => handleInputBlur('education', 'gpa', index)}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${
-                  validationErrors[`education_${index}_gpa`] 
-                    ? 'border-red-300 focus:border-red-500' 
-                    : 'border-gray-300'
-                }`}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${validationErrors[`education_${index}_gpa`]
+                  ? 'border-red-300 focus:border-red-500'
+                  : 'border-gray-300'
+                  }`}
                 placeholder="8.50"
               />
               {validationErrors[`education_${index}_gpa`] && (
@@ -2098,7 +2086,7 @@ function ResumeForm() {
               )}
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
@@ -2120,16 +2108,16 @@ function ResumeForm() {
                 disabled={edu.isCurrentlyStudying}
                 onChange={(value) => handleInputChange('education', 'endDate', value, index)}
                 onBlur={() => handleInputBlur('education', 'endDate', index)}
-                
+
                 hasError={!!(validationErrors[`education_${index}_endDate`] || validationErrors[`education_${index}_dateRange`])}
                 placeholder="Select end date"
               />
-              {(validationErrors[`education_${index}_endDate`] || validationErrors[ `education_${index}_dateRange`]) && (
+              {(validationErrors[`education_${index}_endDate`] || validationErrors[`education_${index}_dateRange`]) && (
                 <p className="text-red-600 text-sm mt-1">{validationErrors[`education_${index}_dateRange`] || validationErrors[`education_${index}_endDate`]}</p>
               )}
             </div>
           </div>
-          
+
           <div className="flex items-center">
             <input
               type="checkbox"
@@ -2144,12 +2132,12 @@ function ResumeForm() {
             />
             <label className="text-sm text-gray-900">Currently studying here</label>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
               Description
             </label>
-            <CKEditor
+            <CustomCKEditorComponent
               value={edu.description}
               onChange={(value) => handleInputChange('education', 'description', value, index)}
               placeholder="Relevant coursework, honors, activities..."
@@ -2159,7 +2147,7 @@ function ResumeForm() {
           </div>
         </div>
       ))}
-      
+
       {formData.education.length === 0 && (
         <EmptyState
           icon={<svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2169,7 +2157,7 @@ function ResumeForm() {
           message="No education added yet. Click 'Add Education' to get started."
         />
       )}
-      
+
       {validationErrors.education && (
         <ErrorBanner message={validationErrors.education} />
       )}
@@ -2193,7 +2181,7 @@ function ResumeForm() {
           Add Skill Category
         </button>
       </div>
-      
+
       {/* Quick Add Skills - Comma Separated */}
       <div className="bg-blue-50 dark:bg-blue-50/50 border border-blue-200 dark:border-blue-200/50 rounded-xl p-6 space-y-4">
         <div className="flex items-center gap-2">
@@ -2212,11 +2200,11 @@ function ResumeForm() {
               if (e.key === 'Enter' && e.target.value.trim()) {
                 e.preventDefault();
                 const skillsToAdd = e.target.value.split(',').map(skill => skill.trim()).filter(skill => skill);
-                
+
                 if (skillsToAdd.length > 0) {
                   // Find or create a "General" category
                   let generalCategoryIndex = formData.skills.findIndex(cat => cat.category.toLowerCase() === 'general' || cat.category.toLowerCase() === 'technical skills');
-                  
+
                   if (generalCategoryIndex === -1) {
                     // Create a new "Technical Skills" category
                     const newCategory = {
@@ -2236,7 +2224,7 @@ function ResumeForm() {
                     });
                     setFormData(prev => ({ ...prev, skills: newSkills }));
                   }
-                  
+
                   e.target.value = '';
                 }
               }
@@ -2247,7 +2235,7 @@ function ResumeForm() {
           </p>
         </div>
       </div>
-      
+
       {formData.skills.map((skillCategory, categoryIndex) => (
         <div key={categoryIndex} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
           <div className="flex justify-between items-start">
@@ -2259,7 +2247,7 @@ function ResumeForm() {
               <TrashIcon className="w-4 h-4" />
             </button>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
               Category Name *
@@ -2277,7 +2265,7 @@ function ResumeForm() {
               placeholder="e.g., Programming Languages, Tools, Frameworks"
             />
           </div>
-          
+
           <div>
             <div className="flex justify-between items-center mb-2">
               <label className="block text-sm font-medium text-gray-700">
@@ -2292,7 +2280,7 @@ function ResumeForm() {
                     if (e.key === 'Enter' && e.target.value.trim()) {
                       e.preventDefault();
                       const skillsToAdd = e.target.value.split(',').map(skill => skill.trim()).filter(skill => skill);
-                      
+
                       if (skillsToAdd.length > 0) {
                         const newSkills = [...formData.skills];
                         skillsToAdd.forEach(skill => {
@@ -2323,7 +2311,7 @@ function ResumeForm() {
                 </button>
               </div>
             </div>
-            
+
             {skillCategory.items.map((skill, skillIndex) => (
               <div key={skillIndex} className="flex flex-col sm:flex-row gap-2 mb-2">
                 <input
@@ -2372,7 +2360,7 @@ function ResumeForm() {
           </div>
         </div>
       ))}
-      
+
       {formData.skills.length === 0 && (
         <EmptyState
           icon={<svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2406,7 +2394,7 @@ function ResumeForm() {
           Add Project
         </button>
       </div>
-      
+
       {formData.projects.map((project, index) => (
         <div key={index} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
           <div className="flex justify-between items-start">
@@ -2420,7 +2408,7 @@ function ResumeForm() {
               </svg>
             </button>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
@@ -2482,12 +2470,12 @@ function ResumeForm() {
               />
             </div>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
               Description
             </label>
-            <CKEditor
+            <CustomCKEditorComponent
               value={project.description}
               onChange={(value) => handleInputChange('projects', 'description', value, index)}
               placeholder="Describe the project, your role, and key features..."
@@ -2497,7 +2485,7 @@ function ResumeForm() {
           </div>
         </div>
       ))}
-      
+
       {formData.projects.length === 0 && (
         <EmptyState
           icon={<svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2528,7 +2516,7 @@ function ResumeForm() {
           Add Achievement
         </button>
       </div>
-      
+
       {formData.achievements.map((achievement, index) => (
         <div key={index} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
           <div className="flex justify-between items-start">
@@ -2542,7 +2530,7 @@ function ResumeForm() {
               </svg>
             </button>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
@@ -2580,12 +2568,12 @@ function ResumeForm() {
               />
             </div>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
               Description
             </label>
-            <CKEditor
+            <CustomCKEditorComponent
               value={achievement.description}
               onChange={(value) => handleInputChange('achievements', 'description', value, index)}
               placeholder="Describe the achievement..."
@@ -2595,7 +2583,7 @@ function ResumeForm() {
           </div>
         </div>
       ))}
-      
+
       {formData.achievements.length === 0 && (
         <EmptyState
           icon={<svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2630,7 +2618,7 @@ function ResumeForm() {
             Add Certification
           </button>
         </div>
-        
+
         {/* Certification Requirements Notice */}
         <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <div className="flex items-start gap-3">
@@ -2640,13 +2628,13 @@ function ResumeForm() {
             <div>
               <h3 className="text-sm font-medium text-blue-900 mb-1">Certification Requirements</h3>
               <p className="text-sm text-blue-700">
-                If you add a certification, the <strong>Certification Name</strong> and <strong>Issuer</strong> are required fields. 
+                If you add a certification, the <strong>Certification Name</strong> and <strong>Issuer</strong> are required fields.
                 Other fields like dates, credential ID, and verification URL are optional.
               </p>
             </div>
           </div>
         </div>
-        
+
         {formData.certifications.map((cert, index) => (
           <div key={index} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
             <div className="flex justify-between items-start">
@@ -2660,7 +2648,7 @@ function ResumeForm() {
                 </svg>
               </button>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
@@ -2672,11 +2660,10 @@ function ResumeForm() {
                   value={cert.name}
                   onChange={(e) => handleInputChange('certifications', 'name', e.target.value, index)}
                   onBlur={() => handleInputBlur('certifications', 'name', index)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${
-                    validationErrors[`certifications_${index}_name`] 
-                      ? 'border-red-300 focus:border-red-500' 
-                      : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${validationErrors[`certifications_${index}_name`]
+                    ? 'border-red-300 focus:border-red-500'
+                    : 'border-gray-300'
+                    }`}
                   placeholder="AWS Certified Solutions Architect"
                 />
                 {validationErrors[`certifications_${index}_name`] && (
@@ -2693,11 +2680,10 @@ function ResumeForm() {
                   value={cert.issuer}
                   onChange={(e) => handleInputChange('certifications', 'issuer', e.target.value, index)}
                   onBlur={() => handleInputBlur('certifications', 'issuer', index)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${
-                    validationErrors[`certifications_${index}_issuer`] 
-                      ? 'border-red-300 focus:border-red-500' 
-                      : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${validationErrors[`certifications_${index}_issuer`]
+                    ? 'border-red-300 focus:border-red-500'
+                    : 'border-gray-300'
+                    }`}
                   placeholder="Amazon Web Services"
                 />
                 {validationErrors[`certifications_${index}_issuer`] && (
@@ -2770,7 +2756,7 @@ function ResumeForm() {
             Add Language
           </button>
         </div>
-        
+
         {formData.languages.map((lang, index) => (
           <div key={index} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-4 bg-white dark:bg-orange-50/50">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
@@ -2827,7 +2813,7 @@ function ResumeForm() {
 
   const validateCurrentStep = () => {
     const errors = {};
-    
+
     switch (currentStep) {
       case 1:
         if (!validators.required(formData.title)) {
@@ -2861,7 +2847,7 @@ function ResumeForm() {
             errors.phone = 'Phone number is required';
           }
         }
-        
+
         // Address is always editable and requires validation
         if (!validators.required(formData.personalInfo.address)) {
           errors.address = 'Address is required';
@@ -2876,29 +2862,29 @@ function ResumeForm() {
                 errors[`workExperience_${index}_jobTitle`] = 'Job title is required';
               }
               if (!validators.required(exp.company)) {
-              errors[`workExperience_${index}_company`] = 'Company name is required';
-            }
-            if (!validators.required(exp.startDate)) {
-              errors[`workExperience_${index}_startDate`] = 'Start date is required';
-            }
-            if (exp.startDate && exp.endDate && !exp.isCurrentJob) {
-              if (!validators.dateRange(exp.startDate, exp.endDate)) {
-                errors[`workExperience_${index}_dateRange`] = 'End date must be after start date';
+                errors[`workExperience_${index}_company`] = 'Company name is required';
+              }
+              if (!validators.required(exp.startDate)) {
+                errors[`workExperience_${index}_startDate`] = 'Start date is required';
+              }
+              if (exp.startDate && exp.endDate && !exp.isCurrentJob) {
+                if (!validators.dateRange(exp.startDate, exp.endDate)) {
+                  errors[`workExperience_${index}_dateRange`] = 'End date must be after start date';
+                }
               }
             }
+          });
+
+          // Check if at least one complete work experience is required for final submission
+          let hasValidWorkExperience = false;
+          formData.workExperience.forEach((exp) => {
+            if (exp.jobTitle && exp.company && exp.startDate) {
+              hasValidWorkExperience = true;
+            }
+          });
+          if (!hasValidWorkExperience) {
+            errors.workExperience = 'At least one work experience entry is required (Job Title, Company, and Start Date)';
           }
-        });
-        
-        // Check if at least one complete work experience is required for final submission
-        let hasValidWorkExperience = false;
-        formData.workExperience.forEach((exp) => {
-          if (exp.jobTitle && exp.company && exp.startDate) {
-            hasValidWorkExperience = true;
-          }
-        });
-        if (!hasValidWorkExperience) {
-          errors.workExperience = 'At least one work experience entry is required (Job Title, Company, and Start Date)';
-        }
         }
         break;
       case 4:
@@ -2921,7 +2907,7 @@ function ResumeForm() {
             }
           }
         });
-        
+
         // Check if at least one complete education is required for final submission
         let hasValidEducation = false;
         formData.education.forEach((edu) => {
@@ -2937,7 +2923,7 @@ function ResumeForm() {
         // Other steps are optional
         break;
     }
-    
+
     return {
       isValid: Object.keys(errors).length === 0,
       errors
@@ -2946,17 +2932,17 @@ function ResumeForm() {
 
   const isStepValid = () => {
     const validation = validateCurrentStep();
-    
+
     // For step 1, only check step-specific validation (title)
     if (currentStep === 1) {
       return validation.isValid;
     }
-    
+
     // For step 2 and later, check both step validation and profile data validation
     if (Object.keys(validationErrors).length > 0) {
       return false;
     }
-    
+
     return validation.isValid;
   };
 
@@ -2966,7 +2952,7 @@ function ResumeForm() {
 
   if (loading && isEditMode) {
     return (
-      <AuthLoader 
+      <AuthLoader
         title="Loading Resume Data..."
         subtitle="Please wait while we load your resume for editing."
       />
@@ -3002,7 +2988,7 @@ function ResumeForm() {
             {/* Modal Content */}
             <div className="flex-1 overflow-y-auto p-4">
               <div className="flex items-center justify-center h-[400px] max-h-[400px]">
-                <AILoader 
+                <AILoader
                   title="Processing your resume..."
                   subtitle="Our advanced AI is analyzing your resume structure, extracting key information, and preparing it for ATS optimization."
                   showProgress={true}
@@ -3012,7 +2998,7 @@ function ResumeForm() {
           </div>
         </div>
       )}
-      
+
       <div className="max-w-4xl mx-auto py-4 px-2 sm:py-6 sm:px-4 lg:py-8 lg:px-6">
         {/* Header */}
         <div className="text-center mb-6 sm:mb-8">
@@ -3085,7 +3071,7 @@ function ResumeForm() {
             <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200">{Math.round((currentStep / totalSteps) * 100)}% Complete</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
+            <div
               className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${(currentStep / totalSteps) * 100}%` }}
             ></div>
@@ -3109,7 +3095,7 @@ function ResumeForm() {
                 <div>
                   <h3 className="text-sm font-medium text-blue-900 mb-1">Required Fields</h3>
                   <p className="text-sm text-blue-700">
-                    Fields marked with <span className="text-red-500 font-semibold">*</span> are required to complete your resume. 
+                    Fields marked with <span className="text-red-500 font-semibold">*</span> are required to complete your resume.
                     You can save drafts at any time, but these fields must be filled before final submission.
                   </p>
                 </div>
@@ -3128,18 +3114,17 @@ function ResumeForm() {
               {Array.from({ length: totalSteps }, (_, i) => (
                 <div
                   key={i}
-                  className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-colors ${
-                    i + 1 === currentStep
-                      ? 'bg-blue-600'
-                      : i + 1 < currentStep
+                  className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-colors ${i + 1 === currentStep
+                    ? 'bg-blue-600'
+                    : i + 1 < currentStep
                       ? 'bg-green-500'
                       : 'bg-gray-300'
-                  }`}
+                    }`}
                 />
               ))}
             </div>
           </div>
-          
+
           {/* Navigation Buttons */}
           <div className="flex justify-between items-center gap-2 sm:gap-3 pt-4 sm:pt-6">
             <button
@@ -3166,11 +3151,10 @@ function ResumeForm() {
             <button
               onClick={nextStep}
               disabled={!isStepValid() || loading || uploadingResume}
-              className={`px-2 py-2 sm:px-6 sm:py-3 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-1 sm:gap-2 font-semibold text-sm sm:text-base min-w-0 flex-shrink-0 ${
-                !isStepValid() && Object.keys(validationErrors).length > 0
-                  ? 'bg-red-500 hover:bg-red-600'
-                  : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
-              }`}
+              className={`px-2 py-2 sm:px-6 sm:py-3 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-1 sm:gap-2 font-semibold text-sm sm:text-base min-w-0 flex-shrink-0 ${!isStepValid() && Object.keys(validationErrors).length > 0
+                ? 'bg-red-500 hover:bg-red-600'
+                : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
+                }`}
             >
               {currentStep === totalSteps ? (
                 loading ? (
@@ -3217,11 +3201,11 @@ function ResumeForm() {
                 <p className="text-sm text-red-600 dark:text-red-500">This action cannot be undone</p>
               </div>
             </div>
-            
+
             <p className="text-gray-700 mb-6">
               Are you sure you want to clear all form data? This will permanently delete all the information you've entered and reset the form to step 1.
             </p>
-            
+
             <div className="flex gap-3">
               <button
                 onClick={() => setShowClearModal(false)}

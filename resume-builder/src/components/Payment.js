@@ -1,22 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { 
-  CreditCardIcon, 
-  CurrencyDollarIcon, 
+import {
+  CurrencyDollarIcon,
   ArrowLeftIcon,
   SparklesIcon,
   BoltIcon,
-  ShieldCheckIcon
+  ShieldCheckIcon,
+  EnvelopeIcon,
+  // CreditCardIcon
 } from '@heroicons/react/24/outline';
 import AnimatedBackground from './AnimatedBackground';
-import { paymentAPI, apiHelpers } from '../services/api';
+// import { paymentAPI, apiHelpers } from '../services/api';
 
 const Payment = () => {
   const navigate = useNavigate();
   const [tokenAmount, setTokenAmount] = useState(5);
-  const [loading, setLoading] = useState(false);
-  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  // const [loading, setLoading] = useState(false);
+  // const [razorpayLoaded, setRazorpayLoaded] = useState(false);
 
   // Token packages
   const tokenPackages = [
@@ -31,13 +32,13 @@ const Payment = () => {
     // Load Razorpay script
     const loadRazorpay = () => {
       if (window.Razorpay) {
-        setRazorpayLoaded(true);
+        // setRazorpayLoaded(true);
         return;
       }
 
       const script = document.createElement('script');
       script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.onload = () => setRazorpayLoaded(true);
+      // script.onload = () => setRazorpayLoaded(true);
       script.onerror = () => toast.error('Failed to load payment gateway');
       document.body.appendChild(script);
     };
@@ -45,6 +46,7 @@ const Payment = () => {
     loadRazorpay();
   }, []);
 
+  /*
   const handleTokenPurchase = async () => {
     if (tokenAmount < 5 || tokenAmount % 5 !== 0) {
       toast.error('Token amount must be in multiples of 5');
@@ -113,7 +115,7 @@ const Payment = () => {
           }
         },
         handler: async (response) => {
-          try {            
+          try {
             // Complete payment and add tokens in one call
             const completeResponse = await paymentAPI.completeTokenPurchase({
               order_id: response.razorpay_order_id,
@@ -130,7 +132,7 @@ const Payment = () => {
             if (completeResponse.success) {
               toast.success('Payment successful!');
               toast.success(`${paymentData.tokens} tokens added to your account!`);
-              
+
               // Update token data with bonus tokens
               if (completeResponse.data?.tokens) {
                 const tokenData = {
@@ -151,7 +153,7 @@ const Payment = () => {
                   console.error('Failed to fetch updated token balance:', error);
                 }
               }
-              
+
               navigate('/dashboard');
             } else {
               throw new Error(completeResponse.data.message || 'Payment completion failed');
@@ -195,6 +197,7 @@ const Payment = () => {
       setLoading(false);
     }
   };
+  */
 
   const handleBack = () => {
     navigate('/dashboard');
@@ -203,13 +206,45 @@ const Payment = () => {
   return (
     <div className="min-h-screen relative">
       <AnimatedBackground />
-      <div className="relative z-10 container mx-auto px-4 pt-8 pb-8">
-        {/* Header */}
-        <div className="text-center pt-8 mb-12">
-          <div className="flex items-center justify-center pt-6 pb-6">
+
+      {/* Disclaimer Marquee - Full width, sticks right below header */}
+      <div className="relative z-20 pt-[64px]">
+        <div className="w-full overflow-hidden bg-yellow-500/10 border-b border-yellow-500/20 backdrop-blur-sm">
+          <style>{`
+            @keyframes marquee {
+              0% { transform: translateX(0); }
+              100% { transform: translateX(-50%); }
+            }
+            .animate-marquee-seamless {
+              display: inline-flex;
+              animation: marquee 40s linear infinite;
+            }
+            .animate-marquee-seamless:hover {
+              animation-play-state: paused;
+            }
+          `}</style>
+          <div className="py-2.5 flex overflow-hidden">
+            <div className="animate-marquee-seamless whitespace-nowrap">
+              <span className="text-yellow-600 dark:text-yellow-400 font-medium text-base px-4">
+                It is still on development phase, to procure more tokens write a feedback, finding out an issue you have faced or require enhancement, our team will look into your feedback if valid will fix it and grant you with tokens, Generally if accepted tokens received within 24 hours.
+              </span>
+              <span className="text-yellow-600 dark:text-yellow-400 font-medium text-base px-4">
+                It is still on development phase, to procure more tokens write a feedback, finding out an issue you have faced or require enhancement, our team will look into your feedback if valid will fix it and grant you with tokens, Generally if accepted tokens received within 24 hours.
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Container */}
+      <div className="relative z-10 container mx-auto px-4 pt-6 pb-8">
+
+        {/* Header Section */}
+        <div className="text-center mb-12">
+          <div className="flex items-center justify-center relative pt-2 pb-6">
             <button
               onClick={handleBack}
-              className="absolute left-6 flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:text-gray-300 hover:dark:text-white transition-colors font-medium group"
+              className="absolute left-0 flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:text-gray-300 hover:dark:text-white transition-colors font-medium group"
             >
               <ArrowLeftIcon className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" />
               <span>Back</span>
@@ -234,59 +269,73 @@ const Payment = () => {
             </p>
           </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {tokenPackages.map((pkg, index) => (
-                <div
-                  key={index}
-                  className={`bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer border-2 ${
-                    tokenAmount === pkg.amount
-                      ? 'border-blue-500 ring-2 ring-blue-200'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {tokenPackages.map((pkg, index) => (
+              <div
+                key={index}
+                className={`bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer border-2 ${tokenAmount === pkg.amount
+                  ? 'border-blue-500 ring-2 ring-blue-200'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'
                   }`}
-                  onClick={() => setTokenAmount(pkg.amount)}
-                >
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <CurrencyDollarIcon className="w-8 h-8 text-white" />
+                onClick={() => setTokenAmount(pkg.amount)}
+              >
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CurrencyDollarIcon className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                    {pkg.amount} Tokens
+                  </h3>
+                  <div className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                    ₹{pkg.price}
+                  </div>
+                  {pkg.bonus > 0 && (
+                    <div className="text-green-600 font-medium mb-4">
+                      +{pkg.bonus} Bonus Tokens
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                      {pkg.amount} Tokens
-                    </h3>
-                    <div className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                      ₹{pkg.price}
-                    </div>
-                    {pkg.bonus > 0 && (
-                      <div className="text-green-600 font-medium mb-4">
-                        +{pkg.bonus} Bonus Tokens
-                      </div>
-                    )}
-                    <div className="text-gray-600 dark:text-gray-300 text-sm">
-                      ₹{Math.round(pkg.price / (pkg.amount + pkg.bonus))} per token
-                    </div>
+                  )}
+                  <div className="text-gray-600 dark:text-gray-300 text-sm">
+                    ₹{Math.round(pkg.price / (pkg.amount + pkg.bonus))} per token
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
+          </div>
 
-            <div className="text-center">
-              <button
-                onClick={handleTokenPurchase}
-                disabled={loading}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2 mx-auto"
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <CreditCardIcon className="w-5 h-5" />
-                    Pay ₹{tokenPackages.find(pkg => pkg.amount === tokenAmount)?.price || 0}
-                  </>
-                )}
-              </button>
-            </div>
+          <div className="text-center">
+            {/* Pay Now Button - Commented out for development phase */}
+            {/* 
+            <button
+              onClick={handleTokenPurchase}
+              disabled={loading}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2 mx-auto"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <CreditCardIcon className="w-5 h-5" />
+                  Pay ₹{tokenPackages.find(pkg => pkg.amount === tokenAmount)?.price || 0}
+                </>
+              )}
+            </button>
+            */}
+
+            {/* Contact Us Button */}
+            <button
+              onClick={() => navigate('/contact-us')}
+              className="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2 mx-auto"
+            >
+              <EnvelopeIcon className="w-6 h-6" />
+              Contact Us to Earn Tokens
+            </button>
+            <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+              Payment system is currently under maintenance. Please use contact us to request tokens.
+            </p>
+          </div>
         </div>
 
         {/* Features Section */}
