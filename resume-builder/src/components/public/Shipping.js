@@ -1,7 +1,16 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRouteScrollToTop } from '../../hooks/useAutoScroll';
-import { ArrowLeftIcon, ClockIcon, CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import {
+  ArrowLeftIcon,
+  ClockIcon,
+  CheckCircleIcon,
+  CloudArrowUpIcon,
+  ShieldCheckIcon,
+  BoltIcon,
+  EnvelopeIcon
+} from '@heroicons/react/24/outline';
+import AnimatedBackground from '../AnimatedBackground';
 
 const Shipping = () => {
   const navigate = useNavigate();
@@ -11,242 +20,118 @@ const Shipping = () => {
     navigate('/');
   };
 
+  const features = [
+    {
+      icon: <BoltIcon className="w-6 h-6 text-indigo-600" />,
+      title: "Instant Access",
+      description: "Get immediate access to all resume templates and tools upon registration. No waiting, no shipping."
+    },
+    {
+      icon: <CloudArrowUpIcon className="w-6 h-6 text-indigo-600" />,
+      title: "Cloud Storage",
+      description: "Your resumes are securely stored in the cloud, accessible from any device, anywhere in the world."
+    },
+    {
+      icon: <ShieldCheckIcon className="w-6 h-6 text-indigo-600" />,
+      title: "Secure Delivery",
+      description: "Digital exports (PDF) are generated instantly and delivered directly to your device."
+    }
+  ];
+
   return (
-    <div className="min-h-screen pt-16">
-      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex items-center mb-8">
+    <div className="min-h-screen relative overflow-hidden bg-slate-50 dark:bg-gray-900">
+      <AnimatedBackground />
+
+      <div className="relative z-10 pt-24 pb-16 px-4">
+        <div className="max-w-3xl mx-auto">
+          {/* Back Button */}
           <button
             onClick={handleBack}
-            className="mr-4 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors group"
+            className="flex items-center text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors mb-8 group"
           >
-            <ArrowLeftIcon className="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:-translate-x-1 transition-transform" />
+            <ArrowLeftIcon className="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" />
+            Back to Home
           </button>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Shipping Information</h1>
-        </div>
 
-        {/* Content */}
-        <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-8">
-          <div className="prose prose-lg dark:prose-invert max-w-none">
-          
-          {/* Digital Service Notice */}
-          <section className="mb-12">
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-6 mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-4 flex items-center gap-3">
-                <CheckCircleIcon className="w-8 h-8 text-blue-500" />
-                Digital Service - No Physical Shipping
-              </h2>
-              <p className="text-gray-600 mb-4">
-                Resume Builder is a digital service that provides online resume building tools and templates. 
-                We do not ship physical products. All our services are delivered digitally through our web platform.
-              </p>
-              <p className="text-gray-600">
-                Your resumes, templates, and all related content are accessible immediately upon account creation. 
-                AI-powered features are available through our token-based system for enhanced resume building.
-              </p>
-            </div>
-          </section>
+          {/* Hero Section */}
+          <div className="text-center mb-16">
+            <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white mb-4 tracking-tight">
+              Digital Delivery & Service
+            </h1>
+            <p className="text-lg text-slate-600 dark:text-gray-400 max-w-2xl mx-auto">
+              Resume Builder is a 100% digital platform. We provide instant access to professional tools without the need for physical shipping.
+            </p>
+          </div>
 
-          {/* Service Delivery */}
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6 flex items-center gap-3">
-              <ClockIcon className="w-8 h-8 text-green-500" />
-              Service Delivery Timeline
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-green-50 dark:bg-green-900/20 rounded-2xl p-6">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4">Free Access</h3>
-                <ul className="space-y-2 text-gray-600 dark:text-gray-600">
-                  <li className="flex items-start gap-2">
-                    <CheckCircleIcon className="w-5 h-5 text-green-500 dark:text-green-600 mt-0.5 flex-shrink-0" />
-                    <span>Immediate access upon registration</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircleIcon className="w-5 h-5 text-green-500 dark:text-green-600 mt-0.5 flex-shrink-0" />
-                    <span>20 free AI tokens to get started</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircleIcon className="w-5 h-5 text-green-500 dark:text-green-600 mt-0.5 flex-shrink-0" />
-                    <span>All resume templates available</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircleIcon className="w-5 h-5 text-green-500 dark:text-green-600 mt-0.5 flex-shrink-0" />
-                    <span>PDF export functionality</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-6">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4">Token System</h3>
-                <ul className="space-y-2 text-gray-600 dark:text-gray-600">
-                  <li className="flex items-start gap-2">
-                    <CheckCircleIcon className="w-5 h-5 text-blue-500 dark:text-blue-600 mt-0.5 flex-shrink-0" />
-                    <span>Instant token delivery after purchase</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircleIcon className="w-5 h-5 text-blue-500 dark:text-blue-600 mt-0.5 flex-shrink-0" />
-                    <span>AI-powered resume optimization</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircleIcon className="w-5 h-5 text-blue-500 dark:text-blue-600 mt-0.5 flex-shrink-0" />
-                    <span>ATS compatibility analysis</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircleIcon className="w-5 h-5 text-blue-500 dark:text-blue-600 mt-0.5 flex-shrink-0" />
-                    <span>Smart content suggestions</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          {/* Digital Downloads */}
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
-              Digital Downloads & Exports
-            </h2>              
-              <div className="mt-6 p-4 bg-blue-50 rounded-xl">
-                <h4 className="font-semibold text-gray-900 mb-2">Download Process</h4>
-                <ol className="space-y-2 text-gray-600 ml-4">
-                  <li>1. Complete your resume using our builder</li>
-                  <li>2. Click the "Download" or "Export" button</li>
-                  <li>3. File downloads immediately to your device</li>
-                </ol>
-              </div>
-          </section>
-
-          {/* Cloud Storage */}
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
-              Cloud Storage & Access
-            </h2>
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-400 mb-4">Your Data is Safe</h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-4">
-                All your resume data is securely stored in our cloud infrastructure. You can access your resumes from any device, anywhere, at any time.
-              </p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-400 mb-3">Storage Features</h4>
-                  <ul className="space-y-2 text-gray-600 dark:text-gray-300">
-                    <li className="flex items-start gap-2">
-                      <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span>Unlimited resume storage</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span>Automatic backups</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span>Version history</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span>Cross-device synchronization</span>
-                    </li>
-                  </ul>
+          {/* Features Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            {features.map((feature, index) => (
+              <div key={index} className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-gray-700">
+                <div className="bg-indigo-50 dark:bg-indigo-900/30 w-12 h-12 rounded-xl flex items-center justify-center mb-4">
+                  {feature.icon}
                 </div>
-                
-                <div>
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-400 mb-3">Security Measures</h4>
-                  <ul className="space-y-2 text-gray-600 dark:text-gray-300">
-                    <li className="flex items-start gap-2">
-                      <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span>End-to-end encryption</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span>Secure data centers</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span>Regular security audits</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span>GDPR compliance</span>
-                    </li>
-                  </ul>
-                </div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{feature.title}</h3>
+                <p className="text-sm text-slate-600 dark:text-gray-400 leading-relaxed">
+                  {feature.description}
+                </p>
               </div>
-            </div>
-          </section>
+            ))}
+          </div>
 
-          {/* Service Availability */}
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6 flex items-center gap-3">
-              <ExclamationTriangleIcon className="w-8 h-8 text-yellow-500" />
-              Service Availability
-            </h2>
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4">Uptime Commitment</h3>
-              <p className="text-gray-600 dark:text-gray-600 mb-4">
-                We strive to maintain 99.9% uptime for our service. However, we cannot guarantee uninterrupted access due to:
-              </p>
-              <ul className="space-y-2 text-gray-600 dark:text-gray-600 ml-4">
-                <li>• Scheduled maintenance windows</li>
-                <li>• Technical issues beyond our control</li>
-                <li>• Internet connectivity problems</li>
-                <li>• Third-party service dependencies</li>
-              </ul>
-              
-              <div className="mt-6 p-4 bg-white dark:bg-gray-800 rounded-xl">
-                <h4 className="font-semibold text-gray-900 dark:text-gray-600 mb-2">Maintenance Notices</h4>
-                <p className="text-gray-600 dark:text-gray-300">
-                  We will provide advance notice of scheduled maintenance through email notifications and in-app announcements.
+          {/* Detailed Info Card */}
+          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-gray-700 overflow-hidden">
+            <div className="p-8 sm:p-12">
+              <section className="mb-12">
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center">
+                  <ClockIcon className="w-6 h-6 mr-3 text-indigo-600" />
+                  Service Timeline
+                </h2>
+                <div className="space-y-6">
+                  <div className="flex items-start">
+                    <div className="mt-1 bg-green-100 dark:bg-green-900/30 p-1 rounded-full mr-4">
+                      <CheckCircleIcon className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-slate-900 dark:text-white">Free & Pro Access</h4>
+                      <p className="text-slate-600 dark:text-gray-400 text-sm">Immediate activation upon account creation or upgrade.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start">
+                    <div className="mt-1 bg-green-100 dark:bg-green-900/30 p-1 rounded-full mr-4">
+                      <CheckCircleIcon className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-slate-900 dark:text-white">Token Purchases</h4>
+                      <p className="text-slate-600 dark:text-gray-400 text-sm">AI tokens are credited to your account instantly after successful payment.</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section className="mb-12">
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Availability & Support</h2>
+                <div className="bg-slate-50/50 dark:bg-gray-700/50 rounded-2xl p-6 border border-slate-100 dark:border-gray-600">
+                  <p className="text-slate-600 dark:text-gray-300 text-sm mb-6 leading-relaxed">
+                    Our services are available 24/7 globally. While we strive for 99.9% uptime, occasional maintenance may occur. We'll always notify you in advance.
+                  </p>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-slate-200 dark:border-gray-600">
+                    <div className="flex items-center text-slate-700 dark:text-gray-200">
+                      <EnvelopeIcon className="w-5 h-5 mr-3 text-indigo-600" />
+                      <span className="font-medium">pranaydaspr@gmail.com</span>
+                    </div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-gray-500">
+                      Response within 24 hours
+                    </span>
+                  </div>
+                </div>
+              </section>
+
+              <div className="text-center">
+                <p className="text-xs text-slate-400 dark:text-gray-500">
+                  Last updated: December 2025 • Resume Builder Digital Services
                 </p>
               </div>
             </div>
-          </section>
-
-          {/* Token Purchase Information */}
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
-              Token Purchase & Delivery
-            </h2>
-            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-2xl p-6 mb-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4">How Token Purchase Works</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-white dark:bg-gray-700 rounded-xl">
-                  <div className="text-2xl mb-2">💳</div>
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-300 mb-2">Secure Payment</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">Pay with Razorpay using cards, UPI, or net banking</p>
-                </div>
-                <div className="text-center p-4 bg-white dark:bg-gray-700 rounded-xl">
-                  <div className="text-2xl mb-2">⚡</div>
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-300 mb-2">Instant Delivery</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">Tokens are added to your account immediately</p>
-                </div>
-                <div className="text-center p-4 bg-white dark:bg-gray-700 rounded-xl">
-                  <div className="text-2xl mb-2">🎯</div>
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-300 mb-2">Use Anytime</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">Tokens never expire and can be used for AI features</p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Support & Contact */}
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
-              Support & Contact
-            </h2>
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-6">
-              <p className="text-gray-600 dark:text-gray-600 mb-4">
-                If you experience any issues with service delivery, token purchases, or have questions about accessing your account, please contact me:
-              </p>
-              <div className="space-y-2 text-gray-600 dark:text-gray-600">
-                <p><strong>Email Support:</strong> pranaydaspr@gmail.com</p>
-                <p><strong>Response Time:</strong> Within 24 hours</p>
-                <p><strong>Business Hours:</strong> Monday - Friday, 9 AM - 6 PM IST</p>
-                <p><strong>Token Support:</strong> Help with token purchases and usage</p>
-              </div>
-            </div>
-          </section>
-
           </div>
         </div>
       </div>
