@@ -262,9 +262,17 @@ const HomePage = () => {
                       "{testimonial.message}"
                     </p>
                     <div className="flex items-center gap-4 mt-auto">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
-                        {testimonial.name.charAt(0)}
-                      </div>
+                      {testimonial.profileImage ? (
+                        <img
+                          src={testimonial.profileImage}
+                          alt={testimonial.name}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
+                          {testimonial.name.charAt(0)}
+                        </div>
+                      )}
                       <div>
                         <h4 className="font-semibold text-gray-900 dark:text-white">{testimonial.name}</h4>
                         <p className="text-sm text-gray-500 dark:text-gray-400">Verified User</p>

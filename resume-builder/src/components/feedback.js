@@ -1,21 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { feedbackAPI, apiHelpers } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import { useRouteScrollToTop } from '../hooks/useAutoScroll';
 import { toast } from 'react-toastify';
-import { 
-  ChevronLeftIcon, 
-  EnvelopeIcon, 
+import {
+  ChevronLeftIcon,
+  EnvelopeIcon,
   ClockIcon,
-  InformationCircleIcon 
+  InformationCircleIcon,
+  UserIcon
 } from '@heroicons/react/24/outline';
 
 function Feedback() {
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
   useRouteScrollToTop();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      toast.warning('Please login to submit feedback');
+      navigate('/login');
+    }
+  }, [isAuthenticated, navigate]);
   const [feedback, setFeedback] = useState({
-    name: '',
-    email: '',
     subject: '',
     message: '',
     rating: 5
@@ -32,25 +41,23 @@ function Feedback() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
-      // Submit feedback to API (public, no auth required)
-      const response = await feedbackAPI.submitFeedbackPublic(feedback);
-      
+      // Submit feedback to API (protected, user must be authenticated)
+      const response = await feedbackAPI.submitFeedback(feedback);
+
       console.log('Feedback submitted successfully:', response);
-      
+
       // Reset form
       setFeedback({
-        name: '',
-        email: '',
         subject: '',
         message: '',
         rating: 5
       });
-      
+
       // Show success message
       toast.success('Thank you for your feedback! We appreciate your input.');
-      
+
     } catch (error) {
       console.error('Error submitting feedback:', error);
       const errorMessage = apiHelpers.formatError(error);
@@ -87,17 +94,17 @@ function Feedback() {
             {/* Background decoration */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-100/30 to-purple-100/30 rounded-full -translate-y-16 translate-x-16"></div>
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-green-100/30 to-blue-100/30 rounded-full translate-y-12 -translate-x-12"></div>
-            
+
             <div className="relative z-10">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-8 flex items-center">
                 <div className="w-8 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mr-3"></div>
                 Get in Touch
               </h2>
               <p className="text-gray-600 mb-8 leading-relaxed">
-                Have questions or suggestions about Resume Builder? I'd love to hear from you. As a solo developer, 
+                Have questions or suggestions about Resume Builder? I'd love to hear from you. As a solo developer,
                 your feedback is incredibly valuable for improving the application.
               </p>
-              
+
               <div className="space-y-6">
                 <div className="group p-4 rounded-xl bg-gradient-to-r from-blue-50/50 to-blue-100/30 border border-blue-200/30 hover:from-blue-100/70 hover:to-blue-200/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
                   <div className="flex items-center gap-4">
@@ -111,7 +118,7 @@ function Feedback() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="group p-4 rounded-xl bg-gradient-to-r from-green-50/50 to-green-100/30 border border-green-200/30 hover:from-green-100/70 hover:to-green-200/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
@@ -125,7 +132,7 @@ function Feedback() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Additional info section */}
               <div className="mt-8 p-4 bg-gradient-to-r from-gray-50/50 to-gray-100/30 rounded-xl border border-gray-200/30">
                 <div className="flex items-center gap-3 mb-2">
@@ -135,7 +142,7 @@ function Feedback() {
                   <p className="font-semibold text-gray-900">Response Time</p>
                 </div>
                 <p className="text-sm text-gray-600 leading-relaxed">
-                  I typically respond to all inquiries within 24 hours during business days. Your feedback helps me improve 
+                  I typically respond to all inquiries within 24 hours during business days. Your feedback helps me improve
                   Resume Builder and add features that matter to you.
                 </p>
               </div>
@@ -145,29 +152,22 @@ function Feedback() {
           {/* Feedback Form */}
           <div className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 p-8">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Share Your Feedback</h2>
+
+            {/* User Info Display */}
+            <div className="mb-6 p-4 bg-gradient-to-r from-indigo-50/50 to-indigo-100/30 rounded-lg border border-indigo-200/30">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center">
+                  <UserIcon className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-700">Submitting as:</p>
+                  <p className="font-semibold text-gray-900 dark:text-gray-800">{user?.firstName} {user?.lastName}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-700">{user?.email}</p>
+                </div>
+              </div>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-900 mb-2">Name</label>
-                <input
-                  type="text"
-                  value={feedback.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-900 mb-2">Email</label>
-                <input
-                  type="email"
-                  value={feedback.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900"
-                  required
-                />
-              </div>
-              
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-900 mb-2">Subject</label>
                 <input
@@ -178,7 +178,7 @@ function Feedback() {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-900 mb-2">Rating</label>
                 <div className="flex items-center gap-2">
@@ -187,9 +187,8 @@ function Feedback() {
                       key={star}
                       type="button"
                       onClick={() => handleInputChange('rating', star)}
-                      className={`text-3xl transition-all duration-200 hover:scale-110 ${
-                        star <= feedback.rating ? 'text-yellow-400' : 'text-gray-300'
-                      }`}
+                      className={`text-3xl transition-all duration-200 hover:scale-110 ${star <= feedback.rating ? 'text-yellow-400' : 'text-gray-300'
+                        }`}
                     >
                       ★
                     </button>
@@ -197,7 +196,7 @@ function Feedback() {
                   <span className="text-sm text-gray-600 ml-3 font-medium">{feedback.rating}/5</span>
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-900 mb-2">Message</label>
                 <textarea
@@ -209,15 +208,14 @@ function Feedback() {
                   required
                 />
               </div>
-              
+
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className={`w-full py-4 px-6 rounded-lg text-white font-semibold transition-all duration-200 shadow-lg hover:shadow-xl ${
-                  isSubmitting
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transform hover:scale-105'
-                }`}
+                className={`w-full py-4 px-6 rounded-lg text-white font-semibold transition-all duration-200 shadow-lg hover:shadow-xl ${isSubmitting
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transform hover:scale-105'
+                  }`}
               >
                 {isSubmitting ? 'Sending...' : 'Share Feedback'}
               </button>

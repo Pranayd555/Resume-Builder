@@ -50,7 +50,7 @@ router.get('/home-stats', async (req, res) => {
         })
             .sort({ createdAt: -1 })
             .limit(20)
-            .select('name message rating createdAt');
+            .select('name message rating createdAt profileImage');
 
         res.json({
             success: true,

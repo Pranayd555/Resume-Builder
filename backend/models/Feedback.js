@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 
 const feedbackSchema = new mongoose.Schema({
   // User Information
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: [true, 'User ID is required']
+  },
   name: {
     type: String,
     required: [true, 'Name is required'],
@@ -15,7 +20,11 @@ const feedbackSchema = new mongoose.Schema({
     lowercase: true,
     match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email']
   },
-  
+  profileImage: {
+    type: String,
+    default: ''
+  },
+
   // Feedback Content
   subject: {
     type: String,
@@ -29,7 +38,7 @@ const feedbackSchema = new mongoose.Schema({
     trim: true,
     maxlength: [2000, 'Message cannot exceed 2000 characters']
   },
-  
+
   // Rating
   rating: {
     type: Number,
@@ -37,7 +46,7 @@ const feedbackSchema = new mongoose.Schema({
     min: [1, 'Rating must be at least 1'],
     max: [5, 'Rating cannot exceed 5']
   },
-  
+
   // Additional Information
   userAgent: {
     type: String,
@@ -47,7 +56,7 @@ const feedbackSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
-  
+
   // Status and Management
   status: {
     type: String,
@@ -63,7 +72,7 @@ const feedbackSchema = new mongoose.Schema({
     default: '',
     maxlength: [1000, 'Admin notes cannot exceed 1000 characters']
   },
-  
+
   // Response Information
   respondedBy: {
     type: mongoose.Schema.Types.ObjectId,
@@ -90,19 +99,20 @@ feedbackSchema.index({ createdAt: -1 });
 feedbackSchema.index({ status: 1 });
 feedbackSchema.index({ rating: 1 });
 feedbackSchema.index({ email: 1 });
+feedbackSchema.index({ user: 1 });
 
 // Virtual for feedback age
-feedbackSchema.virtual('age').get(function() {
+feedbackSchema.virtual('age').get(function () {
   return Date.now() - this.createdAt.getTime();
 });
 
 // Virtual for formatted rating
-feedbackSchema.virtual('formattedRating').get(function() {
+feedbackSchema.virtual('formattedRating').get(function () {
   return '★'.repeat(this.rating) + '☆'.repeat(5 - this.rating);
 });
 
 // Static method to get feedback stats
-feedbackSchema.statics.getStats = async function() {
+feedbackSchema.statics.getStats = async function () {
   const stats = await this.aggregate([
     {
       $group: {
@@ -123,7 +133,7 @@ feedbackSchema.statics.getStats = async function() {
       }
     }
   ]);
-  
+
   if (stats.length > 0) {
     // Calculate rating distribution
     const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
@@ -132,7 +142,7 @@ feedbackSchema.statics.getStats = async function() {
     });
     stats[0].ratingDistribution = distribution;
   }
-  
+
   return stats.length > 0 ? stats[0] : {
     totalFeedback: 0,
     averageRating: 0,
@@ -141,7 +151,7 @@ feedbackSchema.statics.getStats = async function() {
 };
 
 // Instance method to mark as reviewed
-feedbackSchema.methods.markAsReviewed = function(adminUser) {
+feedbackSchema.methods.markAsReviewed = function (adminUser) {
   this.status = 'reviewed';
   this.respondedBy = adminUser._id;
   this.respondedAt = new Date();
@@ -149,7 +159,7 @@ feedbackSchema.methods.markAsReviewed = function(adminUser) {
 };
 
 // Instance method to add response
-feedbackSchema.methods.addResponse = function(response, adminUser) {
+feedbackSchema.methods.addResponse = function (response, adminUser) {
   this.response = response;
   this.status = 'responded';
   this.respondedBy = adminUser._id;
@@ -157,4 +167,4 @@ feedbackSchema.methods.addResponse = function(response, adminUser) {
   return this.save();
 };
 
-module.exports = mongoose.model('Feedback', feedbackSchema); 
+module.exports = mongoose.model('Feedback', feedbackSchema);

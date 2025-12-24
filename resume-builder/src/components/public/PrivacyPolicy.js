@@ -1,184 +1,215 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useRouteScrollToTop } from '../../hooks/useAutoScroll';
+import {
+  ArrowLeftIcon,
+  ShieldCheckIcon,
+  UserCircleIcon,
+  ShareIcon,
+  LockClosedIcon,
+  FingerPrintIcon,
+  CpuChipIcon,
+  FaceSmileIcon,
+  EnvelopeIcon,
+  EyeIcon
+} from '@heroicons/react/24/outline';
+import AnimatedBackground from '../AnimatedBackground';
 
-function PrivacyPolicy() {
+const PrivacyPolicy = () => {
   const navigate = useNavigate();
   useRouteScrollToTop();
 
   const handleBack = () => {
-    navigate('/dashboard');
+    navigate('/');
   };
 
+  const sections = [
+    {
+      id: 1,
+      title: "Information We Collect",
+      icon: UserCircleIcon,
+      color: "text-blue-500",
+      bg: "bg-blue-50/50 dark:bg-blue-900/10",
+      content: "We collect information you provide directly to us when you create an account, build resumes, or contact support. This includes personal details, resume content, and payment information processed securely through Razorpay.",
+      list: [
+        "Name, email, and contact details",
+        "Resume content and personal info",
+        "Account settings and preferences",
+        "Token purchase and usage history",
+        "AI feature usage patterns"
+      ]
+    },
+    {
+      id: 2,
+      title: "How We Use Your Information",
+      icon: EyeIcon,
+      color: "text-indigo-500",
+      bg: "bg-indigo-50/50 dark:bg-indigo-900/10",
+      content: "Your data is used to provide and improve our services, process transactions, and deliver AI-powered features. We analyze usage patterns to enhance our AI models and ensure a seamless user experience.",
+      list: [
+        "Provide and maintain services",
+        "Process resume creation/editing",
+        "Deliver AI-powered features",
+        "Manage accounts and tokens",
+        "Technical support and updates"
+      ]
+    },
+    {
+      id: 3,
+      title: "Information Sharing",
+      icon: ShareIcon,
+      color: "text-emerald-500",
+      bg: "bg-emerald-50/50 dark:bg-emerald-900/10",
+      content: "We do not sell your personal information. Sharing only occurs with your consent or with trusted partners like Razorpay for payments and AI providers for feature delivery (using anonymized data)."
+    },
+    {
+      id: 4,
+      title: "Data Security",
+      icon: LockClosedIcon,
+      color: "text-rose-500",
+      bg: "bg-rose-50/50 dark:bg-rose-900/10",
+      content: "We implement industry-standard security measures, including end-to-end encryption and secure cloud storage, to protect your data against unauthorized access or disclosure.",
+      list: [
+        "End-to-end data encryption",
+        "Secure Razorpay integration",
+        "Regular security audits",
+        "Strict access controls"
+      ]
+    },
+    {
+      id: 5,
+      title: "Your Rights",
+      icon: FingerPrintIcon,
+      color: "text-amber-500",
+      bg: "bg-amber-50/50 dark:bg-amber-900/10",
+      content: "You have full control over your data. You can access, update, or delete your information at any time. You also have the right to opt-out of marketing and request a copy of your data.",
+      list: [
+        "Access and update personal info",
+        "Delete account and data",
+        "Opt-out of communications",
+        "Request data portability"
+      ]
+    },
+    {
+      id: 6,
+      title: "AI & Token Processing",
+      icon: CpuChipIcon,
+      color: "text-cyan-500",
+      bg: "bg-cyan-50/50 dark:bg-cyan-900/10",
+      content: "When using AI features, your resume data is processed securely to provide suggestions and ATS analysis. We do not use your personal data to train public AI models."
+    },
+    {
+      id: 7,
+      title: "Cookies & Tracking",
+      icon: ShieldCheckIcon,
+      color: "text-purple-500",
+      bg: "bg-purple-50/50 dark:bg-purple-900/10",
+      content: "We use cookies to enhance your experience and analyze site traffic. You can manage your cookie preferences through your browser settings at any time."
+    },
+    {
+      id: 8,
+      title: "Children's Privacy",
+      icon: FaceSmileIcon,
+      color: "text-teal-500",
+      bg: "bg-teal-50/50 dark:bg-teal-900/10",
+      content: "Our services are not intended for children under 13. We do not knowingly collect information from children. If we discover such data, we will delete it immediately."
+    }
+  ];
+
   return (
-    <div className="min-h-screen pt-16">
-      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex items-center mb-8">
-          <button
-            onClick={handleBack}
-            className="mr-4 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors group"
-          >
-            <svg className="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Privacy Policy</h1>
+    <div className="relative min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
+      <AnimatedBackground />
+
+      <main className="relative z-10 max-w-4xl mx-auto pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+        {/* Back Button */}
+        <button
+          onClick={handleBack}
+          className="flex items-center text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors mb-8 group"
+        >
+          <ArrowLeftIcon className="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" />
+          Back to Home
+        </button>
+
+        {/* Hero Section */}
+        <div className="text-center mb-16">
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white mb-4 tracking-tight">
+            Privacy <span className="text-indigo-600 dark:text-indigo-400">Policy</span>
+          </h1>
+          <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+            Your privacy is our priority. This policy explains how we collect, use, and protect your personal information when you use Resume Builder.
+          </p>
         </div>
 
-        {/* Content */}
-        <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-8">
-          <div className="prose max-w-none">
-            <p className="text-sm text-gray-600 mb-8">
-              Last updated: {new Date().toLocaleDateString()}
-            </p>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-4">1. Information We Collect</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
-                We collect information you provide directly to us, such as when you create an account, 
-                create or edit a resume, purchase tokens, or contact us for support. This may include:
-              </p>
-              <ul className="list-disc pl-6 text-gray-600 dark:text-gray-400 space-y-2">
-                <li>Name, email address, and contact information</li>
-                <li>Resume content and personal information you include</li>
-                <li>Account preferences and settings</li>
-                <li>Token purchase and usage history</li>
-                <li>AI feature usage patterns and preferences</li>
-                <li>Payment information (processed securely through Razorpay)</li>
-                <li>Communication history with our support team</li>
-              </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-4">2. How We Use Your Information</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
-                We use the information we collect to:
-              </p>
-              <ul className="list-disc pl-6 text-gray-600 dark:text-gray-400 space-y-2">
-                <li>Provide, maintain, and improve our services</li>
-                <li>Process your resume creation and editing requests</li>
-                <li>Deliver AI-powered features and token-based services</li>
-                <li>Process token purchases and manage your account balance</li>
-                <li>Send you technical notices and support messages</li>
-                <li>Respond to your comments and questions</li>
-                <li>Analyze usage patterns to improve AI features</li>
-                <li>Protect against fraudulent or illegal activity</li>
-                <li>Comply with legal obligations and enforce our terms</li>
-              </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-4">3. Information Sharing</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
-                We do not sell, trade, or otherwise transfer your personal information to third parties 
-                without your consent, except in the following circumstances:
-              </p>
-              <ul className="list-disc pl-6 text-gray-600 dark:text-gray-400 space-y-2">
-                <li>With your explicit permission</li>
-                <li>With payment processors (Razorpay) for transaction processing</li>
-                <li>With AI service providers for feature delivery (anonymized data only)</li>
-                <li>To comply with legal obligations</li>
-                <li>To protect our rights and safety</li>
-                <li>In connection with a business transfer or merger</li>
-              </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-4">4. Data Security</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
-                We implement appropriate security measures to protect your personal information against 
-                unauthorized access, alteration, disclosure, or destruction. Our security measures include:
-              </p>
-              <ul className="list-disc pl-6 text-gray-600 dark:text-gray-400 space-y-2">
-                <li>End-to-end encryption for all data transmission</li>
-                <li>Secure payment processing through Razorpay</li>
-                <li>Regular security audits and updates</li>
-                <li>Access controls and authentication protocols</li>
-                <li>Secure cloud storage with industry-standard encryption</li>
-              </ul>
-              <p className="text-gray-600 dark:text-gray-400 mt-4 leading-relaxed">
-                However, no method of transmission over the internet is 100% secure, and we cannot guarantee absolute security.
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-4">5. Your Rights</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
-                You have the right to:
-              </p>
-              <ul className="list-disc pl-6 text-gray-600 dark:text-gray-400 space-y-2">
-                <li>Access and update your personal information</li>
-                <li>View your token balance and usage history</li>
-                <li>Delete your account and associated data</li>
-                <li>Opt out of marketing communications</li>
-                <li>Request a copy of your data (including resume data)</li>
-                <li>Withdraw consent for data processing</li>
-                <li>Request data portability</li>
-                <li>Lodge a complaint with supervisory authorities</li>
-              </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-4">6. AI and Token Data Processing</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
-                When you use our AI-powered features, we process your resume data to provide:
-              </p>
-              <ul className="list-disc pl-6 text-gray-600 dark:text-gray-400 space-y-2">
-                <li>Content suggestions and improvements</li>
-                <li>ATS compatibility analysis</li>
-                <li>Resume optimization recommendations</li>
-                <li>Formatting and structure enhancements</li>
-              </ul>
-              <p className="text-gray-600 dark:text-gray-400 mt-4 leading-relaxed">
-                Your resume data is processed securely and is not used to train AI models or shared with third parties. 
-                Token usage is tracked for billing purposes and service improvement.
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-4">7. Cookies and Tracking</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
-                We use cookies and similar tracking technologies to enhance your experience, 
-                analyze usage patterns, and provide personalized content. You can control 
-                cookie settings through your browser preferences.
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-4">8. Children's Privacy</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
-                Our services are not intended for children under 13 years of age. We do not 
-                knowingly collect personal information from children under 13.
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-4">9. Changes to This Policy</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
-                We may update this privacy policy from time to time. We will notify you of 
-                any changes by posting the new policy on this page and updating the "Last updated" date.
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-700 mb-4">10. Contact Us</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
-                If you have any questions about this privacy policy, please contact us at:
-              </p>
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-50/50 dark:to-purple-50/50 p-6 rounded-xl border border-blue-100 dark:border-blue-100/50">
-                <p className="text-gray-600 dark:text-gray-400">
-                  <strong>Email:</strong> privacy@resumebuilder.com<br />
-                  <strong>Address:</strong> 123 Resume Street, Tech City, TC 12345<br />
-                  <strong>Phone:</strong> +1 (555) 123-4567
-                </p>
+        {/* Content Sections */}
+        <div className="space-y-8">
+          {sections.map((section) => (
+            <section
+              key={section.id}
+              className="group bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-300"
+            >
+              <div className="flex items-start gap-6">
+                <div className={`flex-shrink-0 p-3 rounded-2xl ${section.bg} transition-transform group-hover:scale-110 duration-300`}>
+                  <section.icon className={`w-8 h-8 ${section.color}`} />
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+                    {section.id}. {section.title}
+                  </h2>
+                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                    {section.content}
+                  </p>
+                  {section.list && (
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {section.list.map((item, idx) => (
+                        <li key={idx} className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-500">
+                          <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
             </section>
-          </div>
+          ))}
+
+          {/* Contact Section */}
+          <section className="bg-indigo-600 dark:bg-indigo-900 rounded-3xl p-8 text-white shadow-xl shadow-indigo-200 dark:shadow-none">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+              <div>
+                <h2 className="text-3xl font-bold mb-2 flex items-center gap-3">
+                  <EnvelopeIcon className="w-8 h-8" />
+                  Privacy Concerns?
+                </h2>
+                <p className="text-indigo-100">
+                  If you have any questions about your data or our privacy practices, please reach out.
+                </p>
+              </div>
+              <div className="flex flex-col gap-3 w-full md:w-auto">
+                <Link
+                  to="/contact-us"
+                  className="px-8 py-3 bg-white text-indigo-600 rounded-2xl font-bold text-center hover:bg-indigo-50 transition-colors"
+                >
+                  Contact Privacy Team
+                </Link>
+                <p className="text-center text-xs text-indigo-200">
+                  Typical response time: Within 24 hours
+                </p>
+              </div>
+            </div>
+          </section>
         </div>
-      </div>
+
+        {/* Footer Note */}
+        <footer className="mt-16 text-center text-slate-400 dark:text-slate-600 text-sm">
+          <p>© {new Date().getFullYear()} Resume Builder. All rights reserved.</p>
+          <p className="mt-2 italic">
+            Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} • We are committed to protecting your personal data and your right to privacy.
+          </p>
+        </footer>
+      </main>
     </div>
   );
-}
+};
 
-export default PrivacyPolicy; 
+export default PrivacyPolicy;
