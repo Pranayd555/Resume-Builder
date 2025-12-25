@@ -3,6 +3,87 @@ const router = express.Router();
 const Feedback = require('../models/Feedback');
 const { protect, authorize } = require('../middleware/auth');
 const logger = require('../utils/logger');
+const emailService = require('../utils/emailService');
+
+// @desc    Submit feedback
+// @route   POST /api/feedback
+// @access  Private
+router.post('/', protect, async (req, res) => {
+  try {
+    const { subject, message, rating } = req.body;
+
+    // Validate required fields
+    if (!subject || !message || !rating) {
+      return res.status(400).json({
+        success: false,
+        error: 'Subject, message, and rating are required'
+      });
+    }
+
+    // Get user information
+    const user = await require('../models/User').findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    // Get user's profile image URL
+    let profileImageUrl = '';
+    if (user.profilePicture?.type === 'uploaded' && user.profilePicture?.uploadedPhoto?.avatarUrl) {
+      profileImageUrl = user.profilePicture.uploadedPhoto.avatarUrl;
+    } else if (user.profilePicture?.type === 'avatar' && user.profilePicture?.avatarUrl) {
+      profileImageUrl = user.profilePicture.avatarUrl;
+    }
+
+    // Create feedback with user information
+    const feedback = new Feedback({
+      user: req.user.id,
+      name: `${user.firstName} ${user.lastName}`,
+      email: user.email,
+      profileImage: profileImageUrl,
+      subject,
+      message,
+      rating,
+      userAgent: req.headers['user-agent'] || '',
+      ipAddress: req.ip || req.connection.remoteAddress || ''
+    });
+
+    await feedback.save();
+
+    logger.info(`Feedback submitted by user ${req.user.id}: ${user.email}`);
+
+    // Send email notification to admin
+    try {
+      await emailService.sendFeedbackNotification({
+        name: feedback.name,
+        email: feedback.email,
+        subject: feedback.subject,
+        message: feedback.message,
+        rating: feedback.rating,
+        ipAddress: feedback.ipAddress,
+        _id: feedback._id
+      });
+      logger.info(`Feedback notification email sent for feedback ID: ${feedback._id}`);
+    } catch (emailError) {
+      logger.error('Failed to send feedback notification email:', emailError);
+      // Don't fail the entire request if email fails
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Thank you for your feedback!',
+      data: feedback
+    });
+  } catch (error) {
+    logger.error('Submit feedback error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to submit feedback'
+    });
+  }
+});
 
 // @desc    Get all feedbacks with pagination and filtering
 // @route   GET /api/feedback
@@ -12,7 +93,7 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
-    
+
     // Build filter object
     const filter = {};
     if (req.query.status) {
@@ -98,7 +179,7 @@ router.get('/:id', protect, authorize('admin'), async (req, res) => {
 router.put('/:id/status', protect, authorize('admin'), async (req, res) => {
   try {
     const { status } = req.body;
-    
+
     if (!['new', 'reviewed', 'responded', 'resolved'].includes(status)) {
       return res.status(400).json({
         success: false,
@@ -141,7 +222,7 @@ router.put('/:id/status', protect, authorize('admin'), async (req, res) => {
 router.post('/:id/response', protect, authorize('admin'), async (req, res) => {
   try {
     const { response } = req.body;
-    
+
     if (!response || response.trim().length === 0) {
       return res.status(400).json({
         success: false,
@@ -178,7 +259,7 @@ router.post('/:id/response', protect, authorize('admin'), async (req, res) => {
 router.post('/:id/notes', protect, authorize('admin'), async (req, res) => {
   try {
     const { adminNotes } = req.body;
-    
+
     const feedback = await Feedback.findById(req.params.id);
     if (!feedback) {
       return res.status(404).json({
@@ -237,7 +318,7 @@ router.delete('/:id', protect, authorize('admin'), async (req, res) => {
 router.get('/stats/overview', protect, authorize('admin'), async (req, res) => {
   try {
     const stats = await Feedback.getStats();
-    
+
     // Get additional stats
     const additionalStats = await Feedback.aggregate([
       {

@@ -25,6 +25,8 @@ const analyticsRoutes = require('./routes/analytics');
 const aiRoutes = require('./routes/ai');
 const createTemplateRoutes = require('./routes/createTemplate');
 const paymentRoutes = require('./routes/payment');
+const publicRoutes = require('./routes/public');
+
 
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./utils/logger');
@@ -116,8 +118,10 @@ const corsOptions = {
       'https://resume-builder-pranayd555-pranay-das-projects.vercel.app',
       'https://resume-builder-pranay-das-projects.vercel.app',
       'https://resume-builder-dev-pranay-das.vercel.app',
-      'capacitor://localhost',
-      'ionic://localhost',
+      "https://presmistique.in",
+      "https://www.presmistique.in",
+      "https://resume-builder-6rc.pages.dev",
+      "https://*.pages.dev",
       'http://localhost',
       'https://localhost'
     ];
@@ -308,6 +312,8 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/createTemplate', createTemplateRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/public', publicRoutes);
+
 
 // 404 handler
 app.use('*', (req, res) => {

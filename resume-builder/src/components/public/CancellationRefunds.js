@@ -1,7 +1,15 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useRouteScrollToTop } from '../../hooks/useAutoScroll';
-import { ArrowLeftIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import {
+  ArrowLeftIcon,
+  XCircleIcon,
+  CreditCardIcon,
+  ShieldCheckIcon,
+  ExclamationTriangleIcon,
+  EnvelopeIcon
+} from '@heroicons/react/24/outline';
+import AnimatedBackground from '../AnimatedBackground';
 
 const CancellationRefunds = () => {
   const navigate = useNavigate();
@@ -12,319 +20,145 @@ const CancellationRefunds = () => {
   };
 
   return (
-    <div className="min-h-screen pt-16">
-      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex items-center mb-8">
-          <button
-            onClick={handleBack}
-            className="mr-4 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors group"
-          >
-            <ArrowLeftIcon className="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:-translate-x-1 transition-transform" />
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Cancellation & Refunds</h1>
+    <div className="relative min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
+      <AnimatedBackground />
+
+      <main className="relative z-10 max-w-4xl mx-auto pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+        {/* Back Button */}
+        <button
+          onClick={handleBack}
+          className="flex items-center text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors mb-8 group"
+        >
+          <ArrowLeftIcon className="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" />
+          Back to Home
+        </button>
+
+        {/* Hero Section */}
+        <div className="text-center mb-16">
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white mb-4 tracking-tight">
+            Cancellation & <span className="text-indigo-600 dark:text-indigo-400">Refunds</span>
+          </h1>
+          <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+            We aim for transparency. This policy outlines how we handle account cancellations and refund requests for our token-based services.
+          </p>
         </div>
 
-        {/* Content */}
-        <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-8">
-          <div className="prose prose-lg dark:prose-invert max-w-none">
-          
-          {/* Account Cancellation Policy */}
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6 flex items-center gap-3">
-              <XCircleIcon className="w-8 h-8 text-red-500" />
-              Account Cancellation Policy
-            </h2>
-            <div className="bg-green-200/20 dark:bg-green-200/20 rounded-2xl p-6 mb-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Free Account</h3>
-              <p className="text-gray-600 mb-4">
-                Your free account can be cancelled at any time without any charges or penalties. 
-                Simply stop using the service or contact me directly.
-              </p>
-              <ul className="space-y-2 text-gray-600">
-                <li className="flex items-start gap-2">
-                  <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>No cancellation fees</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Immediate account deactivation</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Data export available before cancellation</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Unused tokens are forfeited</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4">Token-Based Service</h3>
-              <p className="text-gray-600 dark:text-gray-600 mb-4">
-                Since our service is token-based, there are no recurring subscriptions to cancel. 
-                You can stop purchasing tokens at any time and continue using your existing tokens.
-              </p>
-              <ul className="space-y-2 text-gray-600 dark:text-gray-600">
-                <li className="flex items-start gap-2">
-                  <CheckCircleIcon className="w-5 h-5 text-green-500 dark:text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>No recurring charges</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircleIcon className="w-5 h-5 text-green-500 dark:text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Tokens never expire</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircleIcon className="w-5 h-5 text-green-500 dark:text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Use tokens at your own pace</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircleIcon className="w-5 h-5 text-green-500 dark:text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Basic features remain available</span>
-                </li>
-              </ul>
+        {/* Content Sections */}
+        <div className="space-y-8">
+          {/* Account Cancellation */}
+          <section className="group bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="flex items-start gap-6">
+              <div className="flex-shrink-0 p-3 rounded-2xl bg-red-50/50 dark:bg-red-900/10 transition-transform group-hover:scale-110 duration-300">
+                <XCircleIcon className="w-8 h-8 text-red-500" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">1. Account Cancellation</h2>
+                <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-6">
+                  You can cancel your account at any time. Since our service is token-based, there are no recurring subscriptions to manage.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
+                    <h4 className="font-bold text-slate-900 dark:text-white mb-2">Free Accounts</h4>
+                    <p className="text-sm text-slate-500">Stop using the service anytime. No fees or penalties apply.</p>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
+                    <h4 className="font-bold text-slate-900 dark:text-white mb-2">Token Usage</h4>
+                    <p className="text-sm text-slate-500">Unused tokens remain in your account until you choose to use them.</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 
           {/* Refund Policy */}
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6 flex items-center gap-3">
-              <CheckCircleIcon className="w-8 h-8 text-green-500" />
-              Refund & Cancellation Policy
-            </h2>
-            
-            <div className="bg-blue-50 dark:bg-blue-200/20 rounded-2xl p-6 mb-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">📅</span>
+          <section className="group bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="flex items-start gap-6">
+              <div className="flex-shrink-0 p-3 rounded-2xl bg-emerald-50/50 dark:bg-emerald-900/10 transition-transform group-hover:scale-110 duration-300">
+                <CreditCardIcon className="w-8 h-8 text-emerald-500" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">2. Refund Policy</h2>
+                <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                  Refunds are eligible only for unused tokens and must meet the following conditions:
+                </p>
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                  <li className="flex items-center gap-2 text-sm text-slate-500">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    Request within 7 days of purchase
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-slate-500">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    Tokens must be completely unused
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-slate-500">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    Original payment method only
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-slate-500">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    Bonus tokens are non-refundable
+                  </li>
+                </ul>
+                <div className="p-4 rounded-2xl bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/30">
+                  <p className="text-sm text-amber-800 dark:text-amber-400 flex items-start gap-2">
+                    <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0" />
+                    Used tokens cannot be refunded as digital services are delivered instantly upon request.
+                  </p>
                 </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700">Policy Information</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-600">Effective Date: January 2024 | Last Updated: January 2024</p>
-                </div>
-              </div>
-              <p className="text-gray-600 dark:text-gray-600">
-                Thank you for purchasing AI tokens through Resume Builder. We value your trust and aim to maintain transparency about how refunds and cancellations are handled.
-              </p>
-            </div>
-
-            {/* Nature of Service */}
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 mb-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-300 mb-4">1. Nature of Service</h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-4">
-                Our platform provides access to AI-based digital services, where each token corresponds to a single AI action or request. 
-                As the service is delivered digitally and instantly upon token use, refunds are governed by specific conditions outlined below.
-              </p>
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-4">
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  <strong>Example:</strong> If a token is used for an AI prompt, analysis, or generation task, it is counted as consumed and cannot be refunded.
-                </p>
               </div>
             </div>
+          </section>
 
-            {/* Non-Refundable Items */}
-            <div className="bg-red-50 dark:bg-red-200/20 rounded-2xl p-6 mb-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4">2. Non-Refundable Items</h3>
-              <p className="text-gray-600 dark:text-gray-600 mb-4">
-                Once a token has been used to trigger an AI response, it is considered consumed and non-refundable. 
-                Since digital services are delivered immediately, we cannot reclaim or reverse the content generated.
-              </p>
-              <ul className="space-y-2 text-gray-600 dark:text-gray-600 mb-4">
-                <li className="flex items-start gap-2">
-                  <XCircleIcon className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
-                  <span>Used tokens are permanently non-refundable</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <XCircleIcon className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
-                  <span>Bonus tokens are not refundable under any circumstances</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Refunds for Unused Tokens */}
-            <div className="bg-green-50 dark:bg-green-200/20 rounded-2xl p-6 mb-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4">3. Refunds for Unused Tokens</h3>
-              <p className="text-gray-600 dark:text-gray-600 mb-4">
-                Refunds are eligible only for unused tokens and must meet the following conditions:
-              </p>
-              <ul className="space-y-2 text-gray-600 dark:text-gray-600 mb-4">
-                <li className="flex items-start gap-2">
-                  <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>The refund request is made within 7 days of the purchase date</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Tokens must remain unused (i.e., not linked to any AI request)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>If bonus tokens were used from a particular payment, they will be deducted from the bought tokens of that payment</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Only the remaining amount after bonus token deduction will be refunded</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Refunds will be processed to the original payment method via Razorpay within 5–7 business days</span>
-                </li>
-              </ul>
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-4 mb-4">
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  <strong>Important:</strong> Bonus tokens are not refundable. If you used bonus tokens from a payment, the equivalent amount will be deducted from your refund.
-                </p>
+          {/* Technical Issues */}
+          <section className="group bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="flex items-start gap-6">
+              <div className="flex-shrink-0 p-3 rounded-2xl bg-blue-50/50 dark:bg-blue-900/10 transition-transform group-hover:scale-110 duration-300">
+                <ShieldCheckIcon className="w-8 h-8 text-blue-500" />
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-4">
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  <strong>Example:</strong> If you purchased 100 tokens (with 20 bonus tokens) and used 30 tokens (including 10 bonus tokens), you may request a refund for the remaining 70 bought tokens. The 10 used bonus tokens will be deducted from your refund amount.
-                </p>
-              </div>
-            </div>
-
-            {/* AI Errors or Failed Responses */}
-            <div className="bg-blue-50 dark:bg-blue-200/20 rounded-2xl p-6 mb-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4">4. AI Errors or Failed Responses</h3>
-              <p className="text-gray-600 dark:text-gray-600 mb-4">
-                If an AI action fails due to technical errors, timeouts, system malfunctions, or incomplete responses, 
-                the system will automatically re-credit the affected token(s) to your account.
-              </p>
-              <div className="bg-yellow-50 rounded-xl p-4">
-                <p className="text-sm text-gray-700">
-                  <strong>Note:</strong> Cash refunds will not be issued for such cases. You can also manually report issues via the "Contact Us" section.
-                </p>
-              </div>
-            </div>
-
-            {/* User Dissatisfaction */}
-            <div className="bg-orange-50 dark:bg-orange-200/20 rounded-2xl p-6 mb-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4">5. User Dissatisfaction</h3>
-              <p className="text-gray-600 dark:text-gray-600 mb-4">
-                AI-generated results may vary depending on input quality and context. We do not provide refunds for dissatisfaction with AI output 
-                (e.g., "I didn't like the result") unless the system clearly fails to deliver a valid response.
-              </p>
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-4">
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  <strong>Tip:</strong> We encourage users to refine their input and then retry the service.
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">3. Technical Failures</h2>
+                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                  If an AI action fails due to technical errors or system malfunctions, the affected tokens will be automatically re-credited to your account. We do not issue cash refunds for technical glitches, but we ensure you get the service you paid for.
                 </p>
               </div>
             </div>
           </section>
 
-          {/* Refund Request Process */}
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
-              6. Refund Request Process
-            </h2>
-            <div className="bg-gray-50 dark:bg-cyan-200/20 rounded-2xl p-6 mb-6">
-              <p className="text-gray-600 dark:text-gray-600 mb-6">
-                To request a refund, email us at <strong>pranaydaspr@gmail.com</strong> with the following information:
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-4">
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Required Information</h4>
-                  <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-300">
-                    <li>• Registered email ID</li>
-                    <li>• Payment ID / Order ID</li>
-                    <li>• Reason for refund</li>
-                    <li>• Number of unused tokens</li>
-                  </ul>
-                </div>
-                <div className="bg-white dark:bg-gray-800 rounded-xl p-4">
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Processing Timeline</h4>
-                  <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-300">
-                    <li>• Review: 2-3 business days</li>
-                    <li>• Processing: 5-7 business days</li>
-                    <li>• Method: Original payment via Razorpay</li>
-                    <li>• Notification: Email confirmation</li>
-                  </ul>
-                </div>
+          {/* Contact Section */}
+          <section className="bg-indigo-600 dark:bg-indigo-900 rounded-3xl p-8 text-white shadow-xl shadow-indigo-200 dark:shadow-none">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+              <div>
+                <h2 className="text-3xl font-bold mb-2 flex items-center gap-3">
+                  <EnvelopeIcon className="w-8 h-8" />
+                  Need a Refund?
+                </h2>
+                <p className="text-indigo-100">
+                  Contact our billing team with your Order ID and registered email address.
+                </p>
               </div>
-            </div>
-
-            {/* Cancellations */}
-            <div className="bg-purple-50 dark:bg-purple-200/20 rounded-2xl p-6 mb-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4">7. Cancellations</h3>
-              <p className="text-gray-600 dark:text-gray-600">
-                Since tokens are credited instantly after payment, cancellations of completed orders are not possible. 
-                However, you may request a refund for unused tokens as per the above policy.
-              </p>
-            </div>
-
-            {/* Disputes & Chargebacks */}
-            <div className="bg-yellow-50 dark:bg-yellow-200/20 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4">8. Disputes & Chargebacks</h3>
-              <p className="text-gray-600 dark:text-gray-600">
-                In case of payment disputes or chargebacks raised via Razorpay or your bank, please reach out to our support team first. 
-                We aim to resolve issues amicably and transparently before formal escalation.
-              </p>
-            </div>
-          </section>
-
-          {/* How to Cancel Account */}
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
-              How to Cancel Your Account
-            </h2>
-            <div className="bg-red-50 dark:bg-red-200/20 rounded-2xl p-6">
-              <ol className="space-y-4 text-gray-600">
-                <li className="flex items-start gap-3">
-                  <span className="bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-semibold flex-shrink-0">1</span>
-                  <span>Go to your Profile page</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-semibold flex-shrink-0">2</span>
-                  <span>Click the "Delete Account" button</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-semibold flex-shrink-0">3</span>
-                  <span>Confirm deletion in the popup</span>
-                </li>
-              </ol>
-              <div className="mt-6 p-4 bg-red-50 dark:bg-red-200/60 rounded-xl border border-red-200 dark:border-red-800">
-                <p className="text-red-600 dark:text-red-600 font-semibold">
-                  ⚠️ Account and all associated data deleted immediately. This action cannot be undone.
+              <div className="flex flex-col gap-3 w-full md:w-auto">
+                <Link
+                  to="/contact-us"
+                  className="px-8 py-3 bg-white text-indigo-600 rounded-2xl font-bold text-center hover:bg-indigo-50 transition-colors"
+                >
+                  Contact Billing Team
+                </Link>
+                <p className="text-center text-xs text-indigo-200">
+                  Processing time: 5-7 business days
                 </p>
               </div>
             </div>
           </section>
-
-          {/* Contact Information */}
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
-              9. Contact Us
-            </h2>
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-6 mb-6">
-              <p className="text-gray-600 dark:text-gray-600 mb-4">
-                For any queries or assistance related to refunds, please contact:
-              </p>
-              <div className="space-y-2 text-gray-600 dark:text-gray-600">
-                <p><strong>📧 Email:</strong> pranaydaspr@gmail.com</p>
-                <p><strong>🌐 Website:</strong> Resume Builder Platform</p>
-                <p><strong>Response Time:</strong> Within 24 hours</p>
-                <p><strong>Business Hours:</strong> Monday - Friday, 9 AM - 6 PM IST</p>
-              </div>
-            </div>
-
-            {/* Legal Compliance Note */}
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">🛡️</span>
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-300">Legal Compliance</h3>
-              </div>
-              <p className="text-gray-600 dark:text-gray-300">
-                This policy is in accordance with the Indian Consumer Protection (E-Commerce) Rules, 2020, and Razorpay's merchant guidelines. 
-                By purchasing tokens on our platform, you acknowledge and agree to this Refund & Cancellation Policy.
-              </p>
-            </div>
-          </section>
-
-          </div>
         </div>
-      </div>
+
+        {/* Footer Note */}
+        <footer className="mt-16 text-center text-slate-400 dark:text-slate-600 text-sm">
+          <p>© {new Date().getFullYear()} Resume Builder. All rights reserved.</p>
+          <p className="mt-2 italic">
+            Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} • Compliant with Indian Consumer Protection Rules, 2020.
+          </p>
+        </footer>
+      </main>
     </div>
   );
 };

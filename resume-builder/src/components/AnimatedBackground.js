@@ -3,157 +3,151 @@ import { useDarkMode } from '../contexts/DarkModeContext';
 
 function AnimatedBackground() {
   const canvasRef = useRef(null);
+  const mouseRef = useRef({ x: null, y: null, radius: 150 });
   const { isDarkMode } = useDarkMode();
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     let animationFrameId;
-    let gradient;
+    let particles = [];
 
-    // Set canvas size
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      
-      // Recreate gradient when canvas is resized
-      gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-      if (isDarkMode) {
-        gradient.addColorStop(0, 'rgba(59, 130, 246, 0.1)'); // Blue - darker
-        gradient.addColorStop(0.5, 'rgba(147, 51, 234, 0.1)'); // Purple - darker
-        gradient.addColorStop(1, 'rgba(236, 72, 153, 0.1)'); // Pink - darker
-      } else {
-        gradient.addColorStop(0, 'rgba(59, 130, 246, 0.05)'); // Blue
-        gradient.addColorStop(0.5, 'rgba(147, 51, 234, 0.05)'); // Purple
-        gradient.addColorStop(1, 'rgba(236, 72, 153, 0.05)'); // Pink
-      }
+      initParticles();
     };
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
 
-    // Particle class
+    const handleMouseMove = (event) => {
+      mouseRef.current.x = event.x;
+      mouseRef.current.y = event.y;
+    };
+
+    const handleMouseLeave = () => {
+      mouseRef.current.x = null;
+      mouseRef.current.y = null;
+    };
+
     class Particle {
       constructor() {
+        this.reset();
+      }
+
+      reset() {
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
-        this.size = Math.random() * 2 + 1; // Slightly smaller particles
-        this.speedX = (Math.random() - 0.5) * 1.5; // Smoother movement
-        this.speedY = (Math.random() - 0.5) * 1.5;
-        this.opacity = Math.random() * 0.4 + 0.2;
-        if (isDarkMode) {
-          this.color = `hsl(${Math.random() * 60 + 200}, 70%, 70%)`; // Blue to purple range - lighter for dark mode
-        } else {
-          this.color = `hsl(${Math.random() * 60 + 200}, 70%, 60%)`; // Blue to purple range
-        }
+        this.baseRadius = Math.random() * 2 + 1;
+        this.radius = this.baseRadius;
+        this.vx = (Math.random() - 0.5) * 0.8;
+        this.vy = (Math.random() - 0.5) * 0.8;
+        this.density = (Math.random() * 30) + 1;
+        this.angle = Math.random() * Math.PI * 2;
+        this.pulseSpeed = 0.02 + Math.random() * 0.03;
+        this.opacity = 0.1 + Math.random() * 0.3;
+
+        const hue = isDarkMode ? (200 + Math.random() * 60) : (210 + Math.random() * 40);
+        this.color = `hsla(${hue}, 70%, ${isDarkMode ? '70%' : '60%'}, ${this.opacity})`;
+        this.glowColor = `hsla(${hue}, 70%, ${isDarkMode ? '80%' : '70%'}, ${this.opacity * 0.5})`;
       }
 
       update() {
-        this.x += this.speedX;
-        this.y += this.speedY;
+        // Mouse Interaction
+        if (mouseRef.current.x !== null) {
+          let dx = mouseRef.current.x - this.x;
+          let dy = mouseRef.current.y - this.y;
+          let distance = Math.sqrt(dx * dx + dy * dy);
+          let forceDirectionX = dx / distance;
+          let forceDirectionY = dy / distance;
+          let maxDistance = mouseRef.current.radius;
+          let force = (maxDistance - distance) / maxDistance;
+          let directionX = forceDirectionX * force * this.density;
+          let directionY = forceDirectionY * force * this.density;
 
-        // Bounce off edges with smooth reflection
-        if (this.x > canvas.width || this.x < 0) {
-          this.speedX *= -0.9; // Slightly dampen bounce
-        }
-        if (this.y > canvas.height || this.y < 0) {
-          this.speedY *= -0.9;
+          if (distance < maxDistance) {
+            this.x -= directionX;
+            this.y -= directionY;
+          }
         }
 
-        // Keep particles within bounds
-        this.x = Math.max(0, Math.min(canvas.width, this.x));
-        this.y = Math.max(0, Math.min(canvas.height, this.y));
+        // Movement
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Pulsing effect
+        this.angle += this.pulseSpeed;
+        this.radius = this.baseRadius + Math.sin(this.angle) * 0.5;
+
+        // Boundary Check
+        if (this.x < -50) this.x = canvas.width + 50;
+        if (this.x > canvas.width + 50) this.x = -50;
+        if (this.y < -50) this.y = canvas.height + 50;
+        if (this.y > canvas.height + 50) this.y = -50;
       }
 
       draw() {
-        ctx.save();
-        ctx.globalAlpha = this.opacity;
-        ctx.fillStyle = this.color;
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+
+        // Premium Glow
+        const gradient = ctx.createRadialGradient(
+          this.x, this.y, 0,
+          this.x, this.y, this.radius
+        );
+        gradient.addColorStop(0, this.glowColor);
+        gradient.addColorStop(1, 'transparent');
+
+        ctx.fillStyle = gradient;
         ctx.fill();
-        ctx.restore();
+
+        // Core Bubble
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius * 0.6, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
       }
     }
 
-    // Create particles with reduced count for better performance
-    const particles = [];
-    const particleCount = Math.min(30, Math.floor(canvas.width * canvas.height / 30000));
+    const initParticles = () => {
+      particles = [];
+      const numberOfParticles = Math.floor((canvas.width * canvas.height) / 10000);
+      for (let i = 0; i < Math.min(numberOfParticles, 150); i++) {
+        particles.push(new Particle());
+      }
+    };
 
-    for (let i = 0; i < particleCount; i++) {
-      particles.push(new Particle());
-    }
-
-    // Animation loop with optimizations
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Use pre-created gradient
-      ctx.fillStyle = gradient;
+      // Subtle background gradient
+      const bgGradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      if (isDarkMode) {
+        bgGradient.addColorStop(0, '#111827');
+        bgGradient.addColorStop(1, '#1f2937');
+      } else {
+        bgGradient.addColorStop(0, '#f8fafc');
+        bgGradient.addColorStop(1, '#f1f5f9');
+      }
+      ctx.fillStyle = bgGradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Update and draw particles
-      particles.forEach(particle => {
-        particle.update();
-        particle.draw();
-      });
-
-      // Optimized connecting lines - only check every other frame for better performance
-      if (Date.now() % 2 === 0) {
-        const maxDistance = 80; // Reduced distance for better performance
-        const maxDistanceSquared = maxDistance * maxDistance;
-        
-        ctx.save();
-        ctx.strokeStyle = isDarkMode ? 'rgba(147, 51, 234, 0.3)' : 'rgba(147, 51, 234, 0.2)';
-        ctx.lineWidth = 1;
-        
-        for (let i = 0; i < particles.length; i++) {
-          for (let j = i + 1; j < particles.length; j++) {
-            const dx = particles[i].x - particles[j].x;
-            const dy = particles[i].y - particles[j].y;
-            const distanceSquared = dx * dx + dy * dy;
-
-            if (distanceSquared < maxDistanceSquared) {
-              const distance = Math.sqrt(distanceSquared);
-              ctx.globalAlpha = (maxDistance - distance) / maxDistance * 0.2;
-              ctx.beginPath();
-              ctx.moveTo(particles[i].x, particles[i].y);
-              ctx.lineTo(particles[j].x, particles[j].y);
-              ctx.stroke();
-            }
-          }
-        }
-        ctx.restore();
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw();
       }
-
-      // Simplified wave effect - only draw every 3rd frame
-      if (Date.now() % 3 === 0) {
-        const time = Date.now() * 0.0005; // Slower wave movement
-        ctx.save();
-        ctx.globalAlpha = isDarkMode ? 0.12 : 0.08;
-        ctx.strokeStyle = isDarkMode ? 'rgba(147, 51, 234, 0.2)' : 'rgba(147, 51, 234, 0.15)';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        
-        for (let x = 0; x < canvas.width; x += 30) { // Fewer points
-          const y = canvas.height / 2 + Math.sin(x * 0.01 + time) * 40;
-          if (x === 0) {
-            ctx.moveTo(x, y);
-          } else {
-            ctx.lineTo(x, y);
-          }
-        }
-        ctx.stroke();
-        ctx.restore();
-      }
-
       animationFrameId = requestAnimationFrame(animate);
     };
 
+    resizeCanvas();
     animate();
 
-    // Cleanup
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseleave', handleMouseLeave);
+
     return () => {
       window.removeEventListener('resize', resizeCanvas);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseleave', handleMouseLeave);
       cancelAnimationFrame(animationFrameId);
     };
   }, [isDarkMode]);
@@ -162,13 +156,8 @@ function AnimatedBackground() {
     <canvas
       ref={canvasRef}
       className="fixed inset-0 w-full h-full pointer-events-none z-0"
-      style={{ 
-        background: isDarkMode 
-          ? 'linear-gradient(135deg, #1f2937 0%, #111827 100%)' 
-          : 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)' 
-      }}
     />
   );
 }
 
-export default AnimatedBackground; 
+export default AnimatedBackground;

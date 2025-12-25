@@ -19,7 +19,9 @@ import {
   ExclamationTriangleIcon,
   BoltIcon,
   SparklesIcon,
-  BookmarkIcon
+  BookmarkIcon,
+  ChevronUpIcon,
+  ChevronDownIcon
 } from '@heroicons/react/24/outline';
 
 
@@ -870,6 +872,41 @@ function ResumeForm() {
           });
 
           return reindexedTech;
+        });
+      }
+
+      setTimeout(() => saveToLocalStorage(newFormData, currentStep, isEditMode), 0);
+      return newFormData;
+    });
+    setIsInitialLoad(true);
+  };
+
+  const moveArrayItem = (section, index, direction) => {
+    setFormData(prev => {
+      const newArray = [...prev[section]];
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
+
+      if (targetIndex < 0 || targetIndex >= newArray.length) return prev;
+
+      // Swap items
+      [newArray[index], newArray[targetIndex]] = [newArray[targetIndex], newArray[index]];
+
+      const newFormData = {
+        ...prev,
+        [section]: newArray
+      };
+
+      // Handle technologies input reindexing for projects
+      if (section === 'projects') {
+        setTechnologiesInput(prevTech => {
+          const newTech = { ...prevTech };
+          const currentTech = newTech[index];
+          const targetTech = newTech[targetIndex];
+
+          newTech[index] = targetTech;
+          newTech[targetIndex] = currentTech;
+
+          return newTech;
         });
       }
 
@@ -1818,13 +1855,31 @@ function ResumeForm() {
         <div key={index} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-4 sm:p-6 space-y-4 bg-white dark:bg-orange-50/50">
           <div className="flex justify-between items-start gap-2">
             <h4 className="font-medium text-gray-900 text-sm sm:text-base">Experience #{index + 1}</h4>
-            <button
-              onClick={() => removeArrayItem('workExperience', index)}
-              className="text-red-600 hover:text-red-700 p-1"
-              aria-label="Delete experience"
-            >
-              <TrashIcon className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => moveArrayItem('workExperience', index, 'up')}
+                disabled={index === 0}
+                className={`p-1 rounded-md transition-colors ${index === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100 hover:text-blue-600'}`}
+                title="Move Up"
+              >
+                <ChevronUpIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => moveArrayItem('workExperience', index, 'down')}
+                disabled={index === formData.workExperience.length - 1}
+                className={`p-1 rounded-md transition-colors ${index === formData.workExperience.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100 hover:text-blue-600'}`}
+                title="Move Down"
+              >
+                <ChevronDownIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => removeArrayItem('workExperience', index)}
+                className="text-red-600 hover:text-red-700 p-1"
+                aria-label="Delete experience"
+              >
+                <TrashIcon className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1994,12 +2049,31 @@ function ResumeForm() {
         <div key={index} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
           <div className="flex justify-between items-start">
             <h4 className="font-medium text-gray-900">Education #{index + 1}</h4>
-            <button
-              onClick={() => removeArrayItem('education', index)}
-              className="text-red-600 hover:text-red-700"
-            >
-              <TrashIcon className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => moveArrayItem('education', index, 'up')}
+                disabled={index === 0}
+                className={`p-1 rounded-md transition-colors ${index === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100 hover:text-blue-600'}`}
+                title="Move Up"
+              >
+                <ChevronUpIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => moveArrayItem('education', index, 'down')}
+                disabled={index === formData.education.length - 1}
+                className={`p-1 rounded-md transition-colors ${index === formData.education.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100 hover:text-blue-600'}`}
+                title="Move Down"
+              >
+                <ChevronDownIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => removeArrayItem('education', index)}
+                className="text-red-600 hover:text-red-700 p-1"
+                aria-label="Delete education"
+              >
+                <TrashIcon className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2240,12 +2314,31 @@ function ResumeForm() {
         <div key={categoryIndex} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
           <div className="flex justify-between items-start">
             <h4 className="font-medium text-gray-900">Skill Category #{categoryIndex + 1}</h4>
-            <button
-              onClick={() => removeArrayItem('skills', categoryIndex)}
-              className="text-red-600 hover:text-red-700"
-            >
-              <TrashIcon className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => moveArrayItem('skills', categoryIndex, 'up')}
+                disabled={categoryIndex === 0}
+                className={`p-1 rounded-md transition-colors ${categoryIndex === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100 hover:text-blue-600'}`}
+                title="Move Up"
+              >
+                <ChevronUpIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => moveArrayItem('skills', categoryIndex, 'down')}
+                disabled={categoryIndex === formData.skills.length - 1}
+                className={`p-1 rounded-md transition-colors ${categoryIndex === formData.skills.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100 hover:text-blue-600'}`}
+                title="Move Down"
+              >
+                <ChevronDownIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => removeArrayItem('skills', categoryIndex)}
+                className="text-red-600 hover:text-red-700 p-1"
+                aria-label="Delete skill category"
+              >
+                <TrashIcon className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           <div>
@@ -2399,14 +2492,31 @@ function ResumeForm() {
         <div key={index} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
           <div className="flex justify-between items-start">
             <h4 className="font-medium text-gray-900">Project #{index + 1}</h4>
-            <button
-              onClick={() => removeArrayItem('projects', index)}
-              className="text-red-600 hover:text-red-700"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => moveArrayItem('projects', index, 'up')}
+                disabled={index === 0}
+                className={`p-1 rounded-md transition-colors ${index === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100 hover:text-blue-600'}`}
+                title="Move Up"
+              >
+                <ChevronUpIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => moveArrayItem('projects', index, 'down')}
+                disabled={index === formData.projects.length - 1}
+                className={`p-1 rounded-md transition-colors ${index === formData.projects.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100 hover:text-blue-600'}`}
+                title="Move Down"
+              >
+                <ChevronDownIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => removeArrayItem('projects', index)}
+                className="text-red-600 hover:text-red-700 p-1"
+                aria-label="Delete project"
+              >
+                <TrashIcon className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2521,14 +2631,31 @@ function ResumeForm() {
         <div key={index} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
           <div className="flex justify-between items-start">
             <h4 className="font-medium text-gray-900">Achievement #{index + 1}</h4>
-            <button
-              onClick={() => removeArrayItem('achievements', index)}
-              className="text-red-600 hover:text-red-700"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => moveArrayItem('achievements', index, 'up')}
+                disabled={index === 0}
+                className={`p-1 rounded-md transition-colors ${index === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100 hover:text-blue-600'}`}
+                title="Move Up"
+              >
+                <ChevronUpIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => moveArrayItem('achievements', index, 'down')}
+                disabled={index === formData.achievements.length - 1}
+                className={`p-1 rounded-md transition-colors ${index === formData.achievements.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100 hover:text-blue-600'}`}
+                title="Move Down"
+              >
+                <ChevronDownIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => removeArrayItem('achievements', index)}
+                className="text-red-600 hover:text-red-700 p-1"
+                aria-label="Delete achievement"
+              >
+                <TrashIcon className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2639,14 +2766,31 @@ function ResumeForm() {
           <div key={index} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
             <div className="flex justify-between items-start">
               <h4 className="font-medium text-gray-900">Certification #{index + 1}</h4>
-              <button
-                onClick={() => removeArrayItem('certifications', index)}
-                className="text-red-600 hover:text-red-700"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => moveArrayItem('certifications', index, 'up')}
+                  disabled={index === 0}
+                  className={`p-1 rounded-md transition-colors ${index === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100 hover:text-blue-600'}`}
+                  title="Move Up"
+                >
+                  <ChevronUpIcon className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => moveArrayItem('certifications', index, 'down')}
+                  disabled={index === formData.certifications.length - 1}
+                  className={`p-1 rounded-md transition-colors ${index === formData.certifications.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100 hover:text-blue-600'}`}
+                  title="Move Down"
+                >
+                  <ChevronDownIcon className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => removeArrayItem('certifications', index)}
+                  className="text-red-600 hover:text-red-700 p-1"
+                  aria-label="Delete certification"
+                >
+                  <TrashIcon className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2769,6 +2913,24 @@ function ResumeForm() {
                 placeholder="Language name"
               />
               <div className="flex gap-2 sm:ml-auto">
+                <div className="flex items-center gap-1 mr-2">
+                  <button
+                    onClick={() => moveArrayItem('languages', index, 'up')}
+                    disabled={index === 0}
+                    className={`p-1 rounded-md transition-colors ${index === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100 hover:text-blue-600'}`}
+                    title="Move Up"
+                  >
+                    <ChevronUpIcon className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => moveArrayItem('languages', index, 'down')}
+                    disabled={index === formData.languages.length - 1}
+                    className={`p-1 rounded-md transition-colors ${index === formData.languages.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:bg-gray-100 hover:text-blue-600'}`}
+                    title="Move Down"
+                  >
+                    <ChevronDownIcon className="w-4 h-4" />
+                  </button>
+                </div>
                 <CustomDropdown
                   value={lang.proficiency}
                   onChange={(value) => handleInputChange('languages', 'proficiency', value, index)}
@@ -2785,9 +2947,7 @@ function ResumeForm() {
                   onClick={() => removeArrayItem('languages', index)}
                   className="text-red-600 hover:text-red-700 p-2 flex-shrink-0"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
+                  <TrashIcon className="w-4 h-4" />
                 </button>
               </div>
             </div>
