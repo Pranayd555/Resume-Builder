@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDarkMode } from '../../contexts/DarkModeContext';
@@ -13,9 +13,12 @@ import {
   ChartBarIcon,
   ShieldCheckIcon,
   SunIcon,
-  MoonIcon
+  MoonIcon,
+  StarIcon,
+  ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline';
 import { Fade, Slide, Roll, AttentionSeeker } from 'react-awesome-reveal';
+import { publicAPI } from '../../services/api';
 import { FlipText, WaveText } from '../../utils/animated-elements';
 
 const HomePage = () => {
@@ -23,6 +26,45 @@ const HomePage = () => {
   const { isAuthenticated, user } = useAuth();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   useRouteScrollToTop();
+
+  const [homeData, setHomeData] = useState({
+    stats: {
+      totalResumes: "10K+",
+      totalUsers: "5K+",
+      totalTemplates: "50+",
+      resumesCreatedToday: "100+",
+      averageAtsScore: "85%"
+    },
+    testimonials: [],
+    loading: true
+  });
+
+  useEffect(() => {
+    const fetchHomeStats = async () => {
+      try {
+        const data = await publicAPI.getHomeStats();
+        if (data.success) {
+          const { stats, testimonials } = data.data;
+          setHomeData({
+            stats: {
+              totalResumes: `${(stats.totalResumes / 1000).toFixed(1)}K+`,
+              totalUsers: `${(stats.totalUsers / 1000).toFixed(1)}K+`,
+              totalTemplates: `${stats.totalTemplates}+`,
+              resumesCreatedToday: `${stats.resumesCreatedToday}+`,
+              averageAtsScore: `${stats.averageAtsScore}%`
+            },
+            testimonials,
+            loading: false
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching home stats:', error);
+        setHomeData(prev => ({ ...prev, loading: false }));
+      }
+    };
+
+    fetchHomeStats();
+  }, []);
 
   const features = [
     {
@@ -48,10 +90,10 @@ const HomePage = () => {
   ];
 
   const stats = [
-    { number: "10K+", label: "Resumes Created" },
-    { number: "95%", label: "Success Rate" },
-    { number: "50+", label: "Templates" },
-    { number: "24/7", label: "Support" }
+    { number: homeData.stats.totalResumes, label: "Resumes Created" },
+    { number: homeData.stats.averageAtsScore, label: "Avg. ATS Score" },
+    { number: homeData.stats.totalTemplates, label: "Templates" },
+    { number: homeData.stats.resumesCreatedToday, label: "Created Today" }
   ];
 
   // Helper function to get the correct dashboard route
@@ -127,6 +169,26 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* Stats Section */}
+      <section className="py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {stats.map((stat, index) => (
+              <Roll key={index} delay={index * 100}>
+                <div className="text-center backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-6">
+                  <div className="text-4xl sm:text-5xl font-bold mb-2 text-gray-900 dark:text-gray-600">
+                    {stat.number}
+                  </div>
+                  <div className="text-lg text-gray-600 dark:text-gray-400">
+                    {stat.label}
+                  </div>
+                </div>
+              </Roll>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -167,25 +229,62 @@ const HomePage = () => {
       {/* Template Showcase Section */}
       <TemplateShowcase />
 
-      {/* Stats Section */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <Roll key={index} delay={index * 100}>
-                <div className="text-center backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-6">
-                  <div className="text-4xl sm:text-5xl font-bold mb-2 text-gray-900 dark:text-gray-600">
-                    {stat.number}
-                  </div>
-                  <div className="text-lg text-gray-600 dark:text-gray-400">
-                    {stat.label}
+      {/* Testimonials Section */}
+      {homeData.testimonials.length > 0 && (
+        <section className="py-20 overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+            <div className="text-center">
+              <Slide direction="up">
+                <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4 flex items-center justify-center gap-3">
+                  <ChatBubbleLeftRightIcon className="w-10 h-10 text-blue-600" />
+                  What Our Users Say
+                </h2>
+              </Slide>
+            </div>
+          </div>
+
+          <div className="relative">
+            {/* Gradient Overlays for smooth fading at edges */}
+            <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-gray-50 dark:from-gray-900 to-transparent z-10 pointer-events-none mt-4 mb-4" />
+            <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-gray-50 dark:from-gray-900 to-transparent z-10 pointer-events-none mt-4 mb-4" />
+
+            <div className="flex animate-marquee py-4">
+              {/* Duplicate the testimonials to create a seamless loop */}
+              {[...homeData.testimonials, ...homeData.testimonials].map((testimonial, index) => (
+                <div key={index} className="flex-shrink-0 w-80 sm:w-96 mx-4">
+                  <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 h-full flex flex-col">
+                    <div className="flex mb-4">
+                      {[...Array(testimonial.rating)].map((_, i) => (
+                        <StarIcon key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                      ))}
+                    </div>
+                    <p className="text-gray-600 dark:text-gray-300 mb-6 italic flex-grow">
+                      "{testimonial.message}"
+                    </p>
+                    <div className="flex items-center gap-4 mt-auto">
+                      {testimonial.profileImage ? (
+                        <img
+                          src={testimonial.profileImage}
+                          alt={testimonial.name}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
+                          {testimonial.name.charAt(0)}
+                        </div>
+                      )}
+                      <div>
+                        <h4 className="font-semibold text-gray-900 dark:text-white">{testimonial.name}</h4>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Verified User</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </Roll>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* CTA Section */}
       <section className="py-20">
@@ -293,6 +392,5 @@ const HomePage = () => {
   );
 };
 
-
-
 export default HomePage;
+
