@@ -1,368 +1,549 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>New Feedback Submission</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             line-height: 1.6;
-            color: #333;
+            color: #1f2937;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .email-wrapper {
             max-width: 600px;
             margin: 0 auto;
-            padding: 20px;
-            background-color: #f7f7f7;
         }
+
         .container {
-            background-color: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
         }
+
+        /* Header Section */
         .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 30px;
             text-align: center;
-            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
         }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: pulse 15s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+
         .logo {
-            font-size: 32px;
-            font-weight: bold;
-            color: #2563eb;
-            margin-bottom: 10px;
+            font-size: 28px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
-        h1 {
-            color: #1f2937;
-            margin-bottom: 20px;
+
+        .header-title {
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+            opacity: 0.95;
         }
-        .feedback-badge {
+
+        /* Content Section */
+        .content {
+            padding: 40px 30px;
+        }
+
+        .notification-badge {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
-            padding: 20px;
-            border-radius: 10px;
+            padding: 20px 25px;
+            border-radius: 15px;
             text-align: center;
-            margin: 20px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
         }
-        .rating-display {
-            background-color: #fef3c7;
-            color: #92400e;
-            padding: 15px;
-            border-radius: 8px;
+
+        .notification-badge h2 {
+            font-size: 22px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .notification-badge p {
+            font-size: 14px;
+            opacity: 0.95;
+            margin: 0;
+        }
+
+        /* Rating Display */
+        .rating-section {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            padding: 25px;
+            border-radius: 15px;
             text-align: center;
-            margin: 20px 0;
-            border: 1px solid #fbbf24;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(251, 191, 36, 0.3);
+            position: relative;
+            overflow: hidden;
         }
+
+        .rating-section::before {
+            content: '⭐';
+            position: absolute;
+            font-size: 150px;
+            opacity: 0.1;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .rating-label {
+            font-weight: 700;
+            color: #1f2937;
+            font-size: 16px;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
         .rating-stars {
-            font-size: 28px;
-            margin: 5px 0;
+            font-size: 36px;
+            margin: 10px 0;
+            position: relative;
+            z-index: 1;
+            letter-spacing: 4px;
         }
-        .details-box {
-            background-color: #f8fafc;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-            border: 1px solid #e2e8f0;
-        }
-        .details-row {
-            display: flex;
-            margin-bottom: 10px;
-            align-items: flex-start;
-        }
-        .details-label {
+
+        .rating-text {
+            font-size: 15px;
+            color: #1f2937;
             font-weight: 600;
-            color: #374151;
-            min-width: 80px;
-            margin-right: 15px;
+            position: relative;
+            z-index: 1;
         }
+
+        /* Separator */
+        .separator {
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, #e5e7eb 20%, #e5e7eb 80%, transparent 100%);
+            margin: 30px 0;
+        }
+
+        /* Details Box */
+        .details-box {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .details-box h3 {
+            color: #1f2937;
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .details-box h3::before {
+            content: '📋';
+            font-size: 20px;
+        }
+
+        .details-row {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: white;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .details-row:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .details-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .details-label {
+            font-weight: 700;
+            color: #4b5563;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+
         .details-value {
             color: #1f2937;
             word-break: break-word;
+            font-size: 14px;
         }
+
+        /* Message Box */
         .message-box {
-            background-color: #f9fafb;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-            border-left: 4px solid #10b981;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border-left: 5px solid #10b981;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         }
+
+        .message-box.priority-high {
+            border-left-color: #ef4444;
+            background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
+        }
+
+        .message-box.priority-medium {
+            border-left-color: #f59e0b;
+            background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+        }
+
+        .message-box.priority-low {
+            border-left-color: #10b981;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+        }
+
         .message-box h3 {
             color: #1f2937;
-            margin-bottom: 10px;
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
+
+        .message-box h3::before {
+            content: '💬';
+            font-size: 20px;
+        }
+
         .message-content {
             color: #374151;
             white-space: pre-wrap;
             word-wrap: break-word;
+            line-height: 1.8;
+            font-size: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 10px;
         }
-        .priority-high {
-            background-color: #fee2e2;
-            border-left-color: #dc2626;
+
+        /* Next Steps */
+        .next-steps {
+            background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 1px solid #c4b5fd;
         }
-        .priority-medium {
-            background-color: #fef3c7;
-            border-left-color: #f59e0b;
+
+        .next-steps h3 {
+            color: #1f2937;
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .priority-low {
-            background-color: #ecfdf5;
-            border-left-color: #10b981;
+
+        .next-steps h3::before {
+            content: '✅';
+            font-size: 20px;
         }
-        .footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #e5e7eb;
+
+        .next-steps ol {
+            margin-left: 20px;
+            color: #4b5563;
+        }
+
+        .next-steps li {
+            margin-bottom: 10px;
+            padding-left: 10px;
             font-size: 14px;
-            color: #6b7280;
+            line-height: 1.6;
         }
+
+        .next-steps li::marker {
+            font-weight: 700;
+            color: #7c3aed;
+        }
+
+        /* Footer */
+        .footer {
+            background: #f9fafb;
+            padding: 25px 30px;
+            text-align: center;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .footer p {
+            color: #6b7280;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .footer-meta {
+            font-size: 11px;
+            color: #9ca3af;
+            line-height: 1.8;
+        }
+
         /* Responsive Design */
         @media only screen and (max-width: 600px) {
             body {
                 padding: 10px;
-                margin: 0;
+            }
+
+            .email-wrapper {
+                width: 100%;
             }
 
             .container {
-                padding: 20px;
-                border-radius: 0;
-                box-shadow: none;
+                border-radius: 15px;
             }
 
             .header {
-                margin-bottom: 20px;
+                padding: 30px 20px;
             }
 
             .logo {
                 font-size: 24px;
             }
 
-            h1 {
-                font-size: 20px;
-                margin-bottom: 15px;
+            .header-title {
+                font-size: 16px;
             }
 
-            .feedback-badge {
-                padding: 15px;
-                margin: 15px 0;
-                border-radius: 8px;
+            .content {
+                padding: 25px 20px;
             }
 
-            .feedback-badge h2 {
+            .notification-badge {
+                padding: 18px 20px;
+            }
+
+            .notification-badge h2 {
                 font-size: 18px;
             }
 
-            .feedback-badge p {
-                font-size: 14px;
+            .notification-badge p {
+                font-size: 13px;
             }
 
-            .rating-display {
-                padding: 15px;
-                margin: 15px 0;
-                border-radius: 6px;
+            .rating-section {
+                padding: 20px;
             }
 
             .rating-stars {
-                font-size: 24px;
+                font-size: 28px;
+                letter-spacing: 2px;
             }
 
-            .details-box {
-                padding: 15px;
-                margin: 15px 0;
-                border-radius: 6px;
+            .details-box,
+            .message-box,
+            .next-steps {
+                padding: 20px;
             }
 
-            .details-box h3 {
+            .details-box h3,
+            .message-box h3,
+            .next-steps h3 {
                 font-size: 16px;
             }
 
             .details-row {
-                margin-bottom: 8px;
+                grid-template-columns: 1fr;
+                gap: 8px;
+                padding: 10px;
             }
 
             .details-label {
-                font-size: 14px;
-                min-width: auto;
-                margin-bottom: 2px;
+                font-size: 13px;
+                margin-bottom: 4px;
             }
 
             .details-value {
-                font-size: 14px;
-            }
-
-            .message-box {
-                padding: 15px;
-                margin: 15px 0;
-                border-radius: 6px;
-            }
-
-            .message-box h3 {
-                font-size: 16px;
+                font-size: 13px;
             }
 
             .message-content {
                 font-size: 14px;
+                padding: 12px;
+            }
+
+            .next-steps li {
+                font-size: 13px;
             }
 
             .footer {
-                margin-top: 20px;
-                padding-top: 15px;
-                font-size: 12px;
-            }
-
-            .footer p {
-                margin: 5px 0;
+                padding: 20px 15px;
             }
         }
 
         @media only screen and (max-width: 400px) {
-            .container {
-                padding: 15px;
-            }
-
             .header {
-                margin-bottom: 15px;
+                padding: 25px 15px;
             }
 
             .logo {
                 font-size: 20px;
             }
 
-            h1 {
-                font-size: 18px;
-                margin-bottom: 12px;
+            .header-title {
+                font-size: 14px;
             }
 
-            .feedback-badge {
-                padding: 12px;
-                margin: 12px 0;
-            }
-
-            .feedback-badge h2 {
-                font-size: 16px;
-            }
-
-            .feedback-badge p {
-                font-size: 13px;
-            }
-
-            .rating-display {
-                padding: 12px;
-                margin: 12px 0;
+            .content {
+                padding: 20px 15px;
             }
 
             .rating-stars {
-                font-size: 20px;
+                font-size: 24px;
             }
 
-            .details-box {
-                padding: 12px;
-                margin: 12px 0;
-            }
-
-            .details-box h3 {
-                font-size: 15px;
-            }
-
-            .details-row {
-                margin-bottom: 6px;
-            }
-
-            .details-label {
-                font-size: 13px;
-            }
-
-            .details-value {
-                font-size: 13px;
-            }
-
-            .message-box {
-                padding: 12px;
-                margin: 12px 0;
-            }
-
-            .message-box h3 {
-                font-size: 15px;
-            }
-
-            .message-content {
-                font-size: 13px;
-            }
-
-            .footer {
-                margin-top: 15px;
-                padding-top: 12px;
-                font-size: 11px;
+            .details-box h3::before,
+            .message-box h3::before,
+            .next-steps h3::before {
+                font-size: 16px;
             }
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">{{appName}}</div>
-        </div>
-        
-        <h1>New Feedback Submission</h1>
-        
-        <div class="feedback-badge">
-            <h2 style="margin: 0;">⭐ User Feedback</h2>
-            <p style="margin: 10px 0 0 0;">New feedback received from {{appName}}</p>
-        </div>
-        
-        <div class="rating-display">
-            <strong>Rating Given:</strong>
-            <div class="rating-stars">{{ratingStars}}</div>
-            <div>{{rating}} out of 5 stars</div>
-        </div>
-        
-        <p>A new feedback submission has been received from the {{appName}} platform.</p>
-        
-        <div class="details-box">
-            <h3>Feedback Details</h3>
-            <div class="details-row">
-                <div class="details-label">Name:</div>
-                <div class="details-value">{{name}}</div>
+    <div class="email-wrapper">
+        <div class="container">
+            <!-- Header -->
+            <div class="header">
+                <div class="logo">{{appName}}</div>
+                <div class="header-title">New Feedback Notification</div>
             </div>
-            <div class="details-row">
-                <div class="details-label">Email:</div>
-                <div class="details-value">{{email}}</div>
+
+            <!-- Content -->
+            <div class="content">
+                <!-- Notification Badge -->
+                <div class="notification-badge">
+                    <h2>⭐ User Feedback Received</h2>
+                    <p>New feedback received from {{appName}} platform</p>
+                </div>
+
+                <!-- Rating Section -->
+                <div class="rating-section">
+                    <div class="rating-label">Rating Given:</div>
+                    <div class="rating-stars">{{ratingStars}}</div>
+                    <div class="rating-text">{{rating}} out of 5 stars</div>
+                </div>
+
+                <div class="separator"></div>
+
+                <!-- Feedback Details -->
+                <div class="details-box">
+                    <h3>Feedback Details</h3>
+                    <div class="details-row">
+                        <div class="details-label">👤 Name:</div>
+                        <div class="details-value">{{name}}</div>
+                    </div>
+                    <div class="details-row">
+                        <div class="details-label">📧 Email:</div>
+                        <div class="details-value">{{email}}</div>
+                    </div>
+                    <div class="details-row">
+                        <div class="details-label">📝 Subject:</div>
+                        <div class="details-value">{{subject}}</div>
+                    </div>
+                    <div class="details-row">
+                        <div class="details-label">⭐ Rating:</div>
+                        <div class="details-value">{{rating}}/5 stars</div>
+                    </div>
+                    <div class="details-row">
+                        <div class="details-label">🕒 Submitted:</div>
+                        <div class="details-value">{{timestamp}}</div>
+                    </div>
+                    <div class="details-row">
+                        <div class="details-label">🌐 IP Address:</div>
+                        <div class="details-value">{{ipAddress}}</div>
+                    </div>
+                </div>
+
+                <!-- Feedback Message -->
+                <div class="message-box {{priorityClass}}">
+                    <h3>Feedback Message</h3>
+                    <div class="message-content">{{message}}</div>
+                </div>
+
+                <!-- Next Steps -->
+                <div class="next-steps">
+                    <h3>Next Steps</h3>
+                    <ol>
+                        <li>Review the feedback for urgency and priority</li>
+                        <li>Reply directly to {{email}} if a response is needed</li>
+                        <li>Log into the admin panel to manage this feedback</li>
+                        <li>Consider implementing improvements based on suggestions</li>
+                    </ol>
+                </div>
             </div>
-            <div class="details-row">
-                <div class="details-label">Subject:</div>
-                <div class="details-value">{{subject}}</div>
+
+            <!-- Footer -->
+            <div class="footer">
+                <p>This email was automatically generated from the {{appName}} feedback system.</p>
+                <div class="footer-meta">
+                    Timestamp: {{timestamp}}<br>
+                    Source: {{appName}} Feedback Form<br>
+                    Feedback ID: {{feedbackId}}
+                </div>
             </div>
-            <div class="details-row">
-                <div class="details-label">Rating:</div>
-                <div class="details-value">{{rating}}/5 stars</div>
-            </div>
-            <div class="details-row">
-                <div class="details-label">Submitted:</div>
-                <div class="details-value">{{timestamp}}</div>
-            </div>
-            <div class="details-row">
-                <div class="details-label">IP Address:</div>
-                <div class="details-value">{{ipAddress}}</div>
-            </div>
-        </div>
-        
-        <div class="message-box {{priorityClass}}">
-            <h3>Feedback Message</h3>
-            <div class="message-content">{{message}}</div>
-        </div>
-        
-        <h3>Next Steps</h3>
-        <ol>
-            <li>Review the feedback for urgency and priority</li>
-            <li>Reply directly to {{email}} if a response is needed</li>
-            <li>Log into the admin panel to manage this feedback</li>
-            <li>Consider implementing improvements based on suggestions</li>
-        </ol>
-        
-        <div class="footer">
-            <p>This email was automatically generated from the {{appName}} feedback system.</p>
-            <p style="font-size: 12px; color: #9ca3af;">
-                Timestamp: {{timestamp}}<br>
-                Source: {{appName}} Feedback Form<br>
-                Feedback ID: {{feedbackId}}
-            </p>
         </div>
     </div>
 </body>
-</html> 
+
+</html>

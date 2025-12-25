@@ -1,7 +1,19 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useRouteScrollToTop } from '../../hooks/useAutoScroll';
-import { ArrowLeftIcon, ShieldCheckIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import {
+  ArrowLeftIcon,
+  ShieldCheckIcon,
+  ExclamationTriangleIcon,
+  DocumentTextIcon,
+  UserGroupIcon,
+  LockClosedIcon,
+  CpuChipIcon,
+  CreditCardIcon,
+  ScaleIcon,
+  EnvelopeIcon
+} from '@heroicons/react/24/outline';
+import AnimatedBackground from '../AnimatedBackground';
 
 const TermsConditions = () => {
   const navigate = useNavigate();
@@ -11,257 +23,178 @@ const TermsConditions = () => {
     navigate('/');
   };
 
+  const sections = [
+    {
+      id: 1,
+      title: "Acceptance of Terms",
+      icon: ShieldCheckIcon,
+      color: "text-emerald-500",
+      bg: "bg-emerald-50/50 dark:bg-emerald-900/10",
+      content: "By accessing and using Resume Builder (\"the Service\"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service. These Terms of Service apply to all visitors, users, and others who access or use the Service."
+    },
+    {
+      id: 2,
+      title: "Description of Service",
+      icon: DocumentTextIcon,
+      color: "text-blue-500",
+      bg: "bg-blue-50/50 dark:bg-blue-900/10",
+      content: "Resume Builder is an online platform providing tools for professional resume creation. Our service includes templates, AI-powered content suggestions, ATS compatibility analysis, cloud storage, and professional guidance. Some features are token-based and require an active account.",
+      list: [
+        "Resume templates and design tools",
+        "AI-powered content suggestions (token-based)",
+        "ATS compatibility analysis and export",
+        "Secure cloud storage for resume data",
+        "Professional guidance and optimization tips"
+      ]
+    },
+    {
+      id: 3,
+      title: "User Accounts",
+      icon: UserGroupIcon,
+      color: "text-indigo-500",
+      bg: "bg-indigo-50/50 dark:bg-indigo-900/10",
+      content: "To use certain features, you must create an account. You agree to provide accurate information, maintain account security, and accept responsibility for all activities under your account. We reserve the right to terminate accounts for violations of these terms."
+    },
+    {
+      id: 4,
+      title: "Acceptable Use Policy",
+      icon: ExclamationTriangleIcon,
+      color: "text-amber-500",
+      bg: "bg-amber-50/50 dark:bg-amber-900/10",
+      content: "You agree not to use the Service for unlawful purposes, infringe on intellectual property, harass others, submit false information, or attempt unauthorized access. Violation of these policies may result in immediate account termination."
+    },
+    {
+      id: 5,
+      title: "Privacy and Data Protection",
+      icon: LockClosedIcon,
+      color: "text-purple-500",
+      bg: "bg-purple-50/50 dark:bg-purple-900/10",
+      content: "Your privacy is paramount. We implement robust security measures to protect your personal information and resume data. By using our Service, you agree to the collection and use of information in accordance with our Privacy Policy."
+    },
+    {
+      id: 6,
+      title: "Intellectual Property",
+      icon: CpuChipIcon,
+      color: "text-cyan-500",
+      bg: "bg-cyan-50/50 dark:bg-cyan-900/10",
+      content: "The Service and its original content are the exclusive property of Resume Builder. You retain ownership of the content you create, granting us a limited license to store and process it to provide the Service."
+    },
+    {
+      id: 7,
+      title: "Token System & Payment",
+      icon: CreditCardIcon,
+      color: "text-rose-500",
+      bg: "bg-rose-50/50 dark:bg-rose-900/10",
+      content: "New users receive 20 free AI tokens. Additional tokens can be purchased securely via Razorpay. Tokens never expire and are delivered instantly. Pricing is subject to change with 30 days notice.",
+      list: [
+        "AI content suggestions: 1 token",
+        "ATS compatibility analysis: 1 token",
+        "Resume optimization: 1 token",
+        "Smart formatting: 1 token"
+      ]
+    },
+    {
+      id: 8,
+      title: "Limitation of Liability",
+      icon: ScaleIcon,
+      color: "text-slate-500",
+      bg: "bg-slate-50/50 dark:bg-slate-900/10",
+      content: "Resume Builder shall not be liable for indirect, incidental, or consequential damages resulting from your use of the Service. Our total liability is limited to the amount paid in the 12 months preceding any claim."
+    }
+  ];
+
   return (
-    <div className="min-h-screen pt-16">
-      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex items-center mb-8">
-          <button
-            onClick={handleBack}
-            className="mr-4 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors group"
-          >
-            <ArrowLeftIcon className="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:-translate-x-1 transition-transform" />
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Terms & Conditions</h1>
+    <div className="relative min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
+      <AnimatedBackground />
+
+      <main className="relative z-10 max-w-4xl mx-auto pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+        {/* Back Button */}
+        <button
+          onClick={handleBack}
+          className="flex items-center text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors mb-8 group"
+        >
+          <ArrowLeftIcon className="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" />
+          Back to Home
+        </button>
+
+        {/* Hero Section */}
+        <div className="text-center mb-16">
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white mb-4 tracking-tight">
+            Terms & <span className="text-indigo-600 dark:text-indigo-400">Conditions</span>
+          </h1>
+          <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+            Please read these terms carefully before using our service. They outline your rights, responsibilities, and our commitment to you.
+          </p>
         </div>
 
-        {/* Content */}
-        <div className="backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-8">
-          <div className="prose prose-lg dark:prose-invert max-w-none">
-          
-          {/* Last Updated */}
-          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-6 mb-8">
-            <p className="text-gray-600 dark:text-gray-500">
-              <strong>Last Updated:</strong> {new Date().toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
-            </p>
-          </div>
+        {/* Content Sections */}
+        <div className="space-y-8">
+          {sections.map((section) => (
+            <section
+              key={section.id}
+              className="group bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-300"
+            >
+              <div className="flex items-start gap-6">
+                <div className={`flex-shrink-0 p-3 rounded-2xl ${section.bg} transition-transform group-hover:scale-110 duration-300`}>
+                  <section.icon className={`w-8 h-8 ${section.color}`} />
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+                    {section.id}. {section.title}
+                  </h2>
+                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                    {section.content}
+                  </p>
+                  {section.list && (
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {section.list.map((item, idx) => (
+                        <li key={idx} className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-500">
+                          <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            </section>
+          ))}
 
-          {/* Acceptance of Terms */}
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6 flex items-center gap-3">
-              <ShieldCheckIcon className="w-8 h-8 text-green-500" />
-              1. Acceptance of Terms
-            </h2>
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
-              <p className="text-gray-600 dark:text-gray-300 mb-4">
-                By accessing and using Resume Builder ("the Service"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
-              </p>
-              <p className="text-gray-600 dark:text-gray-300">
-                These Terms of Service apply to all visitors, users, and others who access or use the Service.
-              </p>
-            </div>
-          </section>
-
-          {/* Description of Service */}
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
-              2. Description of Service
-            </h2>
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
-              <p className="text-gray-600 dark:text-gray-300 mb-4">
-                Resume Builder is an online platform that provides tools and templates for creating professional resumes. Our service includes:
-              </p>
-              <ul className="space-y-2 text-gray-600 dark:text-gray-300 ml-4">
-                <li>• Resume templates and design tools</li>
-                <li>• AI-powered content suggestions (token-based)</li>
-                <li>• ATS (Applicant Tracking System) compatibility analysis</li>
-                <li>• Resume export in ATS compatible format</li>
-                <li>• Cloud storage for resume data</li>
-                <li>• Professional guidance and tips</li>
-                <li>• Token-based AI features for enhanced resume optimization</li>
-              </ul>
-            </div>
-          </section>
-
-          {/* User Accounts */}
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
-              3. User Accounts
-            </h2>
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-500 mb-4">Account Creation</h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-4">
-                To use certain features of our Service, you must create an account. You agree to:
-              </p>
-              <ul className="space-y-2 text-gray-600 dark:text-gray-300 ml-4 mb-4">
-                <li>• Provide accurate, current, and complete information</li>
-                <li>• Maintain and update your information to keep it accurate</li>
-                <li>• Maintain the security of your password and account</li>
-                <li>• Accept responsibility for all activities under your account</li>
-              </ul>
-              
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-500 mb-4">Account Termination</h3>
-              <p className="text-gray-600 dark:text-gray-300">
-                We reserve the right to terminate or suspend your account at any time for violation of these terms or for any other reason at our sole discretion.
-              </p>
-            </div>
-          </section>
-
-          {/* Acceptable Use */}
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6 flex items-center gap-3">
-              <ExclamationTriangleIcon className="w-8 h-8 text-yellow-500" />
-              4. Acceptable Use Policy
-            </h2>
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4">Prohibited Activities</h3>
-              <p className="text-gray-600 dark:text-gray-500 mb-4">You agree not to:</p>
-              <ul className="space-y-2 text-gray-600 dark:text-gray-500 ml-4">
-                <li>• Use the Service for any unlawful purpose or to solicit others to perform unlawful acts</li>
-                <li>• Violate any international, federal, provincial, or state regulations, rules, laws, or local ordinances</li>
-                <li>• Infringe upon or violate our intellectual property rights or the intellectual property rights of others</li>
-                <li>• Harass, abuse, insult, harm, defame, slander, disparage, intimidate, or discriminate</li>
-                <li>• Submit false or misleading information</li>
-                <li>• Upload or transmit viruses or any other type of malicious code</li>
-                <li>• Attempt to gain unauthorized access to our Service or related systems</li>
-              </ul>
-            </div>
-          </section>
-
-          {/* Privacy and Data */}
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
-              5. Privacy and Data Protection
-            </h2>
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
-              <p className="text-gray-600 dark:text-gray-300 mb-4">
-                Your privacy is important to us. Our Privacy Policy explains how we collect, use, and protect your information when you use our Service. By using our Service, you agree to the collection and use of information in accordance with our Privacy Policy.
-              </p>
-              <p className="text-gray-600 dark:text-gray-300">
-                We implement appropriate security measures to protect your personal information and resume data against unauthorized access, alteration, disclosure, or destruction.
-              </p>
-            </div>
-          </section>
-
-          {/* Intellectual Property */}
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
-              6. Intellectual Property Rights
-            </h2>
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-500 mb-4">Our Rights</h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-4">
-                The Service and its original content, features, and functionality are and will remain the exclusive property of Resume Builder and its licensors. The Service is protected by copyright, trademark, and other laws.
-              </p>
-              
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-500 mb-4">Your Rights</h3>
-              <p className="text-gray-600 dark:text-gray-300">
-                You retain ownership of the content you create using our Service. You grant us a limited license to store, process, and display your content as necessary to provide the Service.
-              </p>
-            </div>
-          </section>
-
-          {/* Token System and Payment */}
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
-              7. Token System and Payment Terms
-            </h2>
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-500 mb-4">Free Access</h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-4">
-                All users receive 20 free AI tokens upon registration to experience our AI-powered features. Basic resume building features are available at no cost.
-              </p>
-              
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-500 mb-4">Token Purchase</h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-4">
-                Additional tokens can be purchased to access AI-powered features. Tokens are delivered instantly upon successful payment and never expire.
-              </p>
-              
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-500 mb-4">Payment Processing</h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-4">
-                All payments are processed securely through Razorpay. We accept major credit cards, debit cards, UPI, and net banking.
-              </p>
-              
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-500 mb-4">Price Changes</h3>
-              <p className="text-gray-600 dark:text-gray-300">
-                We reserve the right to change our token pricing at any time. Price changes will be communicated to users with at least 30 days notice.
-              </p>
-            </div>
-          </section>
-
-          {/* Token Usage Terms */}
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
-              8. Token Usage Terms
-            </h2>
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-6">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4">Token Consumption</h3>
-              <p className="text-gray-600 dark:text-gray-500 mb-4">
-                AI-powered features consume tokens as follows:
-              </p>
-              <ul className="space-y-2 text-gray-600 dark:text-gray-500 ml-4">
-                <li>• AI content suggestions: 1 token per request</li>
-                <li>• ATS compatibility analysis: 1 token per analysis</li>
-                <li>• Resume optimization: 1 token per optimization</li>
-                <li>• Smart formatting: 1 token per formatting request</li>
-              </ul>
-              
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4 mt-6">Token Validity</h3>
-              <p className="text-gray-600 dark:text-gray-500 mb-4">
-                Tokens do not expire and can be used at any time. Unused tokens remain in your account indefinitely.
-              </p>
-              
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-700 mb-4">Token Refunds</h3>
-              <p className="text-gray-600 dark:text-gray-500">
-                Tokens are non-refundable once purchased, except as required by law or as specified in our refund policy.
-              </p>
-            </div>
-          </section>
-
-          {/* Limitation of Liability */}
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
-              9. Limitation of Liability
-            </h2>
-            <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl p-6">
-              <p className="text-gray-600 dark:text-gray-500 mb-4">
-                In no event shall Resume Builder, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential, or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your use of the Service.
-              </p>
-              <p className="text-gray-600 dark:text-gray-500">
-                Our total liability to you for any damages arising from or related to these terms or the Service shall not exceed the amount you paid us in the 12 months preceding the claim.
-              </p>
-            </div>
-          </section>
-
-          {/* Changes to Terms */}
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
-              10. Changes to Terms
-            </h2>
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
-              <p className="text-gray-600 dark:text-gray-300 mb-4">
-                We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material, we will try to provide at least 30 days notice prior to any new terms taking effect.
-              </p>
-              <p className="text-gray-600 dark:text-gray-300">
-                Your continued use of the Service after any such changes constitutes your acceptance of the new Terms.
-              </p>
-            </div>
-          </section>
-
-          {/* Contact Information */}
-          <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-700 mb-6">
-              11. Contact Information
-            </h2>
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-6">
-              <p className="text-gray-600 dark:text-gray-500 mb-4">
-                If you have any questions about these Terms of Service, please contact me:
-              </p>
-              <div className="space-y-2 text-gray-600 dark:text-gray-500">
-                <p><strong>Email:</strong> pranaydaspr@gmail.com</p>
-                <p><strong>Support:</strong> pranaydaspr@gmail.com</p>
-                <p><strong>Response Time:</strong> Within 24 hours</p>
+          {/* Contact Section */}
+          <section className="bg-indigo-600 dark:bg-indigo-900 rounded-3xl p-8 text-white shadow-xl shadow-indigo-200 dark:shadow-none">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+              <div>
+                <h2 className="text-3xl font-bold mb-2 flex items-center gap-3">
+                  <EnvelopeIcon className="w-8 h-8" />
+                  Questions?
+                </h2>
+                <p className="text-indigo-100">
+                  Our support team is here to help you with any legal or technical queries.
+                </p>
+              </div>
+              <div className="flex flex-col gap-3 w-full md:w-auto">
+                <Link
+                  to="/contact-us"
+                  className="px-8 py-3 bg-white text-indigo-600 rounded-2xl font-bold text-center hover:bg-indigo-50 transition-colors"
+                >
+                  Contact Support
+                </Link>
+                <p className="text-center text-xs text-indigo-200">
+                  Typical response time: Within 24 hours
+                </p>
               </div>
             </div>
           </section>
-
-          </div>
         </div>
-      </div>
+
+        {/* Footer Note */}
+        <footer className="mt-16 text-center text-slate-400 dark:text-slate-600 text-sm">
+          <p>© {new Date().getFullYear()} Resume Builder. All rights reserved.</p>
+          <p className="mt-2 italic">
+            Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} • Your continued use of the Service constitutes your acceptance of these Terms.
+          </p>
+        </footer>
+      </main>
     </div>
   );
 };
