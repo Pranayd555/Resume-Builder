@@ -118,8 +118,10 @@ const corsOptions = {
       'https://resume-builder-pranayd555-pranay-das-projects.vercel.app',
       'https://resume-builder-pranay-das-projects.vercel.app',
       'https://resume-builder-dev-pranay-das.vercel.app',
-      'capacitor://localhost',
-      'ionic://localhost',
+      "https://presmistique.in",
+      "https://www.presmistique.in",
+      "https://resume-builder-6rc.pages.dev",
+      "https://*.pages.dev",
       'http://localhost',
       'https://localhost'
     ];
