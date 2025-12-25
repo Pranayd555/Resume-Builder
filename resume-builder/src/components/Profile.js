@@ -5,7 +5,7 @@ import { authAPI, uploadAPI, apiHelpers } from '../services/api';
 import { toast } from 'react-toastify';
 import { useAutoScroll, useScrollToTop } from '../hooks/useAutoScroll';
 import EmailVerification from './EmailVerification';
-import { 
+import {
   UserCircleIcon,
   PencilIcon,
   CheckIcon,
@@ -23,7 +23,7 @@ function Profile() {
   const navigate = useNavigate();
   const { user, updateUser: updateAuthUser, logout, getEmailStatus } = useAuth();
   const fileInputRef = useRef(null);
-  
+
   const [profile, setProfile] = useState({
     firstName: '',
     lastName: '',
@@ -50,14 +50,14 @@ function Profile() {
     newPassword: '',
     confirmPassword: ''
   });
-  
+
   // Validation state
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
-  
+
   // State for scroll functionality
   const [justSaved, setJustSaved] = useState(false);
-  
+
   // Validation functions
   const validateField = (name, value) => {
     switch (name) {
@@ -67,29 +67,27 @@ function Profile() {
         if (value.trim().length > 50) return 'First name must be less than 50 characters';
         if (!/^[a-zA-Z\s'-]+$/.test(value.trim())) return 'First name can only contain letters, spaces, hyphens, and apostrophes';
         return '';
-      
+
       case 'lastName':
         if (!value.trim()) return 'Last name is required';
         if (value.trim().length < 2) return 'Last name must be at least 2 characters';
         if (value.trim().length > 50) return 'Last name must be less than 50 characters';
         if (!/^[a-zA-Z\s'-]+$/.test(value.trim())) return 'Last name can only contain letters, spaces, hyphens, and apostrophes';
         return '';
-      
+
       case 'email':
         if (!value.trim()) return 'Email is required';
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(value.trim())) return 'Please enter a valid email address';
         return '';
-      
-                           case 'phone':
-          if (!value.trim()) return 'Phone number is required';
-          const phoneRegex = /^[+]?[1-9][\d]{0,15}$/;
-          const cleanPhone = value.replace(/[\s\-().]/g, '');
-          if (!phoneRegex.test(cleanPhone)) return 'Please enter a valid phone number';
-          return '';
-      
-      
-      
+
+      case 'phone':
+        if (!value.trim()) return 'Phone number is required';
+        const phoneRegex = /^[+]?[1-9][\d]{0,15}$/;
+        const cleanPhone = value.replace(/[\s\-().]/g, '');
+        if (!phoneRegex.test(cleanPhone)) return 'Please enter a valid phone number';
+        return '';
+
       default:
         return '';
     }
@@ -108,15 +106,15 @@ function Profile() {
   };
 
   // Auto-scroll hooks (declared after all state variables)
-  const { ref: profilePhotoRef } = useAutoScroll(false, { 
-    block: 'center', 
+  const { ref: profilePhotoRef } = useAutoScroll(false, {
+    block: 'center',
     delay: 100,
     offset: -50 // Scroll slightly above the profile photo
   });
-  
+
   const { ref: profileFormRef } = useAutoScroll(false); // Can be triggered manually
   const { scrollToTop } = useScrollToTop(justSaved);
-  
+
   // Scroll to top when edit mode is activated
   useEffect(() => {
     if (isEditing) {
@@ -126,7 +124,7 @@ function Profile() {
           behavior: 'smooth'
         });
       }, 100);
-      
+
       return () => clearTimeout(timer);
     }
   }, [isEditing]);
@@ -141,7 +139,7 @@ function Profile() {
           inline: 'nearest'
         });
       }, 200); // Longer delay for modal animation
-      
+
       return () => clearTimeout(timer);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -155,7 +153,7 @@ function Profile() {
       name: 'Professional Male 1'
     },
     {
-      id: 'avatar-2', 
+      id: 'avatar-2',
       url: 'https://cdn-icons-png.flaticon.com/512/3135/3135823.png',
       name: 'Professional Female 1'
     },
@@ -230,7 +228,7 @@ function Profile() {
       let profilePictureUrl = '';
       let profilePictureOriginalUrl = '';
       let profilePictureAvatarUrl = '';
-      
+
       if (user.profilePicture) {
         if (user.profilePicture.type === 'avatar' && user.profilePicture.avatarUrl) {
           // User has selected an avatar
@@ -239,24 +237,24 @@ function Profile() {
           profilePictureAvatarUrl = user.profilePicture.avatarUrl;
         } else if (user.profilePicture.type === 'uploaded' && user.profilePicture.uploadedPhoto) {
           // User has uploaded a photo
-          profilePictureUrl = user.profilePicture.uploadedPhoto.thumbnailUrl || user.profilePicture.uploadedPhoto.url;
-          profilePictureOriginalUrl = user.profilePicture.uploadedPhoto.url;
-          profilePictureAvatarUrl = user.profilePicture.uploadedPhoto.avatarUrl;
+          profilePictureUrl = apiHelpers.normalizeUrl(user.profilePicture.uploadedPhoto.thumbnailUrl || user.profilePicture.uploadedPhoto.url);
+          profilePictureOriginalUrl = apiHelpers.normalizeUrl(user.profilePicture.uploadedPhoto.url);
+          profilePictureAvatarUrl = apiHelpers.normalizeUrl(user.profilePicture.uploadedPhoto.avatarUrl);
         }
       }
-      
+
       // Legacy support for old structure (temporary)
       if (!profilePictureUrl && user.profilePicture) {
         if (typeof user.profilePicture === 'string') {
-          profilePictureUrl = user.profilePicture;
-          profilePictureOriginalUrl = user.profilePicture;
+          profilePictureUrl = apiHelpers.normalizeUrl(user.profilePicture);
+          profilePictureOriginalUrl = apiHelpers.normalizeUrl(user.profilePicture);
         } else if (user.profilePicture.url || user.profilePicture.thumbnailUrl) {
-          profilePictureUrl = user.profilePicture.thumbnailUrl || user.profilePicture.url;
-          profilePictureOriginalUrl = user.profilePicture.url;
-          profilePictureAvatarUrl = user.profilePicture.avatarUrl;
+          profilePictureUrl = apiHelpers.normalizeUrl(user.profilePicture.thumbnailUrl || user.profilePicture.url);
+          profilePictureOriginalUrl = apiHelpers.normalizeUrl(user.profilePicture.url);
+          profilePictureAvatarUrl = apiHelpers.normalizeUrl(user.profilePicture.avatarUrl);
         }
       }
-      
+
       const userProfile = {
         firstName: user.firstName || '',
         lastName: user.lastName || '',
@@ -267,15 +265,14 @@ function Profile() {
         profilePicture: profilePictureUrl,
         profilePictureOriginal: profilePictureOriginalUrl,
         profilePictureAvatar: profilePictureAvatarUrl,
-        
       };
-      
+
       // Only update if the profile data has actually changed to avoid unnecessary re-renders
       setProfile(prevProfile => {
         const hasChanged = JSON.stringify(prevProfile) !== JSON.stringify(userProfile);
         return hasChanged ? userProfile : prevProfile;
       });
-      
+
       setOriginalProfile(prevOriginal => {
         const hasChanged = JSON.stringify(prevOriginal) !== JSON.stringify(userProfile);
         return hasChanged ? userProfile : prevOriginal;
@@ -291,7 +288,7 @@ function Profile() {
       ...prev,
       [field]: value
     }));
-    
+
     // Validate field on change if it has been touched
     if (touched[field]) {
       const error = validateField(field, value);
@@ -307,7 +304,7 @@ function Profile() {
       ...prev,
       [field]: true
     }));
-    
+
     const error = validateField(field, profile[field]);
     setErrors(prev => ({
       ...prev,
@@ -331,30 +328,30 @@ function Profile() {
       }
     });
     setTouched(allTouched);
-    
+
     // Validate form
     if (!validateForm()) {
       toast.error('Please fill in all the required fields');
       return;
     }
-    
+
     try {
       setLoading(true);
       const response = await authAPI.updateProfile(profile);
-      
+
       if (response.success) {
         updateAuthUser(response.data.user);
         setOriginalProfile(profile);
         setIsEditing(false);
-        
+
         // Clear errors and touched state
         setErrors({});
         setTouched({});
-        
+
         // Trigger scroll to top after successful save
         setJustSaved(true);
         setTimeout(() => setJustSaved(false), 500); // Reset after animation
-        
+
         if (response.data.requiresEmailVerification) {
           setNewEmail(profile.email);
           setShowEmailVerification(true);
@@ -376,11 +373,11 @@ function Profile() {
   const handleCancel = () => {
     setProfile(originalProfile);
     setIsEditing(false);
-    
+
     // Clear validation state
     setErrors({});
     setTouched({});
-    
+
     // Scroll to top when canceling edit
     setTimeout(() => {
       scrollToTop();
@@ -413,30 +410,35 @@ function Profile() {
     try {
       setUploading(true);
       const response = await uploadAPI.uploadProfilePicture(file);
-      
+
       if (response.success) {
-        // The upload API already updates the user profile in the database,
-        // so we just need to fetch the updated user data
-        const userResponse = await authAPI.getCurrentUser();
-        
-        if (userResponse.success) {
-          // Update the AuthContext with the updated user data
-          updateAuthUser(userResponse.data.user);
-          
-          // Update local profile state with the new profile picture data
-          const updatedProfile = {
-            ...profile,
-            profilePicture: response.data.thumbnailUrl || response.data.url,
-            profilePictureOriginal: response.data.url,
-            profilePictureAvatar: response.data.avatarUrl || ''
-          };
-          setProfile(updatedProfile);
-          setOriginalProfile(updatedProfile);
-          
-          toast.success('Profile picture updated successfully!');
-        } else {
-          throw new Error(userResponse.error || 'Failed to fetch updated profile');
-        }
+        // Construct the updated user object manually with the fresh data from the upload response
+        const updatedUser = {
+          ...user,
+          profilePicture: {
+            type: 'uploaded',
+            uploadedPhoto: {
+              url: response.data.url,
+              thumbnailUrl: response.data.thumbnailUrl,
+              avatarUrl: response.data.avatarUrl || ''
+            }
+          }
+        };
+
+        // Update the AuthContext with the updated user data
+        updateAuthUser(updatedUser);
+
+        // Update local profile state with the new profile picture data (normalized)
+        const updatedProfile = {
+          ...profile,
+          profilePicture: apiHelpers.normalizeUrl(response.data.thumbnailUrl || response.data.url),
+          profilePictureOriginal: apiHelpers.normalizeUrl(response.data.url),
+          profilePictureAvatar: apiHelpers.normalizeUrl(response.data.avatarUrl || '')
+        };
+        setProfile(updatedProfile);
+        setOriginalProfile(updatedProfile);
+
+        toast.success('Profile picture updated successfully!');
       } else {
         throw new Error(response.error || 'Failed to upload profile picture');
       }
@@ -468,7 +470,7 @@ function Profile() {
   const handleDrop = (e) => {
     e.preventDefault();
     setDragOver(false);
-    
+
     const files = e.dataTransfer.files;
     if (files && files[0]) {
       uploadProfilePicture(files[0]);
@@ -478,7 +480,7 @@ function Profile() {
   const handleRemoveProfilePicture = async () => {
     try {
       setUploading(true);
-      
+
       // Clear the profile picture from the backend
       const profileData = {
         firstName: profile.firstName,
@@ -490,23 +492,23 @@ function Profile() {
         profilePicture: '',
         profilePictureType: 'uploaded' // Default type when removing
       };
-      
+
       const profileResponse = await authAPI.updateProfile(profileData);
-      
+
       if (profileResponse.success) {
         // Update the AuthContext to remove the profile picture
         updateAuthUser(profileResponse.data.user);
-        
+
         // Clear profile picture from local state
-        const updatedProfile = { 
-          ...profile, 
-          profilePicture: '', 
-          profilePictureOriginal: '', 
+        const updatedProfile = {
+          ...profile,
+          profilePicture: '',
+          profilePictureOriginal: '',
           profilePictureAvatar: ''
         };
         setProfile(updatedProfile);
         setOriginalProfile(updatedProfile);
-        
+
         toast.success('Profile picture removed successfully!');
       } else {
         throw new Error(profileResponse.error || 'Failed to remove profile picture');
@@ -522,7 +524,7 @@ function Profile() {
   const handleAvatarSelection = async (avatarUrl) => {
     try {
       setSavingAvatar(true);
-      
+
       // Save the avatar to the backend with the new structure
       const profileData = {
         firstName: profile.firstName,
@@ -534,23 +536,23 @@ function Profile() {
         profilePicture: avatarUrl,
         profilePictureType: 'avatar'
       };
-      
+
       const response = await authAPI.updateProfile(profileData);
-      
+
       if (response.success) {
         // Update the AuthContext with the new avatar
         updateAuthUser(response.data.user);
-        
+
         // Update local profile state with the new avatar data
         const updatedProfile = {
           ...profile,
-          profilePicture: avatarUrl,
-          profilePictureOriginal: avatarUrl,
-          profilePictureAvatar: avatarUrl
+          profilePicture: apiHelpers.normalizeUrl(avatarUrl),
+          profilePictureOriginal: apiHelpers.normalizeUrl(avatarUrl),
+          profilePictureAvatar: apiHelpers.normalizeUrl(avatarUrl)
         };
         setProfile(updatedProfile);
         setOriginalProfile(updatedProfile);
-        
+
         setShowAvatarSelector(false);
         toast.success('Avatar selected successfully!');
       } else {
@@ -578,7 +580,7 @@ function Profile() {
 
       setLoading(true);
       const response = await authAPI.changePassword(passwordData);
-      
+
       if (response.success) {
         setShowPasswordModal(false);
         setPasswordData({
@@ -602,7 +604,7 @@ function Profile() {
     try {
       setLoading(true);
       const response = await authAPI.deleteAccount();
-      
+
       if (response.success) {
         await logout();
         toast.success('Account deleted successfully');
@@ -622,12 +624,12 @@ function Profile() {
     setShowEmailVerification(false);
     setNewEmail('');
     toast.success('Email verified successfully!');
-    
+
     // Update user data in localStorage and AuthContext
     const updatedUser = { ...user, isEmailVerified: true };
     updateAuthUser(updatedUser);
     apiHelpers.setCurrentUserData(updatedUser);
-    
+
     // Refresh email verification status
     checkEmailVerificationStatus();
   };
@@ -645,7 +647,7 @@ function Profile() {
       // Show the modal immediately since user already has the email
       setNewEmail(user.email);
       setShowEmailVerification(true);
-      
+
       // Optionally send a new OTP if needed
       const response = await authAPI.resendOtp();
       if (response.success) {
@@ -667,7 +669,7 @@ function Profile() {
               className="mr-4 text-gray-600 dark:text-gray-200 hover:text-gray-900 dark:hover:text-gray-100 transition-colors group"
             >
               <svg className="w-5 h-5 sm:w-6 sm:h-6 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Profile</h1>
@@ -679,23 +681,21 @@ function Profile() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Profile Picture */}
             <div ref={profilePhotoRef} className="flex flex-col items-center">
-              <div 
-                className={`relative group cursor-pointer transition-all duration-300 ${
-                  dragOver ? 'scale-105 shadow-2xl' : ''
-                } ${(isEditing || !profile.profilePicture) ? 'cursor-pointer' : ''}`}
+              <div
+                className={`relative group cursor-pointer transition-all duration-300 ${dragOver ? 'scale-105 shadow-2xl' : ''
+                  } ${(isEditing || !profile.profilePicture) ? 'cursor-pointer' : ''}`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 onClick={() => (isEditing || !profile.profilePicture) && fileInputRef.current?.click()}
               >
-                <div className={`w-40 h-40 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg overflow-hidden border-4 transition-all duration-300 ${
-                  dragOver ? 'border-blue-400 shadow-blue-400/50' : 'border-white/20'
-                } backdrop-blur-sm`}>
+                <div className={`w-40 h-40 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg overflow-hidden border-4 transition-all duration-300 ${dragOver ? 'border-blue-400 shadow-blue-400/50' : 'border-white/20'
+                  } backdrop-blur-sm`}>
                   {profile.profilePicture ? (
                     <div className="w-full h-full flex items-center justify-center bg-white dark:bg-orange-50/90 rounded-full">
-                      <img 
-                        src={profile.profilePicture} 
-                        alt="Profile" 
+                      <img
+                        src={profile.profilePicture}
+                        alt="Profile"
                         className="w-full h-full object-cover rounded-full transition-all duration-300 group-hover:scale-105"
                         onError={(e) => {
                           e.target.style.display = 'none';
@@ -743,7 +743,7 @@ function Profile() {
                   </div>
                 )}
               </div>
-              
+
               {/* Upload Controls */}
               <div className="flex flex-col items-center space-y-3">
                 <input
@@ -753,9 +753,9 @@ function Profile() {
                   accept="image/*"
                   className="hidden"
                 />
-                
+
                 {(isEditing || !profile.profilePicture) && (
-                  <button 
+                  <button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading || savingAvatar}
                     className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
@@ -764,11 +764,11 @@ function Profile() {
                     <span>{uploading ? 'Uploading...' : profile.profilePicture ? 'Change Photo' : 'Upload Photo'}</span>
                   </button>
                 )}
-                
+
                 {/* Avatar Selection Button */}
                 {isEditing && (
                   <div className="flex flex-col space-y-2">
-                    <button 
+                    <button
                       onClick={() => setShowAvatarSelector(true)}
                       disabled={uploading || savingAvatar}
                       className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
@@ -776,10 +776,10 @@ function Profile() {
                       <UserCircleIcon className="w-4 h-4" />
                       <span>{savingAvatar ? 'Saving...' : 'Choose Avatar'}</span>
                     </button>
-                    
+
                     {/* Personalized Avatar Button */}
                     {(profile.firstName || profile.lastName) && (
-                      <button 
+                      <button
                         onClick={() => {
                           const name = `${profile.firstName || ''} ${profile.lastName || ''}`.trim();
                           const colors = ['3B82F6', 'EC4899', '10B981', 'F59E0B', '8B5CF6', 'EF4444', '06B6D4', '84CC16'];
@@ -796,27 +796,27 @@ function Profile() {
                     )}
                   </div>
                 )}
-                
-                                 {profile.profilePicture && isEditing && (
-                   <button
-                     onClick={handleRemoveProfilePicture}
-                     disabled={uploading || savingAvatar}
-                     className="text-red-600 hover:text-red-700 text-sm font-medium transition-colors flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                   >
-                     <TrashIcon className="w-4 h-4" />
-                     <span>Remove Photo</span>
-                   </button>
-                 )}
-                 
-                 {/* Upload Requirements - Only show when editing */}
-                 {isEditing && (
-                   <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                     <div className="text-center">
-                       <p className="text-xs text-gray-600 font-medium">Upload Requirements</p>
-                       <p className="text-xs text-gray-500 mt-1">Maximum size: 5MB • Supported formats: JPG, PNG, JPEG</p>
-                     </div>
-                   </div>
-                 )}
+
+                {profile.profilePicture && isEditing && (
+                  <button
+                    onClick={handleRemoveProfilePicture}
+                    disabled={uploading || savingAvatar}
+                    className="text-red-600 hover:text-red-700 text-sm font-medium transition-colors flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <TrashIcon className="w-4 h-4" />
+                    <span>Remove Photo</span>
+                  </button>
+                )}
+
+                {/* Upload Requirements - Only show when editing */}
+                {isEditing && (
+                  <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="text-center">
+                      <p className="text-xs text-gray-600 font-medium">Upload Requirements</p>
+                      <p className="text-xs text-gray-500 mt-1">Maximum size: 5MB • Supported formats: JPG, PNG, JPEG</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -834,9 +834,8 @@ function Profile() {
                         value={profile.firstName}
                         onChange={(e) => handleInputChange('firstName', e.target.value)}
                         onBlur={() => handleFieldBlur('firstName')}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900 ${
-                          errors.firstName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
-                        }`}
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900 ${errors.firstName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+                          }`}
                         placeholder="Enter your first name"
                       />
                       {errors.firstName && (
@@ -858,9 +857,8 @@ function Profile() {
                         value={profile.lastName}
                         onChange={(e) => handleInputChange('lastName', e.target.value)}
                         onBlur={() => handleFieldBlur('lastName')}
-                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900 ${
-                          errors.lastName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
-                        }`}
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900 ${errors.lastName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+                          }`}
                         placeholder="Enter your last name"
                       />
                       {errors.lastName && (
@@ -884,9 +882,8 @@ function Profile() {
                       value={profile.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
                       onBlur={() => handleFieldBlur('email')}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500 ${
-                        errors.email ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
-                      }`}
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500 ${errors.email ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+                        }`}
                       placeholder="Enter your email address"
                     />
                     {errors.email && (
@@ -923,10 +920,10 @@ function Profile() {
                 )}
               </div>
 
-                             <div>
-                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                   Phone <span className="text-red-500">*</span>
-                 </label>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Phone <span className="text-red-500">*</span>
+                </label>
                 {isEditing ? (
                   <div>
                     <input
@@ -934,10 +931,9 @@ function Profile() {
                       value={profile.phone}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
                       onBlur={() => handleFieldBlur('phone')}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500 ${
-                        errors.phone ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
-                      }`}
-                                             placeholder="Enter your phone number"
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500 ${errors.phone ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+                        }`}
+                      placeholder="Enter your phone number"
                     />
                     {errors.phone && (
                       <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
@@ -964,8 +960,6 @@ function Profile() {
                   <p className="text-gray-900 font-medium">{profile.location}</p>
                 )}
               </div>
-
-              
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1173,13 +1167,13 @@ function Profile() {
                   <XMarkIcon className="w-6 h-6" />
                 </button>
               </div>
-              
+
               <div className="mb-4">
                 <p className="text-gray-600 text-sm">
                   Choose from our collection of colorful professional avatars. These high-quality icons are perfect for maintaining a professional appearance across your resume and profile.
                 </p>
               </div>
-              
+
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {professionalAvatars.map((avatar) => (
                   <div key={avatar.id} className="group relative">
@@ -1200,7 +1194,7 @@ function Profile() {
                             if (fallback) fallback.style.display = 'flex';
                           }}
                         />
-                        <div 
+                        <div
                           className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg flex items-center justify-center text-white font-bold text-lg hidden"
                           style={{ display: 'none' }}
                         >
@@ -1227,7 +1221,7 @@ function Profile() {
                   </div>
                 ))}
               </div>
-              
+
               <div className="mt-6 pt-4 border-t border-gray-200">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2 text-sm text-gray-500">
@@ -1261,4 +1255,4 @@ function Profile() {
   );
 }
 
-export default Profile; 
+export default Profile;
