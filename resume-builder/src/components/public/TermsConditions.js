@@ -30,7 +30,7 @@ const TermsConditions = () => {
       icon: ShieldCheckIcon,
       color: "text-emerald-500",
       bg: "bg-emerald-50/50 dark:bg-emerald-900/10",
-      content: "By accessing and using Resume Builder (\"the Service\"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service. These Terms of Service apply to all visitors, users, and others who access or use the Service."
+      content: "By accessing and using Presmistique - AI Resume Builder (\"the Service\"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service. These Terms of Service apply to all visitors, users, and others who access or use the Service."
     },
     {
       id: 2,
@@ -38,7 +38,7 @@ const TermsConditions = () => {
       icon: DocumentTextIcon,
       color: "text-blue-500",
       bg: "bg-blue-50/50 dark:bg-blue-900/10",
-      content: "Resume Builder is an online platform providing tools for professional resume creation. Our service includes templates, AI-powered content suggestions, ATS compatibility analysis, cloud storage, and professional guidance. Some features are token-based and require an active account.",
+      content: "Presmistique - AI Resume Builder is an online platform providing tools for professional resume creation. Our service includes templates, AI-powered content suggestions, ATS compatibility analysis, cloud storage, and professional guidance. Some features are token-based and require an active account.",
       list: [
         "Resume templates and design tools",
         "AI-powered content suggestions (token-based)",
@@ -77,7 +77,7 @@ const TermsConditions = () => {
       icon: CpuChipIcon,
       color: "text-cyan-500",
       bg: "bg-cyan-50/50 dark:bg-cyan-900/10",
-      content: "The Service and its original content are the exclusive property of Resume Builder. You retain ownership of the content you create, granting us a limited license to store and process it to provide the Service."
+      content: "The Service and its original content are the exclusive property of Presmistique - AI Resume Builder. You retain ownership of the content you create, granting us a limited license to store and process it to provide the Service."
     },
     {
       id: 7,
@@ -99,7 +99,7 @@ const TermsConditions = () => {
       icon: ScaleIcon,
       color: "text-slate-500",
       bg: "bg-slate-50/50 dark:bg-slate-900/10",
-      content: "Resume Builder shall not be liable for indirect, incidental, or consequential damages resulting from your use of the Service. Our total liability is limited to the amount paid in the 12 months preceding any claim."
+      content: "Presmistique - AI Resume Builder shall not be liable for indirect, incidental, or consequential damages resulting from your use of the Service. Our total liability is limited to the amount paid in the 12 months preceding any claim."
     }
   ];
 
@@ -189,7 +189,7 @@ const TermsConditions = () => {
 
         {/* Footer Note */}
         <footer className="mt-16 text-center text-slate-400 dark:text-slate-600 text-sm">
-          <p>© {new Date().getFullYear()} Resume Builder. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Presmistique - AI Resume Builder. All rights reserved.</p>
           <p className="mt-2 italic">
             Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} • Your continued use of the Service constitutes your acceptance of these Terms.
           </p>

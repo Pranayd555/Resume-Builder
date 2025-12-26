@@ -101,7 +101,7 @@ function Feedback() {
                 Get in Touch
               </h2>
               <p className="text-gray-600 mb-8 leading-relaxed">
-                Have questions or suggestions about Resume Builder? I'd love to hear from you. As a solo developer,
+                Have questions or suggestions about Presmistique - AI Resume Builder? I'd love to hear from you. As a solo developer,
                 your feedback is incredibly valuable for improving the application.
               </p>
 
@@ -143,7 +143,7 @@ function Feedback() {
                 </div>
                 <p className="text-sm text-gray-600 leading-relaxed">
                   I typically respond to all inquiries within 24 hours during business days. Your feedback helps me improve
-                  Resume Builder and add features that matter to you.
+                  Presmistique - AI Resume Builder and add features that matter to you.
                 </p>
               </div>
             </div>
@@ -204,7 +204,7 @@ function Feedback() {
                   onChange={(e) => handleInputChange('message', e.target.value)}
                   rows={4}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm resize-none text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500"
-                  placeholder="Tell me about your experience with Resume Builder..."
+                  placeholder="Tell me about your experience with Presmistique - AI Resume Builder..."
                   required
                 />
               </div>

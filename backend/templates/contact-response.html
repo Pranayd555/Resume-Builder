@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,35 +15,42 @@
             padding: 20px;
             background-color: #f8f9fa;
         }
+
         .container {
             background-color: #ffffff;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
+
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 30px;
             text-align: center;
         }
+
         .header h1 {
             margin: 0;
             font-size: 24px;
             font-weight: 600;
         }
+
         .header p {
             margin: 10px 0 0 0;
             opacity: 0.9;
         }
+
         .content {
             padding: 30px;
         }
+
         .greeting {
             font-size: 18px;
             color: #495057;
             margin-bottom: 20px;
         }
+
         .response-section {
             background-color: #f8f9fa;
             border-radius: 8px;
@@ -50,6 +58,7 @@
             margin: 20px 0;
             border-left: 4px solid #28a745;
         }
+
         .response-section h3 {
             margin-top: 0;
             color: #155724;
@@ -57,10 +66,12 @@
             display: flex;
             align-items: center;
         }
+
         .response-section h3::before {
             content: "💬";
             margin-right: 10px;
         }
+
         .response-content {
             background-color: #ffffff;
             padding: 20px;
@@ -70,6 +81,7 @@
             font-size: 15px;
             line-height: 1.6;
         }
+
         .admin-info {
             background-color: #e3f2fd;
             border-radius: 8px;
@@ -77,14 +89,17 @@
             margin: 20px 0;
             text-align: center;
         }
+
         .admin-info p {
             margin: 5px 0;
             color: #1976d2;
         }
+
         .admin-name {
             font-weight: 600;
             font-size: 16px;
         }
+
         .follow-up {
             background-color: #fff3cd;
             border: 1px solid #ffeaa7;
@@ -92,15 +107,18 @@
             padding: 20px;
             margin: 20px 0;
         }
+
         .follow-up h4 {
             margin: 0 0 15px 0;
             color: #856404;
             font-size: 16px;
         }
+
         .follow-up p {
             margin: 0;
             color: #856404;
         }
+
         .contact-info {
             background-color: #e8f5e8;
             border-radius: 8px;
@@ -108,18 +126,22 @@
             margin: 20px 0;
             text-align: center;
         }
+
         .contact-info h4 {
             margin: 0 0 10px 0;
             color: #155724;
         }
+
         .contact-info a {
             color: #007bff;
             text-decoration: none;
             font-weight: 500;
         }
+
         .contact-info a:hover {
             text-decoration: underline;
         }
+
         .footer {
             background-color: #f8f9fa;
             padding: 20px;
@@ -127,13 +149,16 @@
             color: #6c757d;
             font-size: 14px;
         }
+
         .footer a {
             color: #007bff;
             text-decoration: none;
         }
+
         .footer a:hover {
             text-decoration: underline;
         }
+
         .rating-section {
             background-color: #f0f8ff;
             border-radius: 8px;
@@ -141,39 +166,47 @@
             margin: 20px 0;
             text-align: center;
         }
+
         .rating-section h4 {
             margin: 0 0 15px 0;
             color: #0066cc;
         }
+
         .rating-section p {
             margin: 0;
             color: #0066cc;
             font-size: 14px;
         }
+
         .info-section {
             background-color: #f8f9fa;
             border-radius: 8px;
             padding: 20px;
             margin: 20px 0;
         }
+
         .info-section h3 {
             margin-top: 0;
             color: #495057;
             font-size: 18px;
         }
+
         .info-list {
             list-style: none;
             padding: 0;
         }
+
         .info-list li {
             padding: 8px 0;
             border-bottom: 1px solid #dee2e6;
             display: flex;
             align-items: center;
         }
+
         .info-list li:last-child {
             border-bottom: none;
         }
+
         .info-list li::before {
             content: "✓";
             color: #28a745;
@@ -426,13 +459,14 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
             <h1>📬 Response to Your Inquiry</h1>
             <p>We've got back to you regarding your message</p>
         </div>
-        
+
         <div class="content">
             <div class="greeting">
                 <p>Hi <strong>{{name}}</strong>,</p>
@@ -445,12 +479,13 @@
 
             <div class="admin-info">
                 <p class="admin-name">👤 {{adminName}}</p>
-                <p>Resume Builder Support Team</p>
+                <p>Presmistique - AI Resume Builder Support Team</p>
             </div>
 
             <div class="follow-up">
                 <h4>🤔 Still Have Questions?</h4>
-                <p>If you need any clarification or have additional questions, please don't hesitate to reach out to us. We're here to help!</p>
+                <p>If you need any clarification or have additional questions, please don't hesitate to reach out to us.
+                    We're here to help!</p>
             </div>
 
             <div class="contact-info">
@@ -474,12 +509,13 @@
                 </ul>
             </div>
         </div>
-        
+
         <div class="footer">
-            <p>Thank you for choosing Resume Builder!</p>
+            <p>Thank you for choosing Presmistique - AI Resume Builder!</p>
             <p>Visit us at <a href="{{websiteUrl}}">{{websiteUrl}}</a></p>
             <p><em>This response was sent by our support team. You can reply directly to this email.</em></p>
         </div>
     </div>
 </body>
+
 </html>
