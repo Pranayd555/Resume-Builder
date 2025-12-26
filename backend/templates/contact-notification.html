@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,46 +15,55 @@
             padding: 20px;
             background-color: #f8f9fa;
         }
+
         .container {
             background-color: #ffffff;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
+
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 30px;
             text-align: center;
         }
+
         .header h1 {
             margin: 0;
             font-size: 24px;
             font-weight: 600;
         }
+
         .content {
             padding: 30px;
         }
+
         .contact-info {
             background-color: #f8f9fa;
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 20px;
         }
+
         .info-row {
             display: flex;
             margin-bottom: 10px;
             align-items: center;
         }
+
         .info-label {
             font-weight: 600;
             color: #495057;
             min-width: 100px;
             margin-right: 10px;
         }
+
         .info-value {
             color: #212529;
         }
+
         .category-badge {
             display: inline-block;
             background-color: #007bff;
@@ -64,6 +74,7 @@
             font-weight: 500;
             text-transform: uppercase;
         }
+
         .message-section {
             background-color: #ffffff;
             border: 1px solid #dee2e6;
@@ -71,11 +82,13 @@
             padding: 20px;
             margin: 20px 0;
         }
+
         .message-section h3 {
             margin-top: 0;
             color: #495057;
             font-size: 18px;
         }
+
         .message-content {
             background-color: #f8f9fa;
             padding: 15px;
@@ -86,10 +99,12 @@
             font-size: 14px;
             line-height: 1.5;
         }
+
         .action-buttons {
             text-align: center;
             margin-top: 30px;
         }
+
         .btn {
             display: inline-block;
             padding: 12px 24px;
@@ -99,20 +114,25 @@
             font-weight: 500;
             transition: all 0.3s ease;
         }
+
         .btn-primary {
             background-color: #007bff;
             color: white;
         }
+
         .btn-primary:hover {
             background-color: #0056b3;
         }
+
         .btn-secondary {
             background-color: #6c757d;
             color: white;
         }
+
         .btn-secondary:hover {
             background-color: #545b62;
         }
+
         .footer {
             background-color: #f8f9fa;
             padding: 20px;
@@ -120,6 +140,7 @@
             color: #6c757d;
             font-size: 14px;
         }
+
         .timestamp {
             color: #6c757d;
             font-size: 14px;
@@ -295,13 +316,14 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
             <h1>📧 New Contact Form Submission</h1>
             <p>Someone has reached out through your website</p>
         </div>
-        
+
         <div class="content">
             <div class="contact-info">
                 <div class="info-row">
@@ -350,11 +372,12 @@
                 </ul>
             </div>
         </div>
-        
+
         <div class="footer">
-            <p>This is an automated notification from Resume Builder Contact System</p>
+            <p>This is an automated notification from Presmistique - AI Resume Builder Contact System</p>
             <p>Contact ID: {{contactId}} | Generated: {{createdAt}}</p>
         </div>
     </div>
 </body>
+
 </html>

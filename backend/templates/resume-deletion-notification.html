@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,36 +15,43 @@
             padding: 20px;
             background-color: #f4f4f4;
         }
+
         .container {
             background-color: white;
             padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
+
         .header {
             text-align: center;
             margin-bottom: 30px;
         }
+
         .logo {
             font-size: 24px;
             font-weight: bold;
             color: #3B82F6;
             margin-bottom: 10px;
         }
+
         .title {
             color: #DC2626;
             font-size: 20px;
             margin-bottom: 20px;
         }
+
         .content {
             margin-bottom: 25px;
         }
+
         .resume-list {
             background-color: #F3F4F6;
             padding: 15px;
             border-radius: 8px;
             margin: 20px 0;
         }
+
         .resume-item {
             display: flex;
             justify-content: space-between;
@@ -51,27 +59,33 @@
             padding: 10px 0;
             border-bottom: 1px solid #E5E7EB;
         }
+
         .resume-item:last-child {
             border-bottom: none;
         }
+
         .resume-title {
             font-weight: 600;
             color: #374151;
         }
+
         .resume-status {
             padding: 4px 8px;
             border-radius: 4px;
             font-size: 12px;
             font-weight: 500;
         }
+
         .status-published {
             background-color: #D1FAE5;
             color: #065F46;
         }
+
         .status-draft {
             background-color: #FEF3C7;
             color: #92400E;
         }
+
         .warning {
             background-color: #FEF2F2;
             border: 1px solid #FECACA;
@@ -80,10 +94,12 @@
             border-radius: 8px;
             margin: 20px 0;
         }
+
         .cta {
             text-align: center;
             margin: 30px 0;
         }
+
         .btn {
             display: inline-block;
             background-color: #3B82F6;
@@ -93,9 +109,11 @@
             border-radius: 6px;
             font-weight: 500;
         }
+
         .btn:hover {
             background-color: #2563EB;
         }
+
         .footer {
             text-align: center;
             margin-top: 30px;
@@ -247,22 +265,26 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">Resume Builder</div>
+            <div class="logo">Presmistique - AI Resume Builder</div>
             <h1 class="title">⚠️ Resume Deletion Notification</h1>
         </div>
-        
+
         <div class="content">
             <p>Hello <strong>{{userName}}</strong>,</p>
-            
-            <p>We're writing to inform you that <strong>{{totalDeleted}} resume(s)</strong> have been automatically deleted from your account due to subscription expiration.</p>
-            
+
+            <p>We're writing to inform you that <strong>{{totalDeleted}} resume(s)</strong> have been automatically
+                deleted from your account due to subscription expiration.</p>
+
             <div class="warning">
-                <strong>Important:</strong> Your subscription has expired, and you're now on the free plan which allows only 2 resumes. We kept your most important resumes and removed the excess ones after a 2-day grace period.
+                <strong>Important:</strong> Your subscription has expired, and you're now on the free plan which allows
+                only 2 resumes. We kept your most important resumes and removed the excess ones after a 2-day grace
+                period.
             </div>
-            
+
             <h3>Deleted Resumes:</h3>
             <div class="resume-list">
                 {{#each deletedResumes}}
@@ -272,20 +294,21 @@
                 </div>
                 {{/each}}
             </div>
-            
+
             <div class="cta">
                 <p><strong>Want to restore your resumes?</strong></p>
                 <p>Simply upgrade your subscription and we'll restore all your deleted resumes automatically!</p>
                 <a href="{{upgradeUrl}}" class="btn">Upgrade Now</a>
             </div>
-            
+
             <p>If you have any questions or need assistance, please don't hesitate to contact our support team.</p>
         </div>
-        
+
         <div class="footer">
             <p>This is an automated notification. Please do not reply to this email.</p>
-            <p>© {{year}} Resume Builder. All rights reserved.</p>
+            <p>© {{year}} Presmistique - AI Resume Builder. All rights reserved.</p>
         </div>
     </div>
 </body>
+
 </html>

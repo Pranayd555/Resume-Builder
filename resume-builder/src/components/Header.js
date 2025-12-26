@@ -239,14 +239,14 @@ function Header() {
                   ? "/resume-builder-logo-512-dark.png"
                   : "/resume-builder-logo-512-light.png"
               }
-              alt="Resume Builder logo featuring a stylized document icon with blue and purple gradient, representing a professional and modern resume creation tool. The logo is next to the text Resume Builder in bold gradient letters. The environment is a clean website header with a welcoming and professional tone."
+              alt="Presmistique - AI Resume Builder logo featuring a stylized document icon with blue and purple gradient, representing a professional and modern resume creation tool. The logo is next to the text Presmistique - AI Resume Builder in bold gradient letters. The environment is a clean website header with a welcoming and professional tone."
               className="h-8 mr-2"
             />
             <h1
               className="text-base sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent cursor-pointer hover:from-blue-700 hover:to-purple-700 transition-all duration-200 truncate"
               onClick={() => navigate("/")}
             >
-              Resume Builder
+              Presmistique - AI Resume Builder
             </h1>
           </div>
 
@@ -440,9 +440,8 @@ function Header() {
                   </div>
                   <div className="text-green-600 dark:text-green-400 text-xs">
                     {tokenData.bonusTokens > 0
-                      ? `${tokenData.purchasedTokens || 0} regular + ${
-                          tokenData.bonusTokens
-                        } bonus`
+                      ? `${tokenData.purchasedTokens || 0} regular + ${tokenData.bonusTokens
+                      } bonus`
                       : "Available Balance"}
                   </div>
                 </div>

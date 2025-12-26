@@ -4,53 +4,56 @@ module.exports = [
         description: 'A clean, minimalist template focusing on content and readability',
         category: 'minimalist',
         preview: {
-        thumbnail: {
-            url: 'https://via.placeholder.com/300x400/f8fafc/1f2937?text=Minimalist%20Clean'
-        }
+            thumbnail: {
+                url: 'https://via.placeholder.com/300x400/f8fafc/1f2937?text=Minimalist%20Clean'
+            }
         },
         layout: {
-        type: 'single-column',
-        sections: [
-            { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
-            { name: 'summary', position: 2, isRequired: false, isVisible: true },
-            { name: 'workExperience', position: 3, isRequired: false, isVisible: true },
-            { name: 'education', position: 4, isRequired: false, isVisible: true },
-            { name: 'skills', position: 5, isRequired: false, isVisible: true },
-            { name: 'projects', position: 6, isRequired: false, isVisible: true },
-            { name: 'achievements', position: 7, isRequired: false, isVisible: true },
-            { name: 'certifications', position: 8, isRequired: false, isVisible: true },
-            { name: 'languages', position: 9, isRequired: false, isVisible: true },
-            { name: 'customFields', position: 10, isRequired: false, isVisible: true }
-        ]
+            type: 'single-column',
+            sections: [
+                { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
+                { name: 'summary', position: 2, isRequired: false, isVisible: true },
+                { name: 'workExperience', position: 3, isRequired: false, isVisible: true },
+                { name: 'education', position: 4, isRequired: false, isVisible: true },
+                { name: 'skills', position: 5, isRequired: false, isVisible: true },
+                { name: 'projects', position: 6, isRequired: false, isVisible: true },
+                { name: 'achievements', position: 7, isRequired: false, isVisible: true },
+                { name: 'certifications', position: 8, isRequired: false, isVisible: true },
+                { name: 'languages', position: 9, isRequired: false, isVisible: true },
+                { name: 'customFields', position: 10, isRequired: false, isVisible: true }
+            ]
         },
         styling: {
-        colors: {
-            primary: '#1f2937',
-            secondary: '#6b7280',
-            accent: '#e5e7eb',
-            text: '#374151',
-            background: '#ffffff'
-        },
-        fonts: {
-            primary: 'Arial',
-            secondary: 'Arial',
-            sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
-        },
-        template: {
-            headerLevel: 'h3',
-            headerFontSize: 18,
-            fontSize: 12,
-            lineSpacing: 1.3,
-            sectionSpacing: 1,
-            fontFamily: 'Arial'
-        }
+            colors: {
+                primary: '#1f2937',
+                secondary: '#6b7280',
+                accent: '#e5e7eb',
+                text: '#374151',
+                background: '#ffffff'
+            },
+            fonts: {
+                primary: 'Arial',
+                secondary: 'Arial',
+                sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+            },
+            template: {
+                headerLevel: 'h3',
+                headerFontSize: 18,
+                fontSize: 12,
+                lineSpacing: 1.3,
+                sectionSpacing: 1,
+                fontFamily: 'Arial'
+            }
         },
         availability: { tier: 'free', isPublic: true, isActive: true },
         templateCode: {
-        html: `<article class="resume minimalist-clean" itemscope itemtype="http://schema.org/Person">
+            html: `<article class="resume minimalist-clean" itemscope itemtype="http://schema.org/Person">
             <header class="header">
             <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
-            {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
+            {{#unless isFresher}}
+  <h2 class="primaryFont" itemprop="title">{{title}}</h2>
+{{/unless}}
+
             <div class="contact-info secondaryFont">
                 <span class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</span>
                 {{#if personalInfo.phone}}<span class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</span>{{/if}}
@@ -218,7 +221,7 @@ module.exports = [
             </section>
             {{/if}}
         </article>`,
-        css: `.resume.minimalist-clean { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #374151; font-size: 15px; line-height: 1; }
+            css: `.resume.minimalist-clean { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #374151; font-size: 15px; line-height: 1; }
         .header { margin-bottom: 6px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; }
         .name { font-weight: 600; color: #1f2937; margin-bottom: 6px; letter-spacing: -0.5px; }
         .contact-info { display: flex; flex-wrap: wrap; gap: 10px; color: #6b7280; }
@@ -275,55 +278,58 @@ module.exports = [
         description: 'A clean, minimalist template focusing on content and readability',
         category: 'minimalist',
         preview: {
-        thumbnail: {
-            url: 'https://via.placeholder.com/300x400/f8fafc/1f2937?text=Modern%20Professional%20Minimal'
-        }
+            thumbnail: {
+                url: 'https://via.placeholder.com/300x400/f8fafc/1f2937?text=Modern%20Professional%20Minimal'
+            }
         },
         layout: {
-        type: 'single-column',
-        sections: [
-            { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
-            { name: 'summary', position: 2, isRequired: false, isVisible: true },
-            { name: 'workExperience', position: 3, isRequired: false, isVisible: true },
-            { name: 'education', position: 4, isRequired: false, isVisible: true },
-            { name: 'skills', position: 5, isRequired: false, isVisible: true },
-            { name: 'projects', position: 6, isRequired: false, isVisible: true },
-            { name: 'achievements', position: 7, isRequired: false, isVisible: true },
-            { name: 'certifications', position: 8, isRequired: false, isVisible: true },
-            { name: 'languages', position: 9, isRequired: false, isVisible: true },
-            { name: 'customFields', position: 10, isRequired: false, isVisible: true }
-        ]
+            type: 'single-column',
+            sections: [
+                { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
+                { name: 'summary', position: 2, isRequired: false, isVisible: true },
+                { name: 'workExperience', position: 3, isRequired: false, isVisible: true },
+                { name: 'education', position: 4, isRequired: false, isVisible: true },
+                { name: 'skills', position: 5, isRequired: false, isVisible: true },
+                { name: 'projects', position: 6, isRequired: false, isVisible: true },
+                { name: 'achievements', position: 7, isRequired: false, isVisible: true },
+                { name: 'certifications', position: 8, isRequired: false, isVisible: true },
+                { name: 'languages', position: 9, isRequired: false, isVisible: true },
+                { name: 'customFields', position: 10, isRequired: false, isVisible: true }
+            ]
         },
         styling: {
-        colors: {
-            primary: '#1f2937',
-            secondary: '#6b7280',
-            accent: '#e5e7eb',
-            text: '#374151',
-            background: '#ffffff'
-        },
-        fonts: {
-            primary: 'Arial',
-            secondary: 'Arial',
-            sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
-        },
-        template: {
-            headerLevel: 'h3',
-            headerFontSize: 16,
-            fontSize: 13,
-            lineSpacing: 1.3,
-            sectionSpacing: 1,
-            fontFamily: 'Arial'
-        }
+            colors: {
+                primary: '#1f2937',
+                secondary: '#6b7280',
+                accent: '#e5e7eb',
+                text: '#374151',
+                background: '#ffffff'
+            },
+            fonts: {
+                primary: 'Arial',
+                secondary: 'Arial',
+                sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+            },
+            template: {
+                headerLevel: 'h3',
+                headerFontSize: 16,
+                fontSize: 13,
+                lineSpacing: 1.3,
+                sectionSpacing: 1,
+                fontFamily: 'Arial'
+            }
         },
         availability: { tier: 'free', isPublic: true, isActive: true },
-        templateCode:{
+        templateCode: {
             html: ` 
                 <body class="modern-professional-minimal">
                 <div class="resume-container" itemscope itemtype="http://schema.org/Person">
                 <header>
                 <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
-                {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
+                {{#unless isFresher}}
+  <h2 class="primaryFont" itemprop="title">{{title}}</h2>
+{{/unless}}
+
                 <div class="contact-info secondaryFont" itemprop="contactPoint" itemscope itemtype="http://schema.org/ContactPoint">
                 {{#if personalInfo.address}}<span class="contact-item" itemprop="address">{{personalInfo.address}}</span>{{/if}}
                 {{#if personalInfo.email}}<span class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</span>{{/if}}
@@ -693,7 +699,7 @@ module.exports = [
                             }
                         }
                     `},
-            creator: null,
+        creator: null,
         tags: ['minimalist', 'clean', 'simple', 'modern', 'readable', 'single-column']
     }
 ]
