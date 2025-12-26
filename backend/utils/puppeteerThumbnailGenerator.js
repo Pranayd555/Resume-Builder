@@ -9,7 +9,7 @@ class PuppeteerThumbnailGenerator {
   constructor() {
     this.browser = null;
     this.outputDir = path.join(__dirname, '../thumbnails');
-    this.sampleData = this.generateSampleData();
+    this.sampleData = this.generateFresherSampleData();
   }
 
   async initialize() {
@@ -46,6 +46,13 @@ class PuppeteerThumbnailGenerator {
   }
 
   generateSampleData() {
+    // Randomly select between experienced and fresher profile (50/50 chance)
+    return Math.random() < 0.5
+      ? this.generateExperiencedSampleData()
+      : this.generateFresherSampleData();
+  }
+
+  generateExperiencedSampleData() {
     return {
       title: 'Senior Software Engineer',
       isFresher: false,
@@ -211,6 +218,164 @@ class PuppeteerThumbnailGenerator {
     };
   }
 
+  generateFresherSampleData() {
+    return {
+      title: '',
+      isFresher: true,
+      personalInfo: {
+        fullName: 'Sarah Johnson',
+        email: 'sarah.johnson@email.com',
+        phone: '+1 (555) 987-6543',
+        address: 'Boston, MA',
+        website: 'https://sarahjohnson.dev',
+        linkedin: 'https://linkedin.com/in/sarahjohnson',
+        github: 'https://github.com/sarahjohnson',
+        profilePicture: 'https://cdn-icons-png.flaticon.com/512/3135/3135789.png',
+        isAddPhoto: true,
+      },
+      summary: '<p>Recent Computer Science graduate with a strong foundation in software development and a passion for building innovative web applications. Eager to contribute to dynamic teams and learn from experienced professionals. Proficient in modern web technologies with hands-on experience from academic projects and internships.</p>',
+      workExperience: [
+        {
+          jobTitle: 'Software Development Intern',
+          company: 'Tech Solutions Inc.',
+          location: 'Boston, MA',
+          startDate: '2024-06-01',
+          endDate: '2024-08-31',
+          isCurrentJob: false,
+          description: 'Assisted in developing web applications using React and Node.js. Collaborated with senior developers on feature implementation and bug fixes.',
+          achievements: [
+            'Developed responsive UI components used in production application',
+            'Fixed 15+ bugs and improved application performance',
+            'Participated in code reviews and agile development practices'
+          ]
+        },
+        {
+          jobTitle: 'Web Development Volunteer',
+          company: 'Local Non-Profit Organization',
+          location: 'Boston, MA',
+          startDate: '2023-09-01',
+          endDate: '2024-05-31',
+          isCurrentJob: false,
+          description: "Redesigned and maintained the organization's website, improving user engagement and accessibility.",
+          achievements: [
+            'Redesigned website resulting in 30% increase in user engagement',
+            'Implemented accessibility features following WCAG guidelines',
+            'Trained staff on content management system'
+          ]
+        }
+      ],
+      education: [
+        {
+          degree: 'Bachelor of Science in Computer Science',
+          institution: 'Massachusetts Institute of Technology',
+          location: 'Cambridge, MA',
+          startDate: '2020-09-01',
+          endDate: '2024-05-30',
+          isCurrentlyStudying: false,
+          gpa: 3.7,
+          description: 'Relevant coursework: Data Structures, Algorithms, Web Development, Database Systems, Software Engineering, Artificial Intelligence'
+        }
+      ],
+      skills: [
+        {
+          category: 'Programming Languages',
+          items: [
+            { name: 'JavaScript', level: 'intermediate' },
+            { name: 'Python', level: 'intermediate' },
+            { name: 'Java', level: 'beginner' },
+            { name: 'HTML/CSS', level: 'advanced' }
+          ]
+        },
+        {
+          category: 'Frameworks & Libraries',
+          items: [
+            { name: 'React', level: 'intermediate' },
+            { name: 'Node.js', level: 'beginner' },
+            { name: 'Express.js', level: 'beginner' },
+            { name: 'Bootstrap', level: 'intermediate' }
+          ]
+        },
+        {
+          category: 'Tools & Technologies',
+          items: [
+            { name: 'Git', level: 'intermediate' },
+            { name: 'VS Code', level: 'advanced' },
+            { name: 'MySQL', level: 'intermediate' },
+            { name: 'MongoDB', level: 'beginner' }
+          ]
+        }
+      ],
+      projects: [
+        {
+          name: 'Student Portal Application',
+          description: 'Developed a web-based student portal for course registration and grade tracking as a capstone project',
+          technologies: ['React', 'Node.js', 'Express', 'MongoDB'],
+          url: '',
+          githubUrl: 'https://github.com/sarahjohnson/student-portal',
+          startDate: '2024-01-01',
+          endDate: '2024-05-01'
+        },
+        {
+          name: 'Recipe Sharing Platform',
+          description: 'Created a social platform where users can share and discover recipes with rating and review features',
+          technologies: ['React', 'Firebase', 'Material-UI'],
+          url: 'https://recipe-share-demo.com',
+          githubUrl: 'https://github.com/sarahjohnson/recipe-platform',
+          startDate: '2023-09-01',
+          endDate: '2023-12-15'
+        },
+        {
+          name: 'Weather Dashboard',
+          description: 'Built a responsive weather dashboard using weather API with location-based forecasts',
+          technologies: ['JavaScript', 'HTML', 'CSS', 'Weather API'],
+          url: 'https://weather-dash-demo.com',
+          githubUrl: 'https://github.com/sarahjohnson/weather-dashboard',
+          startDate: '2023-03-01',
+          endDate: '2023-04-30'
+        }
+      ],
+      achievements: [
+        {
+          title: "Dean's List",
+          description: 'Recognized for academic excellence with GPA above 3.5 for all semesters',
+          date: '2024-05-30',
+          issuer: 'MIT'
+        },
+        {
+          title: 'Best Capstone Project Award',
+          description: 'Awarded for outstanding final year project in Computer Science department',
+          date: '2024-05-15',
+          issuer: 'MIT Computer Science Department'
+        },
+        {
+          title: 'Hackathon Winner - EdTech Category',
+          description: 'First place in educational technology category at Boston University Hackathon 2023',
+          date: '2023-11-10',
+          issuer: 'Boston University'
+        }
+      ],
+      certifications: [
+        {
+          name: 'Responsive Web Design Certification',
+          issuer: 'freeCodeCamp',
+          date: '2023-06-20',
+          credentialId: 'FCC-RWD-2023-456'
+        },
+        {
+          name: 'JavaScript Algorithms and Data Structures',
+          issuer: 'freeCodeCamp',
+          date: '2023-08-15',
+          credentialId: 'FCC-JSADS-2023-789'
+        }
+      ],
+      languages: [
+        { name: 'English', proficiency: 'native' },
+        { name: 'Spanish', proficiency: 'intermediate' }
+      ],
+      customFields: []
+    };
+  }
+
   // Register custom Handlebars helpers
   registerHelpers() {
     handlebars.registerHelper('formatDate', (dateString) => {
@@ -256,12 +421,12 @@ class PuppeteerThumbnailGenerator {
       this.sampleData.styling = {
         ...this.sampleData.styling,
         template: {
-            headerLevel: 'h3',
-            fontSize: 16,
-            lineSpacing: 1.3,
-            sectionSpacing: 1,
-            fontFamily: 'Arial'
-          }
+          headerLevel: 'h3',
+          fontSize: 16,
+          lineSpacing: 1.3,
+          sectionSpacing: 1,
+          fontFamily: 'Arial'
+        }
       }
 
       // Prepare resume data for rendering
@@ -532,6 +697,7 @@ class PuppeteerThumbnailGenerator {
     try {
       // Register Handlebars helpers
       this.registerHelpers();
+      this.sampleData = this.generateSampleData();
 
       // Compile template HTML
       const htmlTemplate = handlebars.compile(template.templateCode.html);

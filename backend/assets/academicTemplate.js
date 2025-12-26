@@ -4,50 +4,50 @@ module.exports = [
         description: 'A comprehensive template designed for academic and research positions',
         category: 'academic',
         preview: {
-        thumbnail: {
-            url: 'placeholder-will-be-replaced-by-puppeteer'
-        }
+            thumbnail: {
+                url: 'placeholder-will-be-replaced-by-puppeteer'
+            }
         },
         layout: {
-        type: 'single-column',
-        sections: [
-            { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
-            { name: 'summary', position: 2, isRequired: false, isVisible: true },
-            { name: 'education', position: 3, isRequired: false, isVisible: true },
-            { name: 'workExperience', position: 4, isRequired: false, isVisible: true },
-            { name: 'projects', position: 5, isRequired: false, isVisible: true },
-            { name: 'achievements', position: 6, isRequired: false, isVisible: true },
-            { name: 'skills', position: 7, isRequired: false, isVisible: true },
-            { name: 'certifications', position: 8, isRequired: false, isVisible: true },
-            { name: 'languages', position: 9, isRequired: false, isVisible: true },
-            { name: 'customFields', position: 10, isRequired: false, isVisible: true },
-        ]
+            type: 'single-column',
+            sections: [
+                { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
+                { name: 'summary', position: 2, isRequired: false, isVisible: true },
+                { name: 'education', position: 3, isRequired: false, isVisible: true },
+                { name: 'workExperience', position: 4, isRequired: false, isVisible: true },
+                { name: 'projects', position: 5, isRequired: false, isVisible: true },
+                { name: 'achievements', position: 6, isRequired: false, isVisible: true },
+                { name: 'skills', position: 7, isRequired: false, isVisible: true },
+                { name: 'certifications', position: 8, isRequired: false, isVisible: true },
+                { name: 'languages', position: 9, isRequired: false, isVisible: true },
+                { name: 'customFields', position: 10, isRequired: false, isVisible: true },
+            ]
         },
         styling: {
-        colors: {
-            primary: '#059669',
-            secondary: '#6b7280',
-            accent: '#10b981',
-            text: '#1f2937',
-            background: '#ffffff'
-        },
-        fonts: {
-            primary: 'Georgia',
-            secondary: 'Arial',
-            sizes: { heading: 16, subheading: 14, body: 12, small: 10 }
-        },
-        template: {
-            headerLevel: 'h3',
-            headerFontSize: 16,
-            fontSize: 13,
-            lineSpacing: 1.3,
-            sectionSpacing: 1,
-            fontFamily: 'Arial'
-        }
+            colors: {
+                primary: '#059669',
+                secondary: '#6b7280',
+                accent: '#10b981',
+                text: '#1f2937',
+                background: '#ffffff'
+            },
+            fonts: {
+                primary: 'Georgia',
+                secondary: 'Arial',
+                sizes: { heading: 16, subheading: 14, body: 12, small: 10 }
+            },
+            template: {
+                headerLevel: 'h3',
+                headerFontSize: 16,
+                fontSize: 13,
+                lineSpacing: 1.3,
+                sectionSpacing: 1,
+                fontFamily: 'Arial'
+            }
         },
         availability: { tier: 'free', isPublic: true, isActive: true },
         templateCode: {
-        html: `<article class="resume academic-research" itemscope itemtype="http://schema.org/Person">
+            html: `<article class="resume academic-research" itemscope itemtype="http://schema.org/Person">
             <header class="header">
 
             {{#if personalInfo.isAddPhoto}}
@@ -61,7 +61,10 @@ module.exports = [
             {{/if}}
             <div class="right-column">
             <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
-            {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
+            {{#unless isFresher}}
+  <h2 class="primaryFont" itemprop="title">{{title}}</h2>
+{{/unless}}
+
             <div class="contact-info secondaryFont">
                 <div class="contact-grid">
                     <div class="contact-item secondaryFont"><span class="label">Email: {{personalInfo.email}}</span></div>
@@ -203,8 +206,8 @@ module.exports = [
             </section>
             {{/if}}
         </article>`,
-        css: `.resume.academic-research { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; line-height: 1.4; }
-        .header { display: flex; justify-content: space-between; align-items: center; text-align: center; justify-content:center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #059669; }
+            css: `.resume.academic-research { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; line-height: 1.4; }
+        .header { display: flex; justify-content: space-between; align-items: center; text-align: center; justify-content:center; margin-bottom: 12px; padding-bottom: 8px; }
         .left-column { padding-right: 5px; border-right: 2px solid #059669; margin-right: 5px; border-radius: 99999px; margin-bottm:1rem; }
         .name { font-family: 'Georgia', serif; font-weight: 600; color: #059669; margin-bottom: 6px; letter-spacing: 0.5px; text-align: center; }
         .contact-grid { 
@@ -265,50 +268,50 @@ module.exports = [
         description: 'A comprehensive template designed for academic and research positions',
         category: 'academic',
         preview: {
-        thumbnail: {
-            url: 'placeholder-will-be-replaced-by-puppeteer'
-        }
+            thumbnail: {
+                url: 'placeholder-will-be-replaced-by-puppeteer'
+            }
         },
         layout: {
-        type: 'single-column',
-        sections: [
-            { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
-            { name: 'summary', position: 2, isRequired: false, isVisible: true },
-            { name: 'education', position: 3, isRequired: false, isVisible: true },
-            { name: 'workExperience', position: 4, isRequired: false, isVisible: true },
-            { name: 'projects', position: 5, isRequired: false, isVisible: true },
-            { name: 'achievements', position: 6, isRequired: false, isVisible: true },
-            { name: 'skills', position: 7, isRequired: false, isVisible: true },
-            { name: 'certifications', position: 8, isRequired: false, isVisible: true },
-            { name: 'languages', position: 9, isRequired: false, isVisible: true },
-            { name: 'customFields', position: 10, isRequired: false, isVisible: true },
-        ]
+            type: 'single-column',
+            sections: [
+                { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
+                { name: 'summary', position: 2, isRequired: false, isVisible: true },
+                { name: 'education', position: 3, isRequired: false, isVisible: true },
+                { name: 'workExperience', position: 4, isRequired: false, isVisible: true },
+                { name: 'projects', position: 5, isRequired: false, isVisible: true },
+                { name: 'achievements', position: 6, isRequired: false, isVisible: true },
+                { name: 'skills', position: 7, isRequired: false, isVisible: true },
+                { name: 'certifications', position: 8, isRequired: false, isVisible: true },
+                { name: 'languages', position: 9, isRequired: false, isVisible: true },
+                { name: 'customFields', position: 10, isRequired: false, isVisible: true },
+            ]
         },
         styling: {
-        colors: {
-            primary: '#059669',
-            secondary: '#6b7280',
-            accent: '#10b981',
-            text: '#1f2937',
-            background: '#ffffff'
-        },
-        fonts: {
-            primary: 'Georgia',
-            secondary: 'Arial',
-            sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
-        },
-        template: {
-            headerLevel: 'h3',
-            headerFontSize: 18,
-            fontSize: 12,
-            lineSpacing: 1.3,
-            sectionSpacing: 1,
-            fontFamily: 'Arial'
-        }
+            colors: {
+                primary: '#059669',
+                secondary: '#6b7280',
+                accent: '#10b981',
+                text: '#1f2937',
+                background: '#ffffff'
+            },
+            fonts: {
+                primary: 'Georgia',
+                secondary: 'Arial',
+                sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+            },
+            template: {
+                headerLevel: 'h3',
+                headerFontSize: 18,
+                fontSize: 12,
+                lineSpacing: 1.3,
+                sectionSpacing: 1,
+                fontFamily: 'Arial'
+            }
         },
         availability: { tier: 'free', isPublic: true, isActive: true },
         templateCode: {
-        html: `<article class="resume professional-academic-research" itemscope itemtype="http://schema.org/Person">
+            html: `<article class="resume professional-academic-research" itemscope itemtype="http://schema.org/Person">
                 <main>
                 <div class="sidebar">
                 {{#if personalInfo.isAddPhoto}} 
@@ -399,7 +402,10 @@ module.exports = [
                 <div class="main-content">
                 <div class="header">
                 <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
-                {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
+                {{#unless isFresher}}
+  <h2 class="primaryFont" itemprop="title">{{title}}</h2>
+{{/unless}}
+
                 </div>
                 {{#if summary}}
                 <section class="summary">
@@ -523,7 +529,7 @@ module.exports = [
                 </div>
                 </main>
         </article>`,
-        css: `.resume.professional-academic-research { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.35in 0.35in; background: white; color: #1f2937; line-height: 1.4; }
+            css: `.resume.professional-academic-research { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.35in 0.35in; background: white; color: #1f2937; line-height: 1.4; }
         :root {
                             --primary-color: #1d4e6d;
                             --background-light: #ffffff;

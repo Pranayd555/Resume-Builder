@@ -142,7 +142,7 @@ function Register() {
             <div className="text-center mb-8">
               <img
                 src={isDarkMode ? '/resume-builder-logo-512-dark.png' : '/resume-builder-logo-512-light.png'}
-                alt="Resume Builder Logo"
+                alt="Presmistique - AI Resume Builder Logo"
                 className="mx-auto h-24 w-auto mb-6"
               />
               <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
@@ -174,8 +174,8 @@ function Register() {
                     value={formData.firstName}
                     onChange={handleInputChange}
                     className={`w-full px-4 py-3 rounded-lg border bg-white dark:bg-white text-gray-900 dark:text-gray-900 ${validationErrors.firstName
-                        ? 'border-red-300 focus:border-red-500'
-                        : 'border-gray-300 focus:border-blue-500'
+                      ? 'border-red-300 focus:border-red-500'
+                      : 'border-gray-300 focus:border-blue-500'
                       } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
                     placeholder="Enter your first name"
                     required
@@ -195,8 +195,8 @@ function Register() {
                     value={formData.lastName}
                     onChange={handleInputChange}
                     className={`w-full px-4 py-3 rounded-lg border bg-white dark:bg-white text-gray-900 dark:text-gray-900 ${validationErrors.lastName
-                        ? 'border-red-300 focus:border-red-500'
-                        : 'border-gray-300 focus:border-blue-500'
+                      ? 'border-red-300 focus:border-red-500'
+                      : 'border-gray-300 focus:border-blue-500'
                       } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
                     placeholder="Enter your last name"
                     required
@@ -218,8 +218,8 @@ function Register() {
                   value={formData.email}
                   onChange={handleInputChange}
                   className={`w-full px-4 py-3 rounded-lg border bg-white dark:bg-white text-gray-900 dark:text-gray-900 ${validationErrors.email
-                      ? 'border-red-300 focus:border-red-500'
-                      : 'border-gray-300 focus:border-blue-500'
+                    ? 'border-red-300 focus:border-red-500'
+                    : 'border-gray-300 focus:border-blue-500'
                     } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
                   placeholder="Enter your email address"
                   required
@@ -241,8 +241,8 @@ function Register() {
                     value={formData.password}
                     onChange={handleInputChange}
                     className={`w-full px-4 py-3 pr-12 rounded-lg border bg-white dark:bg-white text-gray-900 dark:text-gray-900 ${validationErrors.password
-                        ? 'border-red-300 focus:border-red-500'
-                        : 'border-gray-300 focus:border-blue-500'
+                      ? 'border-red-300 focus:border-red-500'
+                      : 'border-gray-300 focus:border-blue-500'
                       } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
                     placeholder="Create a password"
                     required
@@ -292,8 +292,8 @@ function Register() {
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
                     className={`w-full px-4 py-3 pr-12 rounded-lg border bg-white dark:bg-white text-gray-900 dark:text-gray-900 ${validationErrors.confirmPassword
-                        ? 'border-red-300 focus:border-red-500'
-                        : 'border-gray-300 focus:border-blue-500'
+                      ? 'border-red-300 focus:border-red-500'
+                      : 'border-gray-300 focus:border-blue-500'
                       } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
                     placeholder="Confirm your password"
                     required
@@ -346,8 +346,8 @@ function Register() {
                 type="submit"
                 disabled={isLoading}
                 className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-200 ${isLoading
-                    ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transform hover:scale-105'
+                  ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transform hover:scale-105'
                   }`}
               >
                 {isLoading ? (

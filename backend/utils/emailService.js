@@ -13,7 +13,7 @@ class EmailService {
     try {
       const config = this.getEmailConfig();
       this.transporter = nodemailer.createTransport(config);
-      
+
       // Verify connection
       await this.transporter.verify();
       logger.info('Email service initialized successfully');
@@ -26,7 +26,7 @@ class EmailService {
 
   getEmailConfig() {
     const service = process.env.EMAIL_SERVICE?.toLowerCase();
-    
+
     switch (service) {
       case 'gmail':
         return {
@@ -36,7 +36,7 @@ class EmailService {
             pass: process.env.EMAIL_PASS
           }
         };
-      
+
       case 'outlook':
       case 'hotmail':
         return {
@@ -46,7 +46,7 @@ class EmailService {
             pass: process.env.EMAIL_PASS
           }
         };
-      
+
       case 'outlook365':
         return {
           host: 'smtp-mail.outlook.com',
@@ -60,7 +60,7 @@ class EmailService {
             ciphers: 'SSLv3'
           }
         };
-      
+
       case 'outlook-oauth2':
         return {
           service: 'outlook',
@@ -73,7 +73,7 @@ class EmailService {
             accessToken: process.env.OUTLOOK_ACCESS_TOKEN
           }
         };
-      
+
       case 'smtp':
       default:
         return {
@@ -92,13 +92,13 @@ class EmailService {
     try {
       const templatePath = path.join(__dirname, '../templates', `${templateName}.html`);
       let template = await fs.readFile(templatePath, 'utf-8');
-      
+
       // Replace variables in template
       Object.keys(variables).forEach(key => {
         const regex = new RegExp(`{{${key}}}`, 'g');
         template = template.replace(regex, variables[key]);
       });
-      
+
       return template;
     } catch (error) {
       logger.error(`Failed to load email template ${templateName}:`, error);
@@ -115,7 +115,7 @@ class EmailService {
     try {
       const mailOptions = {
         from: {
-          name: process.env.EMAIL_FROM_NAME || 'Resume Builder',
+          name: process.env.EMAIL_FROM_NAME || 'Presmistique - AI Resume Builder',
           address: process.env.EMAIL_USER
         },
         to,
@@ -139,7 +139,7 @@ class EmailService {
       const htmlContent = await this.loadTemplate('password-reset', {
         name,
         resetUrl,
-        appName: process.env.APP_NAME || 'Resume Builder',
+        appName: process.env.APP_NAME || 'Presmistique - AI Resume Builder',
         supportEmail: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER
       });
 
@@ -148,7 +148,7 @@ class EmailService {
         'Password Reset Request',
         htmlContent
       );
-      
+
       logger.info(`Password reset email sent to ${email}`);
     } catch (error) {
       logger.error(`Failed to send password reset email to ${email}:`, error);
@@ -160,17 +160,17 @@ class EmailService {
     try {
       const htmlContent = await this.loadTemplate('welcome', {
         name,
-        appName: process.env.APP_NAME || 'Resume Builder',
+        appName: process.env.APP_NAME || 'Presmistique - AI Resume Builder',
         loginUrl: `${process.env.CLIENT_URL}/login`,
         supportEmail: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER
       });
 
       await this.sendEmail(
         email,
-        'Welcome to Resume Builder!',
+        'Welcome to Presmistique - AI Resume Builder!',
         htmlContent
       );
-      
+
       logger.info(`Welcome email sent to ${email}`);
     } catch (error) {
       logger.error(`Failed to send welcome email to ${email}:`, error);
@@ -184,7 +184,7 @@ class EmailService {
       const htmlContent = await this.loadTemplate('email-verification', {
         name,
         verificationUrl,
-        appName: process.env.APP_NAME || 'Resume Builder',
+        appName: process.env.APP_NAME || 'Presmistique - AI Resume Builder',
         supportEmail: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER
       });
 
@@ -193,7 +193,7 @@ class EmailService {
         'Please verify your email address',
         htmlContent
       );
-      
+
       logger.info(`Email verification sent to ${email}`);
     } catch (error) {
       logger.error(`Failed to send email verification to ${email}:`, error);
@@ -207,7 +207,7 @@ class EmailService {
         name,
         planName,
         amount,
-        appName: process.env.APP_NAME || 'Resume Builder',
+        appName: process.env.APP_NAME || 'Presmistique - AI Resume Builder',
         accountUrl: `${process.env.CLIENT_URL}/profile`,
         supportEmail: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER
       });
@@ -217,7 +217,7 @@ class EmailService {
         `Subscription Confirmed - ${planName}`,
         htmlContent
       );
-      
+
       logger.info(`Subscription confirmation email sent to ${email}`);
     } catch (error) {
       logger.error(`Failed to send subscription confirmation email to ${email}:`, error);
@@ -230,7 +230,7 @@ class EmailService {
       const htmlContent = await this.loadTemplate('subscription-cancellation', {
         name,
         planName,
-        appName: process.env.APP_NAME || 'Resume Builder',
+        appName: process.env.APP_NAME || 'Presmistique - AI Resume Builder',
         accountUrl: `${process.env.CLIENT_URL}/profile`,
         supportEmail: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER
       });
@@ -240,7 +240,7 @@ class EmailService {
         `Subscription Cancelled - ${planName}`,
         htmlContent
       );
-      
+
       logger.info(`Subscription cancellation email sent to ${email}`);
     } catch (error) {
       logger.error(`Failed to send subscription cancellation email to ${email}:`, error);
@@ -256,7 +256,7 @@ class EmailService {
         subject,
         message,
         timestamp: new Date().toLocaleString(),
-        appName: process.env.APP_NAME || 'Resume Builder'
+        appName: process.env.APP_NAME || 'Presmistique - AI Resume Builder'
       });
 
       await this.sendEmail(
@@ -264,7 +264,7 @@ class EmailService {
         `Contact Form: ${subject}`,
         htmlContent
       );
-      
+
       logger.info(`Contact form email sent from ${fromEmail}`);
     } catch (error) {
       logger.error(`Failed to send contact form email from ${fromEmail}:`, error);
@@ -275,12 +275,12 @@ class EmailService {
   async sendFeedbackNotification(feedbackData) {
     try {
       const { name, email, subject, message, rating, ipAddress, _id } = feedbackData;
-      
+
       // Generate star rating display
       const filledStars = '★'.repeat(rating);
       const emptyStars = '☆'.repeat(5 - rating);
       const ratingStars = filledStars + emptyStars;
-      
+
       // Determine priority class based on rating
       let priorityClass = 'priority-low';
       if (rating <= 2) {
@@ -300,17 +300,17 @@ class EmailService {
         ipAddress: ipAddress || 'N/A',
         feedbackId: _id?.toString() || 'N/A',
         priorityClass,
-        appName: process.env.APP_NAME || 'Resume Builder'
+        appName: process.env.APP_NAME || 'Presmistique - AI Resume Builder'
       });
 
       const notificationEmail = process.env.ADMIN_EMAIL || process.env.SUPPORT_EMAIL || process.env.EMAIL_USER;
-      
+
       await this.sendEmail(
         notificationEmail,
         `New Feedback: ${subject} (${rating}★)`,
         htmlContent
       );
-      
+
       logger.info(`Feedback notification email sent for feedback from ${email}`);
     } catch (error) {
       logger.error(`Failed to send feedback notification email:`, error);
@@ -333,13 +333,13 @@ class EmailService {
       });
 
       const notificationEmail = process.env.ADMIN_EMAIL || process.env.SUPPORT_EMAIL || process.env.EMAIL_USER;
-      
+
       await this.sendEmail(
         notificationEmail,
         `New Contact Form Submission: ${subject}`,
         htmlContent
       );
-      
+
       logger.info(`Contact notification email sent for contact from ${email}`);
     } catch (error) {
       logger.error(`Failed to send contact notification email:`, error);
@@ -359,10 +359,10 @@ class EmailService {
 
       await this.sendEmail(
         email,
-        'We received your message - Resume Builder',
+        'We received your message - Presmistique - AI Resume Builder',
         htmlContent
       );
-      
+
       logger.info(`Contact auto-reply sent to ${email}`);
     } catch (error) {
       logger.error(`Failed to send contact auto-reply:`, error);
@@ -386,7 +386,7 @@ class EmailService {
         `Re: ${subject}`,
         htmlContent
       );
-      
+
       logger.info(`Contact response sent to ${email}`);
     } catch (error) {
       logger.error(`Failed to send contact response:`, error);
@@ -404,7 +404,7 @@ class EmailService {
 
       const supportEmail = process.env.SUPPORT_EMAIL || process.env.EMAIL_USER;
       const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
-      
+
       // Validate email addresses
       if (!adminEmail) {
         logger.error('No admin email configured - cannot send error notification');
@@ -412,7 +412,7 @@ class EmailService {
       }
 
       logger.info(`Attempting to send error notification to: ${adminEmail}`);
-      
+
       const errorDetails = {
         type,
         userEmail,
@@ -456,7 +456,7 @@ class EmailService {
           
           <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6;">
             <p style="color: #6c757d; font-size: 12px;">
-              This is an automated error notification from Resume Builder System
+              This is an automated error notification from Presmistique - AI Resume Builder System
             </p>
           </div>
         </div>
@@ -467,7 +467,7 @@ class EmailService {
         `🚨 Payment Error: ${type} - ${userEmail}`,
         htmlContent
       );
-      
+
       if (emailResult.success) {
         logger.info(`Error notification sent successfully to admin for ${type} - User: ${userEmail}`);
         return { success: true, message: 'Error notification sent successfully' };
@@ -491,7 +491,7 @@ class EmailService {
       if (!this.transporter) {
         throw new Error('Email service not initialized');
       }
-      
+
       await this.transporter.verify();
       return { success: true, message: 'Email service is working' };
     } catch (error) {
@@ -552,11 +552,11 @@ Resume Builder Team
         details: details ? JSON.stringify(details, null, 2) : 'N/A',
         error: error ? JSON.stringify(error, null, 2) : 'N/A',
         timestamp: new Date().toLocaleString(),
-        appName: process.env.APP_NAME || 'Resume Builder'
+        appName: process.env.APP_NAME || 'Presmistique - AI Resume Builder'
       });
 
       const notificationEmail = process.env.ADMIN_EMAIL || process.env.SUPPORT_EMAIL || process.env.EMAIL_USER;
-      
+
       if (!notificationEmail) {
         logger.warn(`No admin/support email configured for cron job notification for ${jobName}. Skipping.`);
         return { success: false, error: 'No notification email configured' };
@@ -567,7 +567,7 @@ Resume Builder Team
         `Cron Job Status: ${jobName} - ${status}`,
         htmlContent
       );
-      
+
       logger.info(`Cron job notification sent for ${jobName} with status ${status}`);
       return { success: true, message: 'Cron job notification sent' };
     } catch (err) {
@@ -577,15 +577,15 @@ Resume Builder Team
   }
 
   // Send payment invoice email
-  async sendPaymentInvoice({ 
-    email, 
-    name, 
-    transactionId, 
-    paymentId, 
-    amount, 
-    tokensAdded, 
+  async sendPaymentInvoice({
+    email,
+    name,
+    transactionId,
+    paymentId,
+    amount,
+    tokensAdded,
     paymentMethod = 'Razorpay',
-    paymentDate = null 
+    paymentDate = null
   }) {
     try {
       const formattedDate = paymentDate || new Date().toLocaleString('en-IN', {
@@ -606,7 +606,7 @@ Resume Builder Team
         tokensAdded: tokensAdded.toLocaleString('en-IN'),
         paymentMethod,
         paymentDate: formattedDate,
-        appName: process.env.APP_NAME || 'Resume Builder',
+        appName: process.env.APP_NAME || 'Presmistique - AI Resume Builder',
         dashboardUrl: `${process.env.CLIENT_URL}/dashboard`,
         supportEmail: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER
       });
@@ -645,10 +645,10 @@ Need Help?
 If you have any questions about your purchase or need assistance with AI features, 
 please contact our support team at ${process.env.SUPPORT_EMAIL || process.env.EMAIL_USER}
 
-Thank you for choosing ${process.env.APP_NAME || 'Resume Builder'}!
+Thank you for choosing ${process.env.APP_NAME || 'Presmistique - AI Resume Builder'}!
 
 Best regards,
-The Resume Builder Team
+The Presmistique - AI Resume Builder Team
       `;
 
       await this.sendEmail(
@@ -657,7 +657,7 @@ The Resume Builder Team
         htmlContent,
         textContent
       );
-      
+
       logger.info(`Payment invoice sent to ${email} for transaction ${transactionId}`);
       return { success: true, message: 'Payment invoice sent successfully' };
     } catch (error) {
@@ -680,7 +680,7 @@ The Resume Builder Team
         amount: amount.toLocaleString('en-IN'),
         reason,
         requestDate,
-        appName: process.env.APP_NAME || 'Resume Builder',
+        appName: process.env.APP_NAME || 'Presmistique - AI Resume Builder',
         dashboardUrl: `${process.env.CLIENT_URL}/analytics`,
         supportEmail: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER
       });
@@ -712,12 +712,12 @@ Questions? Contact our support team anytime at ${process.env.SUPPORT_EMAIL || pr
 Thank you for your patience!
 
 Best regards,
-The ${process.env.APP_NAME || 'Resume Builder'} Team
+The ${process.env.APP_NAME || 'Presmistique - AI Resume Builder'} Team
       `;
 
       await this.sendEmail(
         email,
-        'Refund Request Submitted - Resume Builder',
+        'Refund Request Submitted - Presmistique - AI Resume Builder',
         htmlContent,
         textContent
       );
@@ -744,7 +744,7 @@ The ${process.env.APP_NAME || 'Resume Builder'} Team
         refundAmount: refundAmount.toLocaleString('en-IN'),
         refundId,
         processedDate,
-        appName: process.env.APP_NAME || 'Resume Builder',
+        appName: process.env.APP_NAME || 'Presmistique - AI Resume Builder',
         dashboardUrl: `${process.env.CLIENT_URL}/analytics`,
         supportEmail: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER
       });
@@ -765,15 +765,15 @@ The refund amount will be credited to your original payment method within 5-7 bu
 
 If you have any questions about this refund, please contact our support team at ${process.env.SUPPORT_EMAIL || process.env.EMAIL_USER}
 
-Thank you for using ${process.env.APP_NAME || 'Resume Builder'}!
+Thank you for using ${process.env.APP_NAME || 'Presmistique - AI Resume Builder'}!
 
 Best regards,
-The ${process.env.APP_NAME || 'Resume Builder'} Team
+The ${process.env.APP_NAME || 'Presmistique - AI Resume Builder'} Team
       `;
 
       await this.sendEmail(
         email,
-        'Refund Processed Successfully - Resume Builder',
+        'Refund Processed Successfully - Presmistique - AI Resume Builder',
         htmlContent,
         textContent
       );
