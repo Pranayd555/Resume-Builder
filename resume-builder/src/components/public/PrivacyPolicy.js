@@ -136,7 +136,7 @@ const PrivacyPolicy = () => {
             Privacy <span className="text-indigo-600 dark:text-indigo-400">Policy</span>
           </h1>
           <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-            Your privacy is our priority. This policy explains how we collect, use, and protect your personal information when you use Resume Builder.
+            Your privacy is our priority. This policy explains how we collect, use, and protect your personal information when you use Presmistique - AI Resume Builder.
           </p>
         </div>
 
@@ -202,7 +202,7 @@ const PrivacyPolicy = () => {
 
         {/* Footer Note */}
         <footer className="mt-16 text-center text-slate-400 dark:text-slate-600 text-sm">
-          <p>© {new Date().getFullYear()} Resume Builder. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Presmistique - AI Resume Builder. All rights reserved.</p>
           <p className="mt-2 italic">
             Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} • We are committed to protecting your personal data and your right to privacy.
           </p>

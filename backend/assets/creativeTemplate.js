@@ -1,53 +1,53 @@
 module.exports = [
-    {
-        name: 'Creative Designer',
-        description: 'A vibrant template perfect for designers and creative professionals',
-        category: 'creative',
-        preview: {
-          thumbnail: {
-            url: 'https://via.placeholder.com/300x400/ec4899/ffffff?text=Creative%20Designer'
-          }
-        },
-        layout: {
-          type: 'sidebar',
-          sections: [
-            { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
-            { name: 'summary', position: 2, isRequired: false, isVisible: true },
-            { name: 'workExperience', position: 3, isRequired: false, isVisible: true },
-            { name: 'education', position: 4, isRequired: false, isVisible: true },
-            { name: 'skills', position: 5, isRequired: false, isVisible: true },
-            { name: 'projects', position: 6, isRequired: false, isVisible: true },
-            { name: 'achievements', position: 7, isRequired: false, isVisible: true },
-            { name: 'certifications', position: 8, isRequired: false, isVisible: true },
-            { name: 'languages', position: 9, isRequired: false, isVisible: true },
-            { name: 'customFields', position: 10, isRequired: false, isVisible: true }
-          ]
-        },
-        styling: {
-          colors: {
-            primary: '#ec4899',
-            secondary: '#8b5cf6',
-            accent: '#06b6d4',
-            text: '#1f2937',
-            background: '#ffffff'
-          },
-          fonts: {
-            primary: 'Arial',
-            secondary: 'Arial',
-            sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
-          },
-          template: {
-            headerLevel: 'h3',
-            headerFontSize: 18,
-            fontSize: 12,
-            lineSpacing: 1.3,
-            sectionSpacing: 1,
-            fontFamily: 'Arial'
-          }
-        },
-        availability: { tier: 'free', isPublic: true, isActive: true },
-        templateCode: {
-          html: `<div class="resume creative-designer">
+  {
+    name: 'Creative Designer',
+    description: 'A vibrant template perfect for designers and creative professionals',
+    category: 'creative',
+    preview: {
+      thumbnail: {
+        url: 'https://via.placeholder.com/300x400/ec4899/ffffff?text=Creative%20Designer'
+      }
+    },
+    layout: {
+      type: 'sidebar',
+      sections: [
+        { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
+        { name: 'summary', position: 2, isRequired: false, isVisible: true },
+        { name: 'workExperience', position: 3, isRequired: false, isVisible: true },
+        { name: 'education', position: 4, isRequired: false, isVisible: true },
+        { name: 'skills', position: 5, isRequired: false, isVisible: true },
+        { name: 'projects', position: 6, isRequired: false, isVisible: true },
+        { name: 'achievements', position: 7, isRequired: false, isVisible: true },
+        { name: 'certifications', position: 8, isRequired: false, isVisible: true },
+        { name: 'languages', position: 9, isRequired: false, isVisible: true },
+        { name: 'customFields', position: 10, isRequired: false, isVisible: true }
+      ]
+    },
+    styling: {
+      colors: {
+        primary: '#ec4899',
+        secondary: '#8b5cf6',
+        accent: '#06b6d4',
+        text: '#1f2937',
+        background: '#ffffff'
+      },
+      fonts: {
+        primary: 'Arial',
+        secondary: 'Arial',
+        sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+      },
+      template: {
+        headerLevel: 'h3',
+        headerFontSize: 18,
+        fontSize: 12,
+        lineSpacing: 1.3,
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
+      }
+    },
+    availability: { tier: 'free', isPublic: true, isActive: true },
+    templateCode: {
+      html: `<div class="resume creative-designer">
             <div class="sidebar">
             {{#if personalInfo.isAddPhoto}} 
                 {{#if personalInfo.profilePicture}}
@@ -57,7 +57,10 @@ module.exports = [
                 {{/if}}
                 {{/if}}
               <div class="profile-section">
-                <h1 class="name primaryFont">{{personalInfo.fullName}}</h1>{{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
+                <h1 class="name primaryFont">{{personalInfo.fullName}}</h1>{{#unless isFresher}}
+  <h2 class="primaryFont" itemprop="title">{{title}}</h2>
+{{/unless}}
+
                 <div class="contact-info secondaryFont">
                   <div class="contact-item secondaryFont">
                     <span class="icon">📧</span>
@@ -305,7 +308,7 @@ module.exports = [
               {{/if}}
             </div>
           </div>`,
-          css: `.resume.creative-designer {
+      css: `.resume.creative-designer {
             font-family: 'Arial', sans-serif;
             max-width: 8.5in;
             margin: 0 auto;            
@@ -708,63 +711,66 @@ module.exports = [
           .job-title, .edu-degree, .project-name, .achievement-title, .cert-name, .custom-field-title { font-weight: 600; color: #1f2937; margin-bottom: 2px;}
           .project-links a, .cert-link a, { color: #ec4899; text-decoration: none; }
           .project-links a:hover, .cert-link a:hover, .contact-item a:hover { text-decoration: underline; }`
-        },
-        creator: null,
-        tags: ['creative', 'designer', 'portfolio', 'sidebar', 'colorful', 'gradient']
-      },
+    },
+    creator: null,
+    tags: ['creative', 'designer', 'portfolio', 'sidebar', 'colorful', 'gradient']
+  },
 
-      {
-        name: 'Creative Portfolio',
-        description: 'Vibrant single-column design with featured projects at the top.',
-        category: 'creative',
-        preview: {
-          thumbnail: {
-            url: 'placeholder-will-be-replaced-by-puppeteer'
-          }
-        },
-        layout: {
-          type: 'single-column',
-          sections: [
-            { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
-            { name: 'projects', position: 2, isRequired: false, isVisible: true },
-            { name: 'skills', position: 3, isRequired: false, isVisible: true },
-            { name: 'summary', position: 4, isRequired: false, isVisible: true },
-            { name: 'workExperience', position: 5, isRequired: false, isVisible: true },
-            { name: 'education', position: 6, isRequired: false, isVisible: true },
-            { name: 'certifications', position: 7, isRequired: false, isVisible: true },
-            { name: 'achievements', position: 8, isRequired: false, isVisible: true },
-            { name: 'languages', position: 9, isRequired: false, isVisible: true },
-            { name: 'customFields', position: 10, isRequired: false, isVisible: true }
-          ]
-        },
-        styling: {
-          colors: {
-            primary: '#9333ea',
-            secondary: '#f472b6',
-            accent: '#14b8a6',
-            text: '#111827',
-            background: '#ffffff'
-          },
-          fonts: {
-            primary: 'Arial',
-            secondary: 'Arial',
-            sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
-          },
-          template: {
-            headerLevel: 'h3',
-            headerFontSize: 18,
-            fontSize: 12,
-            lineSpacing: 1.3,
-            sectionSpacing: 1,
-            fontFamily: 'Arial'
-          }
-        },
-        availability: { tier: 'free', isPublic: true, isActive: true },
-        templateCode: {
-          html: `<article class="resume creative-portfolio" itemscope itemtype="http://schema.org/Person">
+  {
+    name: 'Creative Portfolio',
+    description: 'Vibrant single-column design with featured projects at the top.',
+    category: 'creative',
+    preview: {
+      thumbnail: {
+        url: 'placeholder-will-be-replaced-by-puppeteer'
+      }
+    },
+    layout: {
+      type: 'single-column',
+      sections: [
+        { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
+        { name: 'projects', position: 2, isRequired: false, isVisible: true },
+        { name: 'skills', position: 3, isRequired: false, isVisible: true },
+        { name: 'summary', position: 4, isRequired: false, isVisible: true },
+        { name: 'workExperience', position: 5, isRequired: false, isVisible: true },
+        { name: 'education', position: 6, isRequired: false, isVisible: true },
+        { name: 'certifications', position: 7, isRequired: false, isVisible: true },
+        { name: 'achievements', position: 8, isRequired: false, isVisible: true },
+        { name: 'languages', position: 9, isRequired: false, isVisible: true },
+        { name: 'customFields', position: 10, isRequired: false, isVisible: true }
+      ]
+    },
+    styling: {
+      colors: {
+        primary: '#9333ea',
+        secondary: '#f472b6',
+        accent: '#14b8a6',
+        text: '#111827',
+        background: '#ffffff'
+      },
+      fonts: {
+        primary: 'Arial',
+        secondary: 'Arial',
+        sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+      },
+      template: {
+        headerLevel: 'h3',
+        headerFontSize: 18,
+        fontSize: 12,
+        lineSpacing: 1.3,
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
+      }
+    },
+    availability: { tier: 'free', isPublic: true, isActive: true },
+    templateCode: {
+      html: `<article class="resume creative-portfolio" itemscope itemtype="http://schema.org/Person">
             <header class="header">
               <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
-              {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
+              {{#unless isFresher}}
+  <h2 class="primaryFont" itemprop="title">{{title}}</h2>
+{{/unless}}
+
               <div class="contact-info secondaryFont">
                 <div class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</div>
                 {{#if personalInfo.phone}}<div class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
@@ -923,7 +929,7 @@ module.exports = [
             </section>
             {{/if}}
           </article>`,
-          css: `.resume.creative-portfolio { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #111827; line-height: 1.4; }
+      css: `.resume.creative-portfolio { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #111827; line-height: 1.4; }
           .header { text-align: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 3px solid #9333ea; }
           .name { font-weight: 600; color: #9333ea; margin-bottom: 10px; letter-spacing: 0.5px; }
           .contact-info { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; color: #f472b6; }
@@ -979,8 +985,8 @@ module.exports = [
           .language-name, .skill-category-title, .job-title, .edu-degree, .project-name, .achievement-title, .cert-name, .custom-field-title { font-weight: bold; color: #111827; }
           .project-links a, .cert-link a, .contact-item a { color: #9333ea; text-decoration: none; }
           .project-links a:hover, .cert-link a:hover, .contact-item a:hover { text-decoration: underline; }`
-        },
-        creator: null,
-        tags: ['creative', 'portfolio', 'designer', 'colorful', 'single-column', 'purple']
-      },
+    },
+    creator: null,
+    tags: ['creative', 'portfolio', 'designer', 'colorful', 'single-column', 'purple']
+  },
 ]

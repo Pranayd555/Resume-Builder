@@ -103,7 +103,7 @@ const Payment = () => {
         key: process.env.REACT_APP_RAZORPAY_KEY_ID,
         amount: order.amount,
         currency: order.currency,
-        name: 'Resume Builder Pro',
+        name: 'Presmistique - AI Resume Builder Pro',
         description: paymentData.description,
         order_id: order.id,
         // Explicitly set mode to test for development

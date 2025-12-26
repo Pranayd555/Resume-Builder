@@ -28,18 +28,18 @@ const handleApiResponse = async (response, errorMessage = 'An error occurred') =
 const handleError = (error, defaultMessage = 'An error occurred') => {
   console.error('API Error:', error);
   const message = error.message || defaultMessage;
-  
+
   // Handle authentication errors
-  if (message.includes('No authentication token') || 
-      message.includes('401') || 
-      message.includes('Unauthorized') ||
-      message.includes('token failed')) {
+  if (message.includes('No authentication token') ||
+    message.includes('401') ||
+    message.includes('Unauthorized') ||
+    message.includes('token failed')) {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
     window.location.href = '/login';
     return;
   }
-  
+
   toast.error(message);
   throw error;
 };
@@ -245,6 +245,20 @@ export const contactApi = {
     } catch (error) {
       handleError(error, 'Failed to fetch contact statistics');
     }
+  },
+
+  // Record token reward for contact
+  recordTokenReward: async (id, tokens) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/contact/${id}/record-token-reward`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ tokens })
+      });
+      return await handleApiResponse(response, 'Failed to record token reward');
+    } catch (error) {
+      handleError(error, 'Failed to record token reward');
+    }
   }
 };
 
@@ -353,6 +367,20 @@ export const tokensApi = {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(tokenData)
+      });
+      return await handleApiResponse(response, 'Failed to give bonus tokens to user');
+    } catch (error) {
+      handleError(error, 'Failed to give bonus tokens to user');
+    }
+  },
+
+  // Give bonus tokens to user by email
+  giveBonusTokensByEmail: async (data) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/payment/admin/give-bonus-tokens-by-email`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data)
       });
       return await handleApiResponse(response, 'Failed to give bonus tokens to user');
     } catch (error) {

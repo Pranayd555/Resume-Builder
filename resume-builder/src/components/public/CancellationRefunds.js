@@ -153,7 +153,7 @@ const CancellationRefunds = () => {
 
         {/* Footer Note */}
         <footer className="mt-16 text-center text-slate-400 dark:text-slate-600 text-sm">
-          <p>© {new Date().getFullYear()} Resume Builder. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Presmistique - AI Resume Builder. All rights reserved.</p>
           <p className="mt-2 italic">
             Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} • Compliant with Indian Consumer Protection Rules, 2020.
           </p>

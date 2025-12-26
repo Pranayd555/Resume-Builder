@@ -50,7 +50,10 @@ module.exports = [
       html: `<article class="resume classic-traditional" itemscope itemtype="http://schema.org/Person">
             <header class="header">
               <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
-              {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
+              {{#unless isFresher}}
+  <h2 class="primaryFont" itemprop="title">{{title}}</h2>
+{{/unless}}
+
               <div class="contact-info secondaryFont">
                 <span class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</span>
                 {{#if personalInfo.phone}} | <span class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</span>{{/if}}
@@ -305,7 +308,10 @@ module.exports = [
       html: `<div class="resume classic-professional">
               <header class="header">
                <div class="right-column">
-                <h1 class="name primaryFont">{{personalInfo.fullName}}</h1>{{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
+                <h1 class="name primaryFont">{{personalInfo.fullName}}</h1>{{#unless isFresher}}
+  <h2 class="primaryFont" itemprop="title">{{title}}</h2>
+{{/unless}}
+
                 <div class="contact-details secondaryFont">
                   {{#if personalInfo.address}}<span class="contact-item secondaryFont">{{personalInfo.address}}</span>{{/if}}
                   {{#if personalInfo.phone}}{{#if personalInfo.address}} | {{/if}}<span class="contact-item secondaryFont">{{personalInfo.phone}}</span>{{/if}}
@@ -567,7 +573,10 @@ module.exports = [
       "html": `<article class="resume classic-serif" itemscope itemtype="http://schema.org/Person">
                 <header class="header">
                   <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
-                  {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
+                  {{#unless isFresher}}
+  <h2 class="primaryFont" itemprop="title">{{title}}</h2>
+{{/unless}}
+
                   <div class="contact-info secondaryFont">
                     <div class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</div>
                     {{#if personalInfo.phone}}<div class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
@@ -994,7 +1003,10 @@ module.exports = [
                     <div class="resume-container">
                     <header>
                     <h1 class="name primaryFont">{{personalInfo.fullName}}</h1>
-                    {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
+                    {{#unless isFresher}}
+  <h2 class="primaryFont" itemprop="title">{{title}}</h2>
+{{/unless}}
+
                     </header>
                     <section class="contact-info secondaryFont">
                     {{#if personalInfo.address}}

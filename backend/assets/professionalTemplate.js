@@ -1,70 +1,73 @@
 module.exports = [
 
-      {
-        name: 'Professional Corporate',
-        description: 'A sophisticated template designed for corporate environments',
-        category: 'professional',
-        preview: {
-        thumbnail: {
-            url: 'https://via.placeholder.com/300x400/1e40af/ffffff?text=Professional%20Corporate'
-        }
-        },
-        layout: {
+  {
+    name: 'Professional Corporate',
+    description: 'A sophisticated template designed for corporate environments',
+    category: 'professional',
+    preview: {
+      thumbnail: {
+        url: 'https://via.placeholder.com/300x400/1e40af/ffffff?text=Professional%20Corporate'
+      }
+    },
+    layout: {
+      type: 'two-column',
+      sections: [
+        { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
+        { name: 'summary', position: 2, isRequired: false, isVisible: true },
+        { name: 'workExperience', position: 3, isRequired: false, isVisible: true },
+        { name: 'education', position: 4, isRequired: false, isVisible: true },
+        { name: 'skills', position: 5, isRequired: false, isVisible: true },
+        { name: 'projects', position: 6, isRequired: false, isVisible: true },
+        { name: 'achievements', position: 7, isRequired: false, isVisible: true },
+        { name: 'certifications', position: 8, isRequired: false, isVisible: true },
+        { name: 'languages', position: 9, isRequired: false, isVisible: true },
+        { name: 'customFields', position: 10, isRequired: false, isVisible: true }
+      ]
+    },
+    styling: {
+      colors: {
+        primary: '#1e40af',
+        secondary: '#64748b',
+        accent: '#3b82f6',
+        text: '#1f2937',
+        background: '#ffffff',
+        header: '#1e40af',
+        sidebar: '#f8fafc'
+      },
+      fonts: {
+        primary: 'Arial',
+        secondary: 'Arial',
+        sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+      },
+      spacing: {
+        section: 12,
+        element: 8,
+        header: 6
+      },
+      layout: {
         type: 'two-column',
-        sections: [
-            { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
-            { name: 'summary', position: 2, isRequired: false, isVisible: true },
-            { name: 'workExperience', position: 3, isRequired: false, isVisible: true },
-            { name: 'education', position: 4, isRequired: false, isVisible: true },
-            { name: 'skills', position: 5, isRequired: false, isVisible: true },
-            { name: 'projects', position: 6, isRequired: false, isVisible: true },
-            { name: 'achievements', position: 7, isRequired: false, isVisible: true },
-            { name: 'certifications', position: 8, isRequired: false, isVisible: true },
-            { name: 'languages', position: 9, isRequired: false, isVisible: true },
-            { name: 'customFields', position: 10, isRequired: false, isVisible: true }
-        ]
-        },
-        styling: {
-        colors: {
-            primary: '#1e40af',
-            secondary: '#64748b',
-            accent: '#3b82f6',
-            text: '#1f2937',
-            background: '#ffffff',
-            header: '#1e40af',
-            sidebar: '#f8fafc'
-        },
-        fonts: {
-            primary: 'Arial',
-            secondary: 'Arial',
-            sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
-        },
-        spacing: {
-            section: 12,
-            element: 8,
-            header: 6
-        },
-        layout: {
-            type: 'two-column',
-            sidebarWidth: '1fr',
-            mainWidth: '2fr'
-        },
-        template: {
-            headerLevel: 'h3',
-            headerFontSize: 18,
-            fontSize: 12,
-            lineSpacing: 1.3,
-            sectionSpacing: 1,
-            fontFamily: 'Arial'
-        }
-        },
-        availability: { tier: 'free', isPublic: true, isActive: true },
-        templateCode: {
-        html: `<article class="resume professional-corporate" itemscope itemtype="http://schema.org/Person">
+        sidebarWidth: '1fr',
+        mainWidth: '2fr'
+      },
+      template: {
+        headerLevel: 'h3',
+        headerFontSize: 18,
+        fontSize: 12,
+        lineSpacing: 1.3,
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
+      }
+    },
+    availability: { tier: 'free', isPublic: true, isActive: true },
+    templateCode: {
+      html: `<article class="resume professional-corporate" itemscope itemtype="http://schema.org/Person">
             <header class="header">
             <div class="header-content">
                 <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
-                {{#if isFresher}}{{else}}<h2 class="name primaryFont" itemprop="title">{{title}}</h2>{{/if}}
+                {{#unless isFresher}}
+  <h2 class="name primaryFont" itemprop="title">{{title}}</h2>
+{{/unless}}
+
                 <div class="contact-info secondaryFont">
                 <div class="contact-row">
                     <span class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</span>
@@ -239,7 +242,7 @@ module.exports = [
             </div>
             </div>
         </article>`,
-        css: `.resume.professional-corporate { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; background: white; color: #1f2937; line-height: 1.4; }
+      css: `.resume.professional-corporate { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; background: white; color: #1f2937; line-height: 1.4; }
         @media print { .resume.professional-corporate { max-width: none; margin: 0; padding: 0; } }
         @media (max-width: 768px) { .resume.professional-corporate .content-grid { grid-template-columns: 1fr; gap: 12px; } }
         
@@ -348,63 +351,66 @@ module.exports = [
         .language-name, .skill-category-title, .job-title, .edu-degree, .project-name, .achievement-title, .cert-name, .custom-field-title { font-weight: bold; color: #1f2937; }
         .project-links a, .cert-link a, .contact-item a { color: #1e40af; text-decoration: none; }
         .project-links a:hover, .cert-link a:hover, .contact-item a:hover { text-decoration: underline; }`
-        },
-        creator: null,
-        tags: ['professional', 'corporate', 'business', 'two-column', 'blue', 'executive']
     },
+    creator: null,
+    tags: ['professional', 'corporate', 'business', 'two-column', 'blue', 'executive']
+  },
 
-    {
-        name: 'Professional Executive',
-        description: 'Executive-level professional template with sophisticated design',
-        category: 'professional',
-        preview: {
-          thumbnail: {
-            url: 'https://via.placeholder.com/300x400/1e3a8a/ffffff?text=Professional%20Executive'
-          }
-        },
-        layout: {
-          type: 'single-column',
-          sections: [
-            { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
-            { name: 'summary', position: 2, isRequired: false, isVisible: true },
-            { name: 'workExperience', position: 3, isRequired: false, isVisible: true },
-            { name: 'projects', position: 4, isRequired: false, isVisible: true },
-            { name: 'achievements', position: 5, isRequired: false, isVisible: true },
-            { name: 'education', position: 6, isRequired: false, isVisible: true },
-            { name: 'skills', position: 7, isRequired: false, isVisible: true },
-            { name: 'certifications', position: 8, isRequired: false, isVisible: true },
-            { name: 'languages', position: 9, isRequired: false, isVisible: true },
-            { name: 'customFields', position: 10, isRequired: false, isVisible: true }
-          ]
-        },
-        styling: {
-          colors: {
-            primary: '#1e3a8a',
-            secondary: '#64748b',
-            accent: '#dc2626',
-            text: '#1f2937',
-            background: '#ffffff'
-          },
-          fonts: {
-            primary: 'Calibri',
-            secondary: 'Calibri',
-            sizes: { heading: 24, subheading: 20, body: 12, small: 10 }
-          },
-          template: {
-            headerLevel: 'h3',
-            headerFontSize: 24,
-            fontSize: 12,
-            lineSpacing: 1.3,
-            sectionSpacing: 1,
-            fontFamily: 'Arial'
-          }
-        },
-        availability: { tier: 'free', isPublic: true, isActive: true },
-        templateCode: {
-          html: `<div class="resume professional-executive">
+  {
+    name: 'Professional Executive',
+    description: 'Executive-level professional template with sophisticated design',
+    category: 'professional',
+    preview: {
+      thumbnail: {
+        url: 'https://via.placeholder.com/300x400/1e3a8a/ffffff?text=Professional%20Executive'
+      }
+    },
+    layout: {
+      type: 'single-column',
+      sections: [
+        { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
+        { name: 'summary', position: 2, isRequired: false, isVisible: true },
+        { name: 'workExperience', position: 3, isRequired: false, isVisible: true },
+        { name: 'projects', position: 4, isRequired: false, isVisible: true },
+        { name: 'achievements', position: 5, isRequired: false, isVisible: true },
+        { name: 'education', position: 6, isRequired: false, isVisible: true },
+        { name: 'skills', position: 7, isRequired: false, isVisible: true },
+        { name: 'certifications', position: 8, isRequired: false, isVisible: true },
+        { name: 'languages', position: 9, isRequired: false, isVisible: true },
+        { name: 'customFields', position: 10, isRequired: false, isVisible: true }
+      ]
+    },
+    styling: {
+      colors: {
+        primary: '#1e3a8a',
+        secondary: '#64748b',
+        accent: '#dc2626',
+        text: '#1f2937',
+        background: '#ffffff'
+      },
+      fonts: {
+        primary: 'Calibri',
+        secondary: 'Calibri',
+        sizes: { heading: 24, subheading: 20, body: 12, small: 10 }
+      },
+      template: {
+        headerLevel: 'h3',
+        headerFontSize: 24,
+        fontSize: 12,
+        lineSpacing: 1.3,
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
+      }
+    },
+    availability: { tier: 'free', isPublic: true, isActive: true },
+    templateCode: {
+      html: `<div class="resume professional-executive">
             <header class="executive-header">
               <h1 class="name primaryFont">{{personalInfo.fullName}}</h1>
-              {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
+              {{#unless isFresher}}
+  <h2 class="primaryFont" itemprop="title">{{title}}</h2>
+{{/unless}}
+
               <div class="contact-bar secondaryFont">
                 {{#if personalInfo.email}}
                   <span class="contact-item secondaryFont">{{personalInfo.email}}</span>
@@ -628,7 +634,7 @@ module.exports = [
               </section>
             {{/if}}
           </div>`,
-          css: `.resume.professional-executive { font-family: 'Calibri', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; line-height: 1; }
+      css: `.resume.professional-executive { font-family: 'Calibri', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; line-height: 1; }
           /* Heading size adjustments */
           h1 { font-size: 24px; margin: 0; }
           h2 { font-size: 18px; margin: 0; }
@@ -700,64 +706,67 @@ module.exports = [
           .language-name, .skill-category-title, .job-title, .edu-degree, .project-name, .achievement-title, .cert-name, .custom-field-title { font-weight: bold; color: #1f2937; }
           .project-links a, .cert-link a, .contact-item a { color: #64748b; text-decoration: none; }
           .project-links a:hover, .cert-link a:hover, .contact-item a:hover { text-decoration: underline; }`
-        },
-        creator: null,
-        tags: ['professional', 'executive', 'leadership', 'corporate']
-      },
+    },
+    creator: null,
+    tags: ['professional', 'executive', 'leadership', 'corporate']
+  },
 
-      {
-        name: 'Sleek Professional',
-        description: 'Corporate-friendly two-column layout with clean lines and ATS-optimized formatting.',
-        category: 'professional',
-        preview: {
-          thumbnail: {
-            url: 'placeholder-will-be-replaced-by-puppeteer'
-          }
-        },
-        layout: {
-          type: 'two-column',
-          sections: [
-            { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
-            { name: 'summary', position: 2, isRequired: false, isVisible: true },
-            { name: 'skills', position: 3, isRequired: false, isVisible: true },
-            { name: 'workExperience', position: 4, isRequired: false, isVisible: true },
-            { name: 'projects', position: 5, isRequired: false, isVisible: true },
-            { name: 'education', position: 6, isRequired: false, isVisible: true },
-            { name: 'certifications', position: 7, isRequired: false, isVisible: true },
-            { name: 'achievements', position: 8, isRequired: false, isVisible: true },
-            { name: 'languages', position: 9, isRequired: false, isVisible: true },
-            { name: 'customFields', position: 10, isRequired: false, isVisible: true }
-          ]
-        },
-        styling: {
-          colors: {
-            primary: '#0f172a',
-            secondary: '#475569',
-            accent: '#2563eb',
-            text: '#1e293b',
-            background: '#ffffff'
-          },
-          fonts: {
-            primary: 'Arial',
-            secondary: 'Arial',
-            sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
-          },
-          template: {
-            headerLevel: 'h3',
-            headerFontSize: 18,
-            fontSize: 12,
-            lineSpacing: 1.3,
-            sectionSpacing: 1,
-            fontFamily: 'Arial'
-          }
-        },
-        availability: { tier: 'free', isPublic: true, isActive: true },
-        templateCode: {
-          html: `<article class="resume sleek-professional" itemscope itemtype="http://schema.org/Person">
+  {
+    name: 'Sleek Professional',
+    description: 'Corporate-friendly two-column layout with clean lines and ATS-optimized formatting.',
+    category: 'professional',
+    preview: {
+      thumbnail: {
+        url: 'placeholder-will-be-replaced-by-puppeteer'
+      }
+    },
+    layout: {
+      type: 'two-column',
+      sections: [
+        { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
+        { name: 'summary', position: 2, isRequired: false, isVisible: true },
+        { name: 'skills', position: 3, isRequired: false, isVisible: true },
+        { name: 'workExperience', position: 4, isRequired: false, isVisible: true },
+        { name: 'projects', position: 5, isRequired: false, isVisible: true },
+        { name: 'education', position: 6, isRequired: false, isVisible: true },
+        { name: 'certifications', position: 7, isRequired: false, isVisible: true },
+        { name: 'achievements', position: 8, isRequired: false, isVisible: true },
+        { name: 'languages', position: 9, isRequired: false, isVisible: true },
+        { name: 'customFields', position: 10, isRequired: false, isVisible: true }
+      ]
+    },
+    styling: {
+      colors: {
+        primary: '#0f172a',
+        secondary: '#475569',
+        accent: '#2563eb',
+        text: '#1e293b',
+        background: '#ffffff'
+      },
+      fonts: {
+        primary: 'Arial',
+        secondary: 'Arial',
+        sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+      },
+      template: {
+        headerLevel: 'h3',
+        headerFontSize: 18,
+        fontSize: 12,
+        lineSpacing: 1.3,
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
+      }
+    },
+    availability: { tier: 'free', isPublic: true, isActive: true },
+    templateCode: {
+      html: `<article class="resume sleek-professional" itemscope itemtype="http://schema.org/Person">
             <div class="main-column">
               <header class="header">
                 <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
-                {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
+                {{#unless isFresher}}
+  <h2 class="primaryFont" itemprop="title">{{title}}</h2>
+{{/unless}}
+
                 <div class="contact-info secondaryFont">
                   <div class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</div>
                   {{#if personalInfo.phone}}<div class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
@@ -915,7 +924,7 @@ module.exports = [
               {{/if}}
             </div>
           </article>`,
-          css: `.resume.sleek-professional { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1e293b; line-height: 1.4; display: grid; grid-template-columns: 2fr 1fr; gap: 20px; width: 100%; overflow: hidden; box-sizing: border-box; }
+      css: `.resume.sleek-professional { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1e293b; line-height: 1.4; display: grid; grid-template-columns: 2fr 1fr; gap: 20px; width: 100%; overflow: hidden; box-sizing: border-box; }
           .header { grid-column: 1 / -1; text-align: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #2563eb; width: 100%; max-width: 100%; overflow: hidden; box-sizing: border-box; }
           .main-column { width: 100%; max-width: 100%; overflow: hidden; box-sizing: border-box; }
           .sidebar { width: 100%; max-width: 100%; overflow: hidden; box-sizing: border-box; }
@@ -976,67 +985,69 @@ module.exports = [
           .resume.sleek-professional * { max-width: 100%; word-wrap: break-word; overflow-wrap: break-word; }
           .sidebar * { max-width: 100%; word-wrap: break-word; overflow-wrap: break-word; }
           .main-column * { max-width: 100%; word-wrap: break-word; overflow-wrap: break-word; }`
-        },
-        creator: null,
-        tags: ['professional', 'corporate', 'ats', 'clean', 'two-column', 'blue']
-      },
+    },
+    creator: null,
+    tags: ['professional', 'corporate', 'ats', 'clean', 'two-column', 'blue']
+  },
 
-      {
-        name: 'Professional Executive pro',
-        description: 'An executive-level template with sophisticated styling and modern layout',
-        category: 'professional',
-        preview: {
-          thumbnail: {
-            url: 'placeholder-will-be-replaced-by-puppeteer'
-          }
-        },
-        layout: {
-          type: 'two-column',
-          sections: [
-            { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
-            { name: 'summary', position: 2, isRequired: false, isVisible: true },
-            { name: 'workExperience', position: 3, isRequired: false, isVisible: true },
-            { name: 'projects', position: 4, isRequired: false, isVisible: true },
-            { name: 'education', position: 5, isRequired: false, isVisible: true },
-            { name: 'skills', position: 6, isRequired: false, isVisible: true },
-            { name: 'achievements', position: 7, isRequired: false, isVisible: true },
-            { name: 'certifications', position: 8, isRequired: false, isVisible: true },
-            { name: 'languages', position: 9, isRequired: false, isVisible: true },
-            { name: 'customFields', position: 10, isRequired: false, isVisible: true }
-          ]
-        },
-        styling: {
-          colors: {
-            primary: '#1e3a8a',
-            secondary: '#64748b',
-            accent: '#3b82f6',
-            text: '#1f2937',
-            background: '#ffffff',
-            header: '#1e3a8a',
-            sidebar: '#f8fafc'
-          },
-          fonts: {
-            primary: 'Georgia',
-            secondary: 'Arial',
-            sizes: { heading: 18, subheading: 14, body: 12, small: 10 }
-          },
-          template: {
-            headerLevel: 'h3',
-            headerFontSize: 18,
-            fontSize: 12,
-            lineSpacing: 1.4,
-            sectionSpacing: 1.2,
-            fontFamily: 'Georgia'
-          }
-        },
-        availability: { tier: 'free', isPublic: true, isActive: true },
-        templateCode: {
-          html: `<article class="resume professional-executive-pro" itemscope itemtype="http://schema.org/Person">
+  {
+    name: 'Professional Executive pro',
+    description: 'An executive-level template with sophisticated styling and modern layout',
+    category: 'professional',
+    preview: {
+      thumbnail: {
+        url: 'placeholder-will-be-replaced-by-puppeteer'
+      }
+    },
+    layout: {
+      type: 'two-column',
+      sections: [
+        { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
+        { name: 'summary', position: 2, isRequired: false, isVisible: true },
+        { name: 'workExperience', position: 3, isRequired: false, isVisible: true },
+        { name: 'projects', position: 4, isRequired: false, isVisible: true },
+        { name: 'education', position: 5, isRequired: false, isVisible: true },
+        { name: 'skills', position: 6, isRequired: false, isVisible: true },
+        { name: 'achievements', position: 7, isRequired: false, isVisible: true },
+        { name: 'certifications', position: 8, isRequired: false, isVisible: true },
+        { name: 'languages', position: 9, isRequired: false, isVisible: true },
+        { name: 'customFields', position: 10, isRequired: false, isVisible: true }
+      ]
+    },
+    styling: {
+      colors: {
+        primary: '#1e3a8a',
+        secondary: '#64748b',
+        accent: '#3b82f6',
+        text: '#1f2937',
+        background: '#ffffff',
+        header: '#1e3a8a',
+        sidebar: '#f8fafc'
+      },
+      fonts: {
+        primary: 'Georgia',
+        secondary: 'Arial',
+        sizes: { heading: 18, subheading: 14, body: 12, small: 10 }
+      },
+      template: {
+        headerLevel: 'h3',
+        headerFontSize: 18,
+        fontSize: 12,
+        lineSpacing: 1.4,
+        sectionSpacing: 1.2,
+        fontFamily: 'Georgia'
+      }
+    },
+    availability: { tier: 'free', isPublic: true, isActive: true },
+    templateCode: {
+      html: `<article class="resume professional-executive-pro" itemscope itemtype="http://schema.org/Person">
             <div class="main-content">
               <header class="executive-header">
                 <div class="header-content">
                   <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
-                  {{#if isFresher}}{{else}}<h2 class="section-title primaryFont" itemprop="title">{{title}}</h2>{{/if}}
+{{#unless isFresher}}
+  <h2 class="section-title primaryFont" itemprop="title">{{title}}</h2>
+{{/unless}}
                   <div class="contact-grid secondaryFont">
                     <div class="contact-item" itemprop="email">
                       <span class="contact-icon">📧</span>
@@ -1237,7 +1248,7 @@ module.exports = [
               {{/if}}
             </div>
           </article>`,
-          css: `          .resume.professional-executive-pro {
+      css: `          .resume.professional-executive-pro {
             font-family: 'Georgia', serif;
             max-width: 8.5in;
             margin: 0 auto;
@@ -1558,10 +1569,10 @@ module.exports = [
               page-break-inside: avoid;
             }
           }`
-        },
-        creator: null,
-        tags: ['professional', 'executive', 'corporate', 'sophisticated', 'two-column', 'blue']
-      }
-      
-      
-    ]
+    },
+    creator: null,
+    tags: ['professional', 'executive', 'corporate', 'sophisticated', 'two-column', 'blue']
+  }
+
+
+]
