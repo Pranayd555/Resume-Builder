@@ -81,12 +81,12 @@ router.post('/create-order', protect, async (req, res) => {
 // @access  Private
 router.post('/complete-token-purchase', protect, async (req, res) => {
   try {
-    const { 
-      order_id, 
-      payment_id, 
-      signature, 
-      tokens, 
-      amount, 
+    const {
+      order_id,
+      payment_id,
+      signature,
+      tokens,
+      amount,
       currency = 'INR',
       payment_method = 'razorpay',
       email,
@@ -136,7 +136,7 @@ router.post('/complete-token-purchase', protect, async (req, res) => {
     // Verify payment with Razorpay
     try {
       const payment = await razorpay.payments.fetch(payment_id);
-      
+
       if (payment.status !== 'captured') {
         return res.status(400).json({
           success: false,
@@ -166,17 +166,17 @@ router.post('/complete-token-purchase', protect, async (req, res) => {
       { amount: 50, price: 349, bonus: 15 },
       { amount: 100, price: 599, bonus: 40 }
     ];
-    
+
     const selectedPackage = tokenPackages.find(pkg => pkg.amount === (tokens - pkg.bonus));
     const regularTokens = selectedPackage ? selectedPackage.amount : tokens;
     const bonusTokens = selectedPackage ? selectedPackage.bonus : 0;
-    
+
     // Add tokens to user account
     await user.addTokens(regularTokens);
     if (bonusTokens > 0) {
       await user.addBonusTokens(bonusTokens);
     }
-    
+
     const newTokenBalance = user.getTotalTokens();
 
     // Add transaction record
@@ -211,7 +211,7 @@ router.post('/complete-token-purchase', protect, async (req, res) => {
     // Send payment invoice email
     try {
       logger.info(`Attempting to send payment invoice email to ${user.email} for transaction ${payment_id}`);
-      
+
       const emailResult = await emailService.sendPaymentInvoice({
         email: user.email,
         name: user.name || user.email.split('@')[0],
@@ -233,11 +233,11 @@ router.post('/complete-token-purchase', protect, async (req, res) => {
       logger.error(`💥 Error sending payment invoice email to ${user.email}:`, emailError);
       // Don't fail the payment process if email fails
     }
-    
+
     // Get updated token data after purchase
     const { calculateTotalTokens } = require('../utils/tokenCalculator');
     const updatedTokenData = await calculateTotalTokens(user._id);
-    
+
     res.json({
       success: true,
       message: 'Token purchase completed successfully',
@@ -398,9 +398,9 @@ async function handlePaymentCaptured(event) {
   try {
     const payment = event.payload.payment.entity;
     const order = event.payload.order.entity;
-    
+
     logger.info(`Payment captured: ${payment.id} for order: ${order.id}`);
-    
+
     // Find user by order notes
     if (order.notes && order.notes.userId) {
       const user = await User.findById(order.notes.userId);
@@ -425,9 +425,9 @@ async function handlePaymentFailed(event) {
   try {
     const payment = event.payload.payment.entity;
     const order = event.payload.order.entity;
-    
+
     logger.info(`Payment failed: ${payment.id} for order: ${order.id}`);
-    
+
     // Find user by order notes
     if (order.notes && order.notes.userId) {
       const user = await User.findById(order.notes.userId);
@@ -579,6 +579,127 @@ router.post('/admin/give-bonus-tokens/:userId', protect, async (req, res) => {
     });
   } catch (error) {
     logger.error('Admin give bonus tokens error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to add bonus tokens',
+      error: error.message
+    });
+  }
+});
+
+// @desc    Admin: Give bonus tokens to user by email
+// @route   POST /api/payment/admin/give-bonus-tokens-by-email
+// @access  Private (Admin only)
+router.post('/admin/give-bonus-tokens-by-email', protect, async (req, res) => {
+  try {
+    // Check if user is admin
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Admin role required.'
+      });
+    }
+
+    const { email, tokens, reason = 'Admin bonus' } = req.body;
+
+    if (!email || !tokens || tokens <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid email and token amount are required'
+      });
+    }
+
+    if (tokens > 10000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Bonus tokens cannot exceed 10,000 per transaction'
+      });
+    }
+
+    // Find user by email
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found with this email'
+      });
+    }
+
+    // Add bonus tokens
+    await user.addBonusTokens(tokens);
+
+    // Get updated token data
+    const { calculateTotalTokens } = require('../utils/tokenCalculator');
+    const updatedTokenData = await calculateTotalTokens(user._id);
+
+    // Add transaction record
+    const transactionData = {
+      transactionId: `admin_bonus_${Date.now()}_${user._id}`,
+      orderId: `admin_bonus_${Date.now()}`,
+      amount: 0,
+      currency: 'INR',
+      status: 'captured',
+      paymentId: `admin_bonus_${Date.now()}`,
+      method: 'admin_bonus',
+      email: user.email,
+      contact: '',
+      createdAt: new Date(),
+      capturedAt: new Date(),
+      notes: `${tokens} Bonus Tokens - ${reason}`,
+      metadata: {
+        tokensAdded: tokens,
+        bonusTokensAdded: tokens,
+        newTokenBalance: updatedTokenData.totalTokenBalance,
+        type: 'admin_bonus',
+        reason: reason,
+        givenBy: req.user.email
+      }
+    };
+
+    await user.addRazorpayTransaction(transactionData);
+
+    logger.info(`Admin ${req.user.email} gave ${tokens} bonus tokens to user ${user.email}. Reason: ${reason}`);
+
+    // Send bonus tokens email notification
+    try {
+      const emailResult = await emailService.sendBonusTokensEmail({
+        email: user.email,
+        name: user.firstName || user.email.split('@')[0],
+        tokensAdded: tokens,
+        newTokenBalance: updatedTokenData.totalTokenBalance,
+        givenBy: req.user.firstName ? `${req.user.firstName} ${req.user.lastName || ''}`.trim() : req.user.email,
+        reason: reason,
+        dateAdded: new Date().toLocaleDateString('en-IN', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      });
+
+      if (emailResult.success) {
+        logger.info(`✅ Bonus tokens email sent successfully to ${user.email}`);
+      } else {
+        logger.warn(`❌ Failed to send bonus tokens email to ${user.email}: ${emailResult.error}`);
+      }
+    } catch (emailError) {
+      logger.error(`💥 Error sending bonus tokens email to ${user.email}:`, emailError);
+    }
+
+    res.json({
+      success: true,
+      message: 'Bonus tokens added successfully',
+      data: {
+        userId: user._id,
+        userEmail: user.email,
+        tokensAdded: tokens,
+        newTokenBalance: updatedTokenData.totalTokenBalance,
+        reason: reason
+      }
+    });
+  } catch (error) {
+    logger.error('Admin give bonus tokens by email error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to add bonus tokens',
@@ -954,7 +1075,7 @@ router.post('/admin/process-refund/:transactionId', protect, async (req, res) =>
           logger.info(`Sending not-eligible email to ${user.email} for transaction ${transactionId}`);
 
           const totalAvailable = Math.max(0, refundResult.currentTokens - (refundResult.bonusTokensAdded - refundResult.currentBonusTokens));
-          
+
           const emailResult = await emailService.sendRefundNotEligibleEmail({
             email: user.email,
             name: user.firstName || user.email.split('@')[0],

@@ -1,57 +1,60 @@
 module.exports = [
-    {
-        name: 'Modern Professional',
-        description: 'A clean, modern template perfect for professionals in any field',
-        category: 'modern',
-        preview: {
-          thumbnail: {
-            url: 'placeholder-will-be-replaced-by-puppeteer'
-          }
-        },
-        layout: {
-          type: 'two-column',
-          sections: [
-            { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
-            { name: 'summary', position: 2, isRequired: false, isVisible: true },
-            { name: 'workExperience', position: 3, isRequired: false, isVisible: true },
-            { name: 'education', position: 4, isRequired: false, isVisible: true },
-            { name: 'skills', position: 5, isRequired: false, isVisible: true },
-            { name: 'projects', position: 6, isRequired: false, isVisible: true },
-            { name: 'achievements', position: 7, isRequired: false, isVisible: true },
-            { name: 'certifications', position: 8, isRequired: false, isVisible: true },
-            { name: 'languages', position: 9, isRequired: false, isVisible: true },
-            { name: 'customFields', position: 10, isRequired: false, isVisible: true }
-          ]
-        },
-        styling: {
-          colors: {
-            primary: '#2563eb',
-            secondary: '#64748b',
-            accent: '#0ea5e9',
-            text: '#1f2937',
-            background: '#ffffff'
-          },
-          fonts: {
-            primary: 'Arial',
-            secondary: 'Arial',
-            sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
-          },
-          template: {
-            headerLevel: 'h3',
-            headerFontSize: 18,
-            fontSize: 12,
-            lineSpacing: 1.3,
-            sectionSpacing: 1,
-            fontFamily: 'Arial'
-          }
-        },
-        availability: { tier: 'free', isPublic: true, isActive: true },
-        templateCode: {
-          html: `<article class="resume modern-professional" itemscope itemtype="http://schema.org/Person">
+  {
+    name: 'Modern Professional',
+    description: 'A clean, modern template perfect for professionals in any field',
+    category: 'modern',
+    preview: {
+      thumbnail: {
+        url: 'placeholder-will-be-replaced-by-puppeteer'
+      }
+    },
+    layout: {
+      type: 'two-column',
+      sections: [
+        { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
+        { name: 'summary', position: 2, isRequired: false, isVisible: true },
+        { name: 'workExperience', position: 3, isRequired: false, isVisible: true },
+        { name: 'education', position: 4, isRequired: false, isVisible: true },
+        { name: 'skills', position: 5, isRequired: false, isVisible: true },
+        { name: 'projects', position: 6, isRequired: false, isVisible: true },
+        { name: 'achievements', position: 7, isRequired: false, isVisible: true },
+        { name: 'certifications', position: 8, isRequired: false, isVisible: true },
+        { name: 'languages', position: 9, isRequired: false, isVisible: true },
+        { name: 'customFields', position: 10, isRequired: false, isVisible: true }
+      ]
+    },
+    styling: {
+      colors: {
+        primary: '#2563eb',
+        secondary: '#64748b',
+        accent: '#0ea5e9',
+        text: '#1f2937',
+        background: '#ffffff'
+      },
+      fonts: {
+        primary: 'Arial',
+        secondary: 'Arial',
+        sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+      },
+      template: {
+        headerLevel: 'h3',
+        headerFontSize: 18,
+        fontSize: 12,
+        lineSpacing: 1.3,
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
+      }
+    },
+    availability: { tier: 'free', isPublic: true, isActive: true },
+    templateCode: {
+      html: `<article class="resume modern-professional" itemscope itemtype="http://schema.org/Person">
             <div class="main-column">
               <header class="header">
                 <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
-                {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
+                {{#unless isFresher}}
+  <h2 class="primaryFont" itemprop="title">{{title}}</h2>
+{{/unless}}
+
                 <div class="contact-info secondaryFont">
                   <div class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</div>
                   {{#if personalInfo.phone}}<div class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
@@ -211,7 +214,7 @@ module.exports = [
               {{/if}}
             </div>
           </article>`,
-          css: `.resume.modern-professional { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; display: grid; grid-template-columns: 2fr 1fr; gap: 20px; font-size: 15px; line-height: 1; }
+      css: `.resume.modern-professional { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; display: grid; grid-template-columns: 2fr 1fr; gap: 20px; font-size: 15px; line-height: 1; }
           @media print { .resume.modern-professional { max-width: none; margin: 0; padding: 0.5in; } }
           @media (max-width: 768px) { .resume.modern-professional { grid-template-columns: 1fr; gap: 15px; padding: 15px; } }
           
@@ -284,63 +287,66 @@ module.exports = [
           .custom-field { margin-bottom: 0.5rem; }
           .custom-field-title { font-size: 15px; font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
           .custom-content { font-size: 15px; color: #4b5563; line-height: 1; }`
-        },
-        creator: null,
-        tags: ['professional', 'modern', 'clean', 'two-column', 'blue']
-      },
+    },
+    creator: null,
+    tags: ['professional', 'modern', 'clean', 'two-column', 'blue']
+  },
 
-      {
-        name: 'Modern Executive',
-        description: 'A sophisticated template for executives and senior professionals',
-        category: 'modern',
-        preview: {
-          thumbnail: {
-            url: 'placeholder-will-be-replaced-by-puppeteer'
-          }
-        },
-        layout: {
-          type: 'single-column',
-          sections: [
-            { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
-            { name: 'summary', position: 2, isRequired: false, isVisible: true },
-            { name: 'workExperience', position: 3, isRequired: false, isVisible: true },
-            { name: 'education', position: 4, isRequired: false, isVisible: true },
-            { name: 'skills', position: 5, isRequired: false, isVisible: true },
-            { name: 'projects', position: 6, isRequired: false, isVisible: true },
-            { name: 'achievements', position: 7, isRequired: false, isVisible: true },
-            { name: 'certifications', position: 8, isRequired: false, isVisible: true },
-            { name: 'languages', position: 9, isRequired: false, isVisible: true },
-            { name: 'customFields', position: 10, isRequired: false, isVisible: true }
-          ]
-        },
-        styling: {
-          colors: {
-            primary: '#1f2937',
-            secondary: '#6b7280',
-            accent: '#f59e0b',
-            text: '#374151',
-            background: '#ffffff'
-          },
-          fonts: {
-            primary: 'Calibri',
-            secondary: 'Calibri',
-            sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
-          },
-          template: {
-            headerLevel: 'h3',
-            headerFontSize: 18,
-            fontSize: 12,
-            lineSpacing: 1.3,
-            sectionSpacing: 1,
-            fontFamily: 'Arial'
-          }
-        },
-        availability: { tier: 'free', isPublic: true, isActive: true },
-        templateCode: {
-          html: `<article class="resume modern-executive" itemscope itemtype="http://schema.org/Person">
+  {
+    name: 'Modern Executive',
+    description: 'A sophisticated template for executives and senior professionals',
+    category: 'modern',
+    preview: {
+      thumbnail: {
+        url: 'placeholder-will-be-replaced-by-puppeteer'
+      }
+    },
+    layout: {
+      type: 'single-column',
+      sections: [
+        { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
+        { name: 'summary', position: 2, isRequired: false, isVisible: true },
+        { name: 'workExperience', position: 3, isRequired: false, isVisible: true },
+        { name: 'education', position: 4, isRequired: false, isVisible: true },
+        { name: 'skills', position: 5, isRequired: false, isVisible: true },
+        { name: 'projects', position: 6, isRequired: false, isVisible: true },
+        { name: 'achievements', position: 7, isRequired: false, isVisible: true },
+        { name: 'certifications', position: 8, isRequired: false, isVisible: true },
+        { name: 'languages', position: 9, isRequired: false, isVisible: true },
+        { name: 'customFields', position: 10, isRequired: false, isVisible: true }
+      ]
+    },
+    styling: {
+      colors: {
+        primary: '#1f2937',
+        secondary: '#6b7280',
+        accent: '#f59e0b',
+        text: '#374151',
+        background: '#ffffff'
+      },
+      fonts: {
+        primary: 'Calibri',
+        secondary: 'Calibri',
+        sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+      },
+      template: {
+        headerLevel: 'h3',
+        headerFontSize: 18,
+        fontSize: 12,
+        lineSpacing: 1.3,
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
+      }
+    },
+    availability: { tier: 'free', isPublic: true, isActive: true },
+    templateCode: {
+      html: `<article class="resume modern-executive" itemscope itemtype="http://schema.org/Person">
             <header class="header">
               <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
-              {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
+              {{#unless isFresher}}
+  <h2 class="primaryFont" itemprop="title">{{title}}</h2>
+{{/unless}}
+
               <div class="title-line"></div>
                <div class="contact-info secondaryFont">
                  <span class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</span>
@@ -499,7 +505,7 @@ module.exports = [
             </section>
             {{/if}}
           </article>`,
-          css: `.resume.modern-executive { font-family: 'Calibri', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #374151; font-size: 15px; line-height: 1; }
+      css: `.resume.modern-executive { font-family: 'Calibri', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #374151; font-size: 15px; line-height: 1; }
           .header { text-align: center; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e5e7eb; }
           .name { font-size: 18px; font-weight: 700; color: #1f2937; margin-bottom: 0.5rem; letter-spacing: 0.5px; }
           .title-line { width: 40px; height: 2px; background: #f59e0b; margin: 0 auto 0.5rem; }
@@ -554,64 +560,67 @@ module.exports = [
           .language-name, .skill-category-title, .job-title, .edu-degree, .project-name, .achievement-title, .cert-name, .custom-field-title { font-weight: 600; color: #1f2937; }
           .project-links a, .cert-link a, .contact-item a { color: #f59e0b; text-decoration: none; }
           .project-links a:hover, .cert-link a:hover, .contact-item a:hover { text-decoration: underline; }`
-        },
-        creator: null,
-        tags: ['executive', 'modern', 'sophisticated', 'single-column', 'gold']
-      },
+    },
+    creator: null,
+    tags: ['executive', 'modern', 'sophisticated', 'single-column', 'gold']
+  },
 
-      {
-        name: 'Modern Tech',
-        description: 'Tech-focused modern design with clean lines and bold accents',
-        category: 'modern',
-        preview: {
-          thumbnail: {
-            url: 'placeholder-will-be-replaced-by-puppeteer'
-          }
-        },
-        layout: {
-          type: 'single-column',
-          sections: [
-            { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
-            { name: 'summary', position: 2, isRequired: false, isVisible: true },
-            { name: 'skills', position: 3, isRequired: false, isVisible: true },
-            { name: 'workExperience', position: 4, isRequired: false, isVisible: true },
-            { name: 'projects', position: 5, isRequired: false, isVisible: true },
-            { name: 'education', position: 6, isRequired: false, isVisible: true },
-            { name: 'achievements', position: 7, isRequired: false, isVisible: true },
-            { name: 'certifications', position: 8, isRequired: false, isVisible: true },
-            { name: 'languages', position: 9, isRequired: false, isVisible: true },
-            { name: 'customFields', position: 10, isRequired: false, isVisible: true }
-          ]
-        },
-        styling: {
-          colors: {
-            primary: '#06b6d4',
-            secondary: '#64748b',
-            accent: '#8b5cf6',
-            text: '#1f2937',
-            background: '#ffffff'
-          },
-          fonts: {
-            primary: 'Roboto',
-            secondary: 'Roboto',
-            sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
-          },
-          template: {
-            headerLevel: 'h3',
-            headerFontSize: 18,
-            fontSize: 12,
-            lineSpacing: 1.3,
-            sectionSpacing: 1,
-            fontFamily: 'Arial'
-          }
-        },
-        availability: { tier: 'free', isPublic: true, isActive: true },
-        templateCode: {
-          html: `<article class="resume modern-tech" itemscope itemtype="http://schema.org/Person">
+  {
+    name: 'Modern Tech',
+    description: 'Tech-focused modern design with clean lines and bold accents',
+    category: 'modern',
+    preview: {
+      thumbnail: {
+        url: 'placeholder-will-be-replaced-by-puppeteer'
+      }
+    },
+    layout: {
+      type: 'single-column',
+      sections: [
+        { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
+        { name: 'summary', position: 2, isRequired: false, isVisible: true },
+        { name: 'skills', position: 3, isRequired: false, isVisible: true },
+        { name: 'workExperience', position: 4, isRequired: false, isVisible: true },
+        { name: 'projects', position: 5, isRequired: false, isVisible: true },
+        { name: 'education', position: 6, isRequired: false, isVisible: true },
+        { name: 'achievements', position: 7, isRequired: false, isVisible: true },
+        { name: 'certifications', position: 8, isRequired: false, isVisible: true },
+        { name: 'languages', position: 9, isRequired: false, isVisible: true },
+        { name: 'customFields', position: 10, isRequired: false, isVisible: true }
+      ]
+    },
+    styling: {
+      colors: {
+        primary: '#06b6d4',
+        secondary: '#64748b',
+        accent: '#8b5cf6',
+        text: '#1f2937',
+        background: '#ffffff'
+      },
+      fonts: {
+        primary: 'Roboto',
+        secondary: 'Roboto',
+        sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+      },
+      template: {
+        headerLevel: 'h3',
+        headerFontSize: 18,
+        fontSize: 12,
+        lineSpacing: 1.3,
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
+      }
+    },
+    availability: { tier: 'free', isPublic: true, isActive: true },
+    templateCode: {
+      html: `<article class="resume modern-tech" itemscope itemtype="http://schema.org/Person">
             <header class="tech-header">
               <div class="header-left">
                 <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
-                {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
+                {{#unless isFresher}}
+  <h2 class="primaryFont" itemprop="title">{{title}}</h2>
+{{/unless}}
+
                 <div class="contact-info secondaryFont">
                   {{#if personalInfo.email}}<div class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</div>{{/if}}
                   {{#if personalInfo.phone}}<div class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
@@ -765,7 +774,7 @@ module.exports = [
             </section>
             {{/if}}
           </article>`,
-          css: `.resume.modern-tech { font-family: 'Roboto', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; line-height: 1; }
+      css: `.resume.modern-tech { font-family: 'Roboto', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; line-height: 1; }
           .tech-header { display: grid; grid-template-columns: 2fr 1fr; gap: 1.2rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #06b6d4; }
           .name { font-size: 18px; font-weight: 700; color: #06b6d4; margin-bottom: 0.5rem; }
           .contact-info { display: flex; flex-wrap: wrap; gap: 0.6rem; }
@@ -821,64 +830,67 @@ module.exports = [
           .language-name, .skill-category-title, .job-title, .edu-degree, .project-name, .achievement-title, .cert-name, .custom-field-title { font-weight: 600; color: #1f2937; }
           .project-links a, .cert-link a, .contact-item a { color: #06b6d4; text-decoration: none; }
           .project-links a:hover, .cert-link a:hover, .contact-item a:hover { text-decoration: underline; }`
-        },
-        creator: null,
-        tags: ['modern', 'tech', 'developer', 'clean']
-      },
+    },
+    creator: null,
+    tags: ['modern', 'tech', 'developer', 'clean']
+  },
 
-      {
-        name: 'Dark Mode Developer',
-        description: 'Bold dark-themed design with monospace accents and neon highlights.',
-        category: 'modern',
-        preview: {
-          thumbnail: {
-            url: 'placeholder-will-be-replaced-by-puppeteer'
-          }
-        },
-        layout: {
-          type: 'two-column',
-          sections: [
-            { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
-            { name: 'summary', position: 2, isRequired: false, isVisible: true },
-            { name: 'skills', position: 3, isRequired: false, isVisible: true },
-            { name: 'workExperience', position: 4, isRequired: false, isVisible: true },
-            { name: 'projects', position: 5, isRequired: false, isVisible: true },
-            { name: 'education', position: 6, isRequired: false, isVisible: true },
-            { name: 'certifications', position: 7, isRequired: false, isVisible: true },
-            { name: 'achievements', position: 8, isRequired: false, isVisible: true },
-            { name: 'languages', position: 9, isRequired: false, isVisible: true },
-            { name: 'customFields', position: 10, isRequired: false, isVisible: true }
-          ]
-        },
-        styling: {
-          colors: {
-            primary: '#38bdf8',
-            secondary: '#0ea5e9',
-            accent: '#a855f7',
-            text: '#1f2937',
-            background: '#ffffff'
-          },
-          fonts: {
-            primary: 'Arial',
-            secondary: 'Arial',
-            sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
-          },
-          template: {
-            headerLevel: 'h3',
-            headerFontSize: 18,
-            fontSize: 12,
-            lineSpacing: 1.3,
-            sectionSpacing: 1,
-            fontFamily: 'Arial'
-          }
-        },
-        availability: { tier: 'free', isPublic: true, isActive: true },
-        templateCode: {
-          html: `<article class="resume dark-mode-dev" itemscope itemtype="http://schema.org/Person">
+  {
+    name: 'Dark Mode Developer',
+    description: 'Bold dark-themed design with monospace accents and neon highlights.',
+    category: 'modern',
+    preview: {
+      thumbnail: {
+        url: 'placeholder-will-be-replaced-by-puppeteer'
+      }
+    },
+    layout: {
+      type: 'two-column',
+      sections: [
+        { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
+        { name: 'summary', position: 2, isRequired: false, isVisible: true },
+        { name: 'skills', position: 3, isRequired: false, isVisible: true },
+        { name: 'workExperience', position: 4, isRequired: false, isVisible: true },
+        { name: 'projects', position: 5, isRequired: false, isVisible: true },
+        { name: 'education', position: 6, isRequired: false, isVisible: true },
+        { name: 'certifications', position: 7, isRequired: false, isVisible: true },
+        { name: 'achievements', position: 8, isRequired: false, isVisible: true },
+        { name: 'languages', position: 9, isRequired: false, isVisible: true },
+        { name: 'customFields', position: 10, isRequired: false, isVisible: true }
+      ]
+    },
+    styling: {
+      colors: {
+        primary: '#38bdf8',
+        secondary: '#0ea5e9',
+        accent: '#a855f7',
+        text: '#1f2937',
+        background: '#ffffff'
+      },
+      fonts: {
+        primary: 'Arial',
+        secondary: 'Arial',
+        sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+      },
+      template: {
+        headerLevel: 'h3',
+        headerFontSize: 18,
+        fontSize: 12,
+        lineSpacing: 1.3,
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
+      }
+    },
+    availability: { tier: 'free', isPublic: true, isActive: true },
+    templateCode: {
+      html: `<article class="resume dark-mode-dev" itemscope itemtype="http://schema.org/Person">
             <div class="main-column">
               <header class="header">
                 <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
-                {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
+                {{#unless isFresher}}
+  <h2 class="primaryFont" itemprop="title">{{title}}</h2>
+{{/unless}}
+
                 <div class="contact-info secondaryFont">
                   <div class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</div>
                   {{#if personalInfo.phone}}<div class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
@@ -1044,7 +1056,7 @@ module.exports = [
               {{/if}}
             </div>
           </article>`,
-          css: `.resume.dark-mode-dev { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; line-height: 1.4; display: grid; grid-template-columns: 2fr 1fr; gap: 20px; width: 100%; overflow: hidden; box-sizing: border-box; }
+      css: `.resume.dark-mode-dev { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; line-height: 1.4; display: grid; grid-template-columns: 2fr 1fr; gap: 20px; width: 100%; overflow: hidden; box-sizing: border-box; }
           .header { grid-column: 1 / -1; text-align: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #38bdf8; width: 100%; max-width: 100%; overflow: hidden; box-sizing: border-box; }
           .main-column { width: 100%; max-width: 100%; overflow: hidden; box-sizing: border-box; }
           .sidebar { width: 100%; max-width: 100%; overflow: hidden; box-sizing: border-box; }
@@ -1148,64 +1160,67 @@ module.exports = [
           .resume.dark-mode-dev * { max-width: 100%; word-wrap: break-word; overflow-wrap: break-word; }
           .sidebar * { max-width: 100%; word-wrap: break-word; overflow-wrap: break-word; }
           .main-column * { max-width: 100%; word-wrap: break-word; overflow-wrap: break-word; }`
-        },
-        creator: null,
-        tags: ['dark', 'developer', 'tech', 'modern', 'two-column', 'blue']
+    },
+    creator: null,
+    tags: ['dark', 'developer', 'tech', 'modern', 'two-column', 'blue']
+  },
+
+
+  {
+    name: 'Elegant Minimal',
+    description: 'Minimalist single-column layout with soft colors and elegant typography.',
+    category: 'modern',
+    preview: {
+      thumbnail: {
+        url: 'placeholder-will-be-replaced-by-puppeteer'
+      }
+    },
+    layout: {
+      type: 'single-column',
+      sections: [
+        { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
+        { name: 'summary', position: 2, isRequired: false, isVisible: true },
+        { name: 'skills', position: 3, isRequired: false, isVisible: true },
+        { name: 'workExperience', position: 4, isRequired: false, isVisible: true },
+        { name: 'projects', position: 5, isRequired: false, isVisible: true },
+        { name: 'education', position: 6, isRequired: false, isVisible: true },
+        { name: 'certifications', position: 7, isRequired: false, isVisible: true },
+        { name: 'achievements', position: 8, isRequired: false, isVisible: true },
+        { name: 'languages', position: 9, isRequired: false, isVisible: true },
+        { name: 'customFields', position: 10, isRequired: false, isVisible: true }
+      ]
+    },
+    styling: {
+      colors: {
+        primary: '#374151',
+        secondary: '#9ca3af',
+        accent: '#10b981',
+        text: '#111827',
+        background: '#ffffff'
       },
-
-
-      {
-        name: 'Elegant Minimal',
-        description: 'Minimalist single-column layout with soft colors and elegant typography.',
-        category: 'modern',
-        preview: {
-          thumbnail: {
-            url: 'placeholder-will-be-replaced-by-puppeteer'
-          }
-        },
-        layout: {
-          type: 'single-column',
-          sections: [
-            { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
-            { name: 'summary', position: 2, isRequired: false, isVisible: true },
-            { name: 'skills', position: 3, isRequired: false, isVisible: true },
-            { name: 'workExperience', position: 4, isRequired: false, isVisible: true },
-            { name: 'projects', position: 5, isRequired: false, isVisible: true },
-            { name: 'education', position: 6, isRequired: false, isVisible: true },
-            { name: 'certifications', position: 7, isRequired: false, isVisible: true },
-            { name: 'achievements', position: 8, isRequired: false, isVisible: true },
-            { name: 'languages', position: 9, isRequired: false, isVisible: true },
-            { name: 'customFields', position: 10, isRequired: false, isVisible: true }
-          ]
-        },
-        styling: {
-          colors: {
-            primary: '#374151',
-            secondary: '#9ca3af',
-            accent: '#10b981',
-            text: '#111827',
-            background: '#ffffff'
-          },
-          fonts: {
-            primary: 'Arial',
-            secondary: 'Arial',
-            sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
-          },
-          template: {
-            headerLevel: 'h3',
-            headerFontSize: 18,
-            fontSize: 12,
-            lineSpacing: 1.3,
-            sectionSpacing: 1,
-            fontFamily: 'Arial'
-          }
-        },
-        availability: { tier: 'free', isPublic: true, isActive: true },
-        templateCode: {
-          html: `<article class="resume elegant-minimal" itemscope itemtype="http://schema.org/Person">
+      fonts: {
+        primary: 'Arial',
+        secondary: 'Arial',
+        sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+      },
+      template: {
+        headerLevel: 'h3',
+        headerFontSize: 18,
+        fontSize: 12,
+        lineSpacing: 1.3,
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
+      }
+    },
+    availability: { tier: 'free', isPublic: true, isActive: true },
+    templateCode: {
+      html: `<article class="resume elegant-minimal" itemscope itemtype="http://schema.org/Person">
             <header class="header">
               <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
-              {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
+              {{#unless isFresher}}
+  <h2 class="primaryFont" itemprop="title">{{title}}</h2>
+{{/unless}}
+
               <div class="contact-info secondaryFont">
                 <div class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</div>
                 {{#if personalInfo.phone}}<div class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
@@ -1364,7 +1379,7 @@ module.exports = [
             </section>
             {{/if}}
           </article>`,
-          css: `.resume.elegant-minimal { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #111827; line-height: 1.4; }
+      css: `.resume.elegant-minimal { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #111827; line-height: 1.4; }
           .header { text-align: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb; }
           .name { font-weight: 600; color: #374151; margin-bottom: 8px; }
           .contact-info { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; color: #9ca3af; }
@@ -1419,63 +1434,66 @@ module.exports = [
           .language-name, .skill-category-title, .job-title, .edu-degree, .project-name, .achievement-title, .cert-name, .custom-field-title { font-weight: bold; color: #111827; }
           .project-links a, .cert-link a, .contact-item a { color: #10b981; text-decoration: none; }
           .project-links a:hover, .cert-link a:hover, .contact-item a:hover { text-decoration: underline; }`
-        },
-        creator: null,
-        tags: ['minimal', 'modern', 'clean', 'professional', 'single-column', 'green']
-      },
+    },
+    creator: null,
+    tags: ['minimal', 'modern', 'clean', 'professional', 'single-column', 'green']
+  },
 
-      {
-        name: 'Bold Accent',
-        description: 'Single-column resume with strong header bar and bold accent color for headings.',
-        category: 'modern',
-        preview: {
-          thumbnail: {
-            url: 'placeholder-will-be-replaced-by-puppeteer'
-          }
-        },
-        layout: {
-          type: 'single-column',
-          sections: [
-            { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
-            { name: 'summary', position: 2, isRequired: false, isVisible: true },
-            { name: 'skills', position: 3, isRequired: false, isVisible: true },
-            { name: 'workExperience', position: 4, isRequired: false, isVisible: true },
-            { name: 'projects', position: 5, isRequired: false, isVisible: true },
-            { name: 'education', position: 6, isRequired: false, isVisible: true },
-            { name: 'certifications', position: 7, isRequired: false, isVisible: true },
-            { name: 'achievements', position: 8, isRequired: false, isVisible: true },
-            { name: 'languages', position: 9, isRequired: false, isVisible: true },
-            { name: 'customFields', position: 10, isRequired: false, isVisible: true }
-          ]
-        },
-        styling: {
-          colors: {
-            primary: '#2563eb',
-            secondary: '#93c5fd',
-            accent: '#2563eb',
-            text: '#1f2937',
-            background: '#ffffff'
-          },
-          fonts: {
-            primary: 'Arial',
-            secondary: 'Arial',
-            sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
-          },
-          template: {
-            headerLevel: 'h3',
-            headerFontSize: 18,
-            fontSize: 12,
-            lineSpacing: 1.3,
-            sectionSpacing: 1,
-            fontFamily: 'Arial'
-          }
-        },
-        availability: { tier: 'free', isPublic: true, isActive: true },
-        templateCode: {
-          html: `<article class="resume bold-accent" itemscope itemtype="http://schema.org/Person">
+  {
+    name: 'Bold Accent',
+    description: 'Single-column resume with strong header bar and bold accent color for headings.',
+    category: 'modern',
+    preview: {
+      thumbnail: {
+        url: 'placeholder-will-be-replaced-by-puppeteer'
+      }
+    },
+    layout: {
+      type: 'single-column',
+      sections: [
+        { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
+        { name: 'summary', position: 2, isRequired: false, isVisible: true },
+        { name: 'skills', position: 3, isRequired: false, isVisible: true },
+        { name: 'workExperience', position: 4, isRequired: false, isVisible: true },
+        { name: 'projects', position: 5, isRequired: false, isVisible: true },
+        { name: 'education', position: 6, isRequired: false, isVisible: true },
+        { name: 'certifications', position: 7, isRequired: false, isVisible: true },
+        { name: 'achievements', position: 8, isRequired: false, isVisible: true },
+        { name: 'languages', position: 9, isRequired: false, isVisible: true },
+        { name: 'customFields', position: 10, isRequired: false, isVisible: true }
+      ]
+    },
+    styling: {
+      colors: {
+        primary: '#2563eb',
+        secondary: '#93c5fd',
+        accent: '#2563eb',
+        text: '#1f2937',
+        background: '#ffffff'
+      },
+      fonts: {
+        primary: 'Arial',
+        secondary: 'Arial',
+        sizes: { heading: 18, subheading: 16, body: 12, small: 10 }
+      },
+      template: {
+        headerLevel: 'h3',
+        headerFontSize: 18,
+        fontSize: 12,
+        lineSpacing: 1.3,
+        sectionSpacing: 1,
+        fontFamily: 'Arial'
+      }
+    },
+    availability: { tier: 'free', isPublic: true, isActive: true },
+    templateCode: {
+      html: `<article class="resume bold-accent" itemscope itemtype="http://schema.org/Person">
             <header class="header">
               <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
-              {{#if isFresher}}{{else}}<h2 class="name primaryFont" itemprop="title">{{title}}</h2>{{/if}}
+              {{#unless isFresher}}
+  <h2 class="name primaryFont" itemprop="title">{{title}}</h2>
+{{/unless}}
+
               <div class="contact-info secondaryFont">
                 <div class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</div>
                 {{#if personalInfo.phone}}<div class="contact-item secondaryFont" itemprop="telephone">{{personalInfo.phone}}</div>{{/if}}
@@ -1634,7 +1652,7 @@ module.exports = [
             </section>
             {{/if}}
           </article>`,
-          css: `.resume.bold-accent { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 5px; background: white; color: #1f2937; line-height: 1.4; padding: 0; }
+      css: `.resume.bold-accent { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 5px; background: white; color: #1f2937; line-height: 1.4; padding: 0; }
           .header { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 16px 20px; margin-bottom: 12px; }
           .name { font-weight: 700; margin-bottom: 6px; letter-spacing: -0.5px; color: white; }
           .contact-info { display: flex; flex-wrap: wrap; gap: 12px; color: rgba(255, 255, 255, 0.9); line-height: 1.4; }
@@ -1691,55 +1709,55 @@ module.exports = [
           .project-links a, .cert-link a { color: #4b5563; text-decoration: none; }
           .header .contact-item a { color: white; text-decoration: none; }
           .project-links a:hover, .cert-link a:hover, .contact-item a:hover { text-decoration: none; }`
-        },
-        creator: null,
-        tags: ['bold', 'modern', 'accent', 'colorful', 'single-column', 'blue']
-      },
+    },
+    creator: null,
+    tags: ['bold', 'modern', 'accent', 'colorful', 'single-column', 'blue']
+  },
 
-      {
-        "name": "Fresh Gradient",
-        "description": "Modern design with gradient header bar and rounded section cards.",
-        "category": "modern",
-        "preview": { "thumbnail": { "url": "placeholder-will-be-replaced-by-puppeteer" } },
-        "layout": {
-          "type": "two-column",
-          "sections": [
-            { "name": "personalInfo", "position": 1, "isRequired": true, "isVisible": true },
-            { "name": "skills", "position": 2, "isRequired": false, "isVisible": true },
-            { "name": "summary", "position": 3, "isRequired": false, "isVisible": true },
-            { "name": "workExperience", "position": 4, "isRequired": false, "isVisible": true },
-            { "name": "projects", "position": 5, "isRequired": false, "isVisible": true },
-            { "name": "education", "position": 6, "isRequired": false, "isVisible": true },
-            { "name": "certifications", "position": 7, "isRequired": false, "isVisible": true },
-            { "name": "achievements", "position": 8, "isRequired": false, "isVisible": true },
-            { "name": "languages", "position": 9, "isRequired": false, "isVisible": true },
-            { "name": "customFields", "position": 10, "isRequired": false, "isVisible": true }
-          ]
-        },
-        "styling": {
-          "colors": {
-            "primary": "#3b82f6",
-            "secondary": "#9333ea",
-            "accent": "#14b8a6",
-            "text": "#111827",
-            "background": "#ffffff"
-          },
-          "fonts": {
-            "primary": "Arial",
-            "secondary": "Arial",
-            "sizes": { "heading": 18, "subheading": 16, "body": 12, "small": 10 }
-          },
-          "template": {
-            "headerLevel": "h3",
-            "headerFontSize": 18,
-            "fontSize": 12,
-            "lineSpacing": 1.3,
-            "sectionSpacing": 1
-          }
-        },
-        "availability": { "tier": "free", "isPublic": true, "isActive": true },
-        "templateCode": {
-          "html": `<article class="resume fresh-gradient" itemscope itemtype="http://schema.org/Person">
+  {
+    "name": "Fresh Gradient",
+    "description": "Modern design with gradient header bar and rounded section cards.",
+    "category": "modern",
+    "preview": { "thumbnail": { "url": "placeholder-will-be-replaced-by-puppeteer" } },
+    "layout": {
+      "type": "two-column",
+      "sections": [
+        { "name": "personalInfo", "position": 1, "isRequired": true, "isVisible": true },
+        { "name": "skills", "position": 2, "isRequired": false, "isVisible": true },
+        { "name": "summary", "position": 3, "isRequired": false, "isVisible": true },
+        { "name": "workExperience", "position": 4, "isRequired": false, "isVisible": true },
+        { "name": "projects", "position": 5, "isRequired": false, "isVisible": true },
+        { "name": "education", "position": 6, "isRequired": false, "isVisible": true },
+        { "name": "certifications", "position": 7, "isRequired": false, "isVisible": true },
+        { "name": "achievements", "position": 8, "isRequired": false, "isVisible": true },
+        { "name": "languages", "position": 9, "isRequired": false, "isVisible": true },
+        { "name": "customFields", "position": 10, "isRequired": false, "isVisible": true }
+      ]
+    },
+    "styling": {
+      "colors": {
+        "primary": "#3b82f6",
+        "secondary": "#9333ea",
+        "accent": "#14b8a6",
+        "text": "#111827",
+        "background": "#ffffff"
+      },
+      "fonts": {
+        "primary": "Arial",
+        "secondary": "Arial",
+        "sizes": { "heading": 18, "subheading": 16, "body": 12, "small": 10 }
+      },
+      "template": {
+        "headerLevel": "h3",
+        "headerFontSize": 18,
+        "fontSize": 12,
+        "lineSpacing": 1.3,
+        "sectionSpacing": 1
+      }
+    },
+    "availability": { "tier": "free", "isPublic": true, "isActive": true },
+    "templateCode": {
+      "html": `<article class="resume fresh-gradient" itemscope itemtype="http://schema.org/Person">
             <header class="header">
             {{#if personalInfo.isAddPhoto}}
             {{#if personalInfo.profilePicture}}
@@ -1752,7 +1770,10 @@ module.exports = [
             {{/if}}
             <div class="right-column">
               <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
-              {{#if isFresher}}{{else}}<h2 class="name primaryFont" itemprop="title">{{title}}</h2>{{/if}}
+              {{#unless isFresher}}
+  <h2 class="name primaryFont" itemprop="title">{{title}}</h2>
+{{/unless}}
+
               <div class="contact-info secondaryFont">
               <div class="contact-grid">
                 <div class="contact-item secondaryFont" itemprop="email">{{personalInfo.email}}</div>
@@ -1913,7 +1934,7 @@ module.exports = [
             </section>
             {{/if}}
           </article>`,
-          "css": `.resume.fresh-gradient { 
+      "css": `.resume.fresh-gradient { 
             font-family: 'Arial', sans-serif; 
             max-width: 8.5in; 
             margin: 0 auto; 
@@ -2272,64 +2293,67 @@ module.exports = [
               margin-bottom: 16px; 
             }
           }`
-        },
-        creator: null,
-        "tags": ["modern", "gradient", "colorful", "rounded"]
-      },
+    },
+    creator: null,
+    "tags": ["modern", "gradient", "colorful", "rounded"]
+  },
 
-      {
-        name: 'Modern Glassmorphism',
-        description: 'A cutting-edge template featuring glassmorphism design with frosted glass effects and modern aesthetics',
-        category: 'modern',
-        preview: {
-          thumbnail: {
-            url: 'placeholder-will-be-replaced-by-puppeteer'
-          }
-        },
-        layout: {
-          type: 'two-column',
-          sections: [
-            { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
-            { name: 'summary', position: 2, isRequired: false, isVisible: true },
-            { name: 'workExperience', position: 3, isRequired: false, isVisible: true },
-            { name: 'projects', position: 4, isRequired: false, isVisible: true },
-            { name: 'education', position: 5, isRequired: false, isVisible: true },
-            { name: 'skills', position: 6, isRequired: false, isVisible: true },
-            { name: 'achievements', position: 7, isRequired: false, isVisible: true },
-            { name: 'certifications', position: 8, isRequired: false, isVisible: true },
-            { name: 'languages', position: 9, isRequired: false, isVisible: true },
-            { name: 'customFields', position: 10, isRequired: false, isVisible: true }
-          ]
-        },
-        styling: {
-          colors: {
-            primary: '#6366f1',
-            secondary: '#8b5cf6',
-            accent: '#06b6d4',
-            text: '#1e293b',
-            background: '#f8fafc'
-          },
-          fonts: {
-            primary: 'Inter',
-            secondary: 'Inter',
-            sizes: { heading: 20, subheading: 16, body: 14, small: 12 }
-          },
-          template: {
-            headerLevel: 'h3',
-            headerFontSize: 18,
-            fontSize: 14,
-            lineSpacing: 1.5,
-            sectionSpacing: 1.2,
-            fontFamily: 'Inter'
-          }
-        },
-        availability: { tier: 'free', isPublic: true, isActive: true },
-        templateCode: {
-          html: `<article class="resume modern-glassmorphism" itemscope itemtype="http://schema.org/Person">
+  {
+    name: 'Modern Glassmorphism',
+    description: 'A cutting-edge template featuring glassmorphism design with frosted glass effects and modern aesthetics',
+    category: 'modern',
+    preview: {
+      thumbnail: {
+        url: 'placeholder-will-be-replaced-by-puppeteer'
+      }
+    },
+    layout: {
+      type: 'two-column',
+      sections: [
+        { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
+        { name: 'summary', position: 2, isRequired: false, isVisible: true },
+        { name: 'workExperience', position: 3, isRequired: false, isVisible: true },
+        { name: 'projects', position: 4, isRequired: false, isVisible: true },
+        { name: 'education', position: 5, isRequired: false, isVisible: true },
+        { name: 'skills', position: 6, isRequired: false, isVisible: true },
+        { name: 'achievements', position: 7, isRequired: false, isVisible: true },
+        { name: 'certifications', position: 8, isRequired: false, isVisible: true },
+        { name: 'languages', position: 9, isRequired: false, isVisible: true },
+        { name: 'customFields', position: 10, isRequired: false, isVisible: true }
+      ]
+    },
+    styling: {
+      colors: {
+        primary: '#6366f1',
+        secondary: '#8b5cf6',
+        accent: '#06b6d4',
+        text: '#1e293b',
+        background: '#f8fafc'
+      },
+      fonts: {
+        primary: 'Inter',
+        secondary: 'Inter',
+        sizes: { heading: 20, subheading: 16, body: 14, small: 12 }
+      },
+      template: {
+        headerLevel: 'h3',
+        headerFontSize: 18,
+        fontSize: 14,
+        lineSpacing: 1.5,
+        sectionSpacing: 1.2,
+        fontFamily: 'Inter'
+      }
+    },
+    availability: { tier: 'free', isPublic: true, isActive: true },
+    templateCode: {
+      html: `<article class="resume modern-glassmorphism" itemscope itemtype="http://schema.org/Person">
             <header class="header">
             <div class="header-content">
               <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
-              {{#if isFresher}}{{else}}<h2 class="primaryFont" itemprop="title">{{title}}</h2>{{/if}}
+              {{#unless isFresher}}
+  <h2 class="primaryFont" itemprop="title">{{title}}</h2>
+{{/unless}}
+
             </div>
             </header>
             
@@ -2475,7 +2499,7 @@ module.exports = [
               </div>
             </div>
           </article>`,
-          css: `.resume.modern-glassmorphism { 
+      css: `.resume.modern-glassmorphism { 
             font-family: 'Arial', sans-serif; 
             max-width: 8.5in; 
             margin: 0 auto; 
@@ -2890,10 +2914,10 @@ module.exports = [
           .resume.modern-glassmorphism * { max-width: 100%; word-wrap: break-word; overflow-wrap: break-word; }
           .sidebar * { max-width: 100%; word-wrap: break-word; overflow-wrap: break-word; }
           .main-content * { max-width: 100%; word-wrap: break-word; overflow-wrap: break-word; }`
-        },
-        creator: null,
-        tags: ['modern', 'glassmorphism', 'gradient', 'contemporary', 'two-column', 'purple']
-      } 
+    },
+    creator: null,
+    tags: ['modern', 'glassmorphism', 'gradient', 'contemporary', 'two-column', 'purple']
+  }
 
 
 ]

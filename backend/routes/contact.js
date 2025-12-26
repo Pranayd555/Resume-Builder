@@ -5,6 +5,74 @@ const { protect, authorize } = require('../middleware/auth');
 const logger = require('../utils/logger');
 const emailService = require('../utils/emailService');
 
+// @desc    Submit new contact form
+// @route   POST /api/contact
+// @access  Public
+router.post('/', async (req, res) => {
+  try {
+    const { name, email, subject, message, category } = req.body;
+
+    // Validate required fields
+    if (!name || !email || !subject || !message || !category) {
+      return res.status(400).json({
+        success: false,
+        error: 'Please provide all required fields'
+      });
+    }
+
+    // Create contact
+    const contact = await Contact.create({
+      name,
+      email,
+      subject,
+      message,
+      category,
+      userAgent: req.get('User-Agent'),
+      ipAddress: req.ip
+    });
+
+    // Send auto-reply to user
+    try {
+      await emailService.sendContactAutoReply({
+        name,
+        email,
+        subject,
+        category
+      });
+    } catch (emailError) {
+      logger.error('Failed to send contact auto-reply:', emailError);
+      // Continue even if email fails
+    }
+
+    // Send notification to admin
+    try {
+      await emailService.sendContactNotification({
+        contactId: contact._id,
+        name,
+        email,
+        subject,
+        message,
+        category,
+        createdAt: contact.createdAt
+      });
+    } catch (emailError) {
+      logger.error('Failed to send contact notification:', emailError);
+      // Continue even if email fails
+    }
+
+    res.status(201).json({
+      success: true,
+      data: contact
+    });
+  } catch (error) {
+    logger.error('Create contact error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to submit contact form'
+    });
+  }
+});
+
 // @desc    Get all contacts with pagination and filtering
 // @route   GET /api/contact
 // @access  Private/Admin
@@ -13,7 +81,7 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
-    
+
     // Build filter object
     const filter = {};
     if (req.query.status) {
@@ -102,7 +170,7 @@ router.get('/:id', protect, authorize('admin'), async (req, res) => {
 router.put('/:id/status', protect, authorize('admin'), async (req, res) => {
   try {
     const { status } = req.body;
-    
+
     if (!['new', 'in-progress', 'responded', 'resolved', 'closed'].includes(status)) {
       return res.status(400).json({
         success: false,
@@ -145,7 +213,7 @@ router.put('/:id/status', protect, authorize('admin'), async (req, res) => {
 router.put('/:id/priority', protect, authorize('admin'), async (req, res) => {
   try {
     const { priority } = req.body;
-    
+
     if (!['low', 'medium', 'high', 'urgent'].includes(priority)) {
       return res.status(400).json({
         success: false,
@@ -252,7 +320,7 @@ router.post('/:id/response', protect, authorize('admin'), async (req, res) => {
 router.post('/:id/notes', protect, authorize('admin'), async (req, res) => {
   try {
     const { adminNotes } = req.body;
-    
+
     const contact = await Contact.findById(req.params.id);
     if (!contact) {
       return res.status(404).json({
@@ -273,6 +341,49 @@ router.post('/:id/notes', protect, authorize('admin'), async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to add notes'
+    });
+  }
+});
+
+// @desc    Record token reward for contact
+// @route   POST /api/contact/:id/record-token-reward
+// @access  Private/Admin
+router.post('/:id/record-token-reward', protect, authorize('admin'), async (req, res) => {
+  try {
+    const { tokens } = req.body;
+
+    if (!tokens || tokens <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Valid token amount is required'
+      });
+    }
+
+    const contact = await Contact.findById(req.params.id);
+    if (!contact) {
+      return res.status(404).json({
+        success: false,
+        error: 'Contact not found'
+      });
+    }
+
+    contact.tokensAwarded = (contact.tokensAwarded || 0) + parseInt(tokens);
+    // Auto-update status to resolved if tokens are awarded
+    if (contact.status !== 'closed' && contact.status !== 'resolved') {
+      contact.status = 'resolved';
+    }
+
+    await contact.save();
+
+    res.json({
+      success: true,
+      data: contact
+    });
+  } catch (error) {
+    logger.error('Record token reward error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to record token reward'
     });
   }
 });
@@ -311,10 +422,10 @@ router.delete('/:id', protect, authorize('admin'), async (req, res) => {
 router.get('/stats/overview', protect, authorize('admin'), async (req, res) => {
   try {
     const stats = await Contact.getStats();
-    
+
     // Get category distribution
     const categoryStats = await Contact.getByCategory();
-    
+
     // Get priority distribution
     const priorityStats = await Contact.aggregate([
       {

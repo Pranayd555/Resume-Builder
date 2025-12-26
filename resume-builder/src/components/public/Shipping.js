@@ -59,7 +59,7 @@ const Shipping = () => {
               Digital Delivery & Service
             </h1>
             <p className="text-lg text-slate-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Resume Builder is a 100% digital platform. We provide instant access to professional tools without the need for physical shipping.
+              Presmistique - AI Resume Builder is a 100% digital platform. We provide instant access to professional tools without the need for physical shipping.
             </p>
           </div>
 
@@ -128,7 +128,7 @@ const Shipping = () => {
 
               <div className="text-center">
                 <p className="text-xs text-slate-400 dark:text-gray-500">
-                  Last updated: December 2025 • Resume Builder Digital Services
+                  Last updated: December 2025 • Presmistique - AI Resume Builder Digital Services
                 </p>
               </div>
             </div>

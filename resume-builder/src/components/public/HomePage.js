@@ -112,7 +112,7 @@ const HomePage = () => {
           <div className="text-center">
             <img
               src={isDarkMode ? "/resume-builder-logo-512-dark.png" : "/resume-builder-logo-512-light.png"}
-              alt="Resume Builder Logo"
+              alt="Presmistique - AI Resume Builder Logo"
               className="mx-auto mb-8 w-32 h-32 rounded-full shadow-lg"
             />
             <h1
@@ -317,7 +317,7 @@ const HomePage = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <Slide direction="left">
               <div>
-                <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Resume Builder</h3>
+                <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Presmistique - AI Resume Builder</h3>
                 <p className="text-gray-600 dark:text-gray-400">
                   Professional resume building made simple and effective.
                 </p>
@@ -384,7 +384,7 @@ const HomePage = () => {
             </Slide>
           </div>
           <div className="border-t border-white/20 dark:border-orange-200/30 mt-8 pt-8 text-center text-gray-600 dark:text-gray-400">
-            <p>&copy; 2025 Resume Builder. All rights reserved.</p>
+            <p>&copy; 2025 Presmistique - AI Resume Builder. All rights reserved.</p>
           </div>
         </div>
       </footer>
