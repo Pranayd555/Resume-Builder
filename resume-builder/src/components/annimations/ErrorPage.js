@@ -5,7 +5,7 @@ import journey404Animation from '../../assets/journey_404_animation.json';
 import { ArrowLeftIcon, HomeIcon } from '@heroicons/react/24/outline';
 import AnimatedBackground from '../AnimatedBackground';
 
-const ErrorPage = ({ 
+const ErrorPage = ({
   title = "Oops! Something went wrong",
   subtitle = "It looks like you've encountered an issue. Don't worry, even the best sailors sometimes hit rough waters!",
   showLoginButton = true,
@@ -13,12 +13,12 @@ const ErrorPage = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // Get error details from navigation state
   const { errorMessage, from } = location.state || {};
 
   const handleLogin = () => {
-    navigate('/');
+    navigate('/login');
   };
 
   const handleGoBack = () => {
@@ -56,17 +56,17 @@ const ErrorPage = ({
           }
         }
       `}</style>
-      
+
       {/* Main Content */}
       <div className="relative z-10 text-center max-w-6xl mx-auto w-full">
         {/* Animation Container with Overlay Text */}
         <div className="mt-2 sm:mt-3 mb-2 sm:mb-3 flex justify-center relative">
           <div className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl relative">
-            <Lottie 
-              animationData={journey404Animation} 
+            <Lottie
+              animationData={journey404Animation}
               loop={true}
               autoplay={true}
-              style={{ 
+              style={{
                 width: '100%',
                 height: 'auto',
                 maxWidth: '100%',
@@ -76,7 +76,7 @@ const ErrorPage = ({
                 preserveAspectRatio: 'xMidYMid meet'
               }}
             />
-            
+
             {/* Text Content Overlay */}
             <div className="absolute bottom-0 left-0 right-0 transform translate-y-1/2 px-2">
               <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold gradient-text mb-2 sm:mb-3">
@@ -88,10 +88,10 @@ const ErrorPage = ({
             </div>
           </div>
         </div>
-        
+
         {/* Spacer for overlay text */}
         <div className="h-12 sm:h-14 md:h-12 lg:h-12"></div>
-        
+
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4">
           {showLoginButton && (
@@ -103,7 +103,7 @@ const ErrorPage = ({
               Go to Login
             </button>
           )}
-          
+
           {showBackButton && (
             <button
               onClick={handleGoBack}
@@ -113,7 +113,7 @@ const ErrorPage = ({
               Go Back
             </button>
           )}
-          
+
           <button
             onClick={handleGoHome}
             className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-gray-100 text-gray-700 text-sm sm:text-base font-semibold rounded-lg border border-gray-300 shadow-lg hover:bg-gray-200 hover:border-gray-400 transform hover:scale-105 transition-all duration-200"
@@ -122,7 +122,7 @@ const ErrorPage = ({
             Home
           </button>
         </div>
-        
+
         {/* Additional Help Text */}
         <div className="mt-4 sm:mt-5 text-xs sm:text-sm text-gray-500 px-4">
           <p>If the problem persists, please try again later.</p>

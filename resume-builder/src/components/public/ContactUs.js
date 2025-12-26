@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRouteScrollToTop } from '../../hooks/useAutoScroll';
 import { contactAPI } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import CustomDropdown from '../CustomDropdown';
 import {
@@ -18,6 +19,7 @@ import AnimatedBackground from '../AnimatedBackground';
 const ContactUs = () => {
   const navigate = useNavigate();
   useRouteScrollToTop();
+  const { user, isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -25,6 +27,16 @@ const ContactUs = () => {
     message: '',
     category: 'general'
   });
+
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: `${user.firstName} ${user.lastName}`,
+        email: user.email
+      }));
+    }
+  }, [user]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
 
@@ -102,26 +114,28 @@ const ContactUs = () => {
     { value: 'general', label: 'General Inquiry' },
     { value: 'technical', label: 'Technical Support' },
     { value: 'billing', label: 'Billing & Payments' },
-    {
-      value: 'feature',
-      label: 'Feature Request',
-      badge: (
-        <div className="flex items-center gap-1">
-          <SparklesIcon className="w-3 h-3" />
-          <span>Earn Tokens</span>
-        </div>
-      )
-    },
-    {
-      value: 'bug',
-      label: 'Bug Report',
-      badge: (
-        <div className="flex items-center gap-1">
-          <SparklesIcon className="w-3 h-3" />
-          <span>Earn Tokens</span>
-        </div>
-      )
-    },
+    ...(isAuthenticated ? [
+      {
+        value: 'feature',
+        label: 'Feature Request',
+        badge: (
+          <div className="flex items-center gap-1">
+            <SparklesIcon className="w-3 h-3" />
+            <span>Earn Tokens</span>
+          </div>
+        )
+      },
+      {
+        value: 'bug',
+        label: 'Bug Report',
+        badge: (
+          <div className="flex items-center gap-1">
+            <SparklesIcon className="w-3 h-3" />
+            <span>Earn Tokens</span>
+          </div>
+        )
+      }
+    ] : []),
     { value: 'partnership', label: 'Partnership' }
   ];
 
@@ -208,7 +222,8 @@ const ContactUs = () => {
                       value={formData.name}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white"
+                      disabled={isAuthenticated}
+                      className={`w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white ${isAuthenticated ? 'opacity-70 cursor-not-allowed' : ''}`}
                       placeholder="John Doe"
                     />
                   </div>
@@ -220,7 +235,8 @@ const ContactUs = () => {
                       value={formData.email}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white"
+                      disabled={isAuthenticated}
+                      className={`w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none transition-all dark:text-white ${isAuthenticated ? 'opacity-70 cursor-not-allowed' : ''}`}
                       placeholder="john@example.com"
                     />
                   </div>
@@ -276,7 +292,7 @@ const ContactUs = () => {
 
         {/* Footer Note */}
         <footer className="mt-16 text-center text-slate-400 dark:text-slate-600 text-sm">
-          <p>© {new Date().getFullYear()} Resume Builder. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Presmistique - AI Resume Builder. All rights reserved.</p>
           <p className="mt-2 italic">
             Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} • We typically respond within 24 hours.
           </p>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { contactApi } from '../../services/adminApi';
+import { contactApi, tokensApi } from '../../services/adminApi';
 import {
   EyeIcon,
   PencilIcon,
@@ -10,8 +10,10 @@ import {
   MagnifyingGlassIcon,
   ChatBubbleLeftRightIcon,
   ClockIcon,
-  UserIcon
+  UserIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline';
+import { toast } from 'react-toastify';
 
 const AdminContacts = () => {
   const [contacts, setContacts] = useState([]);
@@ -19,7 +21,9 @@ const AdminContacts = () => {
   const [selectedContact, setSelectedContact] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showResponseModal, setShowResponseModal] = useState(false);
+  const [showTokenModal, setShowTokenModal] = useState(false);
   const [response, setResponse] = useState('');
+  const [tokenAmount, setTokenAmount] = useState('');
   const [adminNotes, setAdminNotes] = useState('');
   const [filters, setFilters] = useState({
     status: '',
@@ -157,6 +161,31 @@ const AdminContacts = () => {
     }
   };
 
+  const handleGiveTokens = async () => {
+    if (!tokenAmount || isNaN(tokenAmount) || tokenAmount <= 0) {
+      toast.error('Please enter a valid token amount');
+      return;
+    }
+
+    try {
+      await tokensApi.giveBonusTokensByEmail({
+        email: selectedContact.email,
+        tokens: parseInt(tokenAmount),
+        reason: 'Bonus via Contact Management'
+      });
+
+      // Record the reward in the contact record
+      await contactApi.recordTokenReward(selectedContact._id, parseInt(tokenAmount));
+
+      toast.success(`Successfully sent ${tokenAmount} tokens to ${selectedContact.email}`);
+      setTokenAmount('');
+      setShowTokenModal(false);
+      fetchContacts(); // Refresh list to update tokensAwarded
+    } catch (err) {
+      // Error is already handled in adminApi
+    }
+  };
+
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -191,14 +220,14 @@ const AdminContacts = () => {
   }
 
   return (
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Contact Management</h1>
-            <p className="text-gray-600 dark:text-gray-400">Manage contact form submissions and inquiries</p>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Contact Management</h1>
+          <p className="text-gray-600 dark:text-gray-400">Manage contact form submissions and inquiries</p>
         </div>
+      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
@@ -442,6 +471,20 @@ const AdminContacts = () => {
                     >
                       <PencilIcon className="h-4 w-4" />
                     </button>
+                    {['bug', 'feature'].includes(contact.category) && (
+                      <button
+                        onClick={() => {
+                          setSelectedContact(contact);
+                          setTokenAmount('');
+                          setShowTokenModal(true);
+                        }}
+                        disabled={contact.tokensAwarded > 0}
+                        className={`text-amber-500 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 ${contact.tokensAwarded > 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        title={contact.tokensAwarded > 0 ? `Awarded ${contact.tokensAwarded} tokens` : "Give Tokens"}
+                      >
+                        <SparklesIcon className="h-4 w-4" />
+                      </button>
+                    )}
                     <button
                       onClick={() => handleDelete(contact._id)}
                       className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
@@ -501,11 +544,10 @@ const AdminContacts = () => {
                     <button
                       key={page}
                       onClick={() => setPagination({ ...pagination, page })}
-                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                        page === pagination.page
-                          ? 'z-10 bg-indigo-50 dark:bg-indigo-900/20 border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                          : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
-                      }`}
+                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${page === pagination.page
+                        ? 'z-10 bg-indigo-50 dark:bg-indigo-900/20 border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                        : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                        }`}
                     >
                       {page}
                     </button>
@@ -525,207 +567,276 @@ const AdminContacts = () => {
       </div>
 
       {/* Contact Detail Modal */}
-      {showModal && selectedContact && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white dark:bg-gray-800">
-            <div className="mt-3">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                  Contact Details
-                </h3>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  <XMarkIcon className="h-6 w-6" />
-                </button>
-              </div>
+      {
+        showModal && selectedContact && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white dark:bg-gray-800">
+              <div className="mt-3">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                    Contact Details
+                  </h3>
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <XMarkIcon className="h-6 w-6" />
+                  </button>
+                </div>
 
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Name
+                      </label>
+                      <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                        {selectedContact.name}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Email
+                      </label>
+                      <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                        {selectedContact.email}
+                      </p>
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Name
+                      Subject
                     </label>
                     <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                      {selectedContact.name}
+                      {selectedContact.subject}
                     </p>
                   </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Category
+                      </label>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${categoryColors[selectedContact.category]}`}>
+                        {selectedContact.categoryFormatted}
+                      </span>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Priority
+                      </label>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${priorityColors[selectedContact.priority]}`}>
+                        {selectedContact.priorityFormatted}
+                      </span>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Status
+                      </label>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusColors[selectedContact.status]}`}>
+                        {selectedContact.status.charAt(0).toUpperCase() + selectedContact.status.slice(1).replace('-', ' ')}
+                      </span>
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Email
+                      Message
                     </label>
-                    <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                    <p className="mt-1 text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
+                      {selectedContact.message}
+                    </p>
+                  </div>
+
+                  {selectedContact.response && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Response
+                      </label>
+                      <p className="mt-1 text-sm text-gray-900 dark:text-white bg-green-50 dark:bg-green-900/20 p-3 rounded-md">
+                        {selectedContact.response}
+                      </p>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Admin Notes
+                    </label>
+                    <textarea
+                      value={adminNotes}
+                      onChange={(e) => setAdminNotes(e.target.value)}
+                      placeholder="Add admin notes..."
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                      rows="3"
+                    />
+                    <button
+                      onClick={handleAddNotes}
+                      className="mt-2 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
+                    >
+                      Save Notes
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Status
+                      </label>
+                      <select
+                        value={selectedContact.status}
+                        onChange={(e) => handleStatusChange(selectedContact._id, e.target.value)}
+                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500"
+                      >
+                        <option value="new">New</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="responded">Responded</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="closed">Closed</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Priority
+                      </label>
+                      <select
+                        value={selectedContact.priority}
+                        onChange={(e) => handlePriorityChange(selectedContact._id, e.target.value)}
+                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500"
+                      >
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Response Modal */}
+      {
+        showResponseModal && selectedContact && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-md bg-white dark:bg-gray-800">
+              <div className="mt-3">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                    Add Response
+                  </h3>
+                  <button
+                    onClick={() => setShowResponseModal(false)}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <XMarkIcon className="h-6 w-6" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Response to {selectedContact.name}
+                    </label>
+                    <textarea
+                      value={response}
+                      onChange={(e) => setResponse(e.target.value)}
+                      placeholder="Enter your response..."
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                      rows="6"
+                    />
+                  </div>
+
+                  <div className="flex justify-end space-x-2">
+                    <button
+                      onClick={() => setShowResponseModal(false)}
+                      className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleAddResponse}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+                    >
+                      Send Response
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Token Modal */}
+      {
+        showTokenModal && selectedContact && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+              <div className="mt-3">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                    Give Bonus Tokens
+                  </h3>
+                  <button
+                    onClick={() => setShowTokenModal(false)}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <XMarkIcon className="h-6 w-6" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      User Email
+                    </label>
+                    <p className="text-sm text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-md">
                       {selectedContact.email}
                     </p>
                   </div>
-                </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Subject
-                  </label>
-                  <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                    {selectedContact.subject}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Category
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Token Amount
                     </label>
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${categoryColors[selectedContact.category]}`}>
-                      {selectedContact.categoryFormatted}
-                    </span>
+                    <input
+                      type="number"
+                      min="1"
+                      max="1000"
+                      value={tokenAmount}
+                      onChange={(e) => setTokenAmount(e.target.value)}
+                      placeholder="Enter amount"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                    />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Priority
-                    </label>
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${priorityColors[selectedContact.priority]}`}>
-                      {selectedContact.priorityFormatted}
-                    </span>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Status
-                    </label>
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusColors[selectedContact.status]}`}>
-                      {selectedContact.status.charAt(0).toUpperCase() + selectedContact.status.slice(1).replace('-', ' ')}
-                    </span>
-                  </div>
-                </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Message
-                  </label>
-                  <p className="mt-1 text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
-                    {selectedContact.message}
-                  </p>
-                </div>
-
-                {selectedContact.response && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Response
-                    </label>
-                    <p className="mt-1 text-sm text-gray-900 dark:text-white bg-green-50 dark:bg-green-900/20 p-3 rounded-md">
-                      {selectedContact.response}
-                    </p>
-                  </div>
-                )}
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Admin Notes
-                  </label>
-                  <textarea
-                    value={adminNotes}
-                    onChange={(e) => setAdminNotes(e.target.value)}
-                    placeholder="Add admin notes..."
-                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-                    rows="3"
-                  />
-                  <button
-                    onClick={handleAddNotes}
-                    className="mt-2 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
-                  >
-                    Save Notes
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Status
-                    </label>
-                    <select
-                      value={selectedContact.status}
-                      onChange={(e) => handleStatusChange(selectedContact._id, e.target.value)}
-                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500"
+                  <div className="flex justify-end space-x-2 pt-2">
+                    <button
+                      onClick={() => setShowTokenModal(false)}
+                      className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
                     >
-                      <option value="new">New</option>
-                      <option value="in-progress">In Progress</option>
-                      <option value="responded">Responded</option>
-                      <option value="resolved">Resolved</option>
-                      <option value="closed">Closed</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Priority
-                    </label>
-                    <select
-                      value={selectedContact.priority}
-                      onChange={(e) => handlePriorityChange(selectedContact._id, e.target.value)}
-                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500"
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleGiveTokens}
+                      className="px-4 py-2 bg-amber-500 text-white rounded-md hover:bg-amber-600 transition-colors flex items-center gap-2"
                     >
-                      <option value="low">Low</option>
-                      <option value="medium">Medium</option>
-                      <option value="high">High</option>
-                      <option value="urgent">Urgent</option>
-                    </select>
+                      <SparklesIcon className="w-4 h-4" />
+                      Send Tokens
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Response Modal */}
-      {showResponseModal && selectedContact && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-md bg-white dark:bg-gray-800">
-            <div className="mt-3">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                  Add Response
-                </h3>
-                <button
-                  onClick={() => setShowResponseModal(false)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  <XMarkIcon className="h-6 w-6" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Response to {selectedContact.name}
-                  </label>
-                  <textarea
-                    value={response}
-                    onChange={(e) => setResponse(e.target.value)}
-                    placeholder="Enter your response..."
-                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-                    rows="6"
-                  />
-                </div>
-
-                <div className="flex justify-end space-x-2">
-                  <button
-                    onClick={() => setShowResponseModal(false)}
-                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleAddResponse}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
-                  >
-                    Send Response
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      </div>
+        )
+      }
+    </div >
   );
 };
 
