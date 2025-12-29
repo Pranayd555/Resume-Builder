@@ -85,7 +85,7 @@ const TermsConditions = () => {
       icon: CreditCardIcon,
       color: "text-rose-500",
       bg: "bg-rose-50/50 dark:bg-rose-900/10",
-      content: "New users receive 20 free AI tokens. Additional tokens can be purchased securely via Razorpay. Tokens never expire and are delivered instantly. Pricing is subject to change with 30 days notice.",
+      content: "New users receive 5 free AI tokens. Additional tokens can be purchased securely via Razorpay. Tokens never expire and are delivered instantly. Pricing is subject to change with 30 days notice.",
       list: [
         "AI content suggestions: 1 token",
         "ATS compatibility analysis: 1 token",
