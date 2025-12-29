@@ -200,13 +200,13 @@ const HomePage = () => {
             className="mb-6 flex flex-wrap justify-center gap-4"
           >
             <AttentionSeeker effect="pulse" duration={3000} iterations={Infinity}>
-              <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-green-50 dark:bg-green-900/30 border border-green-100 dark:border-green-800 text-green-700 dark:text-green-300 font-bold shadow-sm">
+              <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 text-blue-700 dark:text-blue-300 font-bold shadow-sm">
                 <CheckCircleIcon className="w-6 h-6" />
                 <span>100% Free Downloads</span>
               </div>
             </AttentionSeeker>
             <AttentionSeeker effect="pulse" duration={2000} iterations={Infinity}>
-              <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 text-blue-700 dark:text-blue-300 font-bold shadow-sm">
+              <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 font-bold shadow-sm">
                 <DocumentTextIcon className="w-6 h-6" />
                 <span>100% Free Templates</span>
               </div>
@@ -224,7 +224,7 @@ const HomePage = () => {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.4, type: "spring", stiffness: 100 }}
-            className="text-xl sm:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-10 max-w-3xl mx-auto font-medium"
+            className="text-xl sm:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 mb-10 max-w-3xl mx-auto font-medium"
           >
             Stop getting lost in the shuffle. Our platform uses intelligent, ATS-first technology to strip away the clutter and rebuild your resume into a modern document engineered to get you noticed, interviewed, and hired.
           </motion.p>
@@ -399,7 +399,7 @@ const HomePage = () => {
                 <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
                   <span className="text-red-500 font-black">X</span>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-500">Other Builders</h3>
+                <h3 className="text-2xl font-bold text-gray-500 dark:text-gray-400">Other Builders</h3>
               </div>
               <ul className="space-y-6">
                 {[
@@ -409,8 +409,8 @@ const HomePage = () => {
                   "Limited Access to Shared Data",
                   "Customer Support is non-existent"
                 ].map((item, idx) => (
-                  <li key={idx} className="flex items-start gap-4 text-gray-500 font-medium">
-                    <span className="mt-1 flex-shrink-0 w-2 h-2 rounded-full bg-red-400" />
+                  <li key={idx} className="flex items-start gap-4 text-gray-500 dark:text-gray-400 font-medium">
+                    <span className="mt-1 flex-shrink-0 w-2 h-2 rounded-full bg-red-400 dark:bg-red-600" />
                     {item}
                   </li>
                 ))}
@@ -494,13 +494,13 @@ const HomePage = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => navigate(PUBLIC_ROUTES.CONTACT_US)}
-                  className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-gray-600 hover:text-gray-200 transition-all flex items-center gap-2"
+                  className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white hover:text-gray-900 hover:dark:bg-gray-900 hover:dark:text-white transition-all flex items-center gap-2"
                 >
                   <SparklesIcon className="w-6 h-6" />
                   Suggest Enhancement
                 </motion.button>
               </div>
-                : <div className="flex flex-wrap sm:flex-row gap-4 justify-center">
+                : <div className="flex flex-wrap sm:flex-row gap-4 justify-center md:justify-start">
                   <AttentionSeeker duration={3000}>
                     <button
                       onClick={() => navigate(PUBLIC_ROUTES.SIGNUP)}
