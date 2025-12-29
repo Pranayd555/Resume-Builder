@@ -1,58 +1,22 @@
 {
   "version": 2,
   "name": "resume-builder",
+  "framework": "create-react-app",
   "buildCommand": "cd resume-builder && npm ci && npm run build",
   "outputDirectory": "resume-builder/build",
   "installCommand": "cd resume-builder && npm ci",
-  "framework": "create-react-app",
-  
-  "routes": [
-    {
-      "src": "/static/(.*)",
-      "dest": "/static/$1",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      }
-    },
-    {
-      "src": "/resume-builder-logo-light.ico",
-      "dest": "/resume-builder-logo-light.ico"
-    },
-    {
-      "src": "/manifest.json",
-      "dest": "/manifest.json"
-    },
-    {
-      "src": "/resume-builder-logo-192-light.png",
-      "dest": "/resume-builder-logo-192-light.png"
-    },
-    {
-      "src": "/resume-builder-logo-512-light.png",
-      "dest": "/resume-builder-logo-512-light.png"
-    },
-    {
-      "src": "/resume-builder-logo-dark.ico",
-      "dest": "/resume-builder-logo-dark.ico"
-    },
-    {
-      "src": "/resume-builder-logo-192-dark.png",
-      "dest": "/resume-builder-logo-192-dark.png"
-    },
-    {
-      "src": "/resume-builder-logo-512-dark.png",
-      "dest": "/resume-builder-logo-512-dark.png"
-    },
-    {
-      "src": "/robots.txt",
-      "dest": "/robots.txt"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
-  
+  "cleanUrls": true,
+  "trailingSlash": false,
   "headers": [
+    {
+      "source": "/static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [
@@ -75,20 +39,34 @@
       ]
     }
   ],
-  
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://resume-builder-m5ef.onrender.com/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/app/(.*)",
+      "destination": "/$1",
+      "permanent": false
+    }
+  ],
   "env": {
     "CI": "false",
     "GENERATE_SOURCEMAP": "false",
     "REACT_APP_VERSION": "$VERCEL_GIT_COMMIT_SHA"
   },
-  
   "build": {
     "env": {
       "CI": "false",
       "GENERATE_SOURCEMAP": "false"
     }
   },
-  
   "git": {
     "deploymentEnabled": {
       "main": true,
@@ -96,32 +74,8 @@
       "develop": true
     }
   },
-  
   "github": {
     "enabled": true,
     "autoAlias": true
-  },
-  
-  "functions": {
-    "resume-builder/build/static/js/*.js": {
-      "maxDuration": 10
-    }
-  },
-  
-  "redirects": [
-    {
-      "source": "/app/(.*)",
-      "destination": "/$1"
-    }
-  ],
-  
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "https://resume-builder-m5ef.onrender.com/api/$1"
-    }
-  ],
-  
-  "cleanUrls": true,
-  "trailingSlash": false
+  }
 }

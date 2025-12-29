@@ -4,6 +4,7 @@
 export const PUBLIC_ROUTES = {
   HOME: '/',
   LOGIN: '/login',
+  SIGNUP: '/register',
   ADMIN_LOGIN: '/admin-login',
   REGISTER: '/register',
   PRIVACY_POLICY: '/privacy-policy',
