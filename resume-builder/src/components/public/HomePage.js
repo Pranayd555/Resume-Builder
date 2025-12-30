@@ -293,7 +293,7 @@ const HomePage = () => {
                 step: "01",
                 icon: CloudArrowUpIcon,
                 title: "Add Content",
-                desc: "Fill in your details or let our AI enhance your bullet points."
+                desc: "You can enter your details yourself, or let our AI do the work by reading your resume."
               },
               {
                 step: "02",
@@ -671,8 +671,8 @@ const HomePage = () => {
               Start Your Journey <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">For Free</span>
             </h2>
-            <div className="font-semibold py-4 inline-block">
-              <WaveText className="text-xl md:text-2xl text-gray-300 dark:text-gray-600 mb-12">
+            <div className="py-4 inline-block">
+              <WaveText className="text-gray-300 dark:text-gray-600 mb-12">
                 Join hundreds of professionals building their future today. No credit cards, no subscriptions.
               </WaveText>
             </div>
