@@ -13,7 +13,7 @@ const links = [
 ];
 
 // Your website's base URL
-const hostname = 'https://resume-builder-dev-pranay-das.vercel.app'; // <-- IMPORTANT: Replace with your actual URL
+const hostname = 'https://presmistique.in'; // <-- IMPORTANT: Replace with your actual URL
 
 // Create a stream to write to
 const stream = new SitemapStream({ hostname });
