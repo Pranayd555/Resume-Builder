@@ -64,7 +64,7 @@ const WaveText = ({ children }) => {
   let cumulativeDelay = 0;
   return (
     <motion.span
-      className="inline-block relative overflow-hidden font-bold"
+      className="inline-block relative overflow-hidden"
       initial="initial"
       whileInView="hovered"
     >
