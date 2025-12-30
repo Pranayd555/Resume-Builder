@@ -2,4 +2,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://resume-builder-dev-pranay-das.vercel.app/sitemap.xml
+Sitemap: https://presmistique.in/sitemap.xml
