@@ -180,11 +180,11 @@ const HomePage = () => {
               style={{ y: textY, opacity: textOpacity }}
               className="text-center"
             >
-              <h2 className="text-3xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[0.9] tracking-tighter">
+              <h1 className="text-3xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[0.9] tracking-tighter">
                 <FlipText className="block whitespace-nowrap">
                   PRESMISTIQUE
                 </FlipText>
-              </h2>
+              </h1>
               <div className="mt-2 text-sm sm:text-lg font-bold text-blue-600 dark:text-blue-400 tracking-[0.3em] uppercase">
                 <FlipText className="block whitespace-nowrap">
                   AI Resume Builder
