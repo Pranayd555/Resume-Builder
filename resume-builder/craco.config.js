@@ -1,6 +1,11 @@
 module.exports = {
   webpack: {
-    configure: (webpackConfig) => {
+    configure: (webpackConfig, { env }) => {
+      // Disable source maps in production to prevent code exposure
+      if (env === 'production') {
+        webpackConfig.devtool = false;
+      }
+
       // Ignore source map warnings from CKEditor
       webpackConfig.ignoreWarnings = [
         {
