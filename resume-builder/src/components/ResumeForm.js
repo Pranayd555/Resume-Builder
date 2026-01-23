@@ -583,6 +583,82 @@ function ResumeForm() {
       });
     }
 
+    // Skills validation - check for empty skill names
+    formData.skills.forEach((skillCategory, categoryIndex) => {
+      skillCategory.items.forEach((skill, skillIndex) => {
+        if (!skill.name || skill.name.trim() === '') {
+          errors[`skills_${categoryIndex}_${skillIndex}_name`] = 'Skill name cannot be empty. Please fill it or remove it.';
+        }
+      });
+    });
+
+    // Validate partially filled items - items that have ANY content must have required fields
+    // Work Experience - if any field is filled, required fields must be completed
+    if (!formData.isFresher) {
+      formData.workExperience.forEach((exp, index) => {
+        const hasAnyContent = exp.jobTitle || exp.company || exp.location || exp.startDate || exp.endDate || exp.description;
+        if (hasAnyContent) {
+          if (!exp.jobTitle?.trim()) {
+            errors[`workExperience_${index}_jobTitle`] = 'Job title is required or remove this entry';
+          }
+          if (!exp.company?.trim()) {
+            errors[`workExperience_${index}_company`] = 'Company is required or remove this entry';
+          }
+          if (!exp.startDate) {
+            errors[`workExperience_${index}_startDate`] = 'Start date is required or remove this entry';
+          }
+        }
+      });
+    }
+
+    // Education - if any field is filled, required fields must be completed
+    formData.education.forEach((edu, index) => {
+      const hasAnyContent = edu.degree || edu.institution || edu.location || edu.startDate || edu.endDate || edu.gpa || edu.description;
+      if (hasAnyContent) {
+        if (!edu.degree?.trim()) {
+          errors[`education_${index}_degree`] = 'Degree is required or remove this entry';
+        }
+        if (!edu.institution?.trim()) {
+          errors[`education_${index}_institution`] = 'Institution is required or remove this entry';
+        }
+        if (!edu.isCurrentlyStudying && !edu.endDate) {
+          errors[`education_${index}_endDate`] = 'End date is required or remove this entry';
+        }
+        if (!edu.gpa) {
+          errors[`education_${index}_gpa`] = 'GPA is required or remove this entry';
+        }
+      }
+    });
+
+    // Projects - if any field is filled, name is required
+    formData.projects.forEach((project, index) => {
+      const hasAnyContent = project.name || project.description || project.url || project.githubUrl || (project.technologies && project.technologies.length > 0);
+      if (hasAnyContent && !project.name?.trim()) {
+        errors[`projects_${index}_name`] = 'Project name is required or remove this entry';
+      }
+    });
+
+    // Achievements - if any field is filled, title is required
+    formData.achievements.forEach((achievement, index) => {
+      const hasAnyContent = achievement.title || achievement.description || achievement.date || achievement.issuer;
+      if (hasAnyContent && !achievement.title?.trim()) {
+        errors[`achievements_${index}_title`] = 'Achievement title is required or remove this entry';
+      }
+    });
+
+    // Certifications - if any field is filled, name and issuer are required
+    formData.certifications.forEach((cert, index) => {
+      const hasAnyContent = cert.name || cert.issuer || cert.date || cert.expiryDate || cert.credentialId || cert.url;
+      if (hasAnyContent) {
+        if (!cert.name?.trim()) {
+          errors[`certifications_${index}_name`] = 'Certification name is required or remove this entry';
+        }
+        if (!cert.issuer?.trim()) {
+          errors[`certifications_${index}_issuer`] = 'Issuer is required or remove this entry';
+        }
+      }
+    });
+
     if (!isDraft) {
       // Additional validation for final submission
       if (!formData.personalInfo.address || formData.personalInfo.address.trim() === '') {
@@ -615,20 +691,6 @@ function ResumeForm() {
       if (!hasValidEducation) {
         errors.education = 'At least one education entry is required (Degree, Institution, End Date, and GPA)';
       }
-
-      // Certification validation
-      formData.certifications.forEach((cert, index) => {
-        const hasStartedCertification = cert.name || cert.issuer || cert.date || cert.expiryDate || cert.credentialId || cert.url;
-
-        if (hasStartedCertification) {
-          if (!validators.required(cert.name)) {
-            errors[`certifications_${index}_name`] = 'Certification name is required';
-          }
-          if (!validators.required(cert.issuer)) {
-            errors[`certifications_${index}_issuer`] = 'Issuer is required';
-          }
-        }
-      });
     }
 
     return {
@@ -847,6 +909,17 @@ function ResumeForm() {
       return newFormData;
     });
     setIsInitialLoad(true);
+
+    // Scroll to the newly added item for work experience, education, projects, and skills
+    if (['workExperience', 'education', 'projects', 'skills', 'achievements', 'certifications'].includes(section)) {
+      setTimeout(() => {
+        const elements = document.querySelectorAll(`[data-section="${section}"]`);
+        if (elements.length > 0) {
+          const lastElement = elements[elements.length - 1];
+          lastElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+    }
   };
 
   const removeArrayItem = (section, index) => {
@@ -909,6 +982,33 @@ function ResumeForm() {
           return newTech;
         });
       }
+
+      setTimeout(() => saveToLocalStorage(newFormData, currentStep, isEditMode), 0);
+      return newFormData;
+    });
+    setIsInitialLoad(true);
+  };
+
+  // Function to move skills within a category
+  const moveSkillItem = (categoryIndex, skillIndex, direction) => {
+    setFormData(prev => {
+      const newSkills = [...prev.skills];
+      const category = { ...newSkills[categoryIndex] };
+      const items = [...category.items];
+      const targetIndex = direction === 'up' ? skillIndex - 1 : skillIndex + 1;
+
+      if (targetIndex < 0 || targetIndex >= items.length) return prev;
+
+      // Swap skills
+      [items[skillIndex], items[targetIndex]] = [items[targetIndex], items[skillIndex]];
+
+      category.items = items;
+      newSkills[categoryIndex] = category;
+
+      const newFormData = {
+        ...prev,
+        skills: newSkills
+      };
 
       setTimeout(() => saveToLocalStorage(newFormData, currentStep, isEditMode), 0);
       return newFormData;
@@ -1218,17 +1318,61 @@ function ResumeForm() {
   const cleanFormDataForBackend = (data) => {
     const cleanedData = JSON.parse(JSON.stringify(data)); // Deep clone
 
-    // Clean skills - remove items with null level
+    // Clean work experience - remove completely empty entries
+    if (cleanedData.workExperience) {
+      cleanedData.workExperience = cleanedData.workExperience.filter(exp => {
+        // Keep entry if at least one required field is filled
+        return exp.jobTitle?.trim() || exp.company?.trim() || exp.startDate;
+      });
+    }
+
+    // Clean education - remove completely empty entries
+    if (cleanedData.education) {
+      cleanedData.education = cleanedData.education.filter(edu => {
+        // Keep entry if at least one required field is filled
+        return edu.degree?.trim() || edu.institution?.trim() || edu.endDate || edu.gpa;
+      });
+    }
+
+    // Clean projects - remove completely empty entries
+    if (cleanedData.projects) {
+      cleanedData.projects = cleanedData.projects.filter(project => {
+        // Keep entry if project name is filled (main required field)
+        return project.name?.trim();
+      });
+    }
+
+    // Clean achievements - remove completely empty entries
+    if (cleanedData.achievements) {
+      cleanedData.achievements = cleanedData.achievements.filter(achievement => {
+        // Keep entry if title is filled (main required field)
+        return achievement.title?.trim();
+      });
+    }
+
+    // Clean certifications - remove completely empty entries
+    if (cleanedData.certifications) {
+      cleanedData.certifications = cleanedData.certifications.filter(cert => {
+        // Keep entry if at least name or issuer is filled
+        return cert.name?.trim() || cert.issuer?.trim();
+      });
+    }
+
+    // Clean skills - remove items with null level and empty skill names
     if (cleanedData.skills) {
       cleanedData.skills = cleanedData.skills.map(skillCategory => ({
         ...skillCategory,
-        items: skillCategory.items ? skillCategory.items.filter(item => item.level !== null) : []
-      })).filter(skillCategory => skillCategory.items.length > 0);
+        items: skillCategory.items ? skillCategory.items.filter(item =>
+          item.name?.trim() && item.level !== null
+        ) : []
+      })).filter(skillCategory => skillCategory.category?.trim() && skillCategory.items.length > 0);
     }
 
-    // Clean languages - remove items with null proficiency
+    // Clean languages - remove items with null proficiency or empty name
     if (cleanedData.languages) {
-      cleanedData.languages = cleanedData.languages.filter(lang => lang.proficiency !== null);
+      cleanedData.languages = cleanedData.languages.filter(lang =>
+        lang.name?.trim() && lang.proficiency !== null
+      );
     }
 
     // Clean other null values that might cause issues
@@ -1852,7 +1996,7 @@ function ResumeForm() {
       </div>
 
       {!formData.isFresher && formData.workExperience.map((job, index) => (
-        <div key={index} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-4 sm:p-6 space-y-4 bg-white dark:bg-orange-50/50">
+        <div key={index} data-section="workExperience" className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-4 sm:p-6 space-y-4 bg-white dark:bg-orange-50/50">
           <div className="flex justify-between items-start gap-2">
             <h4 className="font-medium text-gray-900 text-sm sm:text-base">Experience #{index + 1}</h4>
             <div className="flex items-center gap-1">
@@ -2046,7 +2190,7 @@ function ResumeForm() {
       </div>
 
       {formData.education.map((edu, index) => (
-        <div key={index} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
+        <div key={index} data-section="education" className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
           <div className="flex justify-between items-start">
             <h4 className="font-medium text-gray-900">Education #{index + 1}</h4>
             <div className="flex items-center gap-1">
@@ -2311,7 +2455,7 @@ function ResumeForm() {
       </div>
 
       {formData.skills.map((skillCategory, categoryIndex) => (
-        <div key={categoryIndex} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
+        <div key={categoryIndex} data-section="skills" className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
           <div className="flex justify-between items-start">
             <h4 className="font-medium text-gray-900">Skill Category #{categoryIndex + 1}</h4>
             <div className="flex items-center gap-1">
@@ -2407,17 +2551,36 @@ function ResumeForm() {
 
             {skillCategory.items.map((skill, skillIndex) => (
               <div key={skillIndex} className="flex flex-col sm:flex-row gap-2 mb-2">
-                <input
-                  type="text"
-                  value={skill.name}
-                  onChange={(e) => {
-                    const newSkills = [...formData.skills];
-                    newSkills[categoryIndex].items[skillIndex].name = e.target.value;
-                    setFormData(prev => ({ ...prev, skills: newSkills }));
-                  }}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
-                  placeholder="Skill name"
-                />
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    value={skill.name}
+                    onChange={(e) => {
+                      const newSkills = [...formData.skills];
+                      newSkills[categoryIndex].items[skillIndex].name = e.target.value;
+                      setFormData(prev => ({ ...prev, skills: newSkills }));
+
+                      // Clear validation error when user starts typing
+                      if (e.target.value.trim()) {
+                        setValidationErrors(prev => {
+                          const newErrors = { ...prev };
+                          delete newErrors[`skills_${categoryIndex}_${skillIndex}_name`];
+                          return newErrors;
+                        });
+                      }
+                    }}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${validationErrors[`skills_${categoryIndex}_${skillIndex}_name`]
+                      ? 'border-red-300 focus:border-red-500'
+                      : 'border-gray-300'
+                      }`}
+                    placeholder="Skill name"
+                  />
+                  {validationErrors[`skills_${categoryIndex}_${skillIndex}_name`] && (
+                    <p className="text-red-600 text-xs mt-1">
+                      {validationErrors[`skills_${categoryIndex}_${skillIndex}_name`]}
+                    </p>
+                  )}
+                </div>
                 <div className="flex gap-2">
                   <CustomDropdown
                     value={skill.level}
@@ -2436,10 +2599,39 @@ function ResumeForm() {
                     className="flex-1 sm:w-32"
                   />
                   <button
+                    onClick={() => moveSkillItem(categoryIndex, skillIndex, 'up')}
+                    disabled={skillIndex === 0}
+                    className={`p-2 rounded-md transition-colors ${skillIndex === 0
+                      ? 'text-gray-300 cursor-not-allowed'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-blue-600'
+                      }`}
+                    title="Move Up"
+                  >
+                    <ChevronUpIcon className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => moveSkillItem(categoryIndex, skillIndex, 'down')}
+                    disabled={skillIndex === skillCategory.items.length - 1}
+                    className={`p-2 rounded-md transition-colors ${skillIndex === skillCategory.items.length - 1
+                      ? 'text-gray-300 cursor-not-allowed'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-blue-600'
+                      }`}
+                    title="Move Down"
+                  >
+                    <ChevronDownIcon className="w-4 h-4" />
+                  </button>
+                  <button
                     onClick={() => {
                       const newSkills = [...formData.skills];
                       newSkills[categoryIndex].items.splice(skillIndex, 1);
                       setFormData(prev => ({ ...prev, skills: newSkills }));
+
+                      // Clear validation error when skill is deleted
+                      setValidationErrors(prev => {
+                        const newErrors = { ...prev };
+                        delete newErrors[`skills_${categoryIndex}_${skillIndex}_name`];
+                        return newErrors;
+                      });
                     }}
                     className="text-red-600 hover:text-red-700 p-2 flex-shrink-0"
                   >
@@ -2461,6 +2653,11 @@ function ResumeForm() {
           </svg>}
           message="No skills added yet. Use the 'Quick Add' section above or click 'Add Skill Category' to get started."
         />
+      )}
+
+      {/* Show validation error if any skill names are empty */}
+      {Object.keys(validationErrors).some(key => key.startsWith('skills_') && key.endsWith('_name')) && (
+        <ErrorBanner message="Please fill in all skill names or remove empty skill fields before proceeding." />
       )}
     </div>
   );
@@ -2489,7 +2686,7 @@ function ResumeForm() {
       </div>
 
       {formData.projects.map((project, index) => (
-        <div key={index} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
+        <div key={index} data-section="projects" className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
           <div className="flex justify-between items-start">
             <h4 className="font-medium text-gray-900">Project #{index + 1}</h4>
             <div className="flex items-center gap-1">
@@ -2529,9 +2726,15 @@ function ResumeForm() {
                 required
                 value={project.name}
                 onChange={(e) => handleInputChange('projects', 'name', e.target.value, index)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${validationErrors[`projects_${index}_name`]
+                  ? 'border-red-300 focus:border-red-500'
+                  : 'border-gray-300'
+                  }`}
                 placeholder="E-commerce Website"
               />
+              {validationErrors[`projects_${index}_name`] && (
+                <p className="text-red-600 text-sm mt-1">{validationErrors[`projects_${index}_name`]}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
@@ -2628,7 +2831,7 @@ function ResumeForm() {
       </div>
 
       {formData.achievements.map((achievement, index) => (
-        <div key={index} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
+        <div key={index} data-section="achievements" className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
           <div className="flex justify-between items-start">
             <h4 className="font-medium text-gray-900">Achievement #{index + 1}</h4>
             <div className="flex items-center gap-1">
@@ -2668,9 +2871,15 @@ function ResumeForm() {
                 required
                 value={achievement.title}
                 onChange={(e) => handleInputChange('achievements', 'title', e.target.value, index)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${validationErrors[`achievements_${index}_title`]
+                  ? 'border-red-300 focus:border-red-500'
+                  : 'border-gray-300'
+                  }`}
                 placeholder="Employee of the Year"
               />
+              {validationErrors[`achievements_${index}_title`] && (
+                <p className="text-red-600 text-sm mt-1">{validationErrors[`achievements_${index}_title`]}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
@@ -2763,7 +2972,7 @@ function ResumeForm() {
         </div>
 
         {formData.certifications.map((cert, index) => (
-          <div key={index} className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
+          <div key={index} data-section="certifications" className="border border-gray-200 dark:border-gray-200/50 rounded-xl p-6 space-y-4 bg-white dark:bg-orange-50/50">
             <div className="flex justify-between items-start">
               <h4 className="font-medium text-gray-900">Certification #{index + 1}</h4>
               <div className="flex items-center gap-1">
@@ -2971,116 +3180,53 @@ function ResumeForm() {
     return titles[currentStep - 1];
   };
 
-  const validateCurrentStep = () => {
+  const validateCurrentStep = useCallback(() => {
+    const allErrors = validateForm().errors;
     const errors = {};
 
     switch (currentStep) {
       case 1:
-        if (!validators.required(formData.title)) {
-          errors.title = 'Resume title is required';
-        }
+        if (allErrors.title) errors.title = allErrors.title;
         break;
       case 2:
-        // For read-only fields (fullName, email, phone), validate profile data availability in non-edit mode
-        if (!isEditMode) {
-          const profileErrors = validateProfileData();
-          if (profileErrors.fullName) {
-            errors.fullName = profileErrors.fullName;
-          }
-          if (profileErrors.email) {
-            errors.email = profileErrors.email;
-          }
-          if (profileErrors.phone) {
-            errors.phone = profileErrors.phone;
-          }
-        } else {
-          // In edit mode, use normal validation for these fields
-          if (!validators.required(formData.personalInfo.fullName)) {
-            errors.fullName = 'Full name is required';
-          }
-          if (!validators.required(formData.personalInfo.email)) {
-            errors.email = 'Email is required';
-          } else if (!validators.email(formData.personalInfo.email)) {
-            errors.email = 'Please enter a valid email';
-          }
-          if (!validators.required(formData.personalInfo.phone)) {
-            errors.phone = 'Phone number is required';
-          }
-        }
-
-        // Address is always editable and requires validation
-        if (!validators.required(formData.personalInfo.address)) {
-          errors.address = 'Address is required';
-        }
+        if (allErrors.fullName) errors.fullName = allErrors.fullName;
+        if (allErrors.email) errors.email = allErrors.email;
+        if (allErrors.phone) errors.phone = allErrors.phone;
+        if (allErrors.address) errors.address = allErrors.address;
         break;
       case 3:
-        // Validate work experience - check if any experience has been started (skip if user is a fresher)
-        if (!formData.isFresher) {
-          formData.workExperience.forEach((exp, index) => {
-            if (exp.jobTitle || exp.company || exp.startDate || exp.endDate || exp.description) {
-              if (!validators.required(exp.jobTitle)) {
-                errors[`workExperience_${index}_jobTitle`] = 'Job title is required';
-              }
-              if (!validators.required(exp.company)) {
-                errors[`workExperience_${index}_company`] = 'Company name is required';
-              }
-              if (!validators.required(exp.startDate)) {
-                errors[`workExperience_${index}_startDate`] = 'Start date is required';
-              }
-              if (exp.startDate && exp.endDate && !exp.isCurrentJob) {
-                if (!validators.dateRange(exp.startDate, exp.endDate)) {
-                  errors[`workExperience_${index}_dateRange`] = 'End date must be after start date';
-                }
-              }
-            }
-          });
-
-          // Check if at least one complete work experience is required for final submission
-          let hasValidWorkExperience = false;
-          formData.workExperience.forEach((exp) => {
-            if (exp.jobTitle && exp.company && exp.startDate) {
-              hasValidWorkExperience = true;
-            }
-          });
-          if (!hasValidWorkExperience) {
-            errors.workExperience = 'At least one work experience entry is required (Job Title, Company, and Start Date)';
-          }
-        }
+        Object.keys(allErrors).forEach(key => {
+          if (key.startsWith('workExperience')) errors[key] = allErrors[key];
+        });
         break;
       case 4:
-        // Validate education - check if any education has been started
-        formData.education.forEach((edu, index) => {
-          if (edu.degree || edu.institution || edu.endDate || edu.description) {
-            if (!validators.required(edu.degree)) {
-              errors[`education_${index}_degree`] = 'Degree is required';
-            }
-            if (!validators.required(edu.institution)) {
-              errors[`education_${index}_institution`] = 'Institution is required';
-            }
-            if (!validators.required(edu.endDate)) {
-              errors[`education_${index}_endDate`] = 'End date is required';
-            }
-            if (edu.startDate && edu.endDate && !edu.isCurrentlyStudying) {
-              if (!validators.dateRange(edu.startDate, edu.endDate)) {
-                errors[`education_${index}_dateRange`] = 'End date must be after start date';
-              }
-            }
+        Object.keys(allErrors).forEach(key => {
+          if (key.startsWith('education')) errors[key] = allErrors[key];
+        });
+        break;
+      case 5:
+        Object.keys(allErrors).forEach(key => {
+          if (key.startsWith('skills')) errors[key] = allErrors[key];
+        });
+        break;
+      case 6:
+        Object.keys(allErrors).forEach(key => {
+          if (key.startsWith('projects')) errors[key] = allErrors[key];
+        });
+        break;
+      case 7:
+        Object.keys(allErrors).forEach(key => {
+          if (key.startsWith('achievements')) errors[key] = allErrors[key];
+        });
+        break;
+      case 8:
+        Object.keys(allErrors).forEach(key => {
+          if (key.startsWith('certifications') || key.startsWith('languages')) {
+            errors[key] = allErrors[key];
           }
         });
-
-        // Check if at least one complete education is required for final submission
-        let hasValidEducation = false;
-        formData.education.forEach((edu) => {
-          if (edu.degree && edu.institution && edu.endDate && edu.gpa) {
-            hasValidEducation = true;
-          }
-        });
-        if (!hasValidEducation) {
-          errors.education = 'At least one education entry is required (Degree, Institution, End Date, and GPA)';
-        }
         break;
       default:
-        // Other steps are optional
         break;
     }
 
@@ -3088,23 +3234,12 @@ function ResumeForm() {
       isValid: Object.keys(errors).length === 0,
       errors
     };
-  };
+  }, [currentStep, validateForm]);
 
-  const isStepValid = () => {
+  const isStepValid = useCallback(() => {
     const validation = validateCurrentStep();
-
-    // For step 1, only check step-specific validation (title)
-    if (currentStep === 1) {
-      return validation.isValid;
-    }
-
-    // For step 2 and later, check both step validation and profile data validation
-    if (Object.keys(validationErrors).length > 0) {
-      return false;
-    }
-
     return validation.isValid;
-  };
+  }, [validateCurrentStep]);
 
 
 
