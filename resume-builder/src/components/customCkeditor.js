@@ -149,8 +149,10 @@ const CustomCKEditorComponent = ({
     isProMode = false, // Pro mode for different AI button functionality
     onAIContentChange = null, // Callback for AI content changes
     onAILoading = null, // Callback for AI loading state
+    aiLoading = false, // Prop for AI loading state
     originalText = null // if original resumeData available
 }) => {
+    const [internalAILoading, setInternalAILoading] = useState(false);
     const [isLayoutReady, setIsLayoutReady] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
     const [editorInstance, setEditorInstance] = useState(null);
@@ -576,7 +578,7 @@ const CustomCKEditorComponent = ({
                 // Add type-around button functionality
                 setupTypeAroundButtons(editor);
 
-                // Handle data change
+                // Handle AI loading state
                 editor.model.document.on("change:data", () => {
                     const data = editor.getData();
                     if (onChangeRef.current) {
@@ -605,10 +607,42 @@ const CustomCKEditorComponent = ({
         };
     }, [isLayoutReady, editorConfig]); // Removed onChange from dependencies to prevent re-initialization
 
+    // Toggle Read-only mode based on loading state or readOnly prop
+    useEffect(() => {
+        if (editorInstance) {
+            const shouldBeReadOnly = readOnly || aiLoading || internalAILoading;
+
+            try {
+                if (shouldBeReadOnly) {
+                    if (typeof editorInstance.enableReadOnlyMode === 'function') {
+                        editorInstance.enableReadOnlyMode('ai-loading-lock');
+                    } else {
+                        editorInstance.isReadOnly = true;
+                    }
+                } else {
+                    if (typeof editorInstance.disableReadOnlyMode === 'function') {
+                        editorInstance.disableReadOnlyMode('ai-loading-lock');
+                    } else {
+                        editorInstance.isReadOnly = false;
+                    }
+                }
+            } catch (error) {
+                console.warn("Error toggling CKEditor read-only mode:", error);
+            }
+        }
+    }, [editorInstance, readOnly, aiLoading, internalAILoading]);
+
+    const handleAILoading = (loading) => {
+        setInternalAILoading(loading);
+        if (onAILoading) {
+            onAILoading(loading);
+        }
+    };
+
     return (
         <div
             className={`ckeditor-container ${isMobile ? "mobile-editor" : ""
-                } ${className}`}
+                } ${readOnly || aiLoading || internalAILoading ? "disabled" : ""} ${className}`}
             style={{ position: "relative", overflow: "visible" }}
         >
             {showAIButton && (
@@ -626,7 +660,7 @@ const CustomCKEditorComponent = ({
                         onContentChange={onChange}
                         isProMode={isProMode}
                         onAIContentChange={onAIContentChange}
-                        onAILoading={onAILoading}
+                        onAILoading={handleAILoading}
                         originalText={originalText === value ? null : originalText}
                         isMobile={isMobile}
                     />
