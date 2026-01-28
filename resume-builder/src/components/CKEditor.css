@@ -403,6 +403,32 @@
   box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2) !important;
 }
 
+/* Disabled/Read-only States */
+.ckeditor-container.disabled {
+  opacity: 0.9;
+  cursor: not-allowed;
+  background-color: #f9fafb;
+}
+
+.ck.ck-editor__editable.ck-read-only {
+  background-color: #f9fafb !important;
+  color: #6b7280 !important;
+  cursor: not-allowed !important;
+  border-color: #e5e7eb !important;
+  box-shadow: none !important;
+}
+
+.ck.ck-editor__editable.ck-read-only * {
+  cursor: not-allowed !important;
+}
+
+.ckeditor-container.disabled .ck-toolbar {
+  opacity: 0.6;
+  pointer-events: none;
+  filter: grayscale(0.5);
+}
+
+
 /* ========================================
    COMPREHENSIVE HTML TAG STYLES
    Ensuring CKEditor content and PDF consistency
