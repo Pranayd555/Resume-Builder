@@ -56,12 +56,19 @@ router.post("/", async (req, res) => {
                 <!-- Include CKEditor base styles -->
                 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400;1,700&display=swap" />
                 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" />
-                <script src="https://unpkg.com/twemoji@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+                <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&family=Pacifico&display=swap" />
+                <script src="https://cdn.jsdelivr.net/npm/@twemoji/api@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
 
                 <style>
 
                     :root {
                       --ck-content-font-family: 'Lato';
+                    }
+
+                    /* Fallback for Brush Script MT on Linux */
+                    @font-face {
+                      font-family: 'Brush Script MT';
+                      src: local('Brush Script MT'), local('Dancing Script'), url('https://fonts.gstatic.com/s/dancingscript/v24/If2cXTr6YS-zF4S-RwUmsvdpXclGSH6CsPclCps.woff2') format('woff2');
                     }
 
                     html, body {
@@ -793,6 +800,14 @@ router.post("/", async (req, res) => {
                         margin: 5mm;
                     }
                     
+                    /* Emoji styling */
+                    img.emoji {
+                      height: 1.1em;
+                      width: 1.1em;
+                      margin: 0 .05em 0 .1em;
+                      vertical-align: -0.1em;
+                      display: inline-block;
+                    }
                 </style>
                 </head>
                 <body>
@@ -811,6 +826,27 @@ router.post("/", async (req, res) => {
         timeout: 30000,
       });
       logger.info("Page content set successfully");
+
+      // Parse emojis with twemoji to ensure they render in PDF
+      logger.info("Parsing emojis...");
+      await page.evaluate(() => {
+        try {
+          if (window.twemoji) {
+            // Target both the container and any specific elements that might contain emojis
+            const container = document.querySelector('.ck-content') || document.body;
+            window.twemoji.parse(container, {
+              folder: 'svg',
+              ext: '.svg',
+              base: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/'
+            });
+          } else {
+            console.error("Twemoji script not found in window");
+          }
+        } catch (e) {
+          console.error("Error parsing emojis:", e);
+        }
+      });
+      logger.info("Emojis parsed successfully");
       const htmlDebug = await page.content();
       logger.info("DEBUG HTML:", htmlDebug);
 
