@@ -10,14 +10,10 @@ import CustomCKEditorComponent from './customCkeditor';
 const CreateTemplate = () => {
 	const navigate = useNavigate();
 	const [templateContent, setTemplateContent] = useState(`
-		<h1 style="text-align: center; color:rgb(180, 107, 39); font-family: 'Brush Script MT', cursive">
-            ⭐Create Your Own Template
-          </h1>
-          
-          <div style="background: #764ba2; color: white; padding: 20px; border-radius: 10px; margin-bottom: 30px;">
+		<div style="background: #000000ff; color: white; padding: 20px; border-radius: 10px; margin-bottom: 30px;">
             <h2 style="color: white; margin: 0 0 10px 0; font-size: 1.8rem;">John Smith</h2>
             <p style="margin: 5px 0; font-size: 1.1rem; opacity: 0.9;">Senior Software Engineer</p>
-            <p style="margin: 5px 0; font-size: 1rem; opacity: 0.8;">📧 john.smith@email.com | 📱 (555) 123-4567 | 🌐 linkedin.com/in/johnsmith</p>
+            <p style="margin: 5px 0; font-size: 1rem; opacity: 0.8;">mailto: john.smith@email.com | tel: (555) 123-4567 | <a style="color: white;" href="https://linkedin.com/in/johnsmith">linkedin.com/in/johnsmith</a></p>
           </div>
           
           <h3 style="color: #34495e; border-bottom: 2px solid #3498db; padding-bottom: 8px; margin-top: 25px;">Professional Summary</h3>
@@ -66,10 +62,10 @@ const CreateTemplate = () => {
           
           <h3 style="color: #34495e; border-bottom: 2px solid #3498db; padding-bottom: 8px; margin-top: 25px;">Key Achievements</h3>
           <ul style="line-height: 1.6; color: #2c3e50;">
-            <li>🏆 <strong>Awarded "Employee of the Year"</strong> for outstanding performance and innovation</li>
-            <li>📈 <strong>Led team of 8 developers</strong> in successful product launch</li>
-            <li>🔧 <strong>Open source contributor</strong> with 500+ GitHub stars across projects</li>
-            <li>📚 <strong>Technical speaker</strong> at 3 major industry conferences</li>
+            <li><strong>Awarded "Employee of the Year"</strong> for outstanding performance and innovation</li>
+            <li><strong>Led team of 8 developers</strong> in successful product launch</li>
+            <li><strong>Open source contributor</strong> with 500+ GitHub stars across projects</li>
+            <li><strong>Technical speaker</strong> at 3 major industry conferences</li>
           </ul>`);
 	const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 	const [isAILoading, setIsAILoading] = useState(false);
