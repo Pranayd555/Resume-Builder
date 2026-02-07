@@ -166,11 +166,12 @@ module.exports = [
                   <div class="cert-name primaryFont">{{name}}</div>
                   <div class="cert-meta">
                     <span class="issuer secondaryFont">{{issuer}}</span>
-                    {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}</span>{{/if}}
                   </div>
-                  {{#if expiryDate}}<div class="cert-expiry secondaryFont">Expires: {{formatDate expiryDate}}</div>{{/if}}
-                  {{#if credentialId}}<div class="cert-id secondaryFont">ID: {{credentialId}}</div>{{/if}}
-                  {{#if url}}<div class="cert-link secondaryFont"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}
+                  {{#if date}}<div class="cert-dates secondaryFont">{{formatDate date}}
+                  {{#if expiryDate}}<span class="cert-expiry secondaryFont"> - {{formatDate expiryDate}}</span>{{/if}}
+                  </div>{{/if}}
+                  {{#if credentialId}}<div class="cert-id secondaryFont">Credential ID: {{credentialId}}</div>{{/if}}
+                  {{#if url}}<div class="cert-link secondaryFont">Credential URL: <a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
                 </div>
                 {{/each}}
               </section>
@@ -271,7 +272,7 @@ module.exports = [
           .achievement-issuer { font-size: 9px; color: #6b7280; }
           
           .cert-expiry, .cert-id { font-size: 9px; color: #6b7280; margin-top: 0.125rem; }
-          .cert-link a { color: #6b7280; text-decoration: none; font-size: 8px; }
+          .cert-link a { color: #6b7280; text-decoration: none; font-size: 8px; word-break: break-all; }
           .cert-link a:hover { text-decoration: underline; }
           
           .language-item { display: flex; justify-content: space-between; margin-bottom: 0.25rem; }
@@ -469,14 +470,16 @@ module.exports = [
               <h3 class="primaryFont">Professional Certifications</h3>
               {{#each certifications}}
               <div class="cert-item">
-                <div class="cert-name secondaryFont">{{name}}</div>
-                 <div class="cert-meta">
+                 <span class="cert-meta">
+                   <strong class="cert-name secondaryFont">{{name}}</strong>
                    <span class="issuer secondaryFont">{{issuer}}</span>
-                   {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}</span>{{/if}}
-                 </div>
-                 {{#if expiryDate}}<div class="cert-expiry secondaryFont">Expires: {{formatDate expiryDate}}</div>{{/if}}
-                 {{#if credentialId}}<div class="cert-id secondaryFont">ID: {{credentialId}}</div>{{/if}}
-                 {{#if url}}<div class="cert-link secondaryFont"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}
+                   {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}
+                   
+                 {{#if expiryDate}}<span class="cert-expiry secondaryFont"> - {{formatDate expiryDate}}</span>{{/if}}
+                   </span>{{/if}}
+                 </span>
+                 {{#if credentialId}}<div class="cert-id secondaryFont">Credential ID: {{credentialId}}</div>{{/if}}
+                 {{#if url}}<div class="cert-link secondaryFont">Credential URL: <a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
               </div>
               {{/each}}
             </section>
@@ -534,10 +537,10 @@ module.exports = [
           .skill-category-title { font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
           .skill-items { display: flex; flex-wrap: wrap; gap: 3px; }
           .skill-item { background: #f59e0b; color: white; padding: 2px 4px; border-radius: 2px; }
-          .skill-item[data-level="expert"] { background: rgb(1, 27, 111); }
-          .skill-item[data-level="advanced"] { background: rgb(15, 50, 165); }
-          .skill-item[data-level="intermediate"] { background: rgb(40, 78, 218); }
-          .skill-item[data-level="beginner"] { background: rgb(78, 117, 246); }
+          .skill-item[data-level="expert"] { background: #374151; }
+          .skill-item[data-level="advanced"] { background: #374151; }
+          .skill-item[data-level="intermediate"] { background: #374151; }
+          .skill-item[data-level="beginner"] { background: #374151; }
           .technologies { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 0.25rem; }
           .tech-tag { background: #374151; color: white; padding: 1px 3px; border-radius: 2px; }
           .project-links { margin-top: 0.25rem; }
@@ -738,14 +741,15 @@ module.exports = [
               <h3 class="primaryFont">Professional Certifications</h3>
               {{#each certifications}}
               <div class="cert-item">
-                <div class="cert-name secondaryFont">{{name}}</div>
-                <div class="cert-meta">
+                
+                <span class="cert-meta">
+                <span class="cert-name secondaryFont">{{name}}</span>
                   <span class="issuer secondaryFont">{{issuer}}</span>
-                  {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}</span>{{/if}}
-                </div>
-                {{#if expiryDate}}<div class="cert-expiry secondaryFont">Expires: {{formatDate expiryDate}}</div>{{/if}}
-                {{#if credentialId}}<div class="cert-id secondaryFont">ID: {{credentialId}}</div>{{/if}}
-                {{#if url}}<div class="cert-link secondaryFont"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}
+                  {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}
+                  {{#if expiryDate}}<span class="cert-expiry secondaryFont"> - {{formatDate expiryDate}}</span>{{/if}}</span>{{/if}}
+                </span>
+                {{#if credentialId}}<div class="cert-id secondaryFont">Credential ID: {{credentialId}}</div>{{/if}}
+                {{#if url}}<div class="cert-link secondaryFont">Credential Link: <a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
               </div>
               {{/each}}
             </section>
@@ -775,26 +779,26 @@ module.exports = [
             {{/if}}
           </article>`,
       css: `.resume.modern-tech { font-family: 'Roboto', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; line-height: 1; }
-          .tech-header { display: grid; grid-template-columns: 2fr 1fr; gap: 1.2rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #06b6d4; }
-          .name { font-size: 18px; font-weight: 700; color: #06b6d4; margin-bottom: 0.5rem; }
+          .tech-header { display: grid; grid-template-columns: 2fr 1fr; gap: 1.2rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #3BC1A8; }
+          .name { font-size: 18px; font-weight: 700; color: #3BC1A8; margin-bottom: 0.5rem; }
           .contact-info { display: flex; flex-wrap: wrap; gap: 0.6rem; }
           .contact-item { color: #64748b; padding: 0.2rem 0.4rem; background: #f1f5f9; border-radius: 3px; }
           .contact-item a { color: #64748b; text-decoration: none; }
           section { margin-top: 1rem; }
-          h3 { font-weight: 600; color: #1f2937; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 2px solid #06b6d4; }
+          h3 { font-weight: 600; color: #1f2937; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 2px solid #3BC1A8; }
           .summary-section p { line-height: 1; color: #4b5563; }
           .skill-category { margin-bottom: 0.5rem; }
           .skill-category-title { font-weight: 600; color: #1f2937; margin-bottom: 0.25rem; }
           .skill-items { display: flex; flex-wrap: wrap; gap: 0.3rem; }
-          .skill-item { background: #06b6d4; color: white; padding: 0.2rem 0.4rem; border-radius: 3px; }
-          .skill-item[data-level="expert"] { background: rgb(1, 27, 111); }
-          .skill-item[data-level="advanced"] { background: rgb(15, 50, 165); }
-          .skill-item[data-level="intermediate"] { background: rgb(40, 78, 218); }
-          .skill-item[data-level="beginner"] { background: rgb(78, 117, 246); }
-          .job-item, .project-item, .edu-item, .achievement-item, .cert-item { margin-bottom: 0.5rem; padding: 0.6rem; background: #f8fafc; border-radius: 6px; border-left: 3px solid #06b6d4; }
+          .skill-item { background: #3BC1A8; color: white; padding: 0.2rem 0.4rem; border-radius: 3px; }
+          .skill-item[data-level="expert"] { background: #005461; }
+          .skill-item[data-level="advanced"] { background: #0C7779; }
+          .skill-item[data-level="intermediate"] { background: #249E94; }
+          .skill-item[data-level="beginner"] { background: #3BC1A8; }
+          .job-item, .project-item, .edu-item, .achievement-item, .cert-item { margin-bottom: 0.5rem; padding: 0.6rem; background: #f8fafc; border-radius: 6px; border-left: 3px solid #3BC1A8; }
           .job-header, .edu-header { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.6rem; margin-bottom: 0.25rem; }
           .job-title, .edu-degree, .project-name, .achievement-title, .cert-name { font-weight: 600; color: #1f2937; }
-          .company, .institution { color: #06b6d4; font-weight: 500; }
+          .company, .institution { color: #3BC1A8; font-weight: 500; }
           .job-dates, .edu-dates { color: #64748b; text-align: right; }
           .location { color: #6b7280; margin-bottom: 0.25rem; }
           .job-description, .edu-description { color: #4b5563; margin-bottom: 0.25rem; }
@@ -809,15 +813,15 @@ module.exports = [
           ol { list-style-type: decimal; }
           .gpa { color: #6b7280; margin-bottom: 0.25rem; }
           .technologies { display: flex; flex-wrap: wrap; gap: 0.2rem; margin-top: 0.25rem; }
-          .tech-tag { background: #8b5cf6; color: white; padding: 0.1rem 0.3rem; border-radius: 2px; }
+          .tech-tag { background: #0C7779; color: white; padding: 0.1rem 0.3rem; border-radius: 2px; }
           .project-links { margin-top: 0.25rem; margin-bottom: 0.25rem; }
-          .project-links a { color: #06b6d4; text-decoration: none; margin-right: 0.6rem; }
+          .project-links a { color: #249E94; text-decoration: none; margin-right: 0.6rem; }
           .project-dates { color: #6b7280; margin-top: 0.25rem; margin-bottom: 0.25rem; font-style: italic; }
           .achievement-date { color: #6b7280; font-style: italic; margin-top: 0.25rem; margin-bottom: 0.25rem; }
           .achievement-issuer { color: #6b7280; margin-top: 0.125rem; margin-bottom: 0.25rem; }
           .cert-meta { display: flex; gap: 0.6rem; color: #6b7280; margin-bottom: 0.25rem; }
           .cert-expiry, .cert-id { color: #6b7280; margin-bottom: 0.25rem; }
-          .cert-link a { color: #06b6d4; text-decoration: none; }
+          .cert-link a { color: #249E94; text-decoration: none; }
           .language-item { display: flex; justify-content: space-between; margin-bottom: 0.25rem; }
           .language-name { color: #1f2937; }
           .language-level { color: #6b7280; text-transform: capitalize; }
@@ -828,7 +832,7 @@ module.exports = [
           /* Additional unified classes for consistent styling */
           .institution, .location, .company, .issuer, .gpa, .dates, .job-dates, .edu-dates, .project-dates, .achievement-date, .cert-dates, .cert-expiry, .cert-id, .achievement-issuer, .cert-issuer { color: #6b7280; }
           .language-name, .skill-category-title, .job-title, .edu-degree, .project-name, .achievement-title, .cert-name, .custom-field-title { font-weight: 600; color: #1f2937; }
-          .project-links a, .cert-link a, .contact-item a { color: #06b6d4; text-decoration: none; }
+          .project-links a, .cert-link a, .contact-item a { color: #249E94; text-decoration: none; }
           .project-links a:hover, .cert-link a:hover, .contact-item a:hover { text-decoration: underline; }`
     },
     creator: null,
@@ -1002,17 +1006,18 @@ module.exports = [
               
               {{#if certifications}}
               <section class="certifications secondaryFont">
-                <h3 class="primaryFont">Professional Certifications</h3>
+                <h3 class="primaryFont">Certifications</h3>
                 {{#each certifications}}
                 <div class="cert-item">
                   <strong class="cert-name secondaryFont">{{name}}</strong>
                   <div class="cert-meta">
                     <span class="issuer secondaryFont">{{issuer}}</span>
-                    {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}</span>{{/if}}
+                    {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}
+                  {{#if expiryDate}}<span class="cert-expiry secondaryFont"> -  {{formatDate expiryDate}}</span>{{/if}}
+                  </span>{{/if}}
                   </div>
-                  {{#if expiryDate}}<div class="cert-expiry secondaryFont">Expires: {{formatDate expiryDate}}</div>{{/if}}
-                  {{#if credentialId}}<div class="cert-id secondaryFont">ID: {{credentialId}}</div>{{/if}}
-                  {{#if url}}<div class="cert-link secondaryFont"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}
+                  {{#if credentialId}}<div class="cert-id secondaryFont">Credential ID: {{credentialId}}</div>{{/if}}
+                  {{#if url}}<div class="cert-link secondaryFont">Credential URL: <a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
                 </div>
                 {{/each}}
               </section>
@@ -1329,14 +1334,15 @@ module.exports = [
               <h2 class="primaryFont">Professional Certifications</h2>
               {{#each certifications}}
               <div class="cert-item">
-                <div class="cert-name secondaryFont">{{name}}</div>
                 <div class="cert-meta">
+                  <strong class="cert-name secondaryFont">{{name}}</strong>
                   <span class="issuer secondaryFont">{{issuer}}</span>
-                  {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}</span>{{/if}}
+                  {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}
+                  {{#if expiryDate}}<span class="cert-expiry secondaryFont"> -  {{formatDate expiryDate}}</span>{{/if}}
+                  </span>{{/if}}
                 </div>
-                {{#if expiryDate}}<div class="cert-expiry secondaryFont">Expires: {{formatDate expiryDate}}</div>{{/if}}
-                {{#if credentialId}}<div class="cert-id secondaryFont">ID: {{credentialId}}</div>{{/if}}
-                {{#if url}}<div class="cert-link secondaryFont"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}
+                {{#if credentialId}}<div class="cert-id secondaryFont">CredentialID: {{credentialId}}</div>{{/if}}
+                {{#if url}}<div class="cert-link secondaryFont">Credential URL: <a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
               </div>
               {{/each}}
             </section>
@@ -1381,7 +1387,7 @@ module.exports = [
           </article>`,
       css: `.resume.elegant-minimal { font-family: 'Arial', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #111827; line-height: 1.4; }
           .header { text-align: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb; }
-          .name { font-weight: 600; color: #374151; margin-bottom: 8px; }
+          .name { font-weight: 600; color: #374151; margin-bottom: 8px;}
           .contact-info { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; color: #9ca3af; }
           .contact-item { color: #111827; }
           .contact-item a { color: #10b981; text-decoration: none; }
@@ -1468,7 +1474,7 @@ module.exports = [
         primary: '#2563eb',
         secondary: '#93c5fd',
         accent: '#2563eb',
-        text: '#1f2937',
+        text: '#000000',
         background: '#ffffff'
       },
       fonts: {
@@ -1602,14 +1608,16 @@ module.exports = [
               <h2 class="primaryFont">Professional Certifications</h2>
               {{#each certifications}}
               <div class="cert-item">
-                <div class="cert-name secondaryFont">{{name}}</div>
-                <div class="cert-meta">
+                <span class="cert-name secondaryFont">{{name}}</span>
+                <span class="cert-meta">
                   <span class="issuer secondaryFont">{{issuer}}</span>
-                  {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}</span>{{/if}}
-                </div>
-                {{#if expiryDate}}<div class="cert-expiry secondaryFont">Expires: {{formatDate expiryDate}}</div>{{/if}}
-                {{#if credentialId}}<div class="cert-id secondaryFont">ID: {{credentialId}}</div>{{/if}}
-                {{#if url}}<div class="cert-link secondaryFont"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}
+                  {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}
+                  
+                {{#if expiryDate}}<span class="cert-expiry secondaryFont"> - {{formatDate expiryDate}}</span>{{/if}}
+                </span>{{/if}}
+                </span>
+                {{#if credentialId}}<div class="cert-id secondaryFont">Credential ID: {{credentialId}}</div>{{/if}}
+                {{#if url}}<div class="cert-link secondaryFont">Credential URL: <a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
               </div>
               {{/each}}
             </section>
@@ -1885,13 +1893,14 @@ module.exports = [
               {{#each certifications}}
               <div class="cert-item">
                 <strong class="cert-name secondaryFont">{{name}}</strong>
-                <div class="cert-meta">
+                <span class="cert-meta">
                   <span class="issuer secondaryFont">{{issuer}}</span>
-                  {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}</span>{{/if}}
-                </div>
-                {{#if expiryDate}}<div class="cert-expiry secondaryFont">Expires: {{formatDate expiryDate}}</div>{{/if}}
-                {{#if credentialId}}<div class="cert-id secondaryFont">ID: {{credentialId}}</div>{{/if}}
-                {{#if url}}<div class="cert-link secondaryFont"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}
+                  {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}
+                  
+                {{#if expiryDate}}<span class="cert-expiry secondaryFont">Expires: {{formatDate expiryDate}}</span>{{/if}}</span>{{/if}}
+                </span>
+                {{#if credentialId}}<div class="cert-id secondaryFont">Credential ID: {{credentialId}}</div>{{/if}}
+                {{#if url}}<div class="cert-link secondaryFont">Credential URL: <a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
               </div>
               {{/each}}
             </section>
@@ -1998,11 +2007,7 @@ module.exports = [
           }
           
           section { 
-            margin-bottom: 20px; 
-            background: #ffffff; 
-            border-radius: 8px; 
-            padding: 16px; 
-            border: 1px solid #f1f5f9; 
+            margin-bottom: 20px;
           }
           
           h2 { 

@@ -94,7 +94,7 @@ module.exports = [
             <div class="experience-item" itemscope itemtype="http://schema.org/JobPosting">
                 <div class="item-header">
                 <div class="item-title">
-                    <h3 class="primaryFont" itemprop="title">{{jobTitle}}</h3>
+                    <strong class="primaryFont" itemprop="title">{{jobTitle}}</strong>
                     <span class="company secondaryFont" itemprop="hiringOrganization">{{company}}</span>
                     {{#if location}}<span class="location secondaryFont" itemprop="jobLocation"> • {{location}}</span>{{/if}}
                 </div>
@@ -121,7 +121,7 @@ module.exports = [
             <div class="project-item">
                 <div class="item-header">
                 <div class="item-title">
-                    <h3 class="primaryFont">{{name}}</h3>
+                    <strong class="primaryFont">{{name}}</strong>
                     {{#if startDate}}<span class="project-dates secondaryFont">{{formatDate startDate}} - {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</span>{{/if}}
                 </div>
                 </div>
@@ -145,7 +145,7 @@ module.exports = [
             <div class="education-item" itemscope itemtype="http://schema.org/EducationalOccupationalCredential">
                 <div class="item-header">
                 <div class="item-title">
-                    <h3 class="primaryFont" itemprop="credentialCategory">{{degree}}</h3>
+                    <strong class="primaryFont" itemprop="credentialCategory">{{degree}}</strong>
                     <span class="institution secondaryFont" itemprop="recognizedBy">{{institution}}</span>
                     {{#if location}}<span class="location secondaryFont"> • {{location}}</span>{{/if}}
                 </div>
@@ -182,14 +182,14 @@ module.exports = [
             <div class="cert-item">
                 <div class="item-header">
                 <div class="item-title">
-                    <h3 class="primaryFont">{{name}}</h3>
-                    <span class="cert-issuer secondaryFont">{{issuer}}</span>
+                    <strong class="primaryFont">{{name}}</strong>
+                    <span class="cert-issuer secondaryFont"> - {{issuer}}</span>
                 </div>
-                {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}</span>{{/if}}
+                {{#if date}}<span class="cert-dates secondaryFont">({{formatDate date}}
+                {{#if expiryDate}}<span class="cert-expiry secondaryFont"> - {{formatDate expiryDate}}</span>{{/if}})</span>{{/if}}
                 </div>
-                {{#if expiryDate}}<div class="cert-expiry secondaryFont">Expires: {{formatDate expiryDate}}</div>{{/if}}
-                {{#if credentialId}}<div class="cert-id secondaryFont">ID: {{credentialId}}</div>{{/if}}
-                {{#if url}}<div class="cert-link secondaryFont"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}
+                {{#if credentialId}}<div class="cert-id secondaryFont">Credential ID: {{credentialId}}</div>{{/if}}
+                {{#if url}}<div class="cert-link secondaryFont">Credential URL: <a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
             </div>
             {{/each}}
             </section>
@@ -233,7 +233,7 @@ module.exports = [
         h2 { font-weight: 600; color: #1f2937; margin-bottom: 4px; padding-bottom: 2px; border-bottom: 1px solid #e5e7eb; }
         .experience-item, .education-item, .project-item, .achievement-item, .cert-item { margin-bottom: 2px; padding-bottom: 2px; }
         .item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px; }
-        .item-title h3, .achievement-item .achievement-title, .custom-field h3 { font-weight: 600; color: #1f2937; margin-bottom: 2px; }
+        .item-title, .achievement-item .achievement-title, .custom-field h3 { font-weight: 600; color: #1f2937; margin-bottom: 2px; }
         .company, .institution, .location, .cert-issuer { color: #6b7280; }
         .dates { color: #9ca3af; font-weight: 500; }
         .summary, .job-description, .edu-description, .project-description, .achievement-description, .custom-content { margin: 2px 0; color: #4b5563; line-height: 1; }
@@ -456,20 +456,21 @@ module.exports = [
                 {{#if certifications}}
                 <section class="certifications">
                 <h3 class="section-title primaryFont">CERTIFICATIONS</h3>
-                <ul class="secondaryFont">
+                <div class="secondaryFont">
                 {{#each certifications}}
                 <div class="cert-item">
-                    <div class="cert-name secondaryFont"><strong>{{name}}</strong></div>
-                    <div class="cert-meta">
+                    <span class="cert-name secondaryFont"><strong>{{name}}</strong></span>
+                    <span class="cert-meta">
                       <span class="issuer secondaryFont">{{issuer}}</span>
-                      {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}</span>{{/if}}
-                    </div>
-                    {{#if expiryDate}}<div class="cert-expiry secondaryFont">Expires: {{formatDate expiryDate}}</div>{{/if}}
-                    {{#if credentialId}}<div class="cert-id secondaryFont">ID: {{credentialId}}</div>{{/if}}
-                    {{#if url}}<div class="cert-link secondaryFont"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}
+                      {{#if date}}<span class="cert-dates secondaryFont">({{formatDate date}}</span>
+                    {{#if expiryDate}}<span class="cert-expiry secondaryFont"> - {{formatDate expiryDate}}</span>{{/if}})
+                    {{/if}}
+                    </span>
+                    {{#if credentialId}}<div class="cert-id secondaryFont">Certification ID: {{credentialId}}</div>{{/if}}
+                    {{#if url}}<div class="cert-link secondaryFont">Certification Url: <a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
                   </div>
                 {{/each}}
-                </ul>
+                </div>
                 </section>
                 {{/if}}
 
