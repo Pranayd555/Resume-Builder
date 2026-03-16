@@ -33,6 +33,7 @@ const HomePage = () => {
   const { isAuthenticated, user } = useAuth();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   useRouteScrollToTop();
+  const currentYear = new Date().getFullYear();
 
   const { scrollY } = useScroll();
   const scale = useTransform(scrollY, [0, 300], [1, 0.8]);
@@ -767,7 +768,7 @@ const HomePage = () => {
             </Slide>
           </div>
           <div className="border-t border-white/20 dark:border-orange-200/30 mt-8 pt-8 text-center text-gray-600 dark:text-gray-400">
-            <p>&copy; 2025 Presmistique - AI Resume Builder. All rights reserved.</p>
+            <p>&copy; {currentYear} Presmistique - AI Resume Builder. All rights reserved.</p>
           </div>
         </div>
       </footer>
