@@ -41,7 +41,13 @@ app.set('trust proxy', 1);
 
 // Configure express-session middleware
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'supersecretkey', // Use a strong secret from environment variables
+  secret: (() => {
+    const secret = process.env.SESSION_SECRET;
+    if (!secret && process.env.NODE_ENV === 'production') {
+      throw new Error('SESSION_SECRET must be set in production. Add it to your .env file.');
+    }
+    return secret || 'dev-session-secret-DO-NOT-USE-IN-PRODUCTION';
+  })(),
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
@@ -127,11 +133,24 @@ const corsOptions = {
     ];
 
     // Allow mobile apps (no origin) and allowed origins
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+    if (!origin) {
+      return callback(null, true); // Mobile apps may not send origin
     }
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    // Support wildcard patterns (e.g. https://*.pages.dev)
+    const isAllowed = allowedOrigins.some(pattern => {
+      if (pattern.includes('*')) {
+        const escaped = pattern
+          .replace(/\*/g, '__W__')
+          .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+          .replace(/__W__/g, '[^/]+');
+        return new RegExp('^' + escaped + '$').test(origin);
+      }
+      return false;
+    });
+    callback(isAllowed ? null : new Error('Not allowed by CORS'), isAllowed);
   },
   credentials: true,
   optionsSuccessStatus: 200,

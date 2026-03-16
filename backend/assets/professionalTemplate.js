@@ -216,13 +216,14 @@ module.exports = [
                 {{#each certifications}}
                 <div class="cert-item">
                     <strong class="primaryFont">{{name}}</strong>
-                    <div class="cert-details secondaryFont">
+                    <span class="cert-details secondaryFont">
                     <span class="issuer secondaryFont">{{issuer}}</span>
-                    {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}</span>{{/if}}
-                    </div>
-                    {{#if expiryDate}}<div class="cert-expiry secondaryFont">Expires: {{formatDate expiryDate}}</div>{{/if}}
-                    {{#if credentialId}}<div class="cert-id secondaryFont">ID: {{credentialId}}</div>{{/if}}
-                    {{#if url}}<div class="cert-link secondaryFont"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}
+                    {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}
+                    {{#if expiryDate}}<span class="cert-expiry secondaryFont"> - {{formatDate expiryDate}}</span>{{/if}}
+                    </span>{{/if}}
+                    </span>
+                    {{#if credentialId}}<div class="cert-id secondaryFont">Credential ID: {{credentialId}}</div>{{/if}}
+                    {{#if url}}<div class="cert-link secondaryFont">Credential URL: <a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
                 </div>
                 {{/each}}
                 </section>
@@ -339,7 +340,7 @@ module.exports = [
         .cert-item h3 { font-weight: 600; color: #1f2937; margin-bottom: 2px; }
         .cert-details { display: flex; justify-content: space-between; color: #6b7280; }
         .cert-expiry, .cert-id { color: #6b7280; margin: 1px 0; }
-        .cert-link a { color: #1e40af; text-decoration: none; }
+        .cert-link a { color: #1e40af; text-decoration: none; word-break: break-all; }
         .cert-link a:hover { text-decoration: underline; }
         
         .language-item { display: flex; justify-content: space-between; margin-bottom: 2px; }
@@ -349,7 +350,7 @@ module.exports = [
         /* Unified classes for consistent styling */
         .institution, .location, .company, .issuer, .gpa, .dates, .job-dates, .edu-dates, .project-dates, .achievement-date, .cert-dates, .cert-expiry, .cert-id, .achievement-issuer, .cert-issuer { color: #6b7280; }
         .language-name, .skill-category-title, .job-title, .edu-degree, .project-name, .achievement-title, .cert-name, .custom-field-title { font-weight: bold; color: #1f2937; }
-        .project-links a, .cert-link a, .contact-item a { color: #1e40af; text-decoration: none; }
+        .project-links a, .cert-link a { color: #1e40af; text-decoration: none; }
         .project-links a:hover, .cert-link a:hover, .contact-item a:hover { text-decoration: underline; }`
     },
     creator: null,
@@ -391,11 +392,11 @@ module.exports = [
       fonts: {
         primary: 'Calibri',
         secondary: 'Calibri',
-        sizes: { heading: 24, subheading: 20, body: 12, small: 10 }
+        sizes: { heading: 18, subheading: 20, body: 12, small: 10 }
       },
       template: {
         headerLevel: 'h3',
-        headerFontSize: 24,
+        headerFontSize: 18,
         fontSize: 12,
         lineSpacing: 1.3,
         sectionSpacing: 1,
@@ -405,13 +406,13 @@ module.exports = [
     availability: { tier: 'free', isPublic: true, isActive: true },
     templateCode: {
       html: `<div class="resume professional-executive">
-            <header class="executive-header">
+            <header class="header">
               <h1 class="name primaryFont">{{personalInfo.fullName}}</h1>
               {{#unless isFresher}}
   <h2 class="primaryFont" itemprop="title">{{title}}</h2>
 {{/unless}}
 
-              <div class="contact-bar secondaryFont">
+              <div class="contacts secondaryFont">
                 {{#if personalInfo.email}}
                   <span class="contact-item secondaryFont">{{personalInfo.email}}</span>
                 {{/if}}
@@ -440,14 +441,14 @@ module.exports = [
             </header>
 
             {{#if summary}}
-              <section class="executive-summary">
+              <section class="summary">
                 <h2 class="primaryFont">EXECUTIVE SUMMARY</h2>
                 <div class="secondaryFont">{{{summary}}}</div>
               </section>
             {{/if}}
 
             {{#if workExperience}}
-              <section class="leadership-experience">
+              <section class="experience">
                 <h2 class="primaryFont">LEADERSHIP EXPERIENCE</h2>
                 {{#each workExperience}}
                   <div class="executive-role">
@@ -482,7 +483,7 @@ module.exports = [
             {{/if}}
 
             {{#if projects}}
-              <section class="executive-projects">
+              <section class="projects">
                 <h2 class="primaryFont">KEY INITIATIVES & PROJECTS</h2>
                 {{#each projects}}
                   <div class="project-item">
@@ -514,7 +515,7 @@ module.exports = [
             {{/if}}
 
             {{#if education}}
-              <section class="education-section">
+              <section class="education">
                 <h2 class="primaryFont">EDUCATION</h2>
                 {{#each education}}
                   <div class="education-item">
@@ -540,7 +541,7 @@ module.exports = [
             {{/if}}
 
             {{#if skills}}
-              <section class="executive-skills">
+              <section class="skills">
                 <h2 class="primaryFont">CORE COMPETENCIES</h2>
                 <div class="competencies-grid">
                   {{#each skills}}
@@ -557,7 +558,7 @@ module.exports = [
               </section>
             {{/if}}
 
-            <div class="executive-bottom">
+            <div class="achievements">
               {{#if achievements}}
                 <section class="achievements-section">
                   <h2 class="primaryFont">ACHIEVEMENTS & AWARDS</h2>
@@ -581,25 +582,27 @@ module.exports = [
               {{/if}}
               
               {{#if certifications}}
-                <section class="certifications-section">
+                <section class="certifications">
                   <h2 class="primaryFont">PROFESSIONAL CERTIFICATIONS</h2>
                   <div class="certifications-grid">
                     {{#each certifications}}
                       <div class="certification-item">
                         <strong class="cert-name secondaryFont">{{name}}</strong>
-                        <div class="issuer secondaryFont">{{issuer}}</div>
+                        </br>
+                        <span class="issuer secondaryFont">{{issuer}}</span>
                         {{#if date}}
-                          <div class="cert-dates secondaryFont">{{formatDate date}}</div>
-                        {{/if}}
+                          <span class="cert-dates secondaryFont">{{formatDate date}}</span>
+                          
                         {{#if expiryDate}}
-                          <div class="cert-expiry secondaryFont">Expires: {{formatDate expiryDate}}</div>
+                          <span class="cert-expiry secondaryFont"> - {{formatDate expiryDate}}</span>
+                        {{/if}}
                         {{/if}}
                         {{#if credentialId}}
-                          <div class="cert-id secondaryFont">ID: {{credentialId}}</div>
+                          <div class="cert-id secondaryFont">Credential ID: {{credentialId}}</div>
                         {{/if}}
                         {{#if url}}
                           <div class="cert-link secondaryFont">
-                            <a href="{{url}}" target="_blank">Verify</a>
+                           Credential URL: <a href="{{url}}" target="_blank">{{url}}</a>
                           </div>
                         {{/if}}
                       </div>
@@ -610,7 +613,7 @@ module.exports = [
             </div>
 
             {{#if languages}}
-              <section class="languages-section">
+              <section class="languages">
                 <h2 class="primaryFont">LANGUAGES</h2>
                 <div class="languages-grid">
                   {{#each languages}}
@@ -624,7 +627,7 @@ module.exports = [
             {{/if}}
 
             {{#if customFields}}
-              <section class="custom-fields-section">
+              <section class="custom-fields">
                 {{#each customFields}}
                   <div class="custom-field">
                     <h2 class="custom-field-title secondaryFont">{{title}}</h2>
@@ -635,21 +638,18 @@ module.exports = [
             {{/if}}
           </div>`,
       css: `.resume.professional-executive { font-family: 'Calibri', sans-serif; max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.35in; background: white; color: #1f2937; line-height: 1; }
-          /* Heading size adjustments */
-          h1 { font-size: 24px; margin: 0; }
-          h2 { font-size: 18px; margin: 0; }
-          h3 { font-size: 16px; margin: 0; }
           
-          .executive-header { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); color: white; padding: 1.5rem; margin: 0 0 6px 0; text-align: center; }
+          
+          .header { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); color: white; padding: 1.5rem; margin: 0 0 12px 0; text-align: center; }
            .name { font-weight: 700; margin-bottom: 6px; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); letter-spacing: 0.5px; }
-           .contact-bar { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; align-items: center; }
+           .contacts { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; align-items: center; }
            .contact-item { padding: 0.3rem 0.6rem; background: rgba(255,255,255,0.2); border-radius: 12px; backdrop-filter: blur(10px); white-space: nowrap; min-width: fit-content; max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
           .contact-item a { color: white !important; text-decoration: none; }
-          section { margin-bottom: 6px; }
-          section h2 { font-weight: 700; color: #1e3a8a; text-transform: uppercase; margin-bottom: 2px; padding-bottom: 4px; border-bottom: 2px solid #1e3a8a; letter-spacing: 0.5px; }
-          .executive-summary { background: #f8fafc; padding: 1.25rem; border-radius: 6px; border-left: 3px solid #1e3a8a; }
-          .executive-summary p, .executive-summary div { line-height: 1.3; color: #374151; margin: 0; }
-          .executive-role { margin-bottom: 2px; padding: 1.25rem; background: #f9fafb; border-radius: 6px; border-top: 2px solid #dc2626; }
+
+          section h2 { font-weight: 700; color: #1e3a8a; text-transform: uppercase; padding-top:4px; margin-bottom: 2px; padding-bottom: 4px; border-bottom: 2px solid #1e3a8a; letter-spacing: 0.5px; }
+          .summary { background: #f8fafc; padding: 1.25rem; border-radius: 6px; border-left: 3px solid #1e3a8a; }
+          .summary p, .summary div { line-height: 1.3; color: #374151; margin: 0; }
+          .executive-role { margin-bottom: 2px; padding: 1.25rem; background: #f9fafb; border-radius: 6px; border-top: 2px solid #4E71FF; }
           .role-header { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem; margin-bottom: 2px; }
           .role-title { font-weight: 600; color: #1f2937; }
           .role-company { color: #1e3a8a; font-weight: 500; }
@@ -873,14 +873,14 @@ module.exports = [
                 <h3 class="primaryFont">Professional Certifications</h3>
                 {{#each certifications}}
                 <div class="cert-item">
-                  <div class="cert-name secondaryFont">{{name}}</div>
-                   <div class="cert-meta">
+                  <span class="cert-name secondaryFont">{{name}}</span>
+                   <span class="cert-meta">
                      <span class="issuer secondaryFont">{{issuer}}</span>
-                     {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}</span>{{/if}}
-                   </div>
-                   {{#if expiryDate}}<div class="cert-expiry secondaryFont">Expires: {{formatDate expiryDate}}</div>{{/if}}
-                   {{#if credentialId}}<div class="cert-id secondaryFont">ID: {{credentialId}}</div>{{/if}}
-                   {{#if url}}<div class="cert-link secondaryFont"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}
+                     {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}
+                   {{#if expiryDate}}<span class="cert-expiry secondaryFont"> - {{formatDate expiryDate}}</span>{{/if}}</span>{{/if}}
+                   </span>
+                   {{#if credentialId}}<div class="cert-id secondaryFont">Credential ID: {{credentialId}}</div>{{/if}}
+                   {{#if url}}<div class="cert-link secondaryFont">Credential URL:<a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
                 </div>
                 {{/each}}
               </section>
@@ -963,6 +963,7 @@ module.exports = [
           .cert-name { font-weight: 600; color: #1e293b; margin-bottom: 2px; }
           .cert-meta { color: #475569; margin-bottom: 2px; }
           .cert-expiry, .cert-id { color: #64748b; margin: 1px 0; }
+          .cert-link { word-break: break-all}
           .cert-link a { color: #64748b; text-decoration: none; }
           .cert-link a:hover { text-decoration: underline; }
           .achievement-title { font-weight: 600; color: #1e293b; margin-bottom: 2px; }
@@ -1040,7 +1041,7 @@ module.exports = [
     },
     availability: { tier: 'free', isPublic: true, isActive: true },
     templateCode: {
-      html: `<article class="resume professional-executive-pro" itemscope itemtype="http://schema.org/Person">
+      html: `<div class="resume professional-executive-pro">
             <div class="main-content">
               <header class="executive-header">
                 <div class="header-content">
@@ -1050,36 +1051,30 @@ module.exports = [
 {{/unless}}
                   <div class="contact-grid secondaryFont">
                     <div class="contact-item" itemprop="email">
-                      <span class="contact-icon">📧</span>
                       {{personalInfo.email}}
                     </div>
                     {{#if personalInfo.phone}}
                     <div class="contact-item" itemprop="telephone">
-                      <span class="contact-icon">📱</span>
                       {{personalInfo.phone}}
                     </div>
                     {{/if}}
                     {{#if personalInfo.address}}
                     <div class="contact-item" itemprop="address">
-                      <span class="contact-icon">📍</span>
                       {{personalInfo.address}}
                     </div>
                     {{/if}}
                     {{#if personalInfo.website}}
                     <div class="contact-item">
-                      <span class="contact-icon">🌐</span>
                       <a href="{{personalInfo.website}}" target="_blank" itemprop="url">{{personalInfo.website}}</a>
                     </div>
                     {{/if}}
                     {{#if personalInfo.linkedin}}
                     <div class="contact-item">
-                      <span class="contact-icon">💼</span>
                       <a href="{{personalInfo.linkedin}}" target="_blank">{{personalInfo.linkedin}}</a>
                     </div>
                     {{/if}}
                     {{#if personalInfo.github}}
                     <div class="contact-item">
-                      <span class="contact-icon">💻</span>
                       <a href="{{personalInfo.github}}" target="_blank">{{personalInfo.github}}</a>
                     </div>
                     {{/if}}
@@ -1095,10 +1090,10 @@ module.exports = [
               {{/if}}
               
               {{#if workExperience}}
-              <section class="executive-experience secondaryFont">
+              <section class="experience secondaryFont">
                 <h2 class="section-title primaryFont">Professional Experience</h2>
                 {{#each workExperience}}
-                <div class="experience-item" itemscope itemtype="http://schema.org/JobPosting">
+                <div class="experience-item">
                   <div class="experience-header">
                     <div class="job-info">
                       <div class="job-title primaryFont" itemprop="title">{{jobTitle}}</div>
@@ -1131,7 +1126,9 @@ module.exports = [
                 {{#each projects}}
                 <div class="project-item">
                   <div class="project-header">
-                    <div class="project-name primaryFont">{{name}}</div>
+                    <div class="project-info">
+                      <div class="project-name primaryFont">{{name}}</div>
+                    </div>
                     <div class="project-links">
                       {{#if url}}<a href="{{url}}" target="_blank" class="project-link">{{url}}</a>{{/if}}
                       {{#if githubUrl}}<a href="{{githubUrl}}" target="_blank" class="project-link">{{githubUrl}}</a>{{/if}}
@@ -1160,7 +1157,7 @@ module.exports = [
               <section class="education secondaryFont">
                 <h2 class="sidebar-title primaryFont">Education</h2>
                 {{#each education}}
-                <div class="edu-item" itemscope itemtype="http://schema.org/EducationalOccupationalCredential">
+                <div class="edu-item">
                   <div class="edu-degree primaryFont" itemprop="credentialCategory">{{degree}}</div>
                   <div class="edu-meta secondaryFont">
                     <span class="institution" itemprop="recognizedBy">{{institution}}</span>
@@ -1212,13 +1209,13 @@ module.exports = [
                 <h2 class="sidebar-title primaryFont">Certifications</h2>
                 {{#each certifications}}
                 <div class="cert-item">
-                  <div class="cert-name primaryFont">{{name}}</div>
-                  <div class="cert-meta secondaryFont">
+                  <span class="cert-name primaryFont">{{name}}</span>
+                  <span class="cert-meta secondaryFont">
                     <span class="issuer">{{issuer}}</span>
                     {{#if date}}<span class="cert-dates">{{formatDate date}}</span>{{/if}}
-                  </div>
-                  {{#if credentialId}}<div class="cert-id secondaryFont">ID: {{credentialId}}</div>{{/if}}
-                  {{#if url}}<a href="{{url}}" target="_blank" class="cert-link secondaryFont">Verify</a>{{/if}}
+                  </span>
+                  {{#if credentialId}}<div class="cert-id secondaryFont">Credential ID: {{credentialId}}</div>{{/if}}
+                  {{#if url}}<div class="cert-link">Credential Url: <a href="{{url}}" target="_blank" secondaryFont">{{url}}</a>{{/if}}
                 </div>
                 {{/each}}
               </section>
@@ -1247,7 +1244,7 @@ module.exports = [
               </section>
               {{/if}}
             </div>
-          </article>`,
+          </div>`,
       css: `          .resume.professional-executive-pro {
             font-family: 'Georgia', serif;
             max-width: 8.5in;
@@ -1262,7 +1259,7 @@ module.exports = [
           }
           
           @media print {
-            .resume.professional-executive {
+            .resume.professional-executive-pro {
               max-width: none;
               margin: 0;
               padding: 0.5in;
@@ -1270,7 +1267,7 @@ module.exports = [
           }
           
           @media (max-width: 768px) {
-            .resume.professional-executive {
+            .resume.professional-executive-pro {
               grid-template-columns: 1fr;
               gap: 16px;
               padding: 16px;
@@ -1313,11 +1310,7 @@ module.exports = [
             gap: 8px;
             color: #64748b;
           }
-          
-          .contact-icon {
-            opacity: 0.8;
-          }
-          
+                    
           .contact-item a {
             color: #64748b;
             text-decoration: none;
@@ -1366,6 +1359,13 @@ module.exports = [
             justify-content: space-between;
             align-items: flex-start;
             margin-bottom: 2px;
+            flex-wrap: nowrap;
+            gap: 12px;
+          }
+
+          .job-info, .project-info {
+            flex: 1;
+            min-width: 0;
           }
           
           .job-title, .project-name, .edu-degree, .achievement-title, .cert-name {
@@ -1387,18 +1387,10 @@ module.exports = [
             color: #64748b;
             font-weight: 500;
             white-space: nowrap;
+            flex-shrink: 0;
           }
           
-          .current-badge {
-            background: #1e3a8a;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 9px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-          }
+          
           
           .job-description, .project-description, .edu-description, .achievement-description {
             color: #475569;
@@ -1434,6 +1426,14 @@ module.exports = [
           .project-link:hover, .cert-link:hover {
             color: #1e40af;
           }
+
+          .cert-link {
+          word-break: break-all;
+          }
+           .cert-link a {
+            color: #1e40af;
+            text-decoration: none;
+            }
           
           .technologies {
             display: flex;
@@ -1561,13 +1561,6 @@ module.exports = [
               border: 1px solid #e5e7eb;
             }
           }
-          
-          /* Print optimizations */
-          @media print {
-            .experience-item, .project-item, .edu-item {
-              break-inside: avoid;
-              page-break-inside: avoid;
-            }
           }`
     },
     creator: null,

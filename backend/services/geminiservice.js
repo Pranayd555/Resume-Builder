@@ -2,7 +2,10 @@
 const { GoogleGenAI } = require("@google/genai");
 require('dotenv').config();
 
-const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
+// Initialize Google Gen AI client using options object (required by @google/genai v1.16+)
+const genAI = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+});
 
 async function generateResumeSuggestion(prompt) {
   // const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });

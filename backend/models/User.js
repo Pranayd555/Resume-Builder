@@ -132,7 +132,7 @@ const userSchema = new mongoose.Schema({
   // Token System
   tokens: {
     type: Number,
-    default: 20,
+    default: 0,
     min: 0
   },
   bonusTokens: {

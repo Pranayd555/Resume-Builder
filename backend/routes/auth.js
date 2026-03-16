@@ -6,6 +6,7 @@ const validator = require('validator');
 const rateLimit = require('express-rate-limit');
 
 const User = require('../models/User');
+const Subscription = require('../models/Subscription');
 const { protect } = require('../middleware/auth');
 const logger = require('../utils/logger');
 const emailService = require('../utils/emailService');
