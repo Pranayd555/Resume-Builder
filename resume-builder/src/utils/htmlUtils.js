@@ -1,4 +1,5 @@
 // Utility functions for handling HTML content from Quill editor
+import DOMPurify from 'dompurify';
 
 /**
  * Converts plain text to HTML if it's not already HTML
@@ -53,10 +54,16 @@ export const stripHtmlTags = (htmlContent) => {
 };
 
 /**
- * Safely renders HTML content
+ * Safely renders HTML content with XSS sanitization.
+ * Use for user-generated content (e.g. resume text from CKEditor).
  * @param {string} htmlContent - The HTML content to render
  * @returns {object} - React dangerouslySetInnerHTML object
  */
 export const safeHtml = (htmlContent) => {
-  return { __html: htmlContent || '' };
+  if (!htmlContent) return { __html: '' };
+  const sanitized = DOMPurify.sanitize(htmlContent, {
+    ALLOWED_TAGS: ['p', 'span', 'strong', 'b', 'em', 'i', 'u', 'ol', 'ul', 'li', 'br', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'section', 'article', 'table', 'tr', 'td', 'th', 'tbody', 'thead', 'tfoot', 'img'],
+    ALLOWED_ATTR: ['style', 'class', 'src', 'alt', 'width', 'height', 'data-list-item-id']
+  });
+  return { __html: sanitized };
 };

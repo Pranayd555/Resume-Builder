@@ -2,12 +2,15 @@
 node_modules/
 */node_modules/
 
-# Environment variables
+# Environment variables - NEVER commit these
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+backend/.env
+resume-builder/.env
+# Keep .env.example and env.template - they are safe templates
 
 # Logs
 logs/

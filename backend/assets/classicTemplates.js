@@ -685,14 +685,13 @@ module.exports = [
                   <h2 class="primaryFont">Professional Certifications</h2>
                   {{#each certifications}}
                   <div class="cert-item">
-                    <div class="cert-name secondaryFont">{{name}}</div>
-                    <div class="cert-meta">
+                    <span class="cert-name secondaryFont">{{name}}</span>
+                    <span class="cert-meta">
                       <span class="issuer secondaryFont">{{issuer}}</span>
-                      {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}</span>{{/if}}
-                    </div>
-                    {{#if expiryDate}}<div class="cert-expiry secondaryFont">Expires: {{formatDate expiryDate}}</div>{{/if}}
-                    {{#if credentialId}}<div class="cert-id secondaryFont">ID: {{credentialId}}</div>{{/if}}
-                    {{#if url}}<div class="cert-link secondaryFont"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}
+                      {{#if date}}<span class="cert-dates secondaryFont">({{formatDate date}} {{#if expiryDate}}<span class="cert-expiry secondaryFont">- {{formatDate expiryDate}}</span>{{/if}})</span>{{/if}}
+                    </span>
+                    {{#if credentialId}}<div class="cert-id secondaryFont">Credential ID: {{credentialId}}</div>{{/if}}
+                    {{#if url}}<div class="cert-link secondaryFont">Credential URL: <a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
                   </div>
                   {{/each}}
                 </section>
@@ -1157,10 +1156,11 @@ module.exports = [
                     <ul class="list">
                     {{#each certifications}}
                     <li class="secondaryFont"><span class="cert-name">{{name}}</span> {{#if issuer}}<span class="cert-issuer secondaryFont"> - {{issuer}}</span>{{/if}}
-                    {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}</span>{{/if}}
-                    {{#if expiryDate}}<div class="cert-expiry secondaryFont">Expires: {{formatDate expiryDate}}</div>{{/if}}
-                    {{#if credentialId}}<div class="cert-id secondaryFont">ID: {{credentialId}}</div>{{/if}}
-                    {{#if url}}<div class="cert-link secondaryFont"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}
+                    {{#if date}}<span class="cert-dates secondaryFont">({{formatDate date}}
+                    {{#if expiryDate}}<span class="cert-expiry secondaryFont"> - {{formatDate expiryDate}}</span>{{/if}}
+                    )</span>{{/if}}
+                    {{#if credentialId}}<div class="cert-id secondaryFont">Credential ID: {{credentialId}}</div>{{/if}}
+                    {{#if url}}<div class="cert-link secondaryFont">Credential URL: <a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
                     </li>
                     {{/each}}
                     </ul>

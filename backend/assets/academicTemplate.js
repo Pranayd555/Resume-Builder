@@ -168,11 +168,11 @@ module.exports = [
             {{#each certifications}}
             <div class="cert-entry">
                 <div class="cert-header">
-                <strong class="cert-name secondaryFont">{{name}}</strong>
+                <strong class="cert-name secondaryFont">{{name}} {{#if issuer}}- <span class="issuer">{{issuer}}</span>{{/if}}</strong>
+                
                  {{#if date}}<span class="cert-dates secondaryFont">{{formatDate date}}</span>{{/if}}
                  </div>
-                 {{#if issuer}}<div class="cert-issuer secondaryFont"><span class="issuer">{{issuer}}</span></div>{{/if}}
-                 {{#if url}}<div class="cert-link secondaryFont"><a href="{{url}}" target="_blank">Verify</a></div>{{/if}}
+                 {{#if url}}<div class="cert-link secondaryFont">Credential URL: <a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
             </div>
             {{/each}}
             </section>
