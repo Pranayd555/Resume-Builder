@@ -40,7 +40,8 @@ api.interceptors.response.use(
       // Check data.tokens (new structure with bonus tokens)
       else if (response.data.data?.tokens !== undefined) {
         tokenData = response.data.data.tokens;
-        tokenBalance = (response.data.data.tokens?.balance || 0) + (response.data.data.tokens?.bonus || 0);
+        // `balance` already represents the total usable tokens (purchased + bonus)
+        tokenBalance = response.data.data.tokens?.balance || 0;
       }
 
       if (tokenBalance !== null) {
@@ -753,7 +754,8 @@ export const apiHelpers = {
     apiHelpers.setTokenData(tokenData);
     // Update balance as well
     if (tokenData.balance !== undefined) {
-      const totalBalance = (tokenData.balance || 0) + (tokenData.bonus || 0);
+      // `balance` is already the total usable token balance
+      const totalBalance = tokenData.balance || 0;
       apiHelpers.updateTokenBalance(totalBalance);
     }
     // Dispatch custom event to notify other components
