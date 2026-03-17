@@ -137,12 +137,16 @@ Templates can be monitored for:
 ## Adding New Templates
 
 To add new templates:
-1. Create template definition in `scripts/seed-templates.js`
+1. Add/update template definitions under `backend/assets/` (see `backend/assets/newTemplates.js`)
 2. Define HTML structure with Handlebars variables
 3. Create corresponding CSS styles
 4. Set layout configuration and section ordering
 5. Configure availability and pricing tier
-6. Run seeding script to add to database
+6. Run the seeding script to add/update templates in the database:
+   ```bash
+   cd backend
+   npm run seed:all-templates
+   ```
 
 ## Template Variables
 
@@ -173,5 +177,4 @@ All templates must meet these standards:
 - **Data Completeness**: Must handle missing or incomplete data gracefully
 - **Accessibility**: Must meet basic accessibility requirements
 
-Last Updated: ${new Date().toLocaleDateString()}
-Total Templates: 13
+Last Updated: 2026-03-17

@@ -71,8 +71,9 @@ GOOGLE_CLIENT_SECRET=your-google-client-secret
 2. Get API keys from dashboard
 3. Add to `.env`:
 ```env
-razorpay_SECRET_KEY=sk_test_your-razorpay-secret-key
-razorpay_PUBLISHABLE_KEY=pk_test_your-publishable-key
+RAZORPAY_KEY_ID=rzp_test_your_key_id
+RAZORPAY_KEY_SECRET=your_key_secret
+RAZORPAY_WEBHOOK_SECRET=your_webhook_secret
 ```
 
 ### Cloudinary (for file uploads)

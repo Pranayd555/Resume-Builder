@@ -72,7 +72,7 @@ cp env.template .env
 ### 3. Seed Templates
 
 ```bash
-npm run seed:templates
+npm run seed:all-templates
 ```
 
 ### 4. Test Templates
@@ -401,14 +401,7 @@ GET /api/resumes/:id/export?format=pdf
 
 ## 📊 Template Statistics
 
-After seeding templates, you'll have:
-
-- **7 Total Templates**
-- **3 Free Templates** (accessible to all users)
-- **3 Pro Templates** (requires pro subscription)
-- **1 Enterprise Template** (requires enterprise subscription)
-- **6 Categories** (Modern, Classic, Creative, Minimalist, Professional, Academic)
-- **4 Layout Types** (Single-column, Two-column, Sidebar, Three-column)
+After seeding, templates are loaded from `backend/assets/` into MongoDB and are available via the templates API. The exact count may change as new templates are added to the assets list.
 
 ## 🎯 Best Practices
 
@@ -432,7 +425,7 @@ After seeding templates, you'll have:
 
 ## 🚀 Next Steps
 
-1. **Seed Templates**: Run `npm run seed:templates`
+1. **Seed Templates**: Run `npm run seed:all-templates`
 2. **Test Templates**: Run `npm run test:templates`
 3. **View Gallery**: Open `output/index.html` in your browser
 4. **Customize**: Modify templates or create new ones
