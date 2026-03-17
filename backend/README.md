@@ -16,13 +16,13 @@ A comprehensive Node.js/Express backend for the Resume Builder application, desi
 
 ## Tech Stack
 
-- **Runtime**: Node.js 16+
+- **Runtime**: Node.js 22 (see `backend/package.json` → `engines`)
 - **Framework**: Express.js
 - **Database**: MongoDB with Mongoose
 - **Authentication**: JWT, Passport.js (Google/LinkedIn OAuth)
-- **Payments**: razorpay
+- **Payments**: Razorpay
 - **File Storage**: Cloudinary
-- **Validation**: express-validator, Joi
+- **Validation**: express-validator
 - **Security**: Helmet, CORS, express-rate-limit
 - **Logging**: Winston
 - **Development**: Nodemon
@@ -65,10 +65,10 @@ GOOGLE_CLIENT_SECRET=your-google-client-secret
 LINKEDIN_CLIENT_ID=your-linkedin-client-id
 LINKEDIN_CLIENT_SECRET=your-linkedin-client-secret
 
-# razorpay Configuration (optional)
-razorpay_SECRET_KEY=sk_test_your-razorpay-secret-key
-razorpay_WEBHOOK_SECRET=whsec_your-webhook-secret
-razorpay_PUBLISHABLE_KEY=pk_test_your-publishable-key
+# Razorpay Configuration (optional)
+RAZORPAY_KEY_ID=rzp_test_your_key_id
+RAZORPAY_KEY_SECRET=your_key_secret
+RAZORPAY_WEBHOOK_SECRET=your_webhook_secret
 
 # File Upload Configuration (optional)
 CLOUDINARY_CLOUD_NAME=your-cloudinary-cloud-name
@@ -211,20 +211,13 @@ JWT_SECRET=your-production-jwt-secret-very-long-and-random
 
 ### Deployment Platforms
 
-#### Heroku
-1. Create Heroku app
-2. Set environment variables
-3. Deploy:
-```bash
-git add .
-git commit -m "Deploy to Heroku"
-git push heroku main
-```
+This repository is set up to deploy:
+- **Frontend** to Vercel
+- **Backend** to Render
 
-#### Railway
-1. Connect GitHub repository
-2. Set environment variables
-3. Deploy automatically
+See:
+- `CI_CD_SETUP.md` (GitHub Actions secrets + workflow behavior)
+- `RENDER_DEPLOYMENT.md` (zip-based Render deployment flow)
 
 #### AWS/Digital Ocean
 1. Set up server with Node.js
@@ -266,7 +259,7 @@ pm2 save
 1. Create razorpay account
 2. Get API keys from dashboard
 3. Set webhook endpoint: `/api/subscriptions/webhook`
-4. Configure `razorpay_SECRET_KEY` and `razorpay_WEBHOOK_SECRET`
+4. Configure `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, and `RAZORPAY_WEBHOOK_SECRET`
 
 ### Cloudinary Setup
 1. Create Cloudinary account
