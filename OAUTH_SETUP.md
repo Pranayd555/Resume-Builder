@@ -66,11 +66,11 @@ CLIENT_URL=http://localhost:3000
 Create a `.env` file in the `resume-builder` directory:
 
 ```env
-GOOGLE_CLIENT_ID=your-google-client-id
-REACT_APP_LINKEDIN_CLIENT_ID=your-linkedin-client-id
+# Backend API base URL (used by frontend to initiate OAuth redirects)
+REACT_APP_API_URL=http://localhost:5000
 ```
 
-**Note**: Frontend environment variables must be prefixed with `REACT_APP_` to be accessible in the React application.
+**Note**: The frontend does not need Google/LinkedIn client IDs because OAuth is handled by the backend. The UI simply redirects the browser to the backend OAuth endpoints.
 
 ## How It Works
 
