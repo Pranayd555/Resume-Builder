@@ -22,7 +22,8 @@ import {
   CheckCircleIcon,
   ArrowDownTrayIcon,
   HeartIcon,
-  CloudArrowUpIcon
+  CloudArrowUpIcon,
+  CodeBracketIcon
 } from '@heroicons/react/24/outline';
 import { Slide, Roll, AttentionSeeker } from 'react-awesome-reveal';
 import { publicAPI } from '../../services/api';
@@ -34,6 +35,8 @@ const HomePage = () => {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   useRouteScrollToTop();
   const currentYear = new Date().getFullYear();
+  const githubRepoUrl =
+    process.env.REACT_APP_GITHUB_REPO_URL || 'https://github.com/Pranayd555/Resume-Builder';
 
   const { scrollY } = useScroll();
   const scale = useTransform(scrollY, [0, 300], [1, 0.8]);
@@ -500,6 +503,17 @@ const HomePage = () => {
                   <SparklesIcon className="w-6 h-6" />
                   Suggest Enhancement
                 </motion.button>
+                <motion.a
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  href={githubRepoUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="bg-transparent border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-900/30 px-8 py-4 rounded-2xl font-bold text-lg transition-all flex items-center gap-2"
+                >
+                  <CodeBracketIcon className="w-6 h-6" />
+                  GitHub Community
+                </motion.a>
               </div>
                 : <div className="flex flex-wrap sm:flex-row gap-4 justify-center md:justify-start">
                   <AttentionSeeker duration={3000}>
@@ -516,6 +530,17 @@ const HomePage = () => {
                   >
                     Learn More
                   </button>
+                  <motion.a
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    href={githubRepoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 py-3 px-8 rounded-lg font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 inline-flex items-center gap-2 justify-center"
+                  >
+                    <CodeBracketIcon className="w-5 h-5" />
+                    GitHub Community
+                  </motion.a>
                 </div>
               }
             </div>
