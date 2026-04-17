@@ -1767,7 +1767,7 @@ function ResumeForm() {
       </div>
 
       {/* Basic Information Section */}
-      <div className="space-y-6">
+      <div className="space-y-6 mb-4 sm:mb-6">
         <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900">Basic Information</h3>
         <FormField
           label="Resume Title"
@@ -1790,7 +1790,7 @@ function ResumeForm() {
           error={validationErrors.title}
         />
         <TextAreaField
-          label="Professional Summary"
+          label="Profile Summary"
           value={formData.summary}
           onChange={(value) => handleInputChange('root', 'summary', value)}
           rows={4}
@@ -1858,7 +1858,7 @@ function ResumeForm() {
   );
 
   const renderPersonalInfo = () => (
-    <div className="space-y-6">
+    <div className="space-y-6 mb-4 sm:mb-6">
       <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900">Personal Information</h3>
 
       {/* Profile Data Notice */}
@@ -1947,7 +1947,7 @@ function ResumeForm() {
   );
 
   const renderWorkExperience = () => (
-    <div className="space-y-6">
+    <div className="space-y-6 mb-4 sm:mb-6">
       {/* Header Section - Mobile Responsive */}
       <div className="space-y-4">
         <div className="flex justify-between items-center gap-4">
@@ -2168,7 +2168,7 @@ function ResumeForm() {
   );
 
   const renderEducation = () => (
-    <div className="space-y-6">
+    <div className="space-y-6 mb-4 sm:mb-6">
       <div className="flex justify-between items-center">
         <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900">Education</h3>
         <button
@@ -2383,7 +2383,7 @@ function ResumeForm() {
   );
 
   const renderSkills = () => (
-    <div className="space-y-6">
+    <div className="space-y-6 mb-4 sm:mb-6">
       <div className="flex justify-between items-center">
         <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900">Skills</h3>
         <button
@@ -2663,7 +2663,7 @@ function ResumeForm() {
   );
 
   const renderProjects = () => (
-    <div className="space-y-6">
+    <div className="space-y-6 mb-4 sm:mb-6">
       <div className="flex justify-between items-center">
         <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900">Projects</h3>
         <button
@@ -2811,7 +2811,7 @@ function ResumeForm() {
   );
 
   const renderAchievements = () => (
-    <div className="space-y-6">
+    <div className="space-y-6 mb-4 sm:mb-6">
       <div className="flex justify-between items-center">
         <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-900">Achievements & Awards</h3>
         <button
@@ -2932,7 +2932,7 @@ function ResumeForm() {
   );
 
   const renderCertificationsAndLanguages = () => (
-    <div className="space-y-8">
+    <div className="space-y-8 mb-4 sm:mb-6">
       {/* Certifications */}
       <div className="space-y-6">
         <div className="flex justify-between items-center">
@@ -3374,7 +3374,7 @@ function ResumeForm() {
         </div>
 
         {/* Form Content */}
-        <div className="backdrop-blur-md bg-white/80 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-4 sm:p-8 mb-6 sm:mb-8">
+        <div className="backdrop-blur-md bg-white/80 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 p-2 sm:p-8 mb-12 sm:mb-16">
           <div className="mb-4 sm:mb-6">
             <h2 className="text-lg sm:text-2xl font-semibold text-gray-900 mb-2">{getStepTitle()}</h2>
             <div className="w-12 sm:w-16 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full"></div>
@@ -3399,10 +3399,8 @@ function ResumeForm() {
           )}
 
           {renderStepContent()}
-        </div>
 
-        {/* Navigation */}
-        <div className="space-y-3 px-2 sm:px-0">
+          
           {/* Step Indicators */}
           <div className="flex justify-center">
             <div className="flex space-x-1 sm:space-x-2">
@@ -3419,9 +3417,12 @@ function ResumeForm() {
               ))}
             </div>
           </div>
+        </div>
 
+        {/* Navigation */}
+        <div className="fixed bottom-0 right-0 left-0 bg-white dark:bg-gray-400">
           {/* Navigation Buttons */}
-          <div className="flex justify-between items-center gap-2 sm:gap-3 pt-4 sm:pt-6">
+          <div className="flex justify-between items-center gap-2 sm:gap-3 p-2 sm:p-4">
             <button
               onClick={prevStep}
               disabled={currentStep === 1}
@@ -3476,7 +3477,7 @@ function ResumeForm() {
               )}
             </button>
           </div>
-        </div>
+          </div>
       </div>
 
       {/* Clear Form Confirmation Modal */}

@@ -510,7 +510,7 @@
       "skills": ["skills", "technical skills", "key skills", "core competencies"],
       "projects": ["projects", "personal projects", "selected projects"],
       "certifications": ["certifications", "licenses", "certifications & awards"],
-      "summary": ["summary", "professional summary", "profile", "about me", "objective"],
+      "summary": ["summary", "Profile Summary", "profile", "about me", "objective"],
       "languages": ["languages", "language proficiency"],
       "achievements": ["achievements", "awards", "honors"]
     },

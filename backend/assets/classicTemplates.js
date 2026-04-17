@@ -589,7 +589,7 @@ module.exports = [
                 
                 {{#if summary}}
                 <section class="summary">
-                  <h2 class="primaryFont">Professional Summary</h2>
+                  <h2 class="primaryFont">Summary</h2>
                   <div class="summary secondaryFont" itemprop="description">{{{summary}}}</div>
                 </section>
                 {{/if}}
@@ -1003,7 +1003,7 @@ module.exports = [
                     <header>
                     <h1 class="name primaryFont">{{personalInfo.fullName}}</h1>
                     {{#unless isFresher}}
-  <h2 class="primaryFont" itemprop="title">{{title}}</h2>
+  <h2 class="primaryFont fresher" itemprop="title">{{title}}</h2>
 {{/unless}}
 
                     </header>
@@ -1033,7 +1033,7 @@ module.exports = [
                     </section>
                     {{#if summary}}
                     <section class="section summary">
-                    <h3 class="primaryFont">PROFILE INFO</h3>
+                    <h3 class="primaryFont">PROFILE SUMMARY</h3>
                     <hr class="separator"/>
                     <span class="summary-text">{{{summary}}}</span>
                     </section>
@@ -1223,8 +1223,10 @@ module.exports = [
                                 margin-top: 2px;
                                 font-size: 1.5rem;font-weight: 600;
                             }
+                                .fresher {
+                                border-bottom: 1px solid var(--border-color-light);
+                                }
                             .contact-info {
-                                border-top: 1px solid var(--border-color-light);
                                 border-bottom: 1px solid var(--border-color-light);
                                 padding-top: 2px;
                                 padding-bottom: 5px;
