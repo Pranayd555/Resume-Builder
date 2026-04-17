@@ -3,7 +3,6 @@ const { body, validationResult } = require('express-validator');
 const multer = require('multer');
 const { protect, checkAIActionLimit, checkTokenLimit, trackUsage, refundTokenOnError } = require('../middleware/auth');
 const Resume = require('../models/Resume');
-const Template = require('../models/Template');
 const logger = require('../utils/logger');
 const DocumentParser = require('../utils/documentParser');
 const { GoogleGenAI } = require("@google/genai");
