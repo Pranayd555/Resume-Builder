@@ -245,13 +245,11 @@ jobs:
         npm run build
         
     - name: 🚀 Deploy to Vercel
-      uses: amondnet/vercel-action@v25
-      with:
-        vercel-token: ${{ secrets.VERCEL_TOKEN }}
-        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-        working-directory: ./resume-builder
-        vercel-args: ${{ github.ref == 'refs/heads/main' && '--prod' || '' }}
+    run: |
+      cd resume-builder
+      vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      vercel build ${{ github.ref == 'refs/heads/main' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+      vercel deploy --prebuilt ${{ github.ref == 'refs/heads/main' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
       env:
         CI: false
         REACT_APP_API_URL: ${{ github.ref == 'refs/heads/main' && secrets.PROD_API_URL || secrets.STAGING_API_URL }}
