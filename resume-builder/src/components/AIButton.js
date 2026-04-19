@@ -243,7 +243,7 @@ const AIButton = ({
 
     showNotification("Content processed successfully!", "success");
   }
-  
+
 
   return (
     <div className={`ai-button-container ${!isProMode ? 'w-full' : ''}`}>
@@ -298,6 +298,7 @@ const AIButton = ({
             boxShadow: "0 2px 8px rgba(41, 249, 22, 0.3)",
             margin: "0 0.5rem 0 0",
           }}
+          
           onMouseEnter={(e) => {
             e.target.style.background =
               "linear-gradient(to right, #10c449ff, #08711fff)";
