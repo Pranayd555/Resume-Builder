@@ -254,7 +254,7 @@ jobs:
         vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID}}
         working-directory: ./resume-builder
         vercel-version: latest
-        vercel-args: ${{ github.ref = 'refs/heads/main' && '--prod' || ''}}
+        vercel-args: ${{ github.ref == 'refs/heads/main' && '--prod' || ''}}
       env:
         CI: false
         REACT_APP_API_URL: ${{ github.ref == 'refs/heads/main' && secrets.PROD_API_URL || secrets.STAGING_API_URL }}

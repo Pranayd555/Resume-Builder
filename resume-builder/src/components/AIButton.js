@@ -298,13 +298,14 @@ const AIButton = ({
             boxShadow: "0 2px 8px rgba(41, 249, 22, 0.3)",
             margin: "0 0.5rem 0 0",
           }}
-          
+
           onMouseEnter={(e) => {
             e.target.style.background =
               "linear-gradient(to right, #10c449ff, #08711fff)";
             e.target.style.transform = "translateY(-2px)";
             e.target.style.boxShadow = "0 4px 12px rgba(22, 118, 30, 0.4)";
           }}
+          
           onMouseLeave={(e) => {
             e.target.style.background =
               "linear-gradient(to right, #1af916ff, #178104ff)";
