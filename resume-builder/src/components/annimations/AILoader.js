@@ -11,7 +11,7 @@ const AILoader = ({
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const progressSteps = [25, 50, 60, 75];
+    const progressSteps = [25, 35, 50, 60, 75, 90, 98];
     let currentStep = 0;
     
     // Initial progress steps
@@ -22,16 +22,10 @@ const AILoader = ({
       } else {
         clearInterval(stepInterval);
       }
-    }, 1000); // 1 second between each step
-
-    // After 5 seconds, go to 90%
-    const timeoutId = setTimeout(() => {
-      setProgress(90);
-    }, 5000);
+    }, Math.floor(Math.random() * (5000 - 3000 + 1)) + 300); // 1 second between each step
 
     return () => {
       clearInterval(stepInterval);
-      clearTimeout(timeoutId);
     };
   }, []);
 

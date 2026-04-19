@@ -32,6 +32,7 @@ const AdminFeedback = () => {
     total: 0,
     pages: 0
   });
+  
   const [stats, setStats] = useState({
     totalFeedback: 0,
     averageRating: 0,

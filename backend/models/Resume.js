@@ -70,7 +70,7 @@ const resumeSchema = new mongoose.Schema({
     }
   },
 
-  // Professional Summary
+  // Profile Summary
   summary: {
     type: String,
     trim: true,

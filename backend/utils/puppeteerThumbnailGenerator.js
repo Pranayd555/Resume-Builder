@@ -442,7 +442,8 @@ class PuppeteerThumbnailGenerator {
         certifications: this.sampleData.certifications,
         languages: this.sampleData.languages,
         customFields: this.sampleData.customFields,
-        styling: this.sampleData.styling || {} // Include styling data
+        styling: this.sampleData.styling || {}, // Include styling data
+        isFresher: this.sampleData.isFresher
       };
       const renderResult = renderer.render(template, resumeData);
 

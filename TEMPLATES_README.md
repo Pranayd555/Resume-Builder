@@ -289,7 +289,7 @@ const resumeData = {
     linkedin: "https://linkedin.com/in/johndoe",
     github: "https://github.com/johndoe"
   },
-  summary: "Professional summary...",
+  summary: "Profile Summary...",
   workExperience: [
     {
       jobTitle: "Software Engineer",

@@ -110,7 +110,7 @@ This document describes all available resume templates in the system, organized 
 ### Supported Sections
 All templates support the following data sections:
 - Personal Information (name, email, phone, address, LinkedIn, GitHub, website)
-- Professional Summary
+- Profile Summary
 - Work Experience (with responsibilities and achievements)
 - Education (with GPA support)
 - Skills (categorized with proficiency levels)
@@ -158,7 +158,7 @@ All templates use Handlebars templating engine with these variables:
 - `{{personalInfo.linkedin}}` - LinkedIn profile URL
 - `{{personalInfo.github}}` - GitHub profile URL
 - `{{personalInfo.website}}` - Personal website URL
-- `{{summary}}` - Professional summary
+- `{{summary}}` - Profile Summary
 - `{{workExperience}}` - Array of work experience objects
 - `{{education}}` - Array of education objects
 - `{{skills}}` - Array of skill category objects
