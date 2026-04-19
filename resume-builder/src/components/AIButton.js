@@ -243,6 +243,7 @@ const AIButton = ({
 
     showNotification("Content processed successfully!", "success");
   }
+  
 
   return (
     <div className={`ai-button-container ${!isProMode ? 'w-full' : ''}`}>
