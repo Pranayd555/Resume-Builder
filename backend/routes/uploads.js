@@ -3,7 +3,7 @@ const multer = require('multer');
 const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs').promises;
-const { protect, checkAIActionLimit, checkTokenLimit, trackUsage, refundTokenOnError } = require('../middleware/auth');
+const { protect, checkAIActionLimit, checkTokenLimit, trackUsage, refundTokenOnError, skipIfBYOK } = require('../middleware/auth');
 const User = require('../models/User');
 const logger = require('../utils/logger');
 const DocumentParser = require('../utils/documentParser');
@@ -79,9 +79,9 @@ const handleMulterError = (error, req, res, next) => {
 // @access  Private
 router.post('/parse-resume', [
   protect,
-  checkAIActionLimit,
-  checkTokenLimit,
-  refundTokenOnError,
+  skipIfBYOK(checkAIActionLimit),
+  skipIfBYOK(checkTokenLimit),
+  skipIfBYOK(refundTokenOnError),
   (req, res, next) => {
     upload.single('file')(req, res, (err) => {
       if (err) {

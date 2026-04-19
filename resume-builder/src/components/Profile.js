@@ -30,6 +30,7 @@ function Profile() {
     email: '',
     phone: '',
     location: '',
+    geminiApiKey: '',
     bio: '',
     profilePicture: ''
   });
@@ -261,6 +262,7 @@ function Profile() {
         email: user.email || '',
         phone: user.phone || '',
         location: user.location || '',
+        geminiApiKey: user.geminiApiKey || '',
         bio: user.bio || '',
         profilePicture: profilePictureUrl,
         profilePictureOriginal: profilePictureOriginalUrl,
@@ -483,12 +485,6 @@ function Profile() {
 
       // Clear the profile picture from the backend
       const profileData = {
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        email: profile.email,
-        phone: profile.phone,
-        location: profile.location,
-        bio: profile.bio,
         profilePicture: '',
         profilePictureType: 'uploaded' // Default type when removing
       };
@@ -527,12 +523,6 @@ function Profile() {
 
       // Save the avatar to the backend with the new structure
       const profileData = {
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        email: profile.email,
-        phone: profile.phone,
-        location: profile.location,
-        bio: profile.bio,
         profilePicture: avatarUrl,
         profilePictureType: 'avatar'
       };
@@ -957,7 +947,25 @@ function Profile() {
                     placeholder="Enter your location (optional)"
                   />
                 ) : (
-                  <p className="text-gray-900 font-medium">{profile.location}</p>
+                  <p className="text-gray-900 font-medium">{profile.location || 
+                  <span className="text-gray-500 italic">No location provided</span>}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Gemini API Key
+                </label>
+                {isEditing ? (
+                  <input
+                  type="text"
+                  value={profile.geminiApiKey}
+                  onChange={(e) => handleInputChange('geminiApiKey', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900"
+                  placeholder="Enter your API Key (optional)"
+                />
+                ) : (
+                  <p className="text-gray-900 leading-relaxed">{profile.geminiApiKey || <span className="text-gray-500 italic">No Key provided</span>}</p>
                 )}
               </div>
 

@@ -1,5 +1,5 @@
 const express = require('express');
-const crypto = require('crypto');
+const crypto = require('node:crypto');
 const passport = require('passport');
 const { body, validationResult } = require('express-validator');
 const validator = require('validator');
@@ -438,6 +438,8 @@ router.get('/me', protect, async (req, res) => {
           tokens: (user.tokens + user.bonusTokens),
           bonusTokens: user.bonusTokens,
           usage: user.usage,
+          isOwnApiKey: user.isOwnApiKey,
+          geminiApiKey: user.isOwnApiKey ? user.geminiApiKey : null,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt
         },
@@ -468,6 +470,7 @@ router.put('/profile', [
   body('phone').optional().trim().isLength({ max: 20 }).withMessage('Phone number cannot exceed 20 characters'),
   body('location').optional().trim().isLength({ max: 100 }).withMessage('Location cannot exceed 100 characters'),
   body('bio').optional().trim().isLength({ max: 500 }).withMessage('Bio cannot exceed 500 characters'),
+  body('geminiApiKey').optional().trim().isLength({ max: 100 }).withMessage('geminiApiKey cannot exceed 100 characters'),
   body('profilePicture').optional().custom((value) => {
     if (value === '' || value === null || value === undefined) {
       return true; // Allow empty values for clearing profile picture
@@ -480,6 +483,7 @@ router.put('/profile', [
         const url = new URL(value);
         return url.protocol === 'http:' || url.protocol === 'https:';
       } catch (error) {
+        console.log(`Exception while adding url protocol: ${error}`);
         return false;
       }
     }
@@ -498,7 +502,7 @@ router.put('/profile', [
       });
     }
 
-    const { firstName, lastName, email, phone, location, bio, profilePicture, profilePictureType } = req.body;
+    const { firstName, lastName, email, phone, location, geminiApiKey, bio, profilePicture, profilePictureType } = req.body;
 
     const user = await User.findById(req.user.id);
 
@@ -507,6 +511,7 @@ router.put('/profile', [
     if (lastName !== undefined) user.lastName = lastName;
     if (phone !== undefined) user.phone = phone;
     if (location !== undefined) user.location = location;
+    if (geminiApiKey !== undefined) user.geminiApiKey = geminiApiKey;
     if (bio !== undefined) user.bio = bio;
     
     // Handle email update with validation

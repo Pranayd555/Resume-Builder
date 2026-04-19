@@ -155,7 +155,6 @@ function getProfilePicture(user) {
 function ResumeForm() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [validationErrors, setValidationErrors] = useState({});
@@ -163,6 +162,7 @@ function ResumeForm() {
   const [editingResumeId, setEditingResumeId] = useState(null);
   const [showClearModal, setShowClearModal] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
+  const { user } = useAuth();
 
   const hasInitializedRef = useRef(false);
 
@@ -246,12 +246,13 @@ function ResumeForm() {
   }, [isDirty, currentStep, isEditMode]);
 
   // Get initial token balance
-  // Get initial token balance
   useEffect(() => {
-    const balance = apiHelpers.getTokenBalance();
-    setTokenBalance(balance);
-    setIsTokenExhausted(balance <= 0);
-  }, []);
+    if(!user.isOwnApiKey) {
+      const balance = apiHelpers.getTokenBalance();
+      setTokenBalance(balance);
+      setIsTokenExhausted( balance <= 0);
+    }
+  }, [user.isOwnApiKey]);
 
   // Listen for token balance updates
   useEffect(() => {
@@ -297,7 +298,7 @@ function ResumeForm() {
     }
 
     // Check if tokens are exhausted
-    if (isTokenExhausted || tokenBalance <= 0) {
+    if (!user.isOwnApiKey && (isTokenExhausted || tokenBalance <= 0)) {
       toast.error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
       event.target.value = '';
       return;
@@ -369,10 +370,10 @@ function ResumeForm() {
       console.error('Resume upload error:', error);
 
       // Handle token exhaustion specifically
-      if (error.message && error.message.includes('tokens') && error.message.includes('exhausted')) {
+      if (!user.isOwnApiKey && error.message && error.message.includes('tokens') && error.message.includes('exhausted')) {
         setIsTokenExhausted(true);
         toast.error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
-      } else if (error.message && error.message.includes('insufficient tokens')) {
+      } else if (!user.isOwnApiKey && error.message && error.message.includes('insufficient tokens')) {
         setIsTokenExhausted(true);
         toast.error('Insufficient AI tokens! Please purchase more tokens to continue using AI features.');
       } else {
@@ -438,7 +439,7 @@ function ResumeForm() {
 
       if (validateResumeFile(file)) {
         // Check if tokens are exhausted before processing
-        if (isTokenExhausted || tokenBalance <= 0) {
+        if (!user.isOwnApiKey && (isTokenExhausted || tokenBalance <= 0)) {
           toast.error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
           return;
         }

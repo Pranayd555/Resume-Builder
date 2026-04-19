@@ -9,6 +9,8 @@ export const createUserModel = (data = {}) => ({
   phone: data.phone || '',
   location: data.location || '',
   bio: data.bio || '',
+  geminiApiKey: data.geminiApiKey || '',
+  isOwnApiKey: data.isOwnApiKey || false,
   profilePicture: data.profilePicture || { url: '', publicId: '' },
   googleId: data.googleId || null,
   linkedinId: data.linkedinId || null,
@@ -57,8 +59,8 @@ export const createUsageModel = (data = {}) => ({
 export const createPreferencesModel = (data = {}) => ({
   theme: data.theme || 'system',
   language: data.language || 'en',
-  emailNotifications: data.emailNotifications !== undefined ? data.emailNotifications : true,
-  marketingEmails: data.marketingEmails !== undefined ? data.marketingEmails : false,
+  emailNotifications: data.emailNotifications === undefined ? true : data.emailNotifications,
+  marketingEmails: data.marketingEmails === undefined ? false : data.marketingEmails,
 });
 
 // Resume model
@@ -255,7 +257,7 @@ export const validators = {
 
   phone: (phone) => {
     const phoneRegex = /^[+]?[1-9][\d]{0,15}$/;
-    return phoneRegex.test(phone.replace(/\s/g, ''));
+    return phoneRegex.test(phone.replaceAll(/\s/g, ''));
   },
 
   url: (url) => {

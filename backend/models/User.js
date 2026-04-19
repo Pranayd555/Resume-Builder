@@ -52,6 +52,11 @@ const userSchema = new mongoose.Schema({
     trim: true,
     maxlength: [500, 'Bio cannot exceed 500 characters']
   },
+  geminiApiKey: {
+    type: String,
+    trim: true,
+    maxlength: [100, 'Token cannot exceed 500 characters']
+  },
   
   // Profile Picture - Either uploaded photo OR avatar URL (mutually exclusive)
   profilePicture: {
@@ -248,6 +253,11 @@ userSchema.virtual('fullName').get(function() {
 // Virtual for account lock status
 userSchema.virtual('isLocked').get(function() {
   return !!(this.lockUntil && this.lockUntil > Date.now());
+});
+
+// Virtual for gemini api key
+userSchema.virtual('isOwnApiKey').get(function() {
+  return !!(this.geminiApiKey);
 });
 
 // Virtual for razorpay transactions with isRefundable field
@@ -505,6 +515,7 @@ userSchema.index({ googleId: 1 });
 userSchema.index({ linkedinId: 1 });
 userSchema.index({ 'razorpayTransactions.transactionId': 1 });
 userSchema.index({ 'razorpayTransactions.orderId': 1 });
+userSchema.index({ geminiApiKey: 1 });
 // Stripe indexes removed
 
 module.exports = mongoose.model('User', userSchema);

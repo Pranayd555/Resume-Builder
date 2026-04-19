@@ -19,10 +19,12 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
 
   // Get initial token balance
   useEffect(() => {
-    const balance = apiHelpers.getTokenBalance();
-    setTokenBalance(balance);
-    setIsTokenExhausted(balance <= 0);
-  }, []);
+    if(!user.isOwnApiKey) {
+      const balance = apiHelpers.getTokenBalance();
+      setTokenBalance(balance);
+      setIsTokenExhausted( balance <= 0);
+    }
+  }, [user.isOwnApiKey]);
 
   // Listen for token balance updates
   useEffect(() => {
@@ -89,7 +91,7 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       return;
     }
 
-    if (isTokenExhausted || tokenBalance <= 0) {
+    if (!user.isOwnApiKey && (isTokenExhausted || tokenBalance <= 0)) {
       toast.error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
       return;
     }
@@ -143,7 +145,7 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       return;
     }
 
-    if (isTokenExhausted || tokenBalance <= 0) {
+    if (!user.isOwnApiKey && (isTokenExhausted || tokenBalance <= 0)) {
       toast.error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
       return;
     }

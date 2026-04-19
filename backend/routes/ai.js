@@ -1,7 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const multer = require('multer');
-const { protect, checkAIActionLimit, checkTokenLimit, trackUsage, refundTokenOnError } = require('../middleware/auth');
+const { protect, checkAIActionLimit, checkTokenLimit, trackUsage, refundTokenOnError, skipIfBYOK } = require('../middleware/auth');
 const Resume = require('../models/Resume');
 const logger = require('../utils/logger');
 const DocumentParser = require('../utils/documentParser');
@@ -19,11 +19,11 @@ const stripHtmlTags = (text) => {
 // Utility function to clean resume data by removing HTML tags
 const cleanResumeData = (resumeData) => {
   const cleaned = { ...resumeData };
-  
+
   // Clean string fields
   if (cleaned.title) cleaned.title = stripHtmlTags(cleaned.title);
   if (cleaned.summary) cleaned.summary = stripHtmlTags(cleaned.summary);
-  
+
   // Clean personal info
   if (cleaned.personalInfo) {
     Object.keys(cleaned.personalInfo).forEach(key => {
@@ -32,7 +32,7 @@ const cleanResumeData = (resumeData) => {
       }
     });
   }
-  
+
   // Clean work experience
   if (cleaned.workExperience && Array.isArray(cleaned.workExperience)) {
     cleaned.workExperience = cleaned.workExperience.map(exp => ({
@@ -43,7 +43,7 @@ const cleanResumeData = (resumeData) => {
       location: stripHtmlTags(exp.location)
     }));
   }
-  
+
   // Clean education
   if (cleaned.education && Array.isArray(cleaned.education)) {
     cleaned.education = cleaned.education.map(edu => ({
@@ -55,12 +55,12 @@ const cleanResumeData = (resumeData) => {
       location: stripHtmlTags(edu.location)
     }));
   }
-  
+
   // Clean skills array
   if (cleaned.skills && Array.isArray(cleaned.skills)) {
     cleaned.skills = cleaned.skills.map(skill => stripHtmlTags(skill));
   }
-  
+
   // Clean projects
   if (cleaned.projects && Array.isArray(cleaned.projects)) {
     cleaned.projects = cleaned.projects.map(project => ({
@@ -71,12 +71,12 @@ const cleanResumeData = (resumeData) => {
       url: stripHtmlTags(project.url)
     }));
   }
-  
+
   // Clean achievements
   if (cleaned.achievements && Array.isArray(cleaned.achievements)) {
     cleaned.achievements = cleaned.achievements.map(achievement => stripHtmlTags(achievement));
   }
-  
+
   // Clean certifications
   if (cleaned.certifications && Array.isArray(cleaned.certifications)) {
     cleaned.certifications = cleaned.certifications.map(cert => ({
@@ -86,7 +86,7 @@ const cleanResumeData = (resumeData) => {
       description: stripHtmlTags(cert.description)
     }));
   }
-  
+
   // Clean languages
   if (cleaned.languages && Array.isArray(cleaned.languages)) {
     cleaned.languages = cleaned.languages.map(lang => ({
@@ -95,7 +95,7 @@ const cleanResumeData = (resumeData) => {
       proficiency: stripHtmlTags(lang.proficiency)
     }));
   }
-  
+
   // Clean custom fields
   if (cleaned.customFields && Array.isArray(cleaned.customFields)) {
     cleaned.customFields = cleaned.customFields.map(field => ({
@@ -104,7 +104,7 @@ const cleanResumeData = (resumeData) => {
       value: stripHtmlTags(field.value)
     }));
   }
-  
+
   return cleaned;
 };
 
@@ -117,9 +117,9 @@ const upload = multer({
   },
   fileFilter: (req, file, cb) => {
     // Allow PDF and Word documents for job descriptions
-    if (file.mimetype === 'application/pdf' || 
-        file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-        file.mimetype === 'application/msword') {
+    if (file.mimetype === 'application/pdf' ||
+      file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+      file.mimetype === 'application/msword') {
       cb(null, true);
     } else {
       cb(new Error('Only PDF, DOC, and DOCX files are allowed for job description!'), false);
@@ -132,9 +132,9 @@ const upload = multer({
 // @access  Private
 router.post('/rewrite', [
   protect,
-  checkAIActionLimit,
-  checkTokenLimit,
-  refundTokenOnError,
+  skipIfBYOK(checkAIActionLimit),
+  skipIfBYOK(checkTokenLimit),
+  skipIfBYOK(refundTokenOnError),
   body('content').trim().isLength({ min: 10 }).withMessage('Content must be at least 10 characters'),
   body('tone').optional().isIn(['professional', 'casual', 'formal', 'creative']).withMessage('Invalid tone'),
   body('style').optional().isIn(['concise', 'detailed', 'action-oriented', 'achievement-focused']).withMessage('Invalid style')
@@ -196,7 +196,7 @@ Return the final ATS-optimized, keyword-rich text as clean HTML only.
       });
 
       let rewrittenContent = response.text;
-      
+
       // Clean the response to remove markdown formatting
       rewrittenContent = rewrittenContent
         .replace(/```html\n?/g, '')
@@ -238,9 +238,9 @@ Return the final ATS-optimized, keyword-rich text as clean HTML only.
 // @access  Private
 router.post('/summarize', [
   protect,
-  checkAIActionLimit,
-  checkTokenLimit,
-  refundTokenOnError,
+  skipIfBYOK(checkAIActionLimit),
+  skipIfBYOK(checkTokenLimit),
+  skipIfBYOK(refundTokenOnError),
   body('content').trim().isLength({ min: 20 }).withMessage('Content must be at least 20 characters')
 ], trackUsage, async (req, res) => {
   try {
@@ -302,7 +302,7 @@ Return the final summarized text as clean HTML paragraphs only.
       });
 
       let enhancedText = response.text;
-      
+
       // Clean the response to remove markdown formatting
       enhancedText = enhancedText
         .replace(/```html\n?/g, '')
@@ -345,7 +345,7 @@ router.get('/usage', protect, async (req, res) => {
   try {
     const User = require('../models/User');
     const user = await User.findById(req.user.id);
-    
+
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -379,9 +379,9 @@ router.get('/usage', protect, async (req, res) => {
 // @access  Private
 router.post('/ats-score', [
   protect,
-  checkAIActionLimit,
-  checkTokenLimit,
-  refundTokenOnError,
+  skipIfBYOK(checkAIActionLimit),
+  skipIfBYOK(checkTokenLimit),
+  skipIfBYOK(refundTokenOnError),
   upload.single('jobDescriptionFile'), // Handle file upload for job description
   body('resumeId').isMongoId().withMessage('Valid resume ID is required'),
   body('jobDescription').optional().trim().isLength({ min: 10 }).withMessage('Job description must be at least 10 characters'),
@@ -479,7 +479,7 @@ router.post('/ats-score', [
 
     // Generate ATS score using Gemini
     const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
-    
+
     const atsPrompt = `
         You are an ATS (Applicant Tracking System) expert. Analyze the following resume against the job description and provide a comprehensive ATS compatibility score.
 
@@ -526,12 +526,12 @@ router.post('/ats-score', [
       });
 
       const rawResponse = response.text;
-      
+
       // Parse the JSON response from Gemini using robust parsing
       const { parseAIResponse, validateResumeJSON } = require('../utils/jsonParser');
-      
+
       let atsAnalysis = parseAIResponse(rawResponse, 'analyze-resume');
-      
+
       // Validate the response structure
       if (!atsAnalysis.overall_score || !atsAnalysis.category_scores) {
         logger.warn('ATS analysis structure validation failed, using fallback');
@@ -557,13 +557,13 @@ router.post('/ats-score', [
       // Save ATS analysis to resume
       const crypto = require('crypto');
       const jobDescriptionHash = crypto.createHash('md5').update(jobDescriptionText).digest('hex');
-      
+
       resume.atsAnalysis = {
         ...atsAnalysis,
         job_description_hash: jobDescriptionHash,
         analyzed_at: new Date()
       };
-      
+
       await resume.save();
 
       logger.info(`ATS score generated and saved for resume ${resume.title} by user ${req.user.email}`);
@@ -651,9 +651,9 @@ router.get('/ats-score/:resumeId', protect, async (req, res) => {
 // @access  Private
 router.post('/adjust-tone', [
   protect,
-  checkAIActionLimit,
-  checkTokenLimit,
-  refundTokenOnError,
+  skipIfBYOK(checkAIActionLimit),
+  skipIfBYOK(checkTokenLimit),
+  skipIfBYOK(refundTokenOnError),
   body('resumeId').isMongoId().withMessage('Valid resume ID is required'),
   body('resume_json').isObject().withMessage('Resume JSON is required'),
   body('ats_analysis').isObject().withMessage('ATS analysis is required'),
@@ -769,9 +769,9 @@ router.post('/adjust-tone', [
 
     // Parse the response using robust JSON parsing utility
     const { parseAIResponse, validateResumeJSON } = require('../utils/jsonParser');
-    
+
     const updatedResumeData = parseAIResponse(text, 'adjust-tone');
-    
+
     // Validate the parsed data
     if (!validateResumeJSON(updatedResumeData, 'adjust-tone')) {
       logger.warn('Parsed data failed validation, using fallback structure');
@@ -794,45 +794,45 @@ router.post('/adjust-tone', [
   }
 });
 
-    // @desc    Enhance resume keywords based on ATS analysis
-    // @route   POST /api/ai/enhance-keywords
-    // @access  Private
-    router.post('/enhance-keywords', [
-      protect,
-      checkAIActionLimit,
-      checkTokenLimit,
-      refundTokenOnError,
-      body('resumeId').isMongoId().withMessage('Valid resume ID is required'),
-      body('resume_json').isObject().withMessage('Resume JSON is required'),
-      body('ats_analysis').isObject().withMessage('ATS analysis is required'),
-      body('target_sections').isArray().withMessage('Target sections must be an array')
-    ], trackUsage, async (req, res) => {
-      try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-          return res.status(400).json({
-            success: false,
-            errors: errors.array()
-          });
-        }
+// @desc    Enhance resume keywords based on ATS analysis
+// @route   POST /api/ai/enhance-keywords
+// @access  Private
+router.post('/enhance-keywords', [
+  protect,
+  skipIfBYOK(checkAIActionLimit),
+  skipIfBYOK(checkTokenLimit),
+  skipIfBYOK(refundTokenOnError),
+  body('resumeId').isMongoId().withMessage('Valid resume ID is required'),
+  body('resume_json').isObject().withMessage('Resume JSON is required'),
+  body('ats_analysis').isObject().withMessage('ATS analysis is required'),
+  body('target_sections').isArray().withMessage('Target sections must be an array')
+], trackUsage, async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
+    }
 
-        const { resumeId, resume_json, ats_analysis, target_sections } = req.body;
+    const { resumeId, resume_json, ats_analysis, target_sections } = req.body;
 
-        // Set usage type for tracking
-        req.usageType = 'aiAction';
+    // Set usage type for tracking
+    req.usageType = 'aiAction';
 
-        // Verify resume ownership
-        const resume = await Resume.findOne({
-          _id: resumeId,
-          user: req.user.id
-        });
+    // Verify resume ownership
+    const resume = await Resume.findOne({
+      _id: resumeId,
+      user: req.user.id
+    });
 
-        if (!resume) {
-          return res.status(404).json({
-            success: false,
-            error: 'Resume not found'
-          });
-        }
+    if (!resume) {
+      return res.status(404).json({
+        success: false,
+        error: 'Resume not found'
+      });
+    }
 
     // Initialize Gemini AI
     const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
@@ -921,9 +921,9 @@ router.post('/adjust-tone', [
 
     // Parse the response using robust JSON parsing utility
     const { parseAIResponse, validateResumeJSON } = require('../utils/jsonParser');
-    
+
     const updatedResumeData = parseAIResponse(text, 'enhance-keywords');
-    
+
     // Validate the parsed data
     if (!validateResumeJSON(updatedResumeData, 'enhance-keywords')) {
       logger.warn('Parsed data failed validation, using fallback structure');
@@ -951,9 +951,9 @@ router.post('/adjust-tone', [
 // @access  Private
 router.post('/generate-pdf-template', [
   protect,
-  checkAIActionLimit,
-  checkTokenLimit,
-  refundTokenOnError,
+  skipIfBYOK(checkAIActionLimit),
+  skipIfBYOK(checkTokenLimit),
+  skipIfBYOK(refundTokenOnError),
   body('content').trim().isLength({ min: 20 }).withMessage('Content must be at least 20 characters')
 ], trackUsage, async (req, res) => {
   try {
@@ -1015,7 +1015,7 @@ router.post('/generate-pdf-template', [
       });
 
       let templateContent = response.text;
-      
+
       // Clean the response to remove markdown formatting
       templateContent = templateContent
         .replace(/```html\n?/g, '')
@@ -1056,9 +1056,9 @@ router.post('/generate-pdf-template', [
 // @access  Private
 router.post('/restructure-template', [
   protect,
-  checkAIActionLimit,
-  checkTokenLimit,
-  refundTokenOnError,
+  skipIfBYOK(checkAIActionLimit),
+  skipIfBYOK(checkTokenLimit),
+  skipIfBYOK(refundTokenOnError),
   body('content').trim().isLength({ min: 50 }).withMessage('Content must be at least 50 characters for restructuring')
 ], trackUsage, async (req, res) => {
   try {
@@ -1119,7 +1119,7 @@ Return the restructured and improved template as clean HTML only.
       });
 
       let restructuredContent = response.text;
-      
+
       // Clean the response to remove markdown formatting
       restructuredContent = restructuredContent
         .replace(/```html\n?/g, '')
