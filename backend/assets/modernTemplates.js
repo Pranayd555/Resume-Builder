@@ -67,7 +67,7 @@ module.exports = [
               
               {{#if summary}}
               <section class="summary secondaryFont">
-                <h3 class="primaryFont">Professional Summary</h3>
+                <h3 class="primaryFont">Summary</h3>
                 <div class="summary secondaryFont" itemprop="description">{{{summary}}}</div>
               </section>
               {{/if}}
@@ -637,7 +637,7 @@ module.exports = [
             
             {{#if summary}}
             <section class="summary-section">
-              <h3 class="primaryFont">Professional Summary</h3>
+              <h3 class="primaryFont">Summary</h3>
               <div class="summary secondaryFont" itemprop="description">{{{summary}}}</div>
             </section>
             {{/if}}
@@ -907,7 +907,7 @@ module.exports = [
               
               {{#if summary}}
               <section class="summary secondaryFont">
-                <h3 class="primaryFont">Professional Summary</h3>
+                <h3 class="primaryFont">Summary</h3>
                 <div class="summary secondaryFont" itemprop="description">{{{summary}}}</div>
               </section>
               {{/if}}
@@ -1238,7 +1238,7 @@ module.exports = [
             
             {{#if summary}}
             <section class="summary">
-              <h2 class="primaryFont">Professional Summary</h2>
+              <h2 class="primaryFont">Summary</h2>
               <div class="summary secondaryFont" itemprop="description">{{{summary}}}</div>
             </section>
             {{/if}}
@@ -1512,7 +1512,7 @@ module.exports = [
             
             {{#if summary}}
             <section class="summary">
-              <h2 class="primaryFont">Professional Summary</h2>
+              <h2 class="primaryFont">Profile Summary</h2>
               <div class="summary secondaryFont" itemprop="description">{{{summary}}}</div>
             </section>
             {{/if}}
@@ -1796,7 +1796,7 @@ module.exports = [
             
             {{#if summary}}
             <section class="summary">
-              <h2 class="primaryFont">Professional Summary</h2>
+              <h2 class="primaryFont">Profile Summary</h2>
               <div class="summary secondaryFont" itemprop="description">{{{summary}}}</div>
             </section>
             {{/if}}

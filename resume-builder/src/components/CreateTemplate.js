@@ -16,7 +16,7 @@ const CreateTemplate = () => {
             <p style="margin: 5px 0; font-size: 1rem; opacity: 0.8;">mailto: john.smith@email.com | tel: (555) 123-4567 | <a style="color: white;" href="https://linkedin.com/in/johnsmith">linkedin.com/in/johnsmith</a></p>
           </div>
           
-          <h3 style="color: #34495e; border-bottom: 2px solid #3498db; padding-bottom: 8px; margin-top: 25px;">Professional Summary</h3>
+          <h3 style="color: #34495e; border-bottom: 2px solid #3498db; padding-bottom: 8px; margin-top: 25px;">Profile Summary</h3>
           <p style="line-height: 1.6; color: #2c3e50;">
             Experienced software engineer with 5+ years of expertise in full-stack development, 
             cloud architecture, and team leadership. Proven track record of delivering scalable 

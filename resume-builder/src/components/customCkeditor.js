@@ -526,17 +526,8 @@ const CustomCKEditorComponent = ({
         if (editorInstanceRef.current || isInitializingRef.current) return;
 
         isInitializingRef.current = true;
-        console.log("Initializing CKEditor...");
-        console.log("Editor class/object:", Editor);
-        console.log("Editor.create type:", typeof Editor.create);
-        console.log("Editor.builtinPlugins:", Editor.builtinPlugins);
-        console.log("Editor.defaultConfig:", Editor.defaultConfig);
-        console.log("window.CKEDITOR:", window.CKEDITOR);
-        console.log("window.ClassicEditor:", window.ClassicEditor);
-        console.log("Editor.prototype:", Editor.prototype);
 
         const createPromise = Editor.create(editorRef.current, editorConfig);
-        console.log("Create promise:", createPromise);
 
         createPromise
             .then((editor) => {
@@ -544,7 +535,6 @@ const CustomCKEditorComponent = ({
 
                 // Fallback: Check if instance is attached to DOM
                 if (!editor && editorRef.current && editorRef.current.ckeditorInstance) {
-                    console.log("Found instance on DOM:", editorRef.current.ckeditorInstance);
                     editor = editorRef.current.ckeditorInstance;
                 }
 

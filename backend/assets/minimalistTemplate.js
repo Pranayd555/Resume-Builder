@@ -66,7 +66,7 @@ module.exports = [
             
             {{#if summary}}
                 <section class="summary">
-                    <h2 class="primaryFont">Professional Summary</h2>
+                    <h2 class="primaryFont">Summary</h2>
                     <div class="summary secondaryFont" itemprop="description">{{{summary}}}</div>
                 </section>
             {{/if}}

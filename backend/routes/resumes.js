@@ -1506,7 +1506,7 @@ function generateDocxContent(docx, resume) {
   const getSectionTitle = (section, templateCategory) => {
     const sectionTitles = {
       'classic': {
-        summary: 'OBJECTIVE',
+        summary: 'SUMMARY',
         workExperience: 'EXPERIENCE',
         education: 'EDUCATION',
         skills: 'SKILLS',
@@ -1515,17 +1515,17 @@ function generateDocxContent(docx, resume) {
         achievements: 'ACHIEVEMENTS'
       },
       'creative': {
-        summary: 'About Me',
+        summary: 'Summary',
         workExperience: 'Experience',
         education: 'Education',
         skills: 'Skills',
-        projects: 'Portfolio Projects',
+        projects: 'Projects',
         certifications: 'Certifications',
         achievements: 'Achievements'
       },
       'academic': {
-        summary: 'Research Interests',
-        workExperience: 'Academic & Professional Experience',
+        summary: 'Summary',
+        workExperience: 'Experience',
         education: 'Education',
         skills: 'Technical Skills',
         projects: 'Research Projects & Publications',
@@ -1533,7 +1533,7 @@ function generateDocxContent(docx, resume) {
         achievements: 'Awards & Honors'
       },
       'professional': {
-        summary: 'Professional Summary',
+        summary: 'Summary',
         workExperience: 'Professional Experience',
         education: 'Education',
         skills: 'Core Skills',
@@ -1542,7 +1542,7 @@ function generateDocxContent(docx, resume) {
         achievements: 'Key Achievements'
       },
       'modern': {
-        summary: 'Professional Summary',
+        summary: 'Summary',
         workExperience: 'Work Experience',
         education: 'Education',
         skills: 'Skills',
@@ -1551,7 +1551,7 @@ function generateDocxContent(docx, resume) {
         achievements: 'Achievements'
       },
       'minimalist': {
-        summary: '',
+        summary: 'Summary',
         workExperience: 'Experience',
         education: 'Education',
         skills: 'Skills',
