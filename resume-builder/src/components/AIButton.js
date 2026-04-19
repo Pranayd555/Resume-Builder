@@ -55,7 +55,6 @@ const AIButton = ({
       return;
     }
 
-    console.log("AIButton Action Check:", { isTokenExhausted, tokenBalance });
     if (isTokenExhausted || tokenBalance <= 0) {
       showNotification(
         "AI tokens exhausted! Please purchase more tokens to continue using AI features.",
