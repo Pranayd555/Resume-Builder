@@ -55,7 +55,7 @@ const userSchema = new mongoose.Schema({
   geminiApiKey: {
     type: String,
     trim: true,
-    maxlength: [100, 'Token cannot exceed 500 characters']
+    maxlength: [500, 'Token cannot exceed 500 characters']
   },
   
   // Profile Picture - Either uploaded photo OR avatar URL (mutually exclusive)

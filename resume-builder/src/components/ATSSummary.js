@@ -40,7 +40,7 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
 
   // Update token balance from user data if available
   useEffect(() => {
-    if (user && user.tokens !== undefined) {
+    if (user?.tokens !== undefined && !user.isOwnApiKey) {
       setTokenBalance(user.tokens);
       setIsTokenExhausted(user.tokens <= 0);
     }

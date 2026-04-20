@@ -45,7 +45,7 @@ const ATSScoreModal = ({
 
   // Update token balance from user data if available
   useEffect(() => {
-    if (user && user.tokens !== undefined) {
+    if (user?.tokens !== undefined && !user.isOwnApiKey) {
       setTokenBalance(user.tokens);
       setIsTokenExhausted(user.tokens <= 0);
     }
