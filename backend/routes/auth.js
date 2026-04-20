@@ -1,5 +1,5 @@
 const express = require('express');
-const crypto = require('crypto');
+const crypto = require('node:crypto');
 const passport = require('passport');
 const { body, validationResult } = require('express-validator');
 const validator = require('validator');
@@ -11,6 +11,7 @@ const { protect } = require('../middleware/auth');
 const logger = require('../utils/logger');
 const emailService = require('../utils/emailService');
 const { calculateTotalTokens } = require('../utils/tokenCalculator');
+const { encrypt, maskApiKey, decrypt } = require('../utils/keyEncryption');
 
 const router = express.Router();
 
@@ -217,7 +218,11 @@ router.post('/login', [
     res.json({
       success: true,
       data: {
-        user: {...userResponse, tokens: tokenData.totalTokenBalance},
+        user: {
+          ...userResponse,
+          tokens: tokenData.totalTokenBalance,
+          geminiApiKey: userResponse.isOwnApiKey ? maskApiKey(decrypt(userResponse.geminiApiKey)) : null
+        },
         token,
         tokens: {
           balance: tokenData.totalTokenBalance,
@@ -438,6 +443,9 @@ router.get('/me', protect, async (req, res) => {
           tokens: (user.tokens + user.bonusTokens),
           bonusTokens: user.bonusTokens,
           usage: user.usage,
+          isOwnApiKey: user.isOwnApiKey,
+          geminiApiKey: user.isOwnApiKey ? maskApiKey(decrypt(user.geminiApiKey)) : null,
+          geminiModel: user.geminiModel || '',
           createdAt: user.createdAt,
           updatedAt: user.updatedAt
         },
@@ -468,6 +476,8 @@ router.put('/profile', [
   body('phone').optional().trim().isLength({ max: 20 }).withMessage('Phone number cannot exceed 20 characters'),
   body('location').optional().trim().isLength({ max: 100 }).withMessage('Location cannot exceed 100 characters'),
   body('bio').optional().trim().isLength({ max: 500 }).withMessage('Bio cannot exceed 500 characters'),
+  body('geminiApiKey').optional().trim().isLength({ max: 500 }).withMessage('geminiApiKey cannot exceed 500 characters'),
+  body('geminiModel').optional().trim().isLength({ max: 100 }).withMessage('Model name cannot exceed 100 characters'),
   body('profilePicture').optional().custom((value) => {
     if (value === '' || value === null || value === undefined) {
       return true; // Allow empty values for clearing profile picture
@@ -480,6 +490,7 @@ router.put('/profile', [
         const url = new URL(value);
         return url.protocol === 'http:' || url.protocol === 'https:';
       } catch (error) {
+        console.log(`Exception while adding url protocol: ${error}`);
         return false;
       }
     }
@@ -498,7 +509,7 @@ router.put('/profile', [
       });
     }
 
-    const { firstName, lastName, email, phone, location, bio, profilePicture, profilePictureType } = req.body;
+    const { firstName, lastName, email, phone, location, geminiApiKey, geminiModel, bio, profilePicture, profilePictureType } = req.body;
 
     const user = await User.findById(req.user.id);
 
@@ -507,6 +518,11 @@ router.put('/profile', [
     if (lastName !== undefined) user.lastName = lastName;
     if (phone !== undefined) user.phone = phone;
     if (location !== undefined) user.location = location;
+    if (geminiApiKey !== undefined) {
+      const encrypted = encrypt(geminiApiKey);
+      user.geminiApiKey = encrypted;
+      }
+    if (geminiModel !== undefined) user.geminiModel = geminiModel;
     if (bio !== undefined) user.bio = bio;
     
     // Handle email update with validation
@@ -609,9 +625,11 @@ router.put('/profile', [
 
     // Remove sensitive data from response
     const userResponse = user.toObject();
+    userResponse.geminiApiKey = maskApiKey(decrypt(user.geminiApiKey))
     delete userResponse.password;
     delete userResponse.emailOtp;
     delete userResponse.emailOtpExpire;
+
 
     res.json({
       success: true,

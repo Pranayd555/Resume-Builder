@@ -24,10 +24,12 @@ const ATSScoreModal = ({
 
   // Get initial token balance
   useEffect(() => {
-    const balance = apiHelpers.getTokenBalance();
-    setTokenBalance(balance);
-    setIsTokenExhausted(balance <= 0);
-  }, []);
+    if(!user.isOwnApiKey) {
+      const balance = apiHelpers.getTokenBalance();
+      setTokenBalance(balance);
+      setIsTokenExhausted( balance <= 0);
+    }
+  }, [user.isOwnApiKey]);
 
   // Listen for token balance updates
   useEffect(() => {
@@ -43,7 +45,7 @@ const ATSScoreModal = ({
 
   // Update token balance from user data if available
   useEffect(() => {
-    if (user && user.tokens !== undefined) {
+    if (user?.tokens !== undefined && !user.isOwnApiKey) {
       setTokenBalance(user.tokens);
       setIsTokenExhausted(user.tokens <= 0);
     }
@@ -96,7 +98,7 @@ const ATSScoreModal = ({
   // Handle form submission
   const handleSubmit = async () => {
     // Check if tokens are exhausted
-    if (isTokenExhausted || tokenBalance <= 0) {
+    if (!user.isOwnApiKey && (isTokenExhausted || tokenBalance <= 0)) {
       toast.error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
       return;
     }
