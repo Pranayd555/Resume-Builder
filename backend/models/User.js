@@ -57,6 +57,11 @@ const userSchema = new mongoose.Schema({
     trim: true,
     maxlength: [500, 'Token cannot exceed 500 characters']
   },
+  geminiModel: {
+    type: String,
+    trim: true,
+    maxlength: [100, 'Model name cannot exceed 100 characters']
+  },
   
   // Profile Picture - Either uploaded photo OR avatar URL (mutually exclusive)
   profilePicture: {
@@ -516,6 +521,7 @@ userSchema.index({ linkedinId: 1 });
 userSchema.index({ 'razorpayTransactions.transactionId': 1 });
 userSchema.index({ 'razorpayTransactions.orderId': 1 });
 userSchema.index({ geminiApiKey: 1 });
+userSchema.index({ geminiModel: 1 });
 // Stripe indexes removed
 
 module.exports = mongoose.model('User', userSchema);

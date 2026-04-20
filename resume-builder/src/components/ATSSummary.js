@@ -16,6 +16,8 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
   const [isTokenExhausted, setIsTokenExhausted] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { summary, projects, workExperience, skills, education, achievements } = resume;
+  const { ats_warnings, missing_keywords, recommendations } = atsAnalysis;
 
   // Get initial token balance
   useEffect(() => {
@@ -100,7 +102,9 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       setIsProcessing(true);
       setProcessingType('adjust-tone');
       
-      const response = await aiService.adjustTone(resumeId, resume, atsAnalysis, ["summary", "experience", "projects"]);
+      const response = await aiService.adjustTone(resumeId, {
+        summary, projects, workExperience, education, achievements
+      }, {ats_warnings, missing_keywords, recommendations}, ["summary", "workExperience", "projects", "education", "achievements"]);
       
       if (response.success) {
         // Update token balance after successful operation
@@ -154,7 +158,9 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       setIsProcessing(true);
       setProcessingType('enhance-keywords');
       
-      const response = await aiService.enhanceKeywords(resumeId, resume, atsAnalysis, ["skills", "experience", "projects"]);
+      const response = await aiService.enhanceKeywords(resumeId, {
+        projects, workExperience, skills, education,
+      }, {ats_warnings, missing_keywords, recommendations}, ["workExperience", "projects", "education", "skills"]);
       
       if (response.success) {
         // Update token balance after successful operation

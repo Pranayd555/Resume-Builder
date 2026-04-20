@@ -138,9 +138,6 @@ router.post('/parse-resume', [
       // Continue with original text if AI parsing fails
       // Don't set usageType since AI parsing failed
     }
-
-    // Get current user to include token balance
-    const currentUser = await User.findById(req.user.id);
     
     // If AI parsing failed, return error response to trigger token refund
     if (aiError) {

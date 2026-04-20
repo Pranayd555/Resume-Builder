@@ -10,6 +10,7 @@ export const createUserModel = (data = {}) => ({
   location: data.location || '',
   bio: data.bio || '',
   geminiApiKey: data.geminiApiKey || '',
+  geminiModel: data.geminiModel || '',
   isOwnApiKey: data.isOwnApiKey || false,
   profilePicture: data.profilePicture || { url: '', publicId: '' },
   googleId: data.googleId || null,

@@ -218,7 +218,11 @@ router.post('/login', [
     res.json({
       success: true,
       data: {
-        user: {...userResponse, tokens: tokenData.totalTokenBalance, geminiApiKey: userResponse.isOwnApiKey ? maskApiKey(decrypt(userResponse.geminiApiKey)) : null},
+        user: {
+          ...userResponse,
+          tokens: tokenData.totalTokenBalance,
+          geminiApiKey: userResponse.isOwnApiKey ? maskApiKey(decrypt(userResponse.geminiApiKey)) : null
+        },
         token,
         tokens: {
           balance: tokenData.totalTokenBalance,
@@ -441,6 +445,7 @@ router.get('/me', protect, async (req, res) => {
           usage: user.usage,
           isOwnApiKey: user.isOwnApiKey,
           geminiApiKey: user.isOwnApiKey ? maskApiKey(decrypt(user.geminiApiKey)) : null,
+          geminiModel: user.geminiModel || '',
           createdAt: user.createdAt,
           updatedAt: user.updatedAt
         },
@@ -472,6 +477,7 @@ router.put('/profile', [
   body('location').optional().trim().isLength({ max: 100 }).withMessage('Location cannot exceed 100 characters'),
   body('bio').optional().trim().isLength({ max: 500 }).withMessage('Bio cannot exceed 500 characters'),
   body('geminiApiKey').optional().trim().isLength({ max: 500 }).withMessage('geminiApiKey cannot exceed 500 characters'),
+  body('geminiModel').optional().trim().isLength({ max: 100 }).withMessage('Model name cannot exceed 100 characters'),
   body('profilePicture').optional().custom((value) => {
     if (value === '' || value === null || value === undefined) {
       return true; // Allow empty values for clearing profile picture
@@ -503,7 +509,7 @@ router.put('/profile', [
       });
     }
 
-    const { firstName, lastName, email, phone, location, geminiApiKey, bio, profilePicture, profilePictureType } = req.body;
+    const { firstName, lastName, email, phone, location, geminiApiKey, geminiModel, bio, profilePicture, profilePictureType } = req.body;
 
     const user = await User.findById(req.user.id);
 
@@ -516,6 +522,7 @@ router.put('/profile', [
       const encrypted = encrypt(geminiApiKey);
       user.geminiApiKey = encrypted;
       }
+    if (geminiModel !== undefined) user.geminiModel = geminiModel;
     if (bio !== undefined) user.bio = bio;
     
     // Handle email update with validation

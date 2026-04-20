@@ -31,6 +31,7 @@ function Profile() {
     phone: '',
     location: '',
     geminiApiKey: '',
+    geminiModel: '',
     bio: '',
     profilePicture: ''
   });
@@ -98,6 +99,14 @@ function Profile() {
             if (!apiKeyRegex.test(value.trim())) { return 'Please enter a valid API key' };
             return '';
           }
+          return '';
+        }
+      case 'geminiModel':
+        {
+          if (!value?.trim()) return '';
+          if (value.trim().length > 100) return 'Model name must be less than 100 characters';
+          // Allow common Gemini model naming patterns (letters, numbers, dot, dash, underscore)
+          if (!/^[a-zA-Z0-9._-]+$/.test(value.trim())) return 'Model name can only contain letters, numbers, ".", "_", and "-"';
           return '';
         }
       default:
@@ -274,6 +283,7 @@ function Profile() {
         phone: user.phone || '',
         location: user.location || '',
         geminiApiKey: user.geminiApiKey || '',
+        geminiModel: user.geminiModel || '',
         bio: user.bio || '',
         profilePicture: profilePictureUrl,
         profilePictureOriginal: profilePictureOriginalUrl,
@@ -1026,6 +1036,34 @@ function Profile() {
                       )}
                     </span>
                     {profile.geminiApiKey ? <TrashIcon onClick={deleteApiKey} className="w-4 h-4 shrink-0 cursor-pointer text-red-600 hover:text-red-700" /> : ''}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Gemini Model Name
+                </label>
+                {isEditing ? (
+                  <div>
+                    <input
+                      type="text"
+                      value={profile.geminiModel}
+                      onChange={(e) => handleInputChange('geminiModel', e.target.value)}
+                      onBlur={() => handleFieldBlur('geminiModel')}
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900 ${errors.geminiModel ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+                        }`}
+                      placeholder='Example: gemini-2.5-flash-lite (optional)'
+                    />
+                    {errors.geminiModel && (
+                      <p className="text-red-500 text-sm mt-1">{errors.geminiModel}</p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-gray-900 leading-relaxed break-all">
+                    {profile.geminiModel || (
+                      <span className="text-gray-500 italic">Default (gemini-2.5-flash-lite)</span>
+                    )}
                   </p>
                 )}
               </div>
