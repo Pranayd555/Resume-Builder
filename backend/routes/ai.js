@@ -798,51 +798,36 @@ router.post('/adjust-tone', [
 
     // Create prompt for tone adjustment
     const prompt = `
-        You are an expert resume writing assistant specializing in ATS-optimized, professional, and achievement-driven resumes.
-
-        Your task is to rewrite the provided resume sections to improve tone, clarity, and professionalism while keeping them concise and impactful. 
-
-         ### Rules for rewriting:
-         - Use professional, confident, and achievement-oriented tone.
-         - Start sentences with strong action verbs (e.g., "Developed", "Led", "Implemented", "Optimized").
-         - Replace generic job duties with quantifiable accomplishments wherever possible (use metrics like %, $, time saved, performance improved if available).
-         - Eliminate repetitive or filler phrases such as "responsible for", "worked on", "involved in".
-         - Ensure chronological consistency and logical flow in experience.
-         - Avoid generic buzzwords like "hardworking", "team player", unless backed with evidence.
-         - Keep sentences clear and direct (avoid long, wordy sentences).
-         - Maintain technical depth by highlighting tools, technologies, and methods used.
-         - Do NOT invent fake companies, roles, or projects — only rewrite what is provided.
-         - Do NOT include explanatory text or commentary outside the required JSON format.
-         
-         ### HTML Formatting Requirements (CKEditor Compatible):
-         - Use HTML tags for better structure and readability
-         - For work experience descriptions: Convert into bulleted lists using <ul><li> tags
-         - For project descriptions: Use numbered lists <ol><li> for sequential steps or <ul><li> for features/achievements
-         - Use <strong> tags for emphasis on key achievements or technologies
-         - Use <br> tags for line breaks when needed
-         - Keep HTML simple and clean - avoid complex nested structures
-         - Example format for experience description: "<ul><li>Developed and maintained web applications using React and Node.js</li><li>Improved application performance by 40% through code optimization</li></ul>"
-         - Example format for projects description: "<ol><li>Designed and implemented user authentication system</li><li>Integrated third-party APIs for data processing</li></ol>"
-
-        ### Input:
         - Resume JSON (with summary, workexperience, projects, education, achievements) : 
         ${JSON.stringify(resume_json, null, 2)}
         - ATS analysis (with weaknesses/recommendations) for guidance :
         ${JSON.stringify(ats_analysis, null, 2)}
         - Focus Areas: ${JSON.stringify(focus, null, 2)}
 
-        ### Output:
-        Rewrite only the summary, workExperience.description, projects.description, education.description and achievement.description fields with improved tone.
-
         `;
 
-        logger.error(`enhance keyword prompt ${prompt}`);
     const response = await genAI.models.generateContent({
       model: resolveGeminiModel(req),
       contents: prompt,
       config: {
         responseMimeType: "application/json",
-        responseJsonSchema: ADJUST_TONE_SCHEMA
+        responseJsonSchema: ADJUST_TONE_SCHEMA,
+        systemInstruction: `
+          You are an expert ATS resume optimizer.
+
+          Rewrite provided resume sections to be concise, professional, and achievement-focused.
+
+          Rules:
+          - Use strong action verbs and quantify impact where possible.
+          - Replace generic responsibilities with measurable achievements.
+          - Maintain clarity, consistency, and technical relevance.
+          - Do not add new information.
+          - Return valid JSON only (no extra text).
+
+          Formatting:
+          - Use simple HTML (<ul><li>, <ol><li>, <strong>, <br>).
+          - Work experience → bullet points
+          - Projects → ordered or unordered lists`,
       }
     });
 
@@ -923,42 +908,42 @@ router.post('/enhance-keywords', [
 
     // Create prompt for keyword enhancement
     const prompt = `
-        You are an expert resume writer and ATS optimization specialist. Based on the missing keywords from the ATS analysis, enhance the resume by naturally integrating these keywords into the specified sections.
+        
 
         Resume Data: ${JSON.stringify(cleanedResumeData, null, 2)}
         ATS Analysis: ${JSON.stringify(ats_analysis, null, 2)}
         Target Sections: ${JSON.stringify(target_sections, null, 2)}
-
-          Instructions:
-          1. Analyze the missing keywords from the ATS analysis
-          2. Naturally integrate these keywords into the target sections (summary, skills, workExperience, projects, education) where applicable
-          3. Ensure the keywords are contextually relevant and don't feel forced
-          4. PRESERVE the original structure and format of the resume - if it's a list, keep it as a list; if it's a paragraph, keep it as a paragraph
-          5. Only add missing keywords to appropriate positions - do NOT change grammar, structure, or other content
-          6. Make sure the enhanced content still reads naturally and professionally
-          7. Prioritize keywords that are most relevant to the job requirements
-          8. For skills: Add missing keywords to appropriate skill categories
-          9. For workExperience: Add missing keywords to job descriptions where contextually appropriate
-          10. For projects: Add missing keywords to project descriptions and project technologies where contextually appropriate
-          11. For education: Add missing keywords to education descriptions where contextually appropriate (mostly applicable for freshers or higher educated personnel - skip for ohers)
-          
-          ### CRITICAL: Preserve Original Formatting
-          - If the original description is a paragraph, keep it as a paragraph and only add keywords
-          - If the original description is a list, keep it as a list and only add keywords to relevant points
-          - Do NOT restructure or reformat the content
-          - Do NOT fix grammar or improve writing - only add missing keywords
-          - Maintain the exact same HTML structure if present
-
-          Return the updated resume JSON with the complete structure. The response should be valid JSON that can be directly used to update the resume.
           `;
 
     const response = await genAI.models.generateContent({
       model: resolveGeminiModel(req),
       contents: prompt,
-      config:{
+      config: {
         responseMimeType: "application/json",
-      responseJsonSchema : ENHANCE_KEYWORDS_SCHEMA
-    }
+        responseJsonSchema: ENHANCE_KEYWORDS_SCHEMA,
+        systemInstruction: `
+        You are an ATS resume optimizer.
+
+        Enhance the resume by integrating missing ATS keywords into relevant sections (summary, skills, workExperience, projects, education).
+
+        Rules:
+        - Insert keywords naturally and contextually; do not force them.
+        - Do NOT change grammar, structure, tone, or existing content.
+        - Preserve exact formatting and HTML (paragraphs remain paragraphs, lists remain lists).
+        - Only add keywords where relevant.
+
+        Section-specific:
+        - Skills: add keywords to appropriate categories.
+        - WorkExperience: add to descriptions where relevant.
+        - Projects: add to descriptions and technologies.
+        - Education: add only if contextually relevant (mainly for freshers).
+
+        Prioritize the most relevant keywords from the job description.
+
+        Output:
+        Return full updated resume JSON only (no extra text).
+        `
+      }
     });
 
     const text = response.text;
@@ -1018,7 +1003,7 @@ router.post('/generate-pdf-template', [
     const genAI = new GoogleGenAI(req.user.isOwnApiKey ? decrypt(req.user.geminiApiKey) : process.env.GEMINI_API_KEY);
 
     // Create prompt for PDF template generation
-    const prompt =  getPromt('generatePdfTemplate', content);
+    const prompt = getPromt('generatePdfTemplate', content);
 
     try {
       const response = await genAI.models.generateContent({
