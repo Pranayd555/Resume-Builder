@@ -5,6 +5,7 @@ import AIService from "../services/aiService";
 import { apiHelpers } from "../services/api";
 import "./AIButton.css";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import { useAuth } from "../contexts/AuthContext";
 
 const AIButton = ({
   editorInstance,
@@ -13,20 +14,23 @@ const AIButton = ({
   onAIContentChange = null,
   onAILoading = null,
   isMobile = false,
-  originalText = null
+  originalText = null,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [tokenBalance, setTokenBalance] = useState(0);
   const [isTokenExhausted, setIsTokenExhausted] = useState(false);
+  const { user } = useAuth();
 
 
   // Get initial token balance
   useEffect(() => {
-    const balance = apiHelpers.getTokenBalance();
-    setTokenBalance(balance);
-    setIsTokenExhausted(balance <= 0);
-  }, []);
+    if(!user.isOwnApiKey) {
+      const balance = apiHelpers.getTokenBalance();
+      setTokenBalance(balance);
+      setIsTokenExhausted( balance <= 0);
+    }
+  }, [user.isOwnApiKey]);
 
   // Listen for token balance updates
   useEffect(() => {
@@ -55,7 +59,7 @@ const AIButton = ({
       return;
     }
 
-    if (isTokenExhausted || tokenBalance <= 0) {
+    if (!user.isOwnApiKey && (isTokenExhausted || tokenBalance <= 0)) {
       showNotification(
         "AI tokens exhausted! Please purchase more tokens to continue using AI features.",
         "error"

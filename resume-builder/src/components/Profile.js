@@ -30,6 +30,8 @@ function Profile() {
     email: '',
     phone: '',
     location: '',
+    geminiApiKey: '',
+    geminiModel: '',
     bio: '',
     profilePicture: ''
   });
@@ -82,12 +84,31 @@ function Profile() {
         return '';
 
       case 'phone':
-        if (!value.trim()) return 'Phone number is required';
-        const phoneRegex = /^[+]?[1-9][\d]{0,15}$/;
-        const cleanPhone = value.replace(/[\s\-().]/g, '');
-        if (!phoneRegex.test(cleanPhone)) return 'Please enter a valid phone number';
-        return '';
+        {
+          if (!value.trim()) return 'Phone number is required';
+          const phoneRegex = /^[+]?[1-9][\d]{0,15}$/;
+          const cleanPhone = value.replaceAll(/[\s\-().]/g, '');
+          if (!phoneRegex.test(cleanPhone)) return 'Please enter a valid phone number';
+          return '';
+        }
 
+      case 'geminiApiKey':
+        {
+          if (value.trim() && !value.trim().includes('*')) {
+            const apiKeyRegex = /^AIza[0-9A-Za-z-_]{20,}$/;
+            if (!apiKeyRegex.test(value.trim())) { return 'Please enter a valid API key' };
+            return '';
+          }
+          return '';
+        }
+      case 'geminiModel':
+        {
+          if (!value?.trim()) return '';
+          if (value.trim().length > 100) return 'Model name must be less than 100 characters';
+          // Allow common Gemini model naming patterns (letters, numbers, dot, dash, underscore)
+          if (!/^[a-zA-Z0-9._-]+$/.test(value.trim())) return 'Model name can only contain letters, numbers, ".", "_", and "-"';
+          return '';
+        }
       default:
         return '';
     }
@@ -261,6 +282,8 @@ function Profile() {
         email: user.email || '',
         phone: user.phone || '',
         location: user.location || '',
+        geminiApiKey: user.geminiApiKey || '',
+        geminiModel: user.geminiModel || '',
         bio: user.bio || '',
         profilePicture: profilePictureUrl,
         profilePictureOriginal: profilePictureOriginalUrl,
@@ -483,12 +506,6 @@ function Profile() {
 
       // Clear the profile picture from the backend
       const profileData = {
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        email: profile.email,
-        phone: profile.phone,
-        location: profile.location,
-        bio: profile.bio,
         profilePicture: '',
         profilePictureType: 'uploaded' // Default type when removing
       };
@@ -527,12 +544,6 @@ function Profile() {
 
       // Save the avatar to the backend with the new structure
       const profileData = {
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-        email: profile.email,
-        phone: profile.phone,
-        location: profile.location,
-        bio: profile.bio,
         profilePicture: avatarUrl,
         profilePictureType: 'avatar'
       };
@@ -657,6 +668,43 @@ function Profile() {
       console.error('Failed to show email verification modal:', error);
     }
   };
+
+  const deleteApiKey = async () => {
+    try {
+      setUploading(true);
+
+      // Clear the profile picture from the backend
+      const profileData = {
+        geminiApiKey: null
+      };
+
+      const profileResponse = await authAPI.updateProfile(profileData);
+
+      if (profileResponse.success) {
+        // Update the AuthContext to remove the profile picture
+        const user = profileResponse.data.user;
+        updateAuthUser(user);
+
+        // Clear profile picture from local state
+        // const updatedProfile = {
+        //   ...profile,
+        //   geminiApiKey: ''
+        //   isOwn
+        // };
+        setProfile(user);
+        setOriginalProfile(user);
+
+        toast.success('Api key removed successfully!');
+      } else {
+        throw new Error(profileResponse.error || 'Failed to remove api key');
+      }
+    } catch (error) {
+      const errorMessage = apiHelpers.formatError(error);
+      toast.error(errorMessage);
+    } finally {
+      setUploading(false);
+    }
+  }
 
   return (
     <div className="min-h-screen pt-16">
@@ -957,7 +1005,66 @@ function Profile() {
                     placeholder="Enter your location (optional)"
                   />
                 ) : (
-                  <p className="text-gray-900 font-medium">{profile.location}</p>
+                  <p className="text-gray-900 font-medium">{profile.location ||
+                    <span className="text-gray-500 italic">No location provided</span>}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Gemini API Key
+                </label>
+                {isEditing && !user.isOwnApiKey ? (
+                  <div>
+                    <input
+                      type="text"
+                      value={profile.geminiApiKey}
+                      onChange={(e) => handleInputChange('geminiApiKey', e.target.value)}
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900 ${errors.geminiApiKey ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+                        }`}
+                      placeholder="Enter your API Key (optional)"
+                    />
+                    {errors.geminiApiKey && (
+                      <p className="text-red-500 text-sm mt-1">{errors.geminiApiKey}</p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="flex flex-wrap items-center gap-2 text-gray-900 leading-relaxed">
+                    <span className="break-all">
+                      {profile.geminiApiKey || (
+                        <span className="text-gray-500 italic">No Key provided</span>
+                      )}
+                    </span>
+                    {profile.geminiApiKey ? <TrashIcon onClick={deleteApiKey} className="w-4 h-4 shrink-0 cursor-pointer text-red-600 hover:text-red-700" /> : ''}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Gemini Model Name
+                </label>
+                {isEditing ? (
+                  <div>
+                    <input
+                      type="text"
+                      value={profile.geminiModel}
+                      onChange={(e) => handleInputChange('geminiModel', e.target.value)}
+                      onBlur={() => handleFieldBlur('geminiModel')}
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900 ${errors.geminiModel ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
+                        }`}
+                      placeholder='Example: gemini-2.5-flash-lite (optional)'
+                    />
+                    {errors.geminiModel && (
+                      <p className="text-red-500 text-sm mt-1">{errors.geminiModel}</p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-gray-900 leading-relaxed break-all">
+                    {profile.geminiModel || (
+                      <span className="text-gray-500 italic">Default (gemini-2.5-flash-lite)</span>
+                    )}
+                  </p>
                 )}
               </div>
 

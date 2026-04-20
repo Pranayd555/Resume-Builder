@@ -1,11 +1,13 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const multer = require('multer');
-const { protect, checkAIActionLimit, checkTokenLimit, trackUsage, refundTokenOnError } = require('../middleware/auth');
+const { protect, checkAIActionLimit, checkTokenLimit, trackUsage, refundTokenOnError, skipIfBYOK } = require('../middleware/auth');
 const Resume = require('../models/Resume');
 const logger = require('../utils/logger');
 const DocumentParser = require('../utils/documentParser');
 const { GoogleGenAI } = require("@google/genai");
+const { decrypt } = require('../utils/keyEncryption');
+const { getPromt } = require('../utils/aiPrompts');
 require('dotenv').config();
 
 const router = express.Router();
@@ -16,14 +18,198 @@ const stripHtmlTags = (text) => {
   return text.replace(/<[^>]*>/g, '').trim();
 };
 
+const resolveGeminiModel = (req) => {
+  const userModel = req?.user?.geminiModel;
+  if (typeof userModel === 'string' && userModel.trim()) return userModel.trim();
+  return process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
+};
+
+const ATS_SCHEMA = {
+  "type": "OBJECT",
+  "properties": {
+    "overall_score": {
+      "type": "NUMBER",
+      "description": "Total score from 0 to 100"
+    },
+    "category_scores": {
+      "type": "OBJECT",
+      "properties": {
+        "keyword_skill_match": { "type": "NUMBER" },
+        "experience_alignment": { "type": "NUMBER" },
+        "section_completeness": { "type": "NUMBER" },
+        "project_impact": { "type": "NUMBER" },
+        "formatting": { "type": "NUMBER" },
+        "bonus_skills": { "type": "NUMBER" }
+      },
+      "required": [
+        "keyword_skill_match",
+        "experience_alignment",
+        "section_completeness",
+        "project_impact",
+        "formatting",
+        "bonus_skills"
+      ]
+    },
+    "missing_keywords": {
+      "type": "ARRAY",
+      "items": { "type": "STRING" }
+    },
+    "strengths": {
+      "type": "ARRAY",
+      "items": { "type": "STRING" }
+    },
+    "weaknesses": {
+      "type": "ARRAY",
+      "items": { "type": "STRING" }
+    },
+    "ats_warnings": {
+      "type": "ARRAY",
+      "items": { "type": "STRING" }
+    },
+    "recommendations": {
+      "type": "ARRAY",
+      "items": { "type": "STRING" }
+    }
+  },
+  "required": [
+    "overall_score",
+    "category_scores",
+    "missing_keywords",
+    "strengths",
+    "weaknesses",
+    "ats_warnings",
+    "recommendations"
+  ]
+};
+
+const ADJUST_TONE_SCHEMA = {
+  "type": "OBJECT",
+  "properties": {
+    "summary": {
+      "type": "STRING",
+      "description": "Updated resume summary text with improved tone."
+    },
+    "workExperience": {
+      "type": "ARRAY",
+      "items": {
+        "type": "OBJECT",
+        "properties": {
+          "jobTitle": { "type": "STRING" },
+          "company": { "type": "STRING" },
+          "location": { "type": "STRING" },
+          "startDate": { "type": "STRING" },
+          "endDate": { "type": "STRING", "nullable": true },
+          "isCurrentJob": { "type": "BOOLEAN" },
+          "description": { "type": "STRING" },
+          "achievements": {
+            "type": "ARRAY",
+            "items": { "type": "STRING" }
+          }
+        },
+        "required": ["jobTitle", "company", "isCurrentJob", "description", "achievements"]
+      }
+    },
+    "projects": {
+      "type": "ARRAY",
+      "items": {
+        "type": "OBJECT",
+        "properties": {
+          "name": { "type": "STRING" },
+          "description": { "type": "STRING" },
+          "technologies": {
+            "type": "ARRAY",
+            "items": { "type": "STRING" }
+          },
+          "url": { "type": "STRING" },
+          "githubUrl": { "type": "STRING" },
+          "startDate": { "type": "STRING", "nullable": true },
+          "endDate": { "type": "STRING", "nullable": true }
+        },
+        "required": ["name", "description", "technologies"]
+      }
+    }
+  },
+  "required": ["summary", "workExperience", "projects"]
+};
+
+const ENHANCE_KEYWORDS_SCHEMA = {
+  "type": "OBJECT",
+  "properties": {
+    "skills": {
+      "type": "ARRAY",
+      "items": {
+        "type": "OBJECT",
+        "properties": {
+          "category": { "type": "STRING" },
+          "items": {
+            "type": "ARRAY",
+            "items": {
+              "type": "OBJECT",
+              "properties": {
+                "name": { "type": "STRING" },
+                "level": { "type": "STRING" }
+              },
+              "required": ["name", "level"]
+            }
+          }
+        },
+        "required": ["category", "items"]
+      }
+    },
+    "workExperience": {
+      "type": "ARRAY",
+      "items": {
+        "type": "OBJECT",
+        "properties": {
+          "jobTitle": { "type": "STRING" },
+          "company": { "type": "STRING" },
+          "location": { "type": "STRING" },
+          "startDate": { "type": "STRING" },
+          "endDate": { "type": "STRING", "nullable": true },
+          "isCurrentJob": { "type": "BOOLEAN" },
+          "description": { "type": "STRING" },
+          "achievements": {
+            "type": "ARRAY",
+            "items": { "type": "STRING" }
+          }
+        },
+        "required": ["jobTitle", "company", "location", "startDate", "isCurrentJob", "description", "achievements"]
+      }
+    },
+    "projects": {
+      "type": "ARRAY",
+      "items": {
+        "type": "OBJECT",
+        "properties": {
+          "name": { "type": "STRING" },
+          "description": { "type": "STRING" },
+          "technologies": {
+            "type": "ARRAY",
+            "items": { "type": "STRING" }
+          },
+          "url": { "type": "STRING" },
+          "githubUrl": { "type": "STRING" },
+          "startDate": { "type": "STRING", "nullable": true },
+          "endDate": { "type": "STRING", "nullable": true }
+        },
+        "required": ["name", "description", "technologies", "url", "githubUrl"]
+      }
+    }
+  },
+  "required": ["skills", "workExperience", "projects"]
+}
+
+
+
+
 // Utility function to clean resume data by removing HTML tags
 const cleanResumeData = (resumeData) => {
   const cleaned = { ...resumeData };
-  
+
   // Clean string fields
   if (cleaned.title) cleaned.title = stripHtmlTags(cleaned.title);
   if (cleaned.summary) cleaned.summary = stripHtmlTags(cleaned.summary);
-  
+
   // Clean personal info
   if (cleaned.personalInfo) {
     Object.keys(cleaned.personalInfo).forEach(key => {
@@ -32,7 +218,7 @@ const cleanResumeData = (resumeData) => {
       }
     });
   }
-  
+
   // Clean work experience
   if (cleaned.workExperience && Array.isArray(cleaned.workExperience)) {
     cleaned.workExperience = cleaned.workExperience.map(exp => ({
@@ -43,7 +229,7 @@ const cleanResumeData = (resumeData) => {
       location: stripHtmlTags(exp.location)
     }));
   }
-  
+
   // Clean education
   if (cleaned.education && Array.isArray(cleaned.education)) {
     cleaned.education = cleaned.education.map(edu => ({
@@ -55,12 +241,12 @@ const cleanResumeData = (resumeData) => {
       location: stripHtmlTags(edu.location)
     }));
   }
-  
+
   // Clean skills array
   if (cleaned.skills && Array.isArray(cleaned.skills)) {
     cleaned.skills = cleaned.skills.map(skill => stripHtmlTags(skill));
   }
-  
+
   // Clean projects
   if (cleaned.projects && Array.isArray(cleaned.projects)) {
     cleaned.projects = cleaned.projects.map(project => ({
@@ -71,12 +257,12 @@ const cleanResumeData = (resumeData) => {
       url: stripHtmlTags(project.url)
     }));
   }
-  
+
   // Clean achievements
   if (cleaned.achievements && Array.isArray(cleaned.achievements)) {
     cleaned.achievements = cleaned.achievements.map(achievement => stripHtmlTags(achievement));
   }
-  
+
   // Clean certifications
   if (cleaned.certifications && Array.isArray(cleaned.certifications)) {
     cleaned.certifications = cleaned.certifications.map(cert => ({
@@ -86,7 +272,7 @@ const cleanResumeData = (resumeData) => {
       description: stripHtmlTags(cert.description)
     }));
   }
-  
+
   // Clean languages
   if (cleaned.languages && Array.isArray(cleaned.languages)) {
     cleaned.languages = cleaned.languages.map(lang => ({
@@ -95,7 +281,7 @@ const cleanResumeData = (resumeData) => {
       proficiency: stripHtmlTags(lang.proficiency)
     }));
   }
-  
+
   // Clean custom fields
   if (cleaned.customFields && Array.isArray(cleaned.customFields)) {
     cleaned.customFields = cleaned.customFields.map(field => ({
@@ -104,7 +290,7 @@ const cleanResumeData = (resumeData) => {
       value: stripHtmlTags(field.value)
     }));
   }
-  
+
   return cleaned;
 };
 
@@ -117,9 +303,9 @@ const upload = multer({
   },
   fileFilter: (req, file, cb) => {
     // Allow PDF and Word documents for job descriptions
-    if (file.mimetype === 'application/pdf' || 
-        file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-        file.mimetype === 'application/msword') {
+    if (file.mimetype === 'application/pdf' ||
+      file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+      file.mimetype === 'application/msword') {
       cb(null, true);
     } else {
       cb(new Error('Only PDF, DOC, and DOCX files are allowed for job description!'), false);
@@ -132,9 +318,9 @@ const upload = multer({
 // @access  Private
 router.post('/rewrite', [
   protect,
-  checkAIActionLimit,
-  checkTokenLimit,
-  refundTokenOnError,
+  skipIfBYOK(checkAIActionLimit),
+  skipIfBYOK(checkTokenLimit),
+  skipIfBYOK(refundTokenOnError),
   body('content').trim().isLength({ min: 10 }).withMessage('Content must be at least 10 characters'),
   body('tone').optional().isIn(['professional', 'casual', 'formal', 'creative']).withMessage('Invalid tone'),
   body('style').optional().isIn(['concise', 'detailed', 'action-oriented', 'achievement-focused']).withMessage('Invalid style')
@@ -154,49 +340,19 @@ router.post('/rewrite', [
     const { content, tone = 'professional', style = 'action-oriented' } = req.body;
 
     // Initialize Gemini AI
-    const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
+    const genAI = new GoogleGenAI(req.user.isOwnApiKey ? decrypt(req.user.geminiApiKey) : process.env.GEMINI_API_KEY);
 
     // Create prompt for ATS-friendly professional enhancement
-    const prompt = `
-You are an expert resume writing assistant specializing in ATS-optimized, professional, and achievement-driven content.
-
-Task:
-Enhance the following text to be ATS-friendly, keyword-rich, and professionally polished while maintaining its original meaning.
-
-Guidelines:
-- Use strong action verbs (Developed, Led, Implemented, Optimized, Managed, Created, etc.)
-- Include relevant industry keywords and technical terms naturally
-- Quantify achievements with numbers, percentages, and metrics where possible
-- Use bullet points for better ATS parsing and readability
-- Start sentences with action verbs to demonstrate impact
-- Avoid generic phrases like "responsible for" or "worked on"
-- Include specific technologies, tools, and methodologies
-- Keep content concise but impactful
-- Use professional terminology appropriate for the industry
-- Structure content for easy ATS scanning and human reading
-
-CRITICAL OUTPUT REQUIREMENTS:
-- Return ONLY clean HTML without any markdown formatting
-- Do NOT include code blocks - return clean html code
-- Do NOT include any markdown syntax
-- Return pure HTML that can be directly inserted into a CKEditor
-- Use proper HTML tags like <ul>, <li>, <p>, <strong>, etc.
-- Ensure the HTML is valid and well-formed
-
-User Input:
-"${content}"
-
-Return the final ATS-optimized, keyword-rich text as clean HTML only.
-    `;
+    const prompt = getPromt('rewritePrompt', content);
 
     try {
       const response = await genAI.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: resolveGeminiModel(req),
         contents: prompt,
       });
 
       let rewrittenContent = response.text;
-      
+
       // Clean the response to remove markdown formatting
       rewrittenContent = rewrittenContent
         .replace(/```html\n?/g, '')
@@ -238,9 +394,9 @@ Return the final ATS-optimized, keyword-rich text as clean HTML only.
 // @access  Private
 router.post('/summarize', [
   protect,
-  checkAIActionLimit,
-  checkTokenLimit,
-  refundTokenOnError,
+  skipIfBYOK(checkAIActionLimit),
+  skipIfBYOK(checkTokenLimit),
+  skipIfBYOK(refundTokenOnError),
   body('content').trim().isLength({ min: 20 }).withMessage('Content must be at least 20 characters')
 ], trackUsage, async (req, res) => {
   try {
@@ -258,51 +414,19 @@ router.post('/summarize', [
     const { content } = req.body;
 
     // Initialize Gemini AI
-    const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
+    const genAI = new GoogleGenAI(req.user.isOwnApiKey ? decrypt(req.user.geminiApiKey) : process.env.GEMINI_API_KEY);
 
     // Create prompt for ATS-friendly text enhancement
-    const prompt = `
-You are an expert resume writing assistant specializing in ATS-optimized, professional, and achievement-driven content.
-
-Task:
-Enhance the following text to be ATS-friendly, keyword-rich, and professionally polished while maintaining its original meaning.
-
-Guidelines:
-- Use strong action verbs (Developed, Led, Implemented, Optimized, Managed, Created, etc.)
-- Include relevant industry keywords and technical terms naturally
-- Quantify achievements with numbers, percentages, and metrics where possible
-- Start sentences with action verbs to demonstrate impact
-- Avoid generic phrases like "responsible for" or "worked on"
-- Include specific technologies, tools, and methodologies
-- Keep content concise but impactful
-- Use professional terminology appropriate for the industry
-- Structure content for easy ATS scanning and human reading
-- Format as flowing paragraphs, not bullet points or lists
-
-CRITICAL OUTPUT REQUIREMENTS:
-- Return ONLY clean HTML without any markdown formatting
-- Do NOT include code blocks - return clean html code
-- Do NOT include any markdown syntax
-- Return pure HTML that can be directly inserted into a CKEditor
-- Use paragraph tags <p> for content structure
-- Do NOT use bullet points <ul> or <li> tags
-- Ensure the HTML is valid and well-formed
-- Format as continuous, flowing text in paragraph form
-
-User Input:
-"${content}"
-
-Return the final summarized text as clean HTML paragraphs only.
-    `;
+    const prompt = getPromt('summerize', content);
 
     try {
       const response = await genAI.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: resolveGeminiModel(req),
         contents: prompt,
       });
 
       let enhancedText = response.text;
-      
+
       // Clean the response to remove markdown formatting
       enhancedText = enhancedText
         .replace(/```html\n?/g, '')
@@ -345,7 +469,7 @@ router.get('/usage', protect, async (req, res) => {
   try {
     const User = require('../models/User');
     const user = await User.findById(req.user.id);
-    
+
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -379,9 +503,9 @@ router.get('/usage', protect, async (req, res) => {
 // @access  Private
 router.post('/ats-score', [
   protect,
-  checkAIActionLimit,
-  checkTokenLimit,
-  refundTokenOnError,
+  skipIfBYOK(checkAIActionLimit),
+  skipIfBYOK(checkTokenLimit),
+  skipIfBYOK(refundTokenOnError),
   upload.single('jobDescriptionFile'), // Handle file upload for job description
   body('resumeId').isMongoId().withMessage('Valid resume ID is required'),
   body('jobDescription').optional().trim().isLength({ min: 10 }).withMessage('Job description must be at least 10 characters'),
@@ -467,19 +591,15 @@ router.post('/ats-score', [
       achievements: resume.achievements,
       certifications: resume.certifications,
       languages: resume.languages,
-      customFields: resume.customFields,
-      template: resume.template ? {
-        name: resume.template.name,
-        category: resume.template.category
-      } : null
+      customFields: resume.customFields
     };
 
     // Clean HTML tags from resume data
     const resumeData = cleanResumeData(rawResumeData);
 
     // Generate ATS score using Gemini
-    const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
-    
+    const genAI = new GoogleGenAI(req.user.isOwnApiKey ? decrypt(req.user.geminiApiKey) : process.env.GEMINI_API_KEY);
+
     const atsPrompt = `
         You are an ATS (Applicant Tracking System) expert. Analyze the following resume against the job description and provide a comprehensive ATS compatibility score.
 
@@ -489,24 +609,7 @@ router.post('/ats-score', [
         JOB DESCRIPTION:
         ${jobDescriptionText}
 
-        Please analyze and provide your response in the following EXACT JSON format. Return ONLY valid JSON without any additional text or explanations:
-
-        {
-          "overall_score": <number between 0-100>,
-          "category_scores": {
-            "keyword_skill_match": <number between 0-40>,
-            "experience_alignment": <number between 0-20>,
-            "section_completeness": <number between 0-15>,
-            "project_impact": <number between 0-10>,
-            "formatting": <number between 0-10>,
-            "bonus_skills": <number between 0-5>
-          },
-          "missing_keywords": [<array of missing keywords from job description>],
-          "strengths": [<array of resume strengths>],
-          "weaknesses": [<array of resume weaknesses>],
-          "ats_warnings": [<array of ATS compatibility warnings>],
-          "recommendations": [<array of actionable improvement recommendations>]
-        }
+        Please analyze and provide your response in the following EXACT JSON format. Return ONLY valid JSON without any additional text or explanations.
 
         SCORING CRITERIA:
         - keyword_skill_match (0-40): How well resume keywords match job requirements
@@ -521,17 +624,21 @@ router.post('/ats-score', [
 
     try {
       const response = await genAI.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: resolveGeminiModel(req),
         contents: atsPrompt,
+        config: {
+          responseMimeType: "application/json",
+          responseJsonSchema: ATS_SCHEMA
+        }
       });
 
       const rawResponse = response.text;
-      
+
       // Parse the JSON response from Gemini using robust parsing
-      const { parseAIResponse, validateResumeJSON } = require('../utils/jsonParser');
-      
+      const { parseAIResponse } = require('../utils/jsonParser');
+
       let atsAnalysis = parseAIResponse(rawResponse, 'analyze-resume');
-      
+
       // Validate the response structure
       if (!atsAnalysis.overall_score || !atsAnalysis.category_scores) {
         logger.warn('ATS analysis structure validation failed, using fallback');
@@ -557,13 +664,13 @@ router.post('/ats-score', [
       // Save ATS analysis to resume
       const crypto = require('crypto');
       const jobDescriptionHash = crypto.createHash('md5').update(jobDescriptionText).digest('hex');
-      
+
       resume.atsAnalysis = {
         ...atsAnalysis,
         job_description_hash: jobDescriptionHash,
         analyzed_at: new Date()
       };
-      
+
       await resume.save();
 
       logger.info(`ATS score generated and saved for resume ${resume.title} by user ${req.user.email}`);
@@ -651,9 +758,9 @@ router.get('/ats-score/:resumeId', protect, async (req, res) => {
 // @access  Private
 router.post('/adjust-tone', [
   protect,
-  checkAIActionLimit,
-  checkTokenLimit,
-  refundTokenOnError,
+  skipIfBYOK(checkAIActionLimit),
+  skipIfBYOK(checkTokenLimit),
+  skipIfBYOK(refundTokenOnError),
   body('resumeId').isMongoId().withMessage('Valid resume ID is required'),
   body('resume_json').isObject().withMessage('Resume JSON is required'),
   body('ats_analysis').isObject().withMessage('ATS analysis is required'),
@@ -687,91 +794,50 @@ router.post('/adjust-tone', [
     }
 
     // Initialize Gemini AI
-    const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
-
-    // Clean HTML tags from resume data
-    const cleanedResumeData = cleanResumeData(resume_json);
+    const genAI = new GoogleGenAI(req.user.isOwnApiKey ? decrypt(req.user.geminiApiKey) : process.env.GEMINI_API_KEY);
 
     // Create prompt for tone adjustment
     const prompt = `
-        You are an expert resume writing assistant specializing in ATS-optimized, professional, and achievement-driven resumes.
-
-        Your task is to rewrite the provided resume sections to improve tone, clarity, and professionalism while keeping them concise and impactful. 
-
-         ### Rules for rewriting:
-         - Use professional, confident, and achievement-oriented tone.
-         - Start sentences with strong action verbs (e.g., "Developed", "Led", "Implemented", "Optimized").
-         - Replace generic job duties with quantifiable accomplishments wherever possible (use metrics like %, $, time saved, performance improved if available).
-         - Eliminate repetitive or filler phrases such as "responsible for", "worked on", "involved in".
-         - Ensure chronological consistency and logical flow in experience.
-         - Avoid generic buzzwords like "hardworking", "team player", unless backed with evidence.
-         - Keep sentences clear and direct (avoid long, wordy sentences).
-         - Maintain technical depth by highlighting tools, technologies, and methods used.
-         - Do NOT invent fake companies, roles, or projects — only rewrite what is provided.
-         - Do NOT include explanatory text or commentary outside the required JSON format.
-         
-         ### HTML Formatting Requirements (CKEditor Compatible):
-         - Use HTML tags for better structure and readability
-         - For work experience descriptions: Convert into bulleted lists using <ul><li> tags
-         - For project descriptions: Use numbered lists <ol><li> for sequential steps or <ul><li> for features/achievements
-         - Use <strong> tags for emphasis on key achievements or technologies
-         - Use <br> tags for line breaks when needed
-         - Keep HTML simple and clean - avoid complex nested structures
-         - Example format for experience: "<ul><li>Developed and maintained web applications using React and Node.js</li><li>Improved application performance by 40% through code optimization</li></ul>"
-         - Example format for projects: "<ol><li>Designed and implemented user authentication system</li><li>Integrated third-party APIs for data processing</li></ol>"
-
-        ### Input:
-        - Resume JSON (with summary, experience, projects) : 
+        - Resume JSON (with summary, workexperience, projects, education, achievements) : 
         ${JSON.stringify(resume_json, null, 2)}
         - ATS analysis (with weaknesses/recommendations) for guidance :
         ${JSON.stringify(ats_analysis, null, 2)}
         - Focus Areas: ${JSON.stringify(focus, null, 2)}
 
-        ### Output:
-        Rewrite only the summary, workExperience.description, and projects.description fields with improved tone.
-
-        ### Response format (strict JSON only):
-        {
-          "summary": "updated summary text",
-          "workExperience": [
-            {
-              "jobTitle": "position title",
-              "company": "company name",
-              "location": "location",
-              "startDate": "start date",
-              "endDate": "end date or null",
-              "isCurrentJob": true/false,
-              "description": "updated description with improved tone",
-              "achievements": []
-            }
-          ],
-          "projects": [
-            {
-              "name": "project name",
-              "description": "updated description with improved tone",
-              "technologies": ["tech1", "tech2"],
-              "url": "project url or empty string",
-              "githubUrl": "github url or empty string",
-              "startDate": "start date or null",
-              "endDate": "end date or null"
-            }
-          ]
-        }
-
         `;
 
     const response = await genAI.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: resolveGeminiModel(req),
       contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseJsonSchema: ADJUST_TONE_SCHEMA,
+        systemInstruction: `
+          You are an expert ATS resume optimizer.
+
+          Rewrite provided resume sections to be concise, professional, and achievement-focused.
+
+          Rules:
+          - Use strong action verbs and quantify impact where possible.
+          - Replace generic responsibilities with measurable achievements.
+          - Maintain clarity, consistency, and technical relevance.
+          - Do not add new information.
+          - Return valid JSON only (no extra text).
+
+          Formatting:
+          - Use simple HTML (<ul><li>, <ol><li>, <strong>, <br>).
+          - Work experience → bullet points
+          - Projects → ordered or unordered lists`,
+      }
     });
 
     const text = response.text;
 
     // Parse the response using robust JSON parsing utility
     const { parseAIResponse, validateResumeJSON } = require('../utils/jsonParser');
-    
+
     const updatedResumeData = parseAIResponse(text, 'adjust-tone');
-    
+
     // Validate the parsed data
     if (!validateResumeJSON(updatedResumeData, 'adjust-tone')) {
       logger.warn('Parsed data failed validation, using fallback structure');
@@ -794,136 +860,99 @@ router.post('/adjust-tone', [
   }
 });
 
-    // @desc    Enhance resume keywords based on ATS analysis
-    // @route   POST /api/ai/enhance-keywords
-    // @access  Private
-    router.post('/enhance-keywords', [
-      protect,
-      checkAIActionLimit,
-      checkTokenLimit,
-      refundTokenOnError,
-      body('resumeId').isMongoId().withMessage('Valid resume ID is required'),
-      body('resume_json').isObject().withMessage('Resume JSON is required'),
-      body('ats_analysis').isObject().withMessage('ATS analysis is required'),
-      body('target_sections').isArray().withMessage('Target sections must be an array')
-    ], trackUsage, async (req, res) => {
-      try {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-          return res.status(400).json({
-            success: false,
-            errors: errors.array()
-          });
-        }
+// @desc    Enhance resume keywords based on ATS analysis
+// @route   POST /api/ai/enhance-keywords
+// @access  Private
+router.post('/enhance-keywords', [
+  protect,
+  skipIfBYOK(checkAIActionLimit),
+  skipIfBYOK(checkTokenLimit),
+  skipIfBYOK(refundTokenOnError),
+  body('resumeId').isMongoId().withMessage('Valid resume ID is required'),
+  body('resume_json').isObject().withMessage('Resume JSON is required'),
+  body('ats_analysis').isObject().withMessage('ATS analysis is required'),
+  body('target_sections').isArray().withMessage('Target sections must be an array')
+], trackUsage, async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array()
+      });
+    }
 
-        const { resumeId, resume_json, ats_analysis, target_sections } = req.body;
+    const { resumeId, resume_json, ats_analysis, target_sections } = req.body;
 
-        // Set usage type for tracking
-        req.usageType = 'aiAction';
+    // Set usage type for tracking
+    req.usageType = 'aiAction';
 
-        // Verify resume ownership
-        const resume = await Resume.findOne({
-          _id: resumeId,
-          user: req.user.id
-        });
+    // Verify resume ownership
+    const resume = await Resume.findOne({
+      _id: resumeId,
+      user: req.user.id
+    });
 
-        if (!resume) {
-          return res.status(404).json({
-            success: false,
-            error: 'Resume not found'
-          });
-        }
+    if (!resume) {
+      return res.status(404).json({
+        success: false,
+        error: 'Resume not found'
+      });
+    }
 
     // Initialize Gemini AI
-    const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
+    const genAI = new GoogleGenAI(req.user.isOwnApiKey ? decrypt(req.user.geminiApiKey) : process.env.GEMINI_API_KEY);
 
     // Clean HTML tags from resume data
     const cleanedResumeData = cleanResumeData(resume_json);
 
     // Create prompt for keyword enhancement
     const prompt = `
-        You are an expert resume writer and ATS optimization specialist. Based on the missing keywords from the ATS analysis, enhance the resume by naturally integrating these keywords into the specified sections.
+        
 
         Resume Data: ${JSON.stringify(cleanedResumeData, null, 2)}
         ATS Analysis: ${JSON.stringify(ats_analysis, null, 2)}
         Target Sections: ${JSON.stringify(target_sections, null, 2)}
-
-          Instructions:
-          1. Analyze the missing keywords from the ATS analysis
-          2. Naturally integrate these keywords into the target sections (skills, workExperience, projects)
-          3. Ensure the keywords are contextually relevant and don't feel forced
-          4. PRESERVE the original structure and format of the resume - if it's a list, keep it as a list; if it's a paragraph, keep it as a paragraph
-          5. Only add missing keywords to appropriate positions - do NOT change grammar, structure, or other content
-          6. Make sure the enhanced content still reads naturally and professionally
-          7. Prioritize keywords that are most relevant to the job requirements
-          8. For skills: Add missing keywords to appropriate skill categories
-          9. For workExperience: Add missing keywords to job descriptions where contextually appropriate
-          10. For projects: Add missing keywords to project descriptions where contextually appropriate
-          
-          ### CRITICAL: Preserve Original Formatting
-          - If the original description is a paragraph, keep it as a paragraph and only add keywords
-          - If the original description is a list, keep it as a list and only add keywords to relevant points
-          - Do NOT restructure or reformat the content
-          - Do NOT fix grammar or improve writing - only add missing keywords
-          - Maintain the exact same HTML structure if present
-
-          Return the updated resume JSON with the complete structure. The response should be valid JSON that can be directly used to update the resume.
-
-          Response format:
-          {
-            "skills": [
-              {
-                "category": "Technical Skills",
-                "items": [
-                  {
-                    "name": "JavaScript",
-                    "level": "intermediate"
-                  },
-                  {
-                    "name": "React",
-                    "level": "intermediate"
-                  }
-                ]
-              }
-            ],
-            "workExperience": [
-              {
-                "jobTitle": "Software Developer",
-                "company": "Company Name",
-                "location": "Location",
-                "startDate": "2020-01-01",
-                "endDate": null,
-                "isCurrentJob": true,
-                "description": "Original description with added keywords",
-                "achievements": []
-              }
-            ],
-            "projects": [
-              {
-                "name": "Project Name",
-                "description": "Original description with added keywords",
-                "technologies": ["tech1", "tech2"],
-                "url": "",
-                "githubUrl": "",
-                "startDate": null,
-                "endDate": null
-              }
-            ]
-          }
           `;
 
     const response = await genAI.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: resolveGeminiModel(req),
       contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseJsonSchema: ENHANCE_KEYWORDS_SCHEMA,
+        systemInstruction: `
+        You are an ATS resume optimizer.
+
+        Enhance the resume by integrating missing ATS keywords into relevant sections (summary, skills, workExperience, projects, education).
+
+        Rules:
+        - Insert keywords naturally and contextually; do not force them.
+        - Do NOT change grammar, structure, tone, or existing content.
+        - Preserve exact formatting and HTML (paragraphs remain paragraphs, lists remain lists).
+        - Only add keywords where relevant.
+
+        Section-specific:
+        - Skills: add keywords to appropriate categories.
+        - WorkExperience: add to descriptions where relevant.
+        - Projects: add to descriptions and technologies.
+        - Education: add only if contextually relevant (mainly for freshers).
+
+        Prioritize the most relevant keywords from the job description.
+
+        Output:
+        Return full updated resume JSON only (no extra text).
+        `
+      }
     });
 
     const text = response.text;
 
     // Parse the response using robust JSON parsing utility
     const { parseAIResponse, validateResumeJSON } = require('../utils/jsonParser');
-    
+
     const updatedResumeData = parseAIResponse(text, 'enhance-keywords');
-    
+
     // Validate the parsed data
     if (!validateResumeJSON(updatedResumeData, 'enhance-keywords')) {
       logger.warn('Parsed data failed validation, using fallback structure');
@@ -951,9 +980,9 @@ router.post('/adjust-tone', [
 // @access  Private
 router.post('/generate-pdf-template', [
   protect,
-  checkAIActionLimit,
-  checkTokenLimit,
-  refundTokenOnError,
+  skipIfBYOK(checkAIActionLimit),
+  skipIfBYOK(checkTokenLimit),
+  skipIfBYOK(refundTokenOnError),
   body('content').trim().isLength({ min: 20 }).withMessage('Content must be at least 20 characters')
 ], trackUsage, async (req, res) => {
   try {
@@ -971,51 +1000,19 @@ router.post('/generate-pdf-template', [
     const { content } = req.body;
 
     // Initialize Gemini AI
-    const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
+    const genAI = new GoogleGenAI(req.user.isOwnApiKey ? decrypt(req.user.geminiApiKey) : process.env.GEMINI_API_KEY);
 
     // Create prompt for PDF template generation
-    const prompt = `
-      You are an expert resume template designer specializing in creating professional, ATS-optimized resume templates.
-
-      Task:
-      Generate a complete, professional resume template from the provided basic details. Create a well-structured, visually appealing, modern. professional template that can be used as a PDF template.
-
-      Guidelines:
-      - Create a complete resume structure with all essential sections
-      - Use professional formatting and layout
-      - Include proper HTML structure for PDF generation
-      - Make it ATS-friendly with clear sections and formatting
-      - Use modern, professional, visually appealing design principles
-      - Include proper spacing and typography
-      - Ensure the template is comprehensive and ready to use
-      - Structure content logically with clear hierarchy
-
-      CRITICAL OUTPUT REQUIREMENTS:
-      - Return ONLY clean HTML without any markdown formatting
-      - Do NOT include code blocks - return clean html code
-      - Do NOT include any markdown syntax
-      - Return pure HTML that can be directly inserted into a CKEditor
-      - Use proper HTML tags for structure: <div>, <h1>, <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>
-      - Do not border content with A4 size, ensure it fits within the page
-      - Include inline CSS styling for professional appearance
-      - Ensure the HTML is valid and well-formed
-      - Make it suitable for PDF generation
-      - Acceptable classes, styles and HTML structure for google chromium pdf generation
-
-      User Input:
-      "${content}"
-
-      Return a complete, professional resume template as clean HTML only.
-    `;
+    const prompt = getPromt('generatePdfTemplate', content);
 
     try {
       const response = await genAI.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: resolveGeminiModel(req),
         contents: prompt,
       });
 
       let templateContent = response.text;
-      
+
       // Clean the response to remove markdown formatting
       templateContent = templateContent
         .replace(/```html\n?/g, '')
@@ -1056,9 +1053,9 @@ router.post('/generate-pdf-template', [
 // @access  Private
 router.post('/restructure-template', [
   protect,
-  checkAIActionLimit,
-  checkTokenLimit,
-  refundTokenOnError,
+  skipIfBYOK(checkAIActionLimit),
+  skipIfBYOK(checkTokenLimit),
+  skipIfBYOK(refundTokenOnError),
   body('content').trim().isLength({ min: 50 }).withMessage('Content must be at least 50 characters for restructuring')
 ], trackUsage, async (req, res) => {
   try {
@@ -1076,50 +1073,19 @@ router.post('/restructure-template', [
     const { content } = req.body;
 
     // Initialize Gemini AI
-    const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
+    const genAI = new GoogleGenAI(req.user.isOwnApiKey ? decrypt(req.user.geminiApiKey) : process.env.GEMINI_API_KEY);
 
     // Create prompt for template restructuring
-    const prompt = `
-You are an expert resume template designer and ATS optimization specialist.
-
-Task:
-Restructure and improve the provided resume template to make it more professional, ATS-friendly, and visually appealing while maintaining all the original content.
-
-Guidelines:
-- Analyze the current template structure and identify areas for improvement
-- Reorganize content for better flow and readability
-- Improve formatting and visual hierarchy
-- Enhance ATS compatibility
-- Maintain all original content but improve presentation
-- Use modern design principles
-- Ensure proper spacing and typography
-- Create clear section divisions
-- Optimize for both human readers and ATS systems
-
-CRITICAL OUTPUT REQUIREMENTS:
-- Return ONLY clean HTML without any markdown formatting
-- Do NOT include code blocks - return clean html code
-- Do NOT include any markdown syntax
-- Return pure HTML that can be directly inserted into a CKEditor
-- Use proper HTML tags for structure: <div>, <h1>, <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>
-- Include inline CSS styling for professional appearance
-- Ensure the HTML is valid and well-formed
-- Preserve all original content but improve structure and presentation
-
-User Input:
-"${content}"
-
-Return the restructured and improved template as clean HTML only.
-    `;
+    const prompt = getPromt('restructureTemplate', content);
 
     try {
       const response = await genAI.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: resolveGeminiModel(req),
         contents: prompt,
       });
 
       let restructuredContent = response.text;
-      
+
       // Clean the response to remove markdown formatting
       restructuredContent = restructuredContent
         .replace(/```html\n?/g, '')

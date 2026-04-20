@@ -25,6 +25,8 @@ const protect = async (req, res, next) => {
         });
       }
 
+      req.isOwnApiKey = !!req.user.isOwnApiKey;
+
       next();
     } catch (error) {
       logger.error('Token verification failed:', error);
@@ -57,7 +59,7 @@ const authorize = (...roles) => {
 // Check AI action limits
 const checkAIActionLimit = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = req.user || await User.findById(req.user.id);
     
     if (!user) {
       return res.status(404).json({
@@ -74,9 +76,7 @@ const checkAIActionLimit = async (req, res, next) => {
         limitReached: true
       });
     }
-
-    // Add user to request for later use
-    req.userData = user;
+    req.user = user;
     next();
   } catch (error) {
     logger.error('Check AI action limit error:', error);
@@ -137,7 +137,7 @@ const checkExportFormat = async (req, res, next) => {
 // Check and consume tokens for AI actions
 const checkTokenLimit = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = req.user || await User.findById(req.user.id);
     
     if (!user) {
       return res.status(404).json({
@@ -263,6 +263,13 @@ const checkUserStatus = async (req, res, next) => {
   }
 };
 
+const skipIfBYOK = (middleware) => {
+  return (req, res, next) => {
+    if (req.isOwnApiKey) return next();
+    return middleware(req, res, next);
+  };
+};
+
 module.exports = {
   protect,
   authorize,
@@ -272,5 +279,6 @@ module.exports = {
   checkTokenLimit,
   trackUsage,
   checkUserStatus,
-  refundTokenOnError
+  refundTokenOnError,
+  skipIfBYOK
 }; 

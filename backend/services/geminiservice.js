@@ -2,143 +2,182 @@
 const { GoogleGenAI } = require("@google/genai");
 require('dotenv').config();
 
+const PARSE_RESUME = {
+  "type": "OBJECT",
+  "properties": {
+    "personalInfo": {
+      "type": "OBJECT",
+      "properties": {
+        "fullName": { "type": "STRING" },
+        "email": { "type": "STRING" },
+        "phone": { "type": "STRING" },
+        "address": { "type": "STRING" },
+        "website": { "type": "STRING" },
+        "linkedin": { "type": "STRING" },
+        "github": { "type": "STRING" }
+      },
+      "required": ["fullName", "email"]
+    },
+    "summary": { "type": "STRING" },
+    "workExperience": {
+      "type": "ARRAY",
+      "items": {
+        "type": "OBJECT",
+        "properties": {
+          "jobTitle": { "type": "STRING" },
+          "company": { "type": "STRING" },
+          "location": { "type": "STRING" },
+          "startDate": { "type": "STRING" },
+          "endDate": { "type": "STRING", "nullable": true },
+          "isCurrentJob": { "type": "BOOLEAN" },
+          "description": { "type": "STRING" },
+          "achievements": { "type": "ARRAY", "items": { "type": "STRING" } }
+        },
+        "required": ["jobTitle", "company", "startDate", "isCurrentJob"]
+      }
+    },
+    "education": {
+      "type": "ARRAY",
+      "items": {
+        "type": "OBJECT",
+        "properties": {
+          "degree": { "type": "STRING" },
+          "institution": { "type": "STRING" },
+          "location": { "type": "STRING" },
+          "startDate": { "type": "STRING" },
+          "endDate": { "type": "STRING", "nullable": true },
+          "isCurrentlyStudying": { "type": "BOOLEAN" },
+          "gpa": { "type": "NUMBER", "nullable": true },
+          "description": { "type": "STRING" }
+        },
+        "required": ["degree", "institution", "isCurrentlyStudying"]
+      }
+    },
+    "skills": {
+      "type": "ARRAY",
+      "items": {
+        "type": "OBJECT",
+        "properties": {
+          "category": { "type": "STRING" },
+          "items": {
+            "type": "ARRAY",
+            "items": {
+              "type": "OBJECT",
+              "properties": {
+                "name": { "type": "STRING" },
+                "level": { 
+                  "type": "STRING", 
+                  "enum": ["beginner", "intermediate", "advanced", "expert"] 
+                }
+              },
+              "required": ["name", "level"]
+            }
+          }
+        },
+        "required": ["category", "items"]
+      }
+    },
+    "projects": {
+      "type": "ARRAY",
+      "items": {
+        "type": "OBJECT",
+        "properties": {
+          "name": { "type": "STRING" },
+          "description": { "type": "STRING" },
+          "technologies": { "type": "ARRAY", "items": { "type": "STRING" } },
+          "url": { "type": "STRING" },
+          "githubUrl": { "type": "STRING" },
+          "startDate": { "type": "STRING", "nullable": true },
+          "endDate": { "type": "STRING", "nullable": true }
+        },
+        "required": ["name", "description", "technologies"]
+      }
+    },
+    "achievements": {
+      "type": "ARRAY",
+      "items": {
+        "type": "OBJECT",
+        "properties": {
+          "title": { "type": "STRING" },
+          "description": { "type": "STRING" },
+          "date": { "type": "STRING", "nullable": true },
+          "issuer": { "type": "STRING" }
+        },
+        "required": ["title"]
+      }
+    },
+    "certifications": {
+      "type": "ARRAY",
+      "items": {
+        "type": "OBJECT",
+        "properties": {
+          "name": { "type": "STRING" },
+          "issuer": { "type": "STRING" },
+          "date": { "type": "STRING", "nullable": true },
+          "expiryDate": { "type": "STRING", "nullable": true },
+          "credentialId": { "type": "STRING" },
+          "url": { "type": "STRING" }
+        },
+        "required": ["name", "issuer"]
+      }
+    },
+    "languages": {
+      "type": "ARRAY",
+      "items": {
+        "type": "OBJECT",
+        "properties": {
+          "name": { "type": "STRING" },
+          "proficiency": { 
+            "type": "STRING", 
+            "enum": ["basic", "conversational", "fluent", "native"] 
+          }
+        },
+        "required": ["name", "proficiency"]
+      }
+    }
+  },
+  "required": [
+    "personalInfo", 
+    "summary", 
+    "workExperience", 
+    "education", 
+    "skills", 
+    "projects", 
+    "achievements", 
+    "certifications", 
+    "languages"
+  ]
+};
+
 // Initialize Google Gen AI client using options object (required by @google/genai v1.16+)
-const genAI = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
+const genAI = (apiKey) => new GoogleGenAI({
+  apiKey: apiKey ?? process.env.GEMINI_API_KEY,
 });
 
-async function generateResumeSuggestion(prompt) {
-  // const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-  // Access API methods through services on the client object
-  const response = await genAI.models.generateContent(prompt);
-  // const chat = ai.chats.create(...);
-  // const uploadedFile = await ai.files.upload(...);
-  // const cache = await ai.caches.create(...);
-  return response.text();
+async function generateResumeSuggestion(prompt, apiKey = '') {
+  try{
+    const client = genAI(apiKey);
+    const response = await client.models.generateContent(prompt);
+    return response.text();
+  } catch(e) {
+    console.error('Error generating content with Gemini:', error);
+    throw new Error(`Failed to generate content with AI: ${error.message}`);
+  }
 }
 
-async function parseResumeText(extractedText) {
+async function parseResumeText(extractedText, apiKey = '') {
 
-  const prompt = `
-You are a resume parsing assistant. You will receive plain text extracted from a resume PDF.
-Your task is to extract and structure the content into a precise JSON format, without modifying or rewriting any part of the original content.
-
-CRITICAL: Return ONLY valid JSON with proper formatting:
-- Use double quotes (") for all property names and string values
-- Do not use single quotes (') anywhere
-- Ensure all property names are quoted
-- Do not include any explanations, markdown formatting, code blocks, or additional text
-- Start your response with { and end with }
-- Follow standard JSON syntax exactly
-
-Resume Text:
-${extractedText}
-
-Extract and structure the following information into JSON format matching this exact schema:
-
-{
-  "personalInfo": {
-    "fullName": "string",
-    "email": "string", 
-    "phone": "string",
-    "address": "string",
-    "website": "string",
-    "linkedin": "string",
-    "github": "string"
-  },
-  "summary": "string",
-  "workExperience": [
-    {
-      "jobTitle": "string",
-      "company": "string",
-      "location": "string",
-      "startDate": "YYYY-MM-DD",
-      "endDate": "YYYY-MM-DD or null",
-      "isCurrentJob": boolean,
-      "description": "string",
-      "achievements": ["string"]
-    }
-  ],
-  "education": [
-    {
-      "degree": "string",
-      "institution": "string",
-      "location": "string",
-      "startDate": "YYYY-MM-DD",
-      "endDate": "YYYY-MM-DD or null",
-      "isCurrentlyStudying": boolean,
-      "gpa": number or null,
-      "description": "string"
-    }
-  ],
-  "skills": [
-    {
-      "category": "string",
-      "items": [
-        {
-          "name": "string",
-          "level": "beginner|intermediate|advanced|expert"
-        }
-      ]
-    }
-  ],
-  "projects": [
-    {
-      "name": "string",
-      "description": "string",
-      "technologies": ["string"],
-      "url": "string",
-      "githubUrl": "string",
-      "startDate": "YYYY-MM-DD or null",
-      "endDate": "YYYY-MM-DD or null"
-    }
-  ],
-  "achievements": [
-    {
-      "title": "string",
-      "description": "string",
-      "date": "YYYY-MM-DD or null",
-      "issuer": "string"
-    }
-  ],
-  "certifications": [
-    {
-      "name": "string",
-      "issuer": "string",
-      "date": "YYYY-MM-DD or null",
-      "expiryDate": "YYYY-MM-DD or null",
-      "credentialId": "string",
-      "url": "string"
-    }
-  ],
-  "languages": [
-    {
-      "name": "string",
-      "proficiency": "basic|conversational|fluent|native"
-    }
-  ],
-}
-
-Guidelines:
-- Extract all available information from the text
-- Use null for missing dates or optional fields
-- For dates, use YYYY-MM-DD format or null if not available
-- Group skills by categories if possible
-- Extract technologies used in projects
-- Include all achievements, certifications, and languages mentioned
-- If information is not available, use empty strings or null as appropriate
-- Ensure the JSON is valid and properly formatted
-- Do not rephrase, summarize, or rewrite any text.
-- Do not infer or guess missing data.
-- Preserve original spelling, capitalization, punctuation, line breaks, and structure.
-- Leave any missing fields as null or empty arrays.
-- Return ONLY the JSON object, no additional text, explanations, or formatting.
-- Ensure all JSON is properly formatted with double quotes and valid syntax.`;
+  const prompt = getPrompt('parseResume', extractedText);
 
   try {
-    const response = await genAI.models.generateContent({
-      model: "gemini-2.5-flash",
+    const client = genAI(apiKey);
+    const response = await client.models.generateContent({
+      model: process.env.GEMINI_MODEL || "gemini-2.5-flash-lite",
       contents: prompt,
+      config:{
+        responseMimeType: "application/json",
+        responseJsonSchema : PARSE_RESUME
+    }
     });
     
     let jsonText = response.text;

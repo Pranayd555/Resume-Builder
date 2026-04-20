@@ -16,13 +16,17 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
   const [isTokenExhausted, setIsTokenExhausted] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { summary, projects, workExperience, skills, education, achievements } = resume;
+  const { ats_warnings, missing_keywords, recommendations } = atsAnalysis;
 
   // Get initial token balance
   useEffect(() => {
-    const balance = apiHelpers.getTokenBalance();
-    setTokenBalance(balance);
-    setIsTokenExhausted(balance <= 0);
-  }, []);
+    if(!user.isOwnApiKey) {
+      const balance = apiHelpers.getTokenBalance();
+      setTokenBalance(balance);
+      setIsTokenExhausted( balance <= 0);
+    }
+  }, [user.isOwnApiKey]);
 
   // Listen for token balance updates
   useEffect(() => {
@@ -38,7 +42,7 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
 
   // Update token balance from user data if available
   useEffect(() => {
-    if (user && user.tokens !== undefined) {
+    if (user?.tokens !== undefined && !user.isOwnApiKey) {
       setTokenBalance(user.tokens);
       setIsTokenExhausted(user.tokens <= 0);
     }
@@ -89,7 +93,7 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       return;
     }
 
-    if (isTokenExhausted || tokenBalance <= 0) {
+    if (!user.isOwnApiKey && (isTokenExhausted || tokenBalance <= 0)) {
       toast.error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
       return;
     }
@@ -98,7 +102,9 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       setIsProcessing(true);
       setProcessingType('adjust-tone');
       
-      const response = await aiService.adjustTone(resumeId, resume, atsAnalysis, ["summary", "experience", "projects"]);
+      const response = await aiService.adjustTone(resumeId, {
+        summary, projects, workExperience, education, achievements
+      }, {ats_warnings, missing_keywords, recommendations}, ["summary", "workExperience", "projects", "education", "achievements"]);
       
       if (response.success) {
         // Update token balance after successful operation
@@ -143,7 +149,7 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       return;
     }
 
-    if (isTokenExhausted || tokenBalance <= 0) {
+    if (!user.isOwnApiKey && (isTokenExhausted || tokenBalance <= 0)) {
       toast.error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
       return;
     }
@@ -152,7 +158,9 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       setIsProcessing(true);
       setProcessingType('enhance-keywords');
       
-      const response = await aiService.enhanceKeywords(resumeId, resume, atsAnalysis, ["skills", "experience", "projects"]);
+      const response = await aiService.enhanceKeywords(resumeId, {
+        projects, workExperience, skills, education,
+      }, {ats_warnings, missing_keywords, recommendations}, ["workExperience", "projects", "education", "skills"]);
       
       if (response.success) {
         // Update token balance after successful operation
