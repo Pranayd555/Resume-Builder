@@ -5,7 +5,20 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const OpenIDConnectStrategy = require('passport-openidconnect').Strategy;
 const jwt_decode = require('jwt-decode').jwtDecode;
 const User = require('../models/User');
+const Subscription = require('../models/Subscription');
 const logger = require('../utils/logger');
+const emailService = require('../utils/emailService');
+
+/** Same as POST /api/auth/register — signup bonus for first-time accounts */
+const NEW_USER_BONUS_TOKENS = 5;
+
+async function createDefaultFreeSubscription(userId) {
+  const subscription = new Subscription({
+    user: userId,
+    plan: 'free'
+  });
+  await subscription.save();
+}
 
 // JWT Strategy
 const jwtOptions = {
@@ -66,7 +79,12 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       }
 
       // Check if user exists with same email
-      const existingUser = await User.findOne({ email: profile.emails[0].value });
+      if (!profile.emails?.[0]?.value) {
+        logger.error('Google OAuth: profile missing email');
+        return done(new Error('Google did not return an email address.'), null);
+      }
+      const emailNormalized = profile.emails[0].value.toLowerCase().trim();
+      const existingUser = await User.findOne({ email: emailNormalized });
 
       if (existingUser) {
         // Link Google account to existing user
@@ -91,13 +109,21 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
         return done(null, existingUser);
       }
 
-      // Create new user
+      // Create new user (Google sometimes omits name parts; keep save() from failing)
+      const displayName = (profile.displayName || '').trim();
+      const nameParts = displayName.split(/\s+/).filter(Boolean);
+      const givenName =
+        profile.name?.givenName || nameParts[0] || 'User';
+      const familyName =
+        profile.name?.familyName || nameParts.slice(1).join(' ') || '-';
+
       const newUser = new User({
-        firstName: profile.name.givenName,
-        lastName: profile.name.familyName,
-        email: profile.emails[0].value,
+        firstName: givenName,
+        lastName: familyName,
+        email: emailNormalized,
         googleId: profile.id,
         isEmailVerified: true,
+        bonusTokens: NEW_USER_BONUS_TOKENS,
         profilePicture: profile.photos[0]?.value ? {
           type: 'avatar',
           avatarUrl: profile.photos[0].value
@@ -109,8 +135,14 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       });
 
       await newUser.save();
+      await createDefaultFreeSubscription(newUser._id);
 
       logger.info(`New user created via Google OAuth: ${newUser.email}`);
+      try {
+        await emailService.sendWelcomeEmail(newUser.email, newUser.fullName);
+      } catch (emailError) {
+        logger.error('Failed to send welcome email (Google OAuth):', emailError);
+      }
       return done(null, newUser);
     } catch (error) {
       logger.error('Google OAuth Error:', error);
@@ -135,9 +167,16 @@ if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
     try {
       const decodedJwtClaims = jwt_decode(jwtClaims);
       const linkedinId = decodedJwtClaims.sub;
-      const firstName = decodedJwtClaims.given_name;
-      const lastName = decodedJwtClaims.family_name;
-      const email = decodedJwtClaims.email;
+      const emailRaw = decodedJwtClaims.email;
+      const email = (emailRaw || '').toLowerCase().trim();
+      const localFromEmail = email.includes('@') ? email.split('@')[0] : '';
+      const firstName =
+        (decodedJwtClaims.given_name && String(decodedJwtClaims.given_name).trim()) ||
+        localFromEmail ||
+        'User';
+      const lastName =
+        (decodedJwtClaims.family_name && String(decodedJwtClaims.family_name).trim()) ||
+        '-';
       const profilePicture = decodedJwtClaims.picture;
 
       // Step 2: Find or create user
@@ -160,6 +199,11 @@ if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
 
         await user.save();
         return done(null, user);
+      }
+
+      if (!email) {
+        logger.error('LinkedIn OIDC: missing email claim');
+        return done(new Error('LinkedIn did not return an email address.'), null);
       }
 
       const existingUser = await User.findOne({ email });
@@ -201,6 +245,7 @@ if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
         email,
         linkedinId,
         isEmailVerified: true,
+        bonusTokens: NEW_USER_BONUS_TOKENS,
         profilePicture: profilePicture
           ? { type: 'avatar', avatarUrl: profilePicture }
           : undefined,
@@ -208,7 +253,13 @@ if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
       });
 
       await newUser.save();
+      await createDefaultFreeSubscription(newUser._id);
       logger.info(`LinkedIn authentication successful for user3: ${newUser.id}`);
+      try {
+        await emailService.sendWelcomeEmail(newUser.email, newUser.fullName);
+      } catch (emailError) {
+        logger.error('Failed to send welcome email (LinkedIn OAuth):', emailError);
+      }
       return done(null, newUser);
 
     } catch (error) {

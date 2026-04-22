@@ -23,7 +23,8 @@ import {
   ArrowDownTrayIcon,
   HeartIcon,
   CloudArrowUpIcon,
-  CodeBracketIcon
+  CodeBracketIcon,
+  KeyIcon
 } from '@heroicons/react/24/outline';
 import { Slide, Roll, AttentionSeeker } from 'react-awesome-reveal';
 import { publicAPI } from '../../services/api';
@@ -216,6 +217,12 @@ const HomePage = () => {
               </div>
             </AttentionSeeker>
             <AttentionSeeker duration={3000}>
+              <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-pink-50 dark:bg-pink-900/30 border border-pink-100 dark:border-pink-800 text-pink-700 dark:text-pink-300 font-bold shadow-sm">
+                <KeyIcon className="w-6 h-6" />
+                <span>Use Your Key — Always Free</span>
+              </div>
+            </AttentionSeeker>
+            <AttentionSeeker effect="pulse" duration={3000}>
               <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-purple-50 dark:bg-purple-900/30 border border-purple-100 dark:border-purple-800 text-purple-700 dark:text-purple-300 font-bold shadow-sm">
                 <GiftIcon className="w-6 h-6" />
                 <span>5 Free AI Tokens on Signup!</span>
@@ -364,7 +371,7 @@ const HomePage = () => {
                 }}
                 className="text-center group"
               >
-                <div className="relative p-8 rounded-[2rem] bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-xl group-hover:shadow-2xl transition-all duration-300">
+                <div className="relative h-full p-8 rounded-[2rem] bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-xl group-hover:shadow-2xl transition-all duration-300">
                   <div className="text-4xl sm:text-6xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-br from-blue-600 to-purple-600">
                     {stat.number}
                   </div>
@@ -442,10 +449,11 @@ const HomePage = () => {
 
               <ul className="space-y-6">
                 {[
-                  { text: "100% Free Forever (Currently)", bold: "FREE NOW" },
+                  { text: "100% Free Forever", bold: "FREE NOW" },
                   { text: "No Subscriptions, No Contracts", bold: "NO TRAPS" },
                   { text: "Lifetime Personal Dashboard", bold: "ALWAYS YOURS" },
                   { text: "5 Free Premium AI Tokens on Signup", bold: "BONUS" },
+                  { text: "Bring Your Own API Key — Use AI features completely free, forever", bold: "BYOK"},
                   { text: "Earn More Tokens by Helping Us", bold: "REWARDS" }
                 ].map((item, idx) => (
                   <li key={idx} className="flex items-center gap-4 text-white/90">

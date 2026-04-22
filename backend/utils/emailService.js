@@ -6,7 +6,8 @@ const logger = require('./logger');
 class EmailService {
   constructor() {
     this.transporter = null;
-    this.initialize();
+    // Await this promise in sendEmail so OAuth/registration never race ahead of SMTP init
+    this._initPromise = this.initialize();
   }
 
   async initialize() {
@@ -107,6 +108,7 @@ class EmailService {
   }
 
   async sendEmail(to, subject, htmlContent, textContent = null) {
+    await this._initPromise;
     if (!this.transporter) {
       logger.error('Email service not initialized');
       return { success: false, error: 'Email service not available' };
@@ -157,19 +159,27 @@ class EmailService {
   }
 
   async sendWelcomeEmail(email, name) {
+    const displayName =
+      (name && String(name).trim()) || (email && email.split('@')[0]) || 'there';
     try {
       const htmlContent = await this.loadTemplate('welcome', {
-        name,
+        name: displayName,
         appName: process.env.APP_NAME || 'Presmistique - AI Resume Builder',
         loginUrl: `${process.env.CLIENT_URL}/login`,
         supportEmail: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER
       });
 
-      await this.sendEmail(
+      const result = await this.sendEmail(
         email,
         'Welcome to Presmistique - AI Resume Builder!',
         htmlContent
       );
+
+      if (!result || result.success === false) {
+        const err = new Error(result?.error || 'Welcome email was not sent');
+        logger.error(`Failed to send welcome email to ${email}:`, err.message);
+        throw err;
+      }
 
       logger.info(`Welcome email sent to ${email}`);
     } catch (error) {

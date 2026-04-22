@@ -6,7 +6,7 @@ const Resume = require('../models/Resume');
 const logger = require('../utils/logger');
 const DocumentParser = require('../utils/documentParser');
 const { GoogleGenAI } = require("@google/genai");
-const { decrypt } = require('../utils/keyEncryption');
+const { decryptUserGeminiKey } = require('../utils/keyEncryption');
 const { getPromt } = require('../utils/aiPrompts');
 require('dotenv').config();
 
@@ -23,6 +23,28 @@ const resolveGeminiModel = (req) => {
   if (typeof userModel === 'string' && userModel.trim()) return userModel.trim();
   return process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
 };
+
+function createGoogleGenAI(req, res) {
+  const apiKey = req.user.isOwnApiKey
+    ? decryptUserGeminiKey(req.user.geminiApiKey)
+    : process.env.GEMINI_API_KEY;
+  if (req.user.isOwnApiKey && !apiKey) {
+    res.status(400).json({
+      success: false,
+      error:
+        'Your saved API key could not be decrypted. Re-enter your Gemini API key in Profile and save, or set ENCRYPTION_KEY to match the server where that key was first saved.',
+    });
+    return null;
+  }
+  if (!apiKey) {
+    res.status(500).json({
+      success: false,
+      error: 'AI service is not configured.',
+    });
+    return null;
+  }
+  return new GoogleGenAI(apiKey);
+}
 
 const ATS_SCHEMA = {
   "type": "OBJECT",
@@ -340,7 +362,8 @@ router.post('/rewrite', [
     const { content, tone = 'professional', style = 'action-oriented' } = req.body;
 
     // Initialize Gemini AI
-    const genAI = new GoogleGenAI(req.user.isOwnApiKey ? decrypt(req.user.geminiApiKey) : process.env.GEMINI_API_KEY);
+    const genAI = createGoogleGenAI(req, res);
+    if (!genAI) return;
 
     // Create prompt for ATS-friendly professional enhancement
     const prompt = getPromt('rewritePrompt', content);
@@ -414,7 +437,8 @@ router.post('/summarize', [
     const { content } = req.body;
 
     // Initialize Gemini AI
-    const genAI = new GoogleGenAI(req.user.isOwnApiKey ? decrypt(req.user.geminiApiKey) : process.env.GEMINI_API_KEY);
+    const genAI = createGoogleGenAI(req, res);
+    if (!genAI) return;
 
     // Create prompt for ATS-friendly text enhancement
     const prompt = getPromt('summerize', content);
@@ -598,7 +622,8 @@ router.post('/ats-score', [
     const resumeData = cleanResumeData(rawResumeData);
 
     // Generate ATS score using Gemini
-    const genAI = new GoogleGenAI(req.user.isOwnApiKey ? decrypt(req.user.geminiApiKey) : process.env.GEMINI_API_KEY);
+    const genAI = createGoogleGenAI(req, res);
+    if (!genAI) return;
 
     const atsPrompt = `
         You are an ATS (Applicant Tracking System) expert. Analyze the following resume against the job description and provide a comprehensive ATS compatibility score.
@@ -794,7 +819,8 @@ router.post('/adjust-tone', [
     }
 
     // Initialize Gemini AI
-    const genAI = new GoogleGenAI(req.user.isOwnApiKey ? decrypt(req.user.geminiApiKey) : process.env.GEMINI_API_KEY);
+    const genAI = createGoogleGenAI(req, res);
+    if (!genAI) return;
 
     // Create prompt for tone adjustment
     const prompt = `
@@ -901,7 +927,8 @@ router.post('/enhance-keywords', [
     }
 
     // Initialize Gemini AI
-    const genAI = new GoogleGenAI(req.user.isOwnApiKey ? decrypt(req.user.geminiApiKey) : process.env.GEMINI_API_KEY);
+    const genAI = createGoogleGenAI(req, res);
+    if (!genAI) return;
 
     // Clean HTML tags from resume data
     const cleanedResumeData = cleanResumeData(resume_json);
@@ -1000,7 +1027,8 @@ router.post('/generate-pdf-template', [
     const { content } = req.body;
 
     // Initialize Gemini AI
-    const genAI = new GoogleGenAI(req.user.isOwnApiKey ? decrypt(req.user.geminiApiKey) : process.env.GEMINI_API_KEY);
+    const genAI = createGoogleGenAI(req, res);
+    if (!genAI) return;
 
     // Create prompt for PDF template generation
     const prompt = getPromt('generatePdfTemplate', content);
@@ -1073,7 +1101,8 @@ router.post('/restructure-template', [
     const { content } = req.body;
 
     // Initialize Gemini AI
-    const genAI = new GoogleGenAI(req.user.isOwnApiKey ? decrypt(req.user.geminiApiKey) : process.env.GEMINI_API_KEY);
+    const genAI = createGoogleGenAI(req, res);
+    if (!genAI) return;
 
     // Create prompt for template restructuring
     const prompt = getPromt('restructureTemplate', content);

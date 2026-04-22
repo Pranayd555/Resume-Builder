@@ -8,6 +8,7 @@ import {
   BoltIcon,
   ShieldCheckIcon,
   EnvelopeIcon,
+  KeyIcon,
   // CreditCardIcon
 } from '@heroicons/react/24/outline';
 import AnimatedBackground from './AnimatedBackground';
@@ -326,8 +327,15 @@ const Payment = () => {
 
             {/* Contact Us Button */}
             <button
+              onClick={() => navigate('/profile')}
+              className="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2 mx-auto mb-2"
+            >
+              <KeyIcon className="w-6 h-6" />
+              Bring your own key
+            </button>
+            <button
               onClick={() => navigate('/contact-us')}
-              className="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2 mx-auto"
+              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-orange-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2 mx-auto"
             >
               <EnvelopeIcon className="w-6 h-6" />
               Contact Us to Earn Tokens

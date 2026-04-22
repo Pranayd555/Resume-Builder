@@ -11,7 +11,7 @@ const { protect } = require('../middleware/auth');
 const logger = require('../utils/logger');
 const emailService = require('../utils/emailService');
 const { calculateTotalTokens } = require('../utils/tokenCalculator');
-const { encrypt, maskApiKey, decrypt } = require('../utils/keyEncryption');
+const { encrypt, maskApiKey, decryptUserGeminiKey } = require('../utils/keyEncryption');
 
 const router = express.Router();
 
@@ -213,6 +213,18 @@ router.post('/login', [
     const userResponse = user.toObject();
     delete userResponse.password;
 
+    let maskedGeminiKey = null;
+    if (userResponse.isOwnApiKey) {
+      const plainGemini = decryptUserGeminiKey(userResponse.geminiApiKey);
+      if (plainGemini) {
+        maskedGeminiKey = maskApiKey(plainGemini);
+      } else if (userResponse.geminiApiKey) {
+        logger.warn(
+          `User ${user._id}: stored Gemini API key could not be decrypted (ENCRYPTION_KEY mismatch or legacy plaintext); user should re-save key in profile.`
+        );
+      }
+    }
+
     logger.info(`User logged in: ${email}`);
 
     res.json({
@@ -221,7 +233,7 @@ router.post('/login', [
         user: {
           ...userResponse,
           tokens: tokenData.totalTokenBalance,
-          geminiApiKey: userResponse.isOwnApiKey ? maskApiKey(decrypt(userResponse.geminiApiKey)) : null
+          geminiApiKey: maskedGeminiKey
         },
         token,
         tokens: {
@@ -423,6 +435,18 @@ router.get('/me', protect, async (req, res) => {
 
     // Calculate total token data
     const tokenData = await calculateTotalTokens(user._id);
+
+    let maskedGeminiMe = null;
+    if (user.isOwnApiKey) {
+      const plainGemini = decryptUserGeminiKey(user.geminiApiKey);
+      if (plainGemini) {
+        maskedGeminiMe = maskApiKey(plainGemini);
+      } else if (user.geminiApiKey) {
+        logger.warn(
+          `User ${user._id}: stored Gemini API key could not be decrypted (ENCRYPTION_KEY mismatch or legacy plaintext); user should re-save key in profile.`
+        );
+      }
+    }
     
     res.json({
       success: true,
@@ -444,7 +468,7 @@ router.get('/me', protect, async (req, res) => {
           bonusTokens: user.bonusTokens,
           usage: user.usage,
           isOwnApiKey: user.isOwnApiKey,
-          geminiApiKey: user.isOwnApiKey ? maskApiKey(decrypt(user.geminiApiKey)) : null,
+          geminiApiKey: maskedGeminiMe,
           geminiModel: user.geminiModel || '',
           createdAt: user.createdAt,
           updatedAt: user.updatedAt
@@ -625,7 +649,8 @@ router.put('/profile', [
 
     // Remove sensitive data from response
     const userResponse = user.toObject();
-    userResponse.geminiApiKey = maskApiKey(decrypt(user.geminiApiKey))
+    const plainGeminiProfile = user.geminiApiKey ? decryptUserGeminiKey(user.geminiApiKey) : null;
+    userResponse.geminiApiKey = plainGeminiProfile ? maskApiKey(plainGeminiProfile) : '';
     delete userResponse.password;
     delete userResponse.emailOtp;
     delete userResponse.emailOtpExpire;
