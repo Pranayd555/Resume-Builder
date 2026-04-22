@@ -12,6 +12,7 @@ export const PUBLIC_ROUTES = {
   CANCELLATION_REFUNDS: '/cancellation-refunds',
   SHIPPING: '/shipping',
   CONTACT_US: '/contact-us',
+  BYOK:'/byok',
   UNAUTHORIZED: '/unauthorized',
   AUTH_CALLBACK: '/auth/callback',
   ERROR: '/error',
