@@ -121,8 +121,7 @@
         .btn {
             display: inline-block;
             padding: 14px 32px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background-color: #ececec;
             text-decoration: none;
             border-radius: 6px;
             font-weight: 600;
@@ -130,7 +129,7 @@
             transition: transform 0.2s ease;
         }
         .btn:hover {
-            transform: translateY(-2px);
+            background-color: #d2d2d2;
         }
         .footer {
             background-color: #f8f9fa;
@@ -208,24 +207,23 @@
             <div class="bonus-details">
                 <h3>Token Summary</h3>
                 <div class="detail-row">
-                    <span class="detail-label">Bonus Tokens Added</span>
+                    <span class="detail-label">Bonus Tokens Added: </span>
                     <span class="detail-value">{{tokensAdded}}</span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label">New Total Balance</span>
+                    <span class="detail-label">New Total Balance: </span>
                     <span class="detail-value">{{newTokenBalance}}</span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label">Given By</span>
+                    <span class="detail-label">Given By: </span>
                     <span class="detail-value">{{givenBy}}</span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label">Date Added</span>
+                    <span class="detail-label">Date Added: </span>
                     <span class="detail-value">{{dateAdded}}</span>
                 </div>
             </div>
-
-            <div class="reason-section" style="display: {{reasonDisplay}};">
+            <div class="reason-section">
                 <h4>💝 Reason for Bonus</h4>
                 <p class="reason-text">{{reason}}</p>
             </div>

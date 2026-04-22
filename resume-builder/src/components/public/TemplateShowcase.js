@@ -254,8 +254,8 @@ function TemplateShowcase() {
                     {/* Template Badge */}
                     <div className="absolute top-3 left-3">
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${template.availability.tier === 'free'
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                          : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                        : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
                         }`}>
                         {template.availability.tier === 'free' ? 'Free' : 'Pro'}
                       </span>
@@ -326,7 +326,11 @@ function TemplateShowcase() {
                 Ready to Create Your Professional Resume?
               </h3>
               <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
-                Join thousands of professionals who have already created stunning resumes with our templates.
+                
+              <p className="font-bold mb-2 bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                Your key, your control, zero cost.
+              </p>
+              Join thousands of professionals who have already created stunning resumes with our templates.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <AttentionSeeker duration={3000}>

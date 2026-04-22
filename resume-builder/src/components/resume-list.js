@@ -17,7 +17,9 @@ import {
   ChartBarIcon,
   SparklesIcon,
   ArrowsRightLeftIcon,
-  ReceiptRefundIcon
+  ReceiptRefundIcon,
+  KeyIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 import { resumeAPI, analyticsAPI, apiHelpers } from '../services/api';
 import { createResumeModel } from '../models/dataModels';
@@ -202,6 +204,16 @@ function ResumeList() {
   const [selectedResumeForAts, setSelectedResumeForAts] = useState(null);
   const [error, setError] = useState(null);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [ showBanner, setShowBanner] = useState(false);
+  const [isTokenExhausted, setIsTokenExhausted] = useState(false);
+  // Get initial token balance
+  useEffect(() => {
+    if(!user.isOwnApiKey) {
+      const balance = apiHelpers.getTokenBalance();
+      setIsTokenExhausted( balance <= 0);
+      setShowBanner(true);
+    }
+  }, [user.isOwnApiKey]);
 
   // Email verification state
   const [showEmailVerification, setShowEmailVerification] = useState(false);
@@ -797,6 +809,50 @@ function ResumeList() {
 
   return (
     <div className="min-h-screen pt-16">
+      {/* Disclaimer Banner */}
+      {isTokenExhausted && showBanner && <div className="relative mx-4 mt-4 flex flex-col sm:flex-row items-start sm:items-center 
+          justify-between gap-3
+          bg-transparent
+          dark:bg-gradient-to-r dark:from-purple-900/50 dark:to-blue-900/50 
+          border border-purple-500/30 rounded-xl px-4 py-3 pr-8">
+
+          {/* Close button - floating on the corner */}
+          <button 
+            onClick={() => setShowBanner(false)}
+            className="absolute -top-2.5 -right-2.5 
+            w-5 h-5 flex items-center justify-center
+            bg-gray-700 hover:bg-gray-600
+            text-gray-300 hover:text-white 
+            rounded-full border border-gray-500/50
+            transition-colors duration-200 shadow-md">
+            <XMarkIcon className="w-3 h-3" />
+          </button>
+          
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 shrink-0 bg-gradient-to-br from-yellow-400 to-yellow-600 
+              rounded-xl flex items-center justify-center shadow-lg">
+              <KeyIcon className="w-5 h-5 text-white"/>
+            </div>
+            <div>
+              <p className="text-orange-500 dark:text-orange-400 font-semibold text-sm leading-snug">
+                You have 0 tokens — use AI for free!
+              </p>
+              <p className="text-gray-800 dark:text-gray-400  text-xs mt-0.5">
+                Bring Your Own API Key · zero cost · unlimited AI
+              </p>
+            </div>
+          </div>
+
+          <button 
+            onClick={() => navigate('/profile')}
+            className="bg-purple-600 hover:bg-purple-500 text-white 
+            text-xs font-bold px-4 py-2 rounded-lg whitespace-nowrap w-full sm:w-auto">
+            Add My Key →
+          </button>
+
+        </div>}
+
+
       <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
@@ -819,8 +875,8 @@ function ResumeList() {
                 onClick={handleCreateNew}
                 disabled={isEmailVerificationRequired()}
                 className={`flex items-center gap-2 px-6 py-3 rounded-xl transition-all duration-200 shadow-lg font-semibold text-sm sm:text-base min-w-[140px] sm:min-w-auto ${isEmailVerificationRequired()
-                    ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 cursor-not-allowed opacity-75'
-                    : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 hover:shadow-xl transform hover:scale-105'
+                  ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 cursor-not-allowed opacity-75'
+                  : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 hover:shadow-xl transform hover:scale-105'
                   }`}
               >
                 <PlusIcon className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -1002,8 +1058,8 @@ function ResumeList() {
                 )}
               </div>
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-lg ${resumes.length >= 3
-                  ? 'bg-gradient-to-br from-red-400 to-red-600'
-                  : 'bg-gradient-to-br from-blue-400 to-blue-600'
+                ? 'bg-gradient-to-br from-red-400 to-red-600'
+                : 'bg-gradient-to-br from-blue-400 to-blue-600'
                 }`}>
                 <DocumentTextIcon className="w-6 h-6 text-white" />
               </div>
@@ -1048,8 +1104,8 @@ function ResumeList() {
                 }}
                 data-resume-id={resume.id}
                 className={`backdrop-blur-md bg-white/70 dark:bg-orange-50/95 rounded-2xl shadow-xl border border-white/20 dark:border-orange-200/30 overflow-hidden cursor-pointer transition-all duration-200 group ${hoveredCardId === resume.id || focusedCardId === resume.id
-                    ? 'bg-white/80 dark:bg-orange-50/100 shadow-2xl scale-105'
-                    : ''
+                  ? 'bg-white/80 dark:bg-orange-50/100 shadow-2xl scale-105'
+                  : ''
                   } hover:bg-white/80 dark:hover:bg-orange-50/100 hover:shadow-2xl hover:scale-105`}
                 onClick={() => handleResumeClick(resume.id, resume.status)}
                 onMouseEnter={() => setHoveredCardId(resume.id)}
@@ -1126,8 +1182,8 @@ function ResumeList() {
                                   navigate(`/template-selection/${resume.id}`);
                                 }}
                                 className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${resume.status === 'draft'
-                                    ? 'text-gray-400 cursor-not-allowed'
-                                    : 'text-gray-700 hover:bg-gray-100'
+                                  ? 'text-gray-400 cursor-not-allowed'
+                                  : 'text-gray-700 hover:bg-gray-100'
                                   }`}
                               >
                                 <ArrowsRightLeftIcon className="h-4 w-4" />
@@ -1141,8 +1197,8 @@ function ResumeList() {
                                   handleDuplicateResume(resume.id);
                                 }}
                                 className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${resume.status === 'draft' || !canCreateNewResume()
-                                    ? 'text-gray-400 cursor-not-allowed'
-                                    : 'text-gray-700 hover:bg-gray-100'
+                                  ? 'text-gray-400 cursor-not-allowed'
+                                  : 'text-gray-700 hover:bg-gray-100'
                                   }`}
                                 title={!canCreateNewResume() ? 'Maximum of 3 resumes allowed. Delete an existing resume to duplicate this one.' : ''}
                               >
@@ -1157,8 +1213,8 @@ function ResumeList() {
                                 }}
                                 disabled={resume.status === 'draft' || downloadingResumes.has(resume.id)}
                                 className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${resume.status === 'draft' || downloadingResumes.has(resume.id)
-                                    ? 'text-gray-400 cursor-not-allowed'
-                                    : 'text-gray-700 hover:bg-gray-100'
+                                  ? 'text-gray-400 cursor-not-allowed'
+                                  : 'text-gray-700 hover:bg-gray-100'
                                   }`}
                                 title={resume.status === 'draft' ? 'Publish resume to download' : 'Download PDF'}
                               >
@@ -1273,8 +1329,8 @@ function ResumeList() {
                       }}
                       disabled={resume.status === 'draft' || downloadingResumes.has(resume.id)}
                       className={`px-3 py-2.5 rounded-lg transition-colors font-medium text-xs flex items-center justify-center gap-1 ${resume.status === 'draft' || downloadingResumes.has(resume.id)
-                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                          : 'bg-green-100 text-green-600 hover:bg-green-200'
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-green-100 text-green-600 hover:bg-green-200'
                         }`}
                       title={resume.status === 'draft' ? 'Publish resume to download' : 'Download PDF'}
                     >
@@ -1304,8 +1360,8 @@ function ResumeList() {
                     onClick={handleCreateNew}
                     disabled={isEmailVerificationRequired()}
                     className={`px-6 py-3 rounded-lg transition-all duration-200 ${isEmailVerificationRequired()
-                        ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 cursor-not-allowed opacity-75'
-                        : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 cursor-not-allowed opacity-75'
+                      : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
                       }`}
                   >
                     {isEmailVerificationRequired() ? 'Verify Email First' : 'Create Your First Resume'}
@@ -1332,8 +1388,8 @@ function ResumeList() {
                 key={page}
                 onClick={() => handlePageChange(page)}
                 className={`px-3 py-2 rounded-lg border ${page === pagination.page
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'border-gray-300 text-gray-500 hover:bg-gray-50'
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'border-gray-300 text-gray-500 hover:bg-gray-50'
                   }`}
               >
                 {page}

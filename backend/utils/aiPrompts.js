@@ -1,5 +1,5 @@
 // Create prompt for ATS-friendly professional enhancement
-const content = '';
+let content = '';
 const prompts = {
     rewritePrompt: `
         You are an expert resume writing assistant specializing in ATS-optimized, professional, and achievement-driven content.
