@@ -194,11 +194,11 @@ const BYOKGuide = () => {
 
         {/* Back */}
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/')}
           className="flex items-center text-sm font-medium text-slate-500 hover:text-violet-600 transition-colors mb-8 group"
         >
           <ArrowLeftIcon className="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" />
-          Back
+          home
         </button>
 
         {/* Hero */}
