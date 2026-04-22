@@ -1,5 +1,6 @@
 // resume-ai-backend/geminiService.js
 const { GoogleGenAI } = require("@google/genai");
+const { getPromt } = require('../utils/aiPrompts');
 require('dotenv').config();
 
 const PARSE_RESUME = {
@@ -155,19 +156,17 @@ const genAI = (apiKey) => new GoogleGenAI({
 });
 
 async function generateResumeSuggestion(prompt, apiKey = '') {
-  try{
-    const client = genAI(apiKey);
-    const response = await client.models.generateContent(prompt);
-    return response.text();
-  } catch(e) {
-    console.error('Error generating content with Gemini:', error);
-    throw new Error(`Failed to generate content with AI: ${error.message}`);
-  }
+  const client = genAI(apiKey);
+  const response = await client.models.generateContent({
+    model: process.env.GEMINI_MODEL || "gemini-2.5-flash-lite",
+    contents: prompt,
+  });
+  return response.text;
 }
 
 async function parseResumeText(extractedText, apiKey = '') {
 
-  const prompt = getPrompt('parseResume', extractedText);
+  const prompt = getPromt('parseResume', extractedText);
 
   try {
     const client = genAI(apiKey);
@@ -237,7 +236,8 @@ async function parseResumeText(extractedText, apiKey = '') {
     return parsedData;
   } catch (error) {
     console.error('Error parsing resume with Gemini:', error);
-    throw new Error(`Failed to parse resume text with AI: ${error.message}`);
+    // Re-throw the original provider error so callers can map status/messages correctly.
+    throw error;
   }
 }
 

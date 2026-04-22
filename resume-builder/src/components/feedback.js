@@ -114,7 +114,7 @@ function Feedback() {
                     <div className="flex-1">
                       <p className="font-bold text-gray-900 text-lg group-hover:text-blue-700 transition-colors">Email Support</p>
                       <p className="text-gray-600 group-hover:text-gray-800 transition-colors">pranaydaspr@gmail.com</p>
-                      <p className="text-sm text-gray-500 mt-1">I'll respond within 24 hours</p>
+                      <p className="text-sm text-gray-500 mt-1">I'll respond within 48 hours</p>
                     </div>
                   </div>
                 </div>
@@ -142,7 +142,7 @@ function Feedback() {
                   <p className="font-semibold text-gray-900">Response Time</p>
                 </div>
                 <p className="text-sm text-gray-600 leading-relaxed">
-                  I typically respond to all inquiries within 24 hours during business days. Your feedback helps me improve
+                  I typically respond to all inquiries within 48 hours during business days. Your feedback helps me improve
                   Presmistique - AI Resume Builder and add features that matter to you.
                 </p>
               </div>

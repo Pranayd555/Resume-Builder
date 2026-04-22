@@ -8,6 +8,7 @@ const User = require('../models/User');
 const logger = require('../utils/logger');
 const DocumentParser = require('../utils/documentParser');
 const { parseResumeText } = require('../services/geminiservice');
+const { sendAIError } = require('../utils/aiError');
 
 const router = express.Router();
 
@@ -141,15 +142,19 @@ router.post('/parse-resume', [
     
     // If AI parsing failed, return error response to trigger token refund
     if (aiError) {
-      return res.status(500).json({
-        success: false,
-        error: 'AI parsing failed. Please try again later.',
-        data: {
-          originalText: extractedText,
-          parsedData: null,
-          fileName: originalname,
-          message: 'Resume text extracted successfully (AI parsing failed)',
-          tokens: req.tokens || 0
+      // Return a mapped AI error so frontend gets correct message/status.
+      return sendAIError(res, aiError, {
+        isOwnApiKey: req.user?.isOwnApiKey,
+        model: process.env.GEMINI_MODEL || "gemini-2.5-flash-lite",
+      }, {
+        extra: {
+          data: {
+            originalText: extractedText,
+            parsedData: null,
+            fileName: originalname,
+            message: 'Resume text extracted successfully (AI parsing failed)',
+            tokens: req.tokens || 0,
+          },
         },
       });
     }

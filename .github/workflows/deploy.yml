@@ -33,6 +33,8 @@ jobs:
     outputs:
       backend-changed: ${{ steps.changes.outputs.backend }}
       frontend-changed: ${{ steps.changes.outputs.frontend }}
+      backend-deps-changed: ${{ steps.changes.outputs.backend_deps }}
+      frontend-deps-changed: ${{ steps.changes.outputs.frontend_deps }}
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -112,6 +114,18 @@ jobs:
             echo "🔍 No backend changes detected"
           fi
           echo ""
+
+          # Check for backend dependency file changes
+          BACKEND_DEPS_CHANGED=$(git diff --name-only $BASE_COMMIT HEAD 2>/dev/null | grep -E '^backend/(package\.json|package-lock\.json|npm-shrinkwrap\.json)$' || echo "")
+          if [ -n "$BACKEND_DEPS_CHANGED" ]; then
+            echo "backend_deps=true" >> $GITHUB_OUTPUT
+            echo "📦 Backend dependency files changed:"
+            echo "$BACKEND_DEPS_CHANGED"
+          else
+            echo "backend_deps=false" >> $GITHUB_OUTPUT
+            echo "📦 No backend dependency changes detected"
+          fi
+          echo ""
           
           # Check for frontend changes
           FRONTEND_CHANGED=$(git diff --name-only $BASE_COMMIT HEAD 2>/dev/null | grep -E '^resume-builder/' || echo "")
@@ -122,6 +136,19 @@ jobs:
           else
             echo "frontend=false" >> $GITHUB_OUTPUT
             echo "🔍 No frontend changes detected"
+          fi
+
+          echo ""
+
+          # Check for frontend dependency file changes
+          FRONTEND_DEPS_CHANGED=$(git diff --name-only $BASE_COMMIT HEAD 2>/dev/null | grep -E '^resume-builder/(package\.json|package-lock\.json|npm-shrinkwrap\.json)$' || echo "")
+          if [ -n "$FRONTEND_DEPS_CHANGED" ]; then
+            echo "frontend_deps=true" >> $GITHUB_OUTPUT
+            echo "📦 Frontend dependency files changed:"
+            echo "$FRONTEND_DEPS_CHANGED"
+          else
+            echo "frontend_deps=false" >> $GITHUB_OUTPUT
+            echo "📦 No frontend dependency changes detected"
           fi
           
           # Check for workflow changes (optional - uncomment if you want workflow changes to trigger deployments)
@@ -144,73 +171,87 @@ jobs:
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       
-    - name: 🟢 Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '24'
-        cache: 'npm'
-        cache-dependency-path: backend/package-lock.json
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: ♻️ Restore backend node_modules cache
+        id: backend_node_modules_cache
+        uses: actions/cache@v4
+        with:
+          path: backend/node_modules
+          key: ${{ runner.os }}-node24-backend-node_modules-${{ hashFiles('backend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node24-backend-node_modules-
         
-    - name: 📦 Install dependencies
-      run: |
-        cd backend
-        npm ci
+      - name: 📦 Install dependencies
+        if: needs.detect-changes.outputs.backend-deps-changed == 'true' || steps.backend_node_modules_cache.outputs.cache-hit != 'true'
+        run: |
+          cd backend
+          npm ci
+
+      - name: ✅ Skip install (backend deps unchanged)
+        if: needs.detect-changes.outputs.backend-deps-changed != 'true' && steps.backend_node_modules_cache.outputs.cache-hit == 'true'
+        run: echo "backend/node_modules restored from cache; skipping npm ci"
         
-    - name: 🏗️ Build optimized deployment package
-      run: |
-        cd backend
-        npm run build:render
-        echo "📊 Zip file size: $(ls -lh render-deployment.zip | awk '{print $5}')"
+      - name: 🏗️ Build optimized deployment package
+        run: |
+          cd backend
+          npm run build:render
+          echo "📊 Zip file size: $(ls -lh render-deployment.zip | awk '{print $5}')"
         
-    - name: 🧪 Test build package
-      run: |
-        cd backend
-        npm run test:build
+      - name: 🧪 Test build package
+        run: |
+          cd backend
+          npm run test:build
         
-    - name: 🔧 Configure Git
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
+      - name: 🔧 Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
         
-    - name: 📦 Commit and push deployment zip
-      run: |
-        # Add the zip file to git
-        git add backend/render-deployment.zip
-        
-        # Check if there are changes to commit
-        if git diff --staged --quiet; then
-          echo "No changes to commit"
-        else
-          # Commit with timestamp and skip CI to prevent pipeline loops
-          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
-          git commit -m "🤖 Auto-deploy: Update render-deployment.zip [$TIMESTAMP] [skip ci]"
+      - name: 📦 Commit and push deployment zip
+        run: |
+          # Add the zip file to git
+          git add backend/render-deployment.zip
           
-          # Push to the same branch
-          git push origin ${{ github.ref }}
-          echo "✅ Pushed render-deployment.zip to repository with [skip ci] flag"
-        fi
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            # Commit with timestamp and skip CI to prevent pipeline loops
+            TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+            git commit -m "🤖 Auto-deploy: Update render-deployment.zip [$TIMESTAMP] [skip ci]"
+            
+            # Push to the same branch
+            git push origin ${{ github.ref }}
+            echo "✅ Pushed render-deployment.zip to repository with [skip ci] flag"
+          fi
         
-    - name: 🚀 Deploy to Render
-      env:
-        RENDER_TOKEN: ${{ secrets.RENDER_TOKEN }}
-        RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
-      run: |
-        echo "📦 Deploying backend to Render..."
-        echo "🔗 Using render-deployment.zip from repository"
-        
-        # Trigger Render deployment
-        curl -X POST "https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys" \
-          -H "Authorization: Bearer $RENDER_TOKEN" \
-          -H "Content-Type: application/json" \
-          -d '{"clearCache": "do_not_clear"}'
-        
-        echo "✅ Backend deployment to Render triggered"
-        echo "📋 Render will now pull the latest render-deployment.zip from the repository"
+      - name: 🚀 Deploy to Render
+        env:
+          RENDER_TOKEN: ${{ secrets.RENDER_TOKEN }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+        run: |
+          echo "📦 Deploying backend to Render..."
+          echo "🔗 Using render-deployment.zip from repository"
+          
+          # Trigger Render deployment
+          curl -X POST "https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys" \
+            -H "Authorization: Bearer $RENDER_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"clearCache": "do_not_clear"}'
+          
+          echo "✅ Backend deployment to Render triggered"
+          echo "📋 Render will now pull the latest render-deployment.zip from the repository"
 
   deploy-frontend:
     runs-on: ubuntu-latest
@@ -219,45 +260,59 @@ jobs:
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
       
-    - name: 🟢 Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '24'
-        cache: 'npm'
-        cache-dependency-path: resume-builder/package-lock.json
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: resume-builder/package-lock.json
 
-    - name: Install Vercel CLI
-      run: | 
-        npm install -g vercel@latest
+      - name: ♻️ Restore frontend node_modules cache
+        id: frontend_node_modules_cache
+        uses: actions/cache@v4
+        with:
+          path: resume-builder/node_modules
+          key: ${{ runner.os }}-node24-frontend-node_modules-${{ hashFiles('resume-builder/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node24-frontend-node_modules-
+
+      - name: Install Vercel CLI
+        run: | 
+          npm install -g vercel@latest
 
         
-    - name: 📦 Install dependencies
-      run: |
-        cd resume-builder
-        npm ci
+      - name: 📦 Install dependencies
+        if: needs.detect-changes.outputs.frontend-deps-changed == 'true' || steps.frontend_node_modules_cache.outputs.cache-hit != 'true'
+        run: |
+          cd resume-builder
+          npm ci
+
+      - name: ✅ Skip install (frontend deps unchanged)
+        if: needs.detect-changes.outputs.frontend-deps-changed != 'true' && steps.frontend_node_modules_cache.outputs.cache-hit == 'true'
+        run: echo "resume-builder/node_modules restored from cache; skipping npm ci"
         
-    - name: 🏗️ Build frontend
-      run: |
-        cd resume-builder
-        npm run build
+      - name: 🏗️ Build frontend
+        run: |
+          cd resume-builder
+          npm run build
         
-    - name: 🚀 Deploy to Vercel
-      uses: amondnet/vercel-action@v25
-      with: 
-        vercel-token: ${{ secrets.VERCEL_TOKEN}}
-        
-        vercel-org-id: ${{ secrets.VERCEL_ORG_ID}}
-        
-        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID}}
-        working-directory: ./resume-builder
-        vercel-version: latest
-        vercel-args: ${{ github.ref == 'refs/heads/main' && '--prod' || ''}}
-      env:
-        CI: false
-        REACT_APP_API_URL: ${{ github.ref == 'refs/heads/main' && secrets.PROD_API_URL || secrets.STAGING_API_URL }}
+      - name: 🚀 Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with: 
+          vercel-token: ${{ secrets.VERCEL_TOKEN}}
+          
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID}}
+          
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID}}
+          working-directory: ./resume-builder
+          vercel-version: latest
+          vercel-args: ${{ github.ref == 'refs/heads/main' && '--prod' || ''}}
+        env:
+          CI: false
+          REACT_APP_API_URL: ${{ github.ref == 'refs/heads/main' && secrets.PROD_API_URL || secrets.STAGING_API_URL }}
 
   summary:
     runs-on: ubuntu-latest
@@ -265,31 +320,33 @@ jobs:
     if: always()
     
     steps:
-    - name: 📊 Deployment Summary
-      run: |
-        echo "🎯 Deployment Summary"
-        echo "===================="
-        echo "Branch: ${{ github.ref_name }}"
-        echo "Environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}"
-        echo "Backend changes: ${{ needs.detect-changes.outputs.backend }}"
-        echo "Frontend changes: ${{ needs.detect-changes.outputs.frontend }}"
-        echo ""
-        echo "Backend deployment: ${{ needs.deploy-backend.result || 'skipped' }}"
-        echo "Frontend deployment: ${{ needs.deploy-frontend.result || 'skipped' }}"
-        echo ""
-        
-        if [[ "${{ needs.detect-changes.outputs.backend }}" == "true" && "${{ needs.deploy-backend.result }}" == "success" ]]; then
-          echo "✅ Backend deployed to Render successfully"
-        elif [[ "${{ needs.detect-changes.outputs.backend }}" == "true" && "${{ needs.deploy-backend.result }}" != "success" ]]; then
-          echo "❌ Backend deployment failed"
-        fi
-        
-        if [[ "${{ needs.detect-changes.outputs.frontend }}" == "true" && "${{ needs.deploy-frontend.result }}" == "success" ]]; then
-          echo "✅ Frontend deployed to Vercel successfully"
-        elif [[ "${{ needs.detect-changes.outputs.frontend }}" == "true" && "${{ needs.deploy-frontend.result }}" != "success" ]]; then
-          echo "❌ Frontend deployment failed"
-        fi
-        
-        if [[ "${{ needs.detect-changes.outputs.backend }}" == "false" && "${{ needs.detect-changes.outputs.frontend }}" == "false" ]]; then
-          echo "ℹ️ No changes detected - no deployment needed"
-        fi 
+      - name: 📊 Deployment Summary
+        run: |
+          echo "🎯 Deployment Summary"
+          echo "===================="
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}"
+          echo "Backend changes: ${{ needs.detect-changes.outputs.backend-changed }}"
+          echo "Frontend changes: ${{ needs.detect-changes.outputs.frontend-changed }}"
+          echo "Backend deps changed: ${{ needs.detect-changes.outputs.backend-deps-changed }}"
+          echo "Frontend deps changed: ${{ needs.detect-changes.outputs.frontend-deps-changed }}"
+          echo ""
+          echo "Backend deployment: ${{ needs.deploy-backend.result || 'skipped' }}"
+          echo "Frontend deployment: ${{ needs.deploy-frontend.result || 'skipped' }}"
+          echo ""
+          
+          if [[ "${{ needs.detect-changes.outputs.backend-changed }}" == "true" && "${{ needs.deploy-backend.result }}" == "success" ]]; then
+            echo "✅ Backend deployed to Render successfully"
+          elif [[ "${{ needs.detect-changes.outputs.backend-changed }}" == "true" && "${{ needs.deploy-backend.result }}" != "success" ]]; then
+            echo "❌ Backend deployment failed"
+          fi
+          
+          if [[ "${{ needs.detect-changes.outputs.frontend-changed }}" == "true" && "${{ needs.deploy-frontend.result }}" == "success" ]]; then
+            echo "✅ Frontend deployed to Vercel successfully"
+          elif [[ "${{ needs.detect-changes.outputs.frontend-changed }}" == "true" && "${{ needs.deploy-frontend.result }}" != "success" ]]; then
+            echo "❌ Frontend deployment failed"
+          fi
+          
+          if [[ "${{ needs.detect-changes.outputs.backend-changed }}" == "false" && "${{ needs.detect-changes.outputs.frontend-changed }}" == "false" ]]; then
+            echo "ℹ️ No changes detected - no deployment needed"
+          fi 

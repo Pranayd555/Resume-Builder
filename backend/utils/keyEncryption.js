@@ -37,6 +37,28 @@ function decrypt(encryptedText) {
   return decrypted;
 }
 
+/** Stored user keys use "32-char-iv-hex:ciphertext-hex". Anything else fails AES (e.g. legacy plaintext). */
+const USER_KEY_CIPHERTEXT_PATTERN = /^[0-9a-f]{32}:[0-9a-f]+$/i;
+
+/**
+ * Decrypt a user-stored Gemini API key, or null if missing, malformed, or wrong ENCRYPTION_KEY.
+ * Never throws — use for responses so login /me are not 500'd by bad DB values.
+ */
+function decryptUserGeminiKey(encryptedText) {
+  if (!encryptedText || typeof encryptedText !== 'string') {
+    return null;
+  }
+  const trimmed = encryptedText.trim();
+  if (!USER_KEY_CIPHERTEXT_PATTERN.test(trimmed)) {
+    return null;
+  }
+  try {
+    return decrypt(trimmed);
+  } catch {
+    return null;
+  }
+}
+
 function maskApiKey(apiKey) {
     if(!apiKey) return ''
     const parts = apiKey.split('');
@@ -45,4 +67,4 @@ function maskApiKey(apiKey) {
     
 }
 
-module.exports = { encrypt, decrypt, maskApiKey };
+module.exports = { encrypt, decrypt, decryptUserGeminiKey, maskApiKey };
