@@ -8,6 +8,7 @@ const DocumentParser = require('../utils/documentParser');
 const { GoogleGenAI } = require("@google/genai");
 const { decryptUserGeminiKey } = require('../utils/keyEncryption');
 const { getPromt } = require('../utils/aiPrompts');
+const { sendAIError } = require('../utils/aiError');
 require('dotenv').config();
 
 const router = express.Router();
@@ -43,7 +44,7 @@ function createGoogleGenAI(req, res) {
     });
     return null;
   }
-  return new GoogleGenAI(apiKey);
+  return new GoogleGenAI({ apiKey });
 }
 
 const ATS_SCHEMA = {
@@ -397,10 +398,9 @@ router.post('/rewrite', [
       });
 
     } catch (geminiError) {
-      logger.error('Gemini rewrite error:', geminiError);
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to enhance content with AI'
+      return sendAIError(res, geminiError, {
+        isOwnApiKey: req.user?.isOwnApiKey,
+        model: resolveGeminiModel(req),
       });
     }
   } catch (error) {
@@ -470,10 +470,9 @@ router.post('/summarize', [
       });
 
     } catch (geminiError) {
-      logger.error('Gemini summarization error:', geminiError);
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to enhance content with AI'
+      return sendAIError(res, geminiError, {
+        isOwnApiKey: req.user?.isOwnApiKey,
+        model: resolveGeminiModel(req),
       });
     }
   } catch (error) {
@@ -715,10 +714,9 @@ router.post('/ats-score', [
       });
 
     } catch (geminiError) {
-      logger.error('Gemini ATS analysis error:', geminiError);
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to generate ATS score analysis'
+      return sendAIError(res, geminiError, {
+        isOwnApiKey: req.user?.isOwnApiKey,
+        model: resolveGeminiModel(req),
       });
     }
 
@@ -878,10 +876,9 @@ router.post('/adjust-tone', [
     });
 
   } catch (error) {
-    logger.error('Adjust tone error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Failed to adjust resume tone'
+    return sendAIError(res, error, {
+      isOwnApiKey: req.user?.isOwnApiKey,
+      model: resolveGeminiModel(req),
     });
   }
 });
@@ -994,10 +991,9 @@ router.post('/enhance-keywords', [
     });
 
   } catch (error) {
-    logger.error('Enhance keywords error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Failed to enhance keywords'
+    return sendAIError(res, error, {
+      isOwnApiKey: req.user?.isOwnApiKey,
+      model: resolveGeminiModel(req),
     });
   }
 });
@@ -1061,10 +1057,9 @@ router.post('/generate-pdf-template', [
       });
 
     } catch (geminiError) {
-      logger.error('Gemini PDF template generation error:', geminiError);
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to generate PDF template with AI'
+      return sendAIError(res, geminiError, {
+        isOwnApiKey: req.user?.isOwnApiKey,
+        model: resolveGeminiModel(req),
       });
     }
   } catch (error) {
@@ -1136,10 +1131,9 @@ router.post('/restructure-template', [
       });
 
     } catch (geminiError) {
-      logger.error('Gemini template restructuring error:', geminiError);
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to restructure template with AI'
+      return sendAIError(res, geminiError, {
+        isOwnApiKey: req.user?.isOwnApiKey,
+        model: resolveGeminiModel(req),
       });
     }
   } catch (error) {

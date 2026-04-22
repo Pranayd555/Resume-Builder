@@ -120,7 +120,7 @@ const Shipping = () => {
                       <span className="font-medium">pranaydaspr@gmail.com</span>
                     </div>
                     <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-gray-500">
-                      Response within 24 hours
+                      Response within 48 hours
                     </span>
                   </div>
                 </div>

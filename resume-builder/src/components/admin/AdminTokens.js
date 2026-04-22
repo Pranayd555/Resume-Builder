@@ -392,7 +392,7 @@ const AdminTokens = () => {
                     <button
                       onClick={() => {
                         const amount = document.getElementById('bonusTokenAmount').value;
-                        const reason = document.getElementById('bonusTokenReason').value || 'Admin bonus';
+                        const reason = document.getElementById('bonusTokenReason').value || 'A little extra, on us 🎉';
 
                         if (amount && amount > 0) {
                           giveBonusTokens(selectedUser._id, amount, reason);

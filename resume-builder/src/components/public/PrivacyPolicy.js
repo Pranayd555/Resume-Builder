@@ -193,7 +193,7 @@ const PrivacyPolicy = () => {
                   Contact Privacy Team
                 </Link>
                 <p className="text-center text-xs text-indigo-200">
-                  Typical response time: Within 24 hours
+                  Typical response time: Within 48 hours
                 </p>
               </div>
             </div>

@@ -227,10 +227,10 @@ const Payment = () => {
           <div className="py-2.5 flex overflow-hidden">
             <div className="animate-marquee-seamless whitespace-nowrap">
               <span className="text-yellow-600 dark:text-yellow-400 font-medium text-base px-4">
-                It is still on development phase, to procure more tokens write a feedback, finding out an issue you have faced or require enhancement, our team will look into your feedback if valid will fix it and grant you with tokens, Generally if accepted tokens received within 24 hours.
+                It is still on development phase, to procure more tokens write a feedback, finding out an issue you have faced or require enhancement, our team will look into your feedback if valid will fix it and grant you with tokens, Generally if accepted tokens received within 48 hours.
               </span>
               <span className="text-yellow-600 dark:text-yellow-400 font-medium text-base px-4">
-                It is still on development phase, to procure more tokens write a feedback, finding out an issue you have faced or require enhancement, our team will look into your feedback if valid will fix it and grant you with tokens, Generally if accepted tokens received within 24 hours.
+                It is still on development phase, to procure more tokens write a feedback, finding out an issue you have faced or require enhancement, our team will look into your feedback if valid will fix it and grant you with tokens, Generally if accepted tokens received within 48 hours.
               </span>
             </div>
           </div>

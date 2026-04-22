@@ -70,7 +70,7 @@ const ContactUs = () => {
 
       if (response.success) {
         setSubmitStatus('success');
-        toast.success('Message sent successfully! We\'ll get back to you within 24 hours.');
+        toast.success('Message sent successfully! We\'ll get back to you within 48 hours.');
         setFormData({
           name: '',
           email: '',
@@ -103,7 +103,7 @@ const ContactUs = () => {
     {
       icon: ClockIcon,
       title: 'Business Hours',
-      details: ['Mon - Fri: 9 AM - 6 PM IST', 'Sat: 10 AM - 4 PM IST'],
+      details: ['Mon - Fri: 9 AM - 6 PM IST'],
       description: 'When we are available to respond',
       color: 'text-indigo-500',
       bg: 'bg-indigo-50/50 dark:bg-indigo-900/10'
@@ -207,7 +207,7 @@ const ContactUs = () => {
                   <CheckCircleIcon className="w-6 h-6 text-emerald-500 flex-shrink-0" />
                   <div>
                     <p className="text-emerald-800 dark:text-emerald-400 font-bold">Message sent successfully!</p>
-                    <p className="text-emerald-700/70 dark:text-emerald-400/70 text-sm">We'll get back to you within 24 hours.</p>
+                    <p className="text-emerald-700/70 dark:text-emerald-400/70 text-sm">We'll get back to you within 48 hours.</p>
                   </div>
                 </div>
               )}
@@ -294,7 +294,7 @@ const ContactUs = () => {
         <footer className="mt-16 text-center text-slate-400 dark:text-slate-600 text-sm">
           <p>© {new Date().getFullYear()} Presmistique - AI Resume Builder. All rights reserved.</p>
           <p className="mt-2 italic">
-            Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} • We typically respond within 24 hours.
+            Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} • We typically respond within 48 hours.
           </p>
         </footer>
       </main>
