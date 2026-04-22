@@ -42,6 +42,7 @@ import AuthCallback from './components/AuthCallback';
 import ResumePreviewEnhanced from './components/ResumePreviewEnhanced';
 import ErrorPage from './components/annimations/ErrorPage';
 import { PUBLIC_ROUTES, USER_ROUTES, ADMIN_ROUTES } from './constants/routes';
+import BYOKGuide from './components/public/BYOK';
 
 const AppContent = () => {
   const { isDarkMode } = useDarkMode();
@@ -122,6 +123,10 @@ const router = createBrowserRouter([
   {
     path: PUBLIC_ROUTES.CONTACT_US,
     element: <Layout><ContactUs /></Layout>,
+  },
+  {
+    path: PUBLIC_ROUTES.BYOK,
+    element: <Layout><BYOKGuide /></Layout>,
   },
   {
     path: PUBLIC_ROUTES.UNAUTHORIZED,

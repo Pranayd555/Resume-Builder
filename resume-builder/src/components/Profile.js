@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { authAPI, uploadAPI, apiHelpers } from '../services/api';
 import { toast } from 'react-toastify';
@@ -1032,7 +1032,18 @@ function Profile() {
                   <p className="flex flex-wrap items-center gap-2 text-gray-900 leading-relaxed">
                     <span className="break-all">
                       {profile.geminiApiKey || (
-                        <span className="text-gray-500 italic">No Key provided</span>
+                        <>
+                        <span className="text-gray-500 italic">No key provided</span>
+                        
+                        <p className="pt-2">
+                          <Link
+                            to="/byok"
+                            className="text-blue-600 hover:underline"
+                          >
+                            Don't have an API key? Get one here
+                          </Link>
+                        </p>
+                      </>
                       )}
                     </span>
                     {profile.geminiApiKey ? <TrashIcon onClick={deleteApiKey} className="w-4 h-4 shrink-0 cursor-pointer text-red-600 hover:text-red-700" /> : ''}
