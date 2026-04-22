@@ -869,7 +869,7 @@ The ${process.env.APP_NAME || 'Resume Builder'} Team
         dateAdded,
         appName: process.env.APP_NAME || 'Resume Builder',
         dashboardUrl: `${process.env.CLIENT_URL}/dashboard`,
-        supportUrl: `${process.env.CLIENT_URL}/contact`,
+        supportUrl: `${process.env.CLIENT_URL}/contact-us`,
         year: new Date().getFullYear()
       });
 
