@@ -109,14 +109,18 @@ function Header() {
 
     // Listen for token balance updates from API responses
     const handleTokenBalanceUpdate = (event) => {
+      if(!user?.isOwnApiKey) {
       setTokenBalance(event.detail.balance);
+      }
     };
 
     // Listen for token data updates from API responses
     const handleTokenDataUpdate = (event) => {
+      if(!user?.isOwnApiKey) {
       console.log("🔄 Header: Token data updated:", event.detail);
       setTokenData(event.detail);
       setTokenBalance(event.detail.balance || 0);
+      }
     };
 
     // Add event listeners
