@@ -257,14 +257,16 @@ function ResumeForm() {
   // Listen for token balance updates
   useEffect(() => {
     const handleTokenBalanceUpdate = (event) => {
+      if(!user.isOwnApiKey) {
       const { balance } = event.detail;
       setTokenBalance(balance);
       setIsTokenExhausted(balance <= 0);
     };
+  }
 
     window.addEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
     return () => window.removeEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
-  }, []);
+  }, [user.isOwnApiKey]);
 
 
 

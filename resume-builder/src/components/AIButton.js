@@ -35,10 +35,12 @@ const AIButton = ({
   // Listen for token balance updates
   useEffect(() => {
     const handleTokenBalanceUpdate = (event) => {
+      if(!user.isOwnApiKey) {
       const { balance } = event.detail;
       setTokenBalance(balance);
       setIsTokenExhausted(balance <= 0);
     };
+    }
 
     window.addEventListener("tokenBalanceUpdated", handleTokenBalanceUpdate);
     return () =>
@@ -46,7 +48,7 @@ const AIButton = ({
         "tokenBalanceUpdated",
         handleTokenBalanceUpdate
       );
-  }, []);
+  }, [user.isOwnApiKey]);
 
 
 
