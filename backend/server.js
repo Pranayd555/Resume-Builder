@@ -25,6 +25,7 @@ const analyticsRoutes = require('./routes/analytics');
 const aiRoutes = require('./routes/ai');
 const createTemplateRoutes = require('./routes/createTemplate');
 const paymentRoutes = require('./routes/payment');
+const portfolioRoutes = require('./routes/portfolios');
 const publicRoutes = require('./routes/public');
 
 
@@ -331,6 +332,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/createTemplate', createTemplateRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/portfolios', portfolioRoutes);
 app.use('/api/public', publicRoutes);
 
 

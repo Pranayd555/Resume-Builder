@@ -327,9 +327,9 @@ function TemplateShowcase() {
               </h3>
               <div className="text-lg text-gray-600 dark:text-gray-400 mb-8">
                 
-              <p className="font-bold mb-2 bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+              <sapn className=" w-full font-bold mb-2 bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
                 Your key, your control, zero cost.
-              </p>
+              </sapn>
               Join thousands of professionals who have already created stunning resumes with our templates.
               </div>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">

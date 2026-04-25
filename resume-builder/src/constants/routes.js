@@ -16,7 +16,8 @@ export const PUBLIC_ROUTES = {
   UNAUTHORIZED: '/unauthorized',
   AUTH_CALLBACK: '/auth/callback',
   ERROR: '/error',
-  NETWORK_TIMEOUT: '/network-timeout'
+  NETWORK_TIMEOUT: '/network-timeout',
+  LIVE_PORTFOLIO: '/portfolio/:user'
 };
 
 // User routes (require authentication)
@@ -51,6 +52,12 @@ export const ADMIN_ROUTES = {
   SETTINGS: '/admin/settings'
 };
 
+export const PORTFOLIO_ROUTES = {
+  VIEWPORTFOLIO: '/portfolio/view',
+  EDITPORTFOLIO: '/portfolio/edit',
+  SELECTTEMPLATES: '/portfolio/select-template'
+}
+
 // Route categories for protection
 export const ROUTE_CATEGORIES = {
   PUBLIC: 'public',
@@ -75,6 +82,7 @@ export const ROUTE_PROTECTION = {
   [PUBLIC_ROUTES.AUTH_CALLBACK]: { category: ROUTE_CATEGORIES.PUBLIC },
   [PUBLIC_ROUTES.ERROR]: { category: ROUTE_CATEGORIES.PUBLIC },
   [PUBLIC_ROUTES.NETWORK_TIMEOUT]: { category: ROUTE_CATEGORIES.PUBLIC },
+  [PUBLIC_ROUTES.LIVE_PORTFOLIO]: { category: ROUTE_CATEGORIES.PUBLIC },
 
   // User routes - require authentication
   [USER_ROUTES.DASHBOARD]: { category: ROUTE_CATEGORIES.USER, requireAuth: true },
@@ -100,7 +108,12 @@ export const ROUTE_PROTECTION = {
   [ADMIN_ROUTES.TEMPLATES]: { category: ROUTE_CATEGORIES.ADMIN, requireRole: 'admin' },
   [ADMIN_ROUTES.ANALYTICS]: { category: ROUTE_CATEGORIES.ADMIN, requireRole: 'admin' },
   [ADMIN_ROUTES.EMAIL_TEST]: { category: ROUTE_CATEGORIES.ADMIN, requireRole: 'admin' },
-  [ADMIN_ROUTES.SETTINGS]: { category: ROUTE_CATEGORIES.ADMIN, requireRole: 'admin' }
+  [ADMIN_ROUTES.SETTINGS]: { category: ROUTE_CATEGORIES.ADMIN, requireRole: 'admin' },
+
+  // portfolio routes - require user role
+  [PORTFOLIO_ROUTES.VIEWPORTFOLIO]: { category: ROUTE_CATEGORIES.USER, requireAuth: true },
+  [PORTFOLIO_ROUTES.EDITPORTFOLIO]: { category: ROUTE_CATEGORIES.USER, requireAuth: true },
+  [PORTFOLIO_ROUTES.SELECTTEMPLATES]: { category: ROUTE_CATEGORIES.USER, requireAuth: true },
 };
 
 // Helper functions

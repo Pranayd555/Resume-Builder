@@ -140,6 +140,144 @@ const PARSE_RESUME = {
   },
 };
 
+const PARSE_PORTFOLIO = {
+  "type": "OBJECT",
+  "properties": {
+    "name": { "type": "STRING" },
+    "username": { "type": "STRING" },
+    "title": { "type": "STRING" },
+    "tagline": { "type": "STRING" },
+    "bio": { "type": "STRING" },
+    "avatar": { "type": "STRING" },
+    "availabilityBadge": { "type": "STRING" },
+    "yearsOfExperience": { "type": "STRING" },
+    "currentRole": { "type": "STRING" },
+    "currentCompany": { "type": "STRING" },
+    "location": { "type": "STRING" },
+    "email": { "type": "STRING" },
+    "cvUrl": { "type": "STRING" },
+    "socials": {
+      "type": "OBJECT",
+      "properties": {
+        "linkedin": { "type": "STRING" },
+        "github": { "type": "STRING" },
+        "twitter": { "type": "STRING" },
+        "dribbble": { "type": "STRING" },
+        "instagram": { "type": "STRING" }
+      }
+    },
+    "metrics": {
+      "type": "ARRAY",
+      "items": {
+        "type": "OBJECT",
+        "properties": {
+          "value": { "type": "STRING" },
+          "label": { "type": "STRING" },
+          "color": { "type": "STRING" }
+        }
+      }
+    },
+    "experience": {
+      "type": "ARRAY",
+      "items": {
+        "type": "OBJECT",
+        "properties": {
+          "period": { "type": "STRING" },
+          "role": { "type": "STRING" },
+          "company": { "type": "STRING" },
+          "description": { "type": "STRING" },
+          "bullets": { "type": "ARRAY", "items": { "type": "STRING" } },
+          "isCurrent": { "type": "BOOLEAN" }
+        }
+      }
+    },
+    "skills": {
+      "type": "ARRAY",
+      "items": {
+        "type": "OBJECT",
+        "properties": {
+          "label": { "type": "STRING" },
+          "icon": { "type": "STRING" },
+          "detail": { "type": "STRING" },
+          "color": { "type": "STRING" }
+        }
+      }
+    },
+    "languages": {
+      "type": "ARRAY",
+      "items": { "type": "STRING" }
+    },
+    "certifications": {
+      "type": "ARRAY",
+      "items": { "type": "STRING" }
+    },
+    "coreCompetencies": {
+      "type": "ARRAY",
+      "items": { "type": "STRING" }
+    },
+    "projects": {
+      "type": "ARRAY",
+      "items": {
+        "type": "OBJECT",
+        "properties": {
+          "title": { "type": "STRING" },
+          "category": { "type": "STRING" },
+          "type": { "type": "STRING" },
+          "description": { "type": "STRING" },
+          "image": { "type": "STRING" },
+          "tags": { "type": "ARRAY", "items": { "type": "STRING" } },
+          "link": { "type": "STRING" },
+          "isFeatured": { "type": "BOOLEAN" }
+        }
+      }
+    },
+    "education": {
+      "type": "ARRAY",
+      "items": {
+        "type": "OBJECT",
+        "properties": {
+          "year": { "type": "STRING" },
+          "degree": { "type": "STRING" },
+          "institution": { "type": "STRING" },
+          "detail": { "type": "STRING" }
+        }
+      }
+    },
+    "certificationsList": {
+      "type": "ARRAY",
+      "items": {
+        "type": "OBJECT",
+        "properties": {
+          "icon": { "type": "STRING" },
+          "label": { "type": "STRING" }
+        }
+      }
+    },
+    "testimonials": {
+      "type": "ARRAY",
+      "items": {
+        "type": "OBJECT",
+        "properties": {
+          "quote": { "type": "STRING" },
+          "name": { "type": "STRING" },
+          "title": { "type": "STRING" },
+          "avatar": { "type": "STRING" }
+        }
+      }
+    },
+    "cta": {
+      "type": "OBJECT",
+      "properties": {
+        "heading": { "type": "STRING" },
+        "subtext": { "type": "STRING" },
+        "primaryLabel": { "type": "STRING" },
+        "secondaryLabel": { "type": "STRING" }
+      }
+    }
+  },
+  "required": ["name", "username", "title"]
+};
+
 // Initialize Google Gen AI client using options object (required by @google/genai v1.16+)
 const resolveGeminiModel = (req) => {
   const userModel = req?.user?.geminiModel;
@@ -257,9 +395,64 @@ async function parseResumeText(extractedText, client, aiModel) {
   }
 }
 
+async function parsePortfolioText(extractedText, apiKey = '') {
+  const prompt = getPromt('parsePortfolio', extractedText);
+
+  try {
+    const client = genAI(apiKey);
+    const response = await client.models.generateContent({
+      model: process.env.GEMINI_MODEL || "gemini-2.5-flash-lite",
+      contents: prompt,
+      config:{
+        responseMimeType: "application/json",
+        responseJsonSchema : PARSE_PORTFOLIO
+    }
+    });
+    
+    let jsonText = response.text;
+    
+    // Extract JSON using regex pattern (similar to AI routes)
+    const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error('No valid JSON found in AI response');
+    }
+    
+    let cleaned = jsonMatch[0];
+    
+    // Clean up common JSON formatting issues from Gemini
+    try {
+      // First, try to parse as-is
+      JSON.parse(cleaned);
+    } catch (firstError) {
+      // If parsing fails, try to fix common issues
+      cleaned = cleaned
+        .replace(/,\s*}/g, '}')  // Remove trailing commas
+        .replace(/,\s*]/g, ']')  // Remove trailing commas in arrays
+        .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":')  // Quote unquoted keys
+        .replace(/:\s*([^",\[\]{}\n]+)(?=[,\]\}])/g, ': "$1"');  // Quote unquoted string values
+      
+      try {
+        JSON.parse(cleaned);
+      } catch (secondError) {
+        throw new Error(`Failed to parse AI response as JSON: ${secondError.message}`);
+      }
+    }
+    
+    const parsedData = JSON.parse(cleaned);
+    
+    console.log('parsed portfolio data:', parsedData);
+    return parsedData;
+  } catch (error) {
+    console.error('Error parsing resume with Gemini:', error);
+    // Re-throw the original provider error so callers can map status/messages correctly.
+    throw error;
+  }
+}
+
 module.exports = { 
   generateResumeSuggestion,
   parseResumeText,
   resolveGeminiModel,
-  createGoogleGenAI
+  createGoogleGenAI,
+  parsePortfolioText
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { matchPath, useLocation } from 'react-router-dom';
 import Header from './Header';
 
 const Layout = ({ children }) => {
@@ -26,10 +26,21 @@ const Layout = ({ children }) => {
     '/admin/feedback',
     '/admin/analytics',
     '/admin/email-test',
-    '/admin/settings'
+    '/admin/settings',
+    '/portfolio/:user'
   ];
   
-  const shouldShowHeader = !routesWithoutHeader.includes(location.pathname);
+  let shouldShowHeader = !routesWithoutHeader.some(pattern => 
+    matchPath({ path: pattern }, location.pathname)
+  );
+  if(location.pathname.includes('portfolio')) {
+    // 2. Define the paths you want to keep the header for
+  const excludedSubPaths = ['edit', 'view'];
+  const match = matchPath({ path: '/portfolio/:user' }, location.pathname);
+
+  // 3. Logic: Match exists AND it's not an excluded path
+  shouldShowHeader = !(match && !excludedSubPaths.includes(match.params.user));
+  }
 
   return (
     <>

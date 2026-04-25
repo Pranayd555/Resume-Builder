@@ -29,6 +29,7 @@ import AdminContacts from './components/admin/AdminContacts';
 import AdminTokens from './components/admin/AdminTokens';
 import AdminRefunds from './components/admin/AdminRefunds';
 import AdminLayout from './components/admin/AdminLayout';
+import LivePortfolio from './components/portfolio/LivePortfolio';
 
 // Public Pages
 import HomePage from './components/public/HomePage';
@@ -41,8 +42,11 @@ import ProtectedRoute, { RoleProtectedRoute, UnauthorizedPage, ROLES } from './c
 import AuthCallback from './components/AuthCallback';
 import ResumePreviewEnhanced from './components/ResumePreviewEnhanced';
 import ErrorPage from './components/annimations/ErrorPage';
-import { PUBLIC_ROUTES, USER_ROUTES, ADMIN_ROUTES } from './constants/routes';
+import { PUBLIC_ROUTES, USER_ROUTES, ADMIN_ROUTES, PORTFOLIO_ROUTES } from './constants/routes';
 import BYOKGuide from './components/public/BYOK';
+import EditPortfolio from './components/portfolio/editPortfolio';
+import ViewPortfolio from './components/portfolio/ViewPortfolio';
+import SelectPortfolio from './components/portfolio/SelectPortfolio';
 
 const AppContent = () => {
   const { isDarkMode } = useDarkMode();
@@ -216,6 +220,26 @@ const router = createBrowserRouter([
     path: ADMIN_ROUTES.PROFILE,
     element: <AdminLayout><RoleProtectedRoute requiredRole={ROLES.ADMIN}><Profile isAdminLogin={true} /></RoleProtectedRoute></AdminLayout>,
   },
+
+  // portfolio routes
+  {
+    path: PUBLIC_ROUTES.LIVE_PORTFOLIO,
+    element: <Layout><LivePortfolio /></Layout>,
+  },
+  {
+    path: PORTFOLIO_ROUTES.SELECTTEMPLATES,
+    element: <Layout><RoleProtectedRoute requiredRole={ROLES.USER}><SelectPortfolio /></RoleProtectedRoute></Layout>,
+  },
+  {
+    path: PORTFOLIO_ROUTES.EDITPORTFOLIO,
+    element: <Layout><RoleProtectedRoute requiredRole={ROLES.USER}><EditPortfolio /></RoleProtectedRoute></Layout>,
+  },
+  {
+    path: PORTFOLIO_ROUTES.VIEWPORTFOLIO,
+    element: <Layout><RoleProtectedRoute requiredRole={ROLES.USER}><ViewPortfolio /></RoleProtectedRoute></Layout>,
+  },
+
+  //default
   {
     path: "*",
     element: <Layout><Navigate to="/" replace /></Layout>,

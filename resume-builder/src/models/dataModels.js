@@ -540,4 +540,203 @@ export const LANGUAGES = {
   ZH: 'zh',
   JA: 'ja',
   KO: 'ko',
-}; 
+};
+
+// Portfolio Models
+export const createPortfolioPersonalInfoModel = (data = {}) => ({
+  fullName: data.fullName || '',
+  email: data.email || '',
+  phone: data.phone || '',
+  address: data.address || '',
+  website: data.website || '',
+  linkedin: data.linkedin || '',
+  github: data.github || '',
+  profilePicture: data.profilePicture || '',
+  bio: data.bio || '',
+});
+
+export const createPortfolioSectionColorsModel = (data = {}) => ({
+  workExperience: data.workExperience || '#3B82F6',
+  projects: data.projects || '#8B5CF6',
+  skills: data.skills || '#10B981',
+  certifications: data.certifications || '#F59E0B',
+  languages: data.languages || '#EF4444',
+});
+
+export const createPortfolioCustomizationModel = (data = {}) => ({
+  // Colors
+  primaryColor: data.primaryColor || '#3B82F6',
+  secondaryColor: data.secondaryColor || '#64748B',
+  accentColor: data.accentColor || '#0EA5E9',
+  backgroundColor: data.backgroundColor || '#FFFFFF',
+  textColor: data.textColor || '#1F2937',
+  
+  // Section colors
+  sectionColors: data.sectionColors || createPortfolioSectionColorsModel(),
+  
+  // Fonts
+  primaryFont: data.primaryFont || 'InterVar, system-ui, sans-serif',
+  secondaryFont: data.secondaryFont || 'InterVar, system-ui, sans-serif',
+  
+  // Font Sizes
+  headingFontSize: data.headingFontSize || 'large',
+  bodyFontSize: data.bodyFontSize || 'medium',
+  
+  // Spacing
+  spacing: data.spacing || 'normal',
+  
+  // Section Visibility
+  visibleSections: data.visibleSections || {
+    summary: true,
+    workExperience: true,
+    projects: true,
+    skills: true,
+    certifications: true,
+    languages: true,
+  },
+});
+
+export const createPortfolioAnalyticsModel = (data = {}) => ({
+  views: data.views || 0,
+  lastViewed: data.lastViewed || null,
+  downloads: data.downloads || 0,
+  lastDownloaded: data.lastDownloaded || null,
+  shares: data.shares || 0,
+});
+
+export const createPortfolioModel = (data = {}) => ({
+  id: data._id || data.id || '',
+  user: data.user || '',
+
+  // Core Info
+  title: data.title || 'My Portfolio',
+  username: data.username || '',
+  name: data.name || '',
+  tagline: data.tagline || '',
+  bio: data.bio || '',
+  avatar: data.avatar || '',
+  availabilityBadge: data.availabilityBadge || '',
+  yearsOfExperience: data.yearsOfExperience || '',
+
+  // Current Status
+  currentRole: data.currentRole || '',
+  currentCompany: data.currentCompany || '',
+  location: data.location || '',
+  email: data.email || '',
+  cvUrl: data.cvUrl || '',
+
+  // Socials
+  socials: {
+    linkedin: data.socials?.linkedin || '',
+    github: data.socials?.github || '',
+    twitter: data.socials?.twitter || '',
+    dribbble: data.socials?.dribbble || '',
+    instagram: data.socials?.instagram || '',
+  },
+
+  // Metrics
+  metrics: data.metrics || [],
+
+  // Experience
+  experience: data.experience || [],
+
+  // Skills
+  skills: data.skills || [],
+
+  // Extras
+  languages: data.languages || [],
+  certifications: data.certifications || [],
+  coreCompetencies: data.coreCompetencies || [],
+
+  // Projects
+  projects: data.projects || [],
+
+  // Education
+  education: data.education || [],
+
+  certificationsList: data.certificationsList || [],
+
+  // Testimonials
+  testimonials: data.testimonials || [],
+
+  // CTA
+  cta: {
+    heading: data.cta?.heading || '',
+    subtext: data.cta?.subtext || '',
+    primaryLabel: data.cta?.primaryLabel || '',
+    secondaryLabel: data.cta?.secondaryLabel || '',
+  },
+
+  // Template & Styling
+  template: data.template || 'modern-interactive',
+  customization: data.customization || createPortfolioCustomizationModel(),
+
+  // Publication
+  isLive: data.isLive || false,
+  liveLink: data.liveLink || null,
+  status: data.status || 'draft',
+
+  // Analytics
+  analytics: data.analytics || createPortfolioAnalyticsModel(),
+
+  // Meta
+  markedForDeletion: data.markedForDeletion || false,
+  deletionReason: data.deletionReason || null,
+
+  // Timestamps
+  createdAt: data.createdAt || new Date().toISOString(),
+  updatedAt: data.updatedAt || new Date().toISOString(),
+});
+
+export const PORTFOLIO_TEMPLATES = {
+  MODERN_INTERACTIVE: 'modern-interactive',
+  MINIMALIST_PRO: 'minimalist-pro',
+  CREATIVE_DEVELOPER: 'creative-developer',
+  CORPORATE_EXECUTIVE: 'corporate-executive',
+};
+
+export const PORTFOLIO_TEMPLATE_DESCRIPTIONS = {
+  'modern-interactive': {
+    name: 'Modern Interactive',
+    description: 'Clean, interactive design with smooth animations',
+    preview: '/portfolio-templates/modern-interactive-preview.jpg',
+  },
+  'minimalist-pro': {
+    name: 'Minimalist Professional',
+    description: 'Elegant, minimal design focusing on content',
+    preview: '/portfolio-templates/minimalist-pro-preview.jpg',
+  },
+  'creative-developer': {
+    name: 'Creative Developer',
+    description: 'Bold, creative design perfect for tech professionals',
+    preview: '/portfolio-templates/creative-developer-preview.jpg',
+  },
+  'corporate-executive': {
+    name: 'Corporate Executive',
+    description: 'Professional corporate design for business leaders',
+    preview: '/portfolio-templates/corporate-executive-preview.jpg',
+  },
+};
+
+export const validatePortfolio = (portfolio) => {
+  const errors = {};
+  
+  if (!validators.required(portfolio.title)) {
+    errors.title = 'Portfolio title is required';
+  }
+  
+  if (!validators.required(portfolio.personalInfo.fullName)) {
+    errors.fullName = 'Full name is required';
+  }
+  
+  if (!validators.required(portfolio.personalInfo.email)) {
+    errors.email = 'Email is required';
+  } else if (!validators.email(portfolio.personalInfo.email)) {
+    errors.email = 'Please enter a valid email';
+  }
+  
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors,
+  };
+};

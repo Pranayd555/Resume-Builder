@@ -886,6 +886,19 @@ function ResumeList() {
               </button>
             )}
             <button
+              onClick={() => navigate('/portfolio/edit')}
+              disabled={isEmailVerificationRequired()}
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl transition-all duration-200 shadow-lg font-semibold text-sm sm:text-base min-w-[160px] sm:min-w-auto ${isEmailVerificationRequired()
+                ? 'bg-gradient-to-r from-gray-400 to-gray-500 text-white cursor-not-allowed opacity-75'
+                : 'bg-gradient-to-r from-indigo-500 to-pink-600 text-white hover:from-indigo-600 hover:to-pink-700 hover:shadow-xl transform hover:scale-105'
+                }`}
+            >
+              <SparklesIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+              <span className="whitespace-nowrap">
+                Generate Portfolio
+              </span>
+            </button>
+            <button
               onClick={() => navigate('/create-template')}
               className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl shadow-lg hover:from-emerald-600 hover:to-teal-700 transition-all duration-200 hover:shadow-xl transform hover:scale-105"
             >

@@ -1029,7 +1029,7 @@ function Profile() {
                     )}
                   </div>
                 ) : (
-                  <p className="flex flex-wrap items-center gap-2 text-gray-900 leading-relaxed">
+                  <div className="flex flex-wrap items-center gap-2 text-gray-900 leading-relaxed">
                     <span className="break-all">
                       {profile.geminiApiKey || (
                         <>
@@ -1047,7 +1047,7 @@ function Profile() {
                       )}
                     </span>
                     {profile.geminiApiKey ? <TrashIcon onClick={deleteApiKey} className="w-4 h-4 shrink-0 cursor-pointer text-red-600 hover:text-red-700" /> : ''}
-                  </p>
+                  </div>
                 )}
               </div>
 

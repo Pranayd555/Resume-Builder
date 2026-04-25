@@ -783,4 +783,60 @@ export const publicAPI = {
   },
 };
 
+// Portfolio API calls
+export const portfolioAPI = {
+  getPortfolio: async () => {
+    const config = createApiConfig('/portfolios');
+    const response = await api.get('/portfolios', config);
+    return response.data;
+  },
+
+  getPortfolioById: async (portfolioId) => {
+    const config = createApiConfig('/portfolios');
+    const response = await api.get(`/portfolios/${portfolioId}`, config);
+    return response.data;
+  },
+
+  createPortfolio: async (portfolioData) => {
+    const config = createApiConfig('/portfolios');
+    const response = await api.post('/portfolios', portfolioData, config);
+    return response.data;
+  },
+
+  updatePortfolio: async (portfolioId, portfolioData) => {
+    const config = createApiConfig('/portfolios');
+    const response = await api.put(`/portfolios/${portfolioId}`, portfolioData, config);
+    return response.data;
+  },
+
+  deletePortfolio: async (portfolioId) => {
+    const config = createApiConfig('/portfolios');
+    const response = await api.delete(`/portfolios/${portfolioId}`, config);
+    return response.data;
+  },
+
+  publishPortfolio: async (portfolioId, isLive) => {
+    const config = createApiConfig('/portfolios');
+    const response = await api.put(`/portfolios/${portfolioId}/publish`, { isLive }, config);
+    return response.data;
+  },
+
+  parseResumeToPortfolio: async (resume) => {
+    const config = createApiConfig('/portfolios');
+    const response = await api.post(`/portfolios/parse-resume/${resume._id}`, resume, config);
+    return response.data;
+  },
+
+  getPortfolioStats: async (portfolioId) => {
+    const config = createApiConfig('/portfolios');
+    const response = await api.get(`/portfolios/${portfolioId}/stats`, config);
+    return response.data;
+  },
+
+  getPublicPortfolio: async (slug) => {
+    const response = await api.get(`/public/portfolio/${slug}`);
+    return response.data;
+  },
+};
+
 export default api;

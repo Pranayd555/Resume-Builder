@@ -1,5 +1,5 @@
 // Create prompt for ATS-friendly professional enhancement
-let content = '';
+
 const prompts = {
     rewritePrompt: (content) => `
         You are an expert resume writing assistant specializing in ATS-optimized, professional, and achievement-driven content.
@@ -150,26 +150,48 @@ const prompts = {
         Extract and structure the following information into JSON format matching exact schema:
         
 
-Guidelines:
-- Extract all available information from the text
-- Use epmty string for missing dates or optional fields
-- For dates, use YYYY-MM-DD format or epmty string if not available
-- Group skills by categories if possible
-- Extract technologies used in projects
-- Include all achievements, certifications, and languages mentioned
-- If information is not available, use empty strings as appropriate
-- Ensure the JSON is valid and properly formatted
-- Do not rephrase, summarize, or rewrite any text.
-- Do not infer or guess missing data.
-- Preserve original spelling, capitalization, punctuation, line breaks, and structure.
-- Leave any missing fields as epmty string or empty arrays.
-- Return ONLY the JSON object, no additional text, explanations, or formatting.
-- Ensure all JSON is properly formatted with double quotes and valid syntax.`
-    }
+        Guidelines:
+        - Extract all available information from the text
+        - Use empty string for missing dates or optional fields
+        - For dates, use YYYY-MM-DD format or empty string if not available
+        - Group skills by categories if possible
+        - Extract technologies used in projects
+        - Include all achievements, certifications, and languages mentioned
+        - If information is not available, use empty strings as appropriate
+        - Ensure the JSON is valid and properly formatted
+        - Do not rephrase, summarize, or rewrite any text.
+        - Do not infer or guess missing data.
+        - Preserve original spelling, capitalization, punctuation, line breaks, and structure.
+        - Leave any missing fields as empty string or empty arrays.
+        - Return ONLY the JSON object, no additional text, explanations, or formatting.
+        - Ensure all JSON is properly formatted with double quotes and valid syntax.
+        `,
+    
+
+    parsePortfolio : (content) => `You are a resume parsing assistant. You will receive plain text extracted from a resume PDF.
+        Your task is to extract and structure the content into a precise JSON format, without modifying or rewriting any part of the original content.
+
+        CRITICAL: Return ONLY valid JSON with proper formatting:
+        - Use double quotes (") for all property names and string values
+        - Do not use single quotes (') anywhere
+        - Ensure all property names are quoted
+        - Do not include any explanations, markdown formatting, code blocks, or additional text
+        - Start your response with { and end with }
+        - Follow standard JSON syntax exactly
+
+        Resume Text:
+        ${content}
+
+        Extract and structure the following information into JSON format matching exact schema:
+
+        Guidelines:
+        - Extract all available information from the text
+        - Use null for missing dates or optional fields
+        - For dates, use YYYY-MM-DD format or null if not available
+        - username is required, if not present generate one from the name field and ensure it is unique by appending a few random numbers
+    `
+    };
 function getPromt(key, val) {
-    if (val) content = val;
-    console.log('content', content);
-    console.log('prompts', prompts[key](val));
     return prompts[key](val);
 }
 
