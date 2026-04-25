@@ -94,7 +94,7 @@ function normalizeGeminiError(err, context = {}) {
     type = 'AI_AUTH';
     retryable = false;
     if (isOwnApiKey) {
-      httpStatus = 401;
+      httpStatus = 400;
       userMessage =
         'Your Gemini API key is invalid or has insufficient permissions. Update it in Profile and try again.';
     } else {

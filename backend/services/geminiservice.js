@@ -1,6 +1,7 @@
 // resume-ai-backend/geminiService.js
 const { GoogleGenAI } = require("@google/genai");
 const { getPromt } = require('../utils/aiPrompts');
+const { decryptUserGeminiKey } = require("../utils/keyEncryption");
 require('dotenv').config();
 
 const PARSE_RESUME = {
@@ -137,23 +138,36 @@ const PARSE_RESUME = {
       }
     }
   },
-  "required": [
-    "personalInfo", 
-    "summary", 
-    "workExperience", 
-    "education", 
-    "skills", 
-    "projects", 
-    "achievements", 
-    "certifications", 
-    "languages"
-  ]
 };
 
 // Initialize Google Gen AI client using options object (required by @google/genai v1.16+)
-const genAI = (apiKey) => new GoogleGenAI({
-  apiKey: apiKey ?? process.env.GEMINI_API_KEY,
-});
+const resolveGeminiModel = (req) => {
+  const userModel = req?.user?.geminiModel;
+  if (typeof userModel === 'string' && userModel.trim()) return userModel.trim();
+  return process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
+};
+
+function createGoogleGenAI(req, res) {
+  const apiKey = req.user.isOwnApiKey
+    ? decryptUserGeminiKey(req.user.geminiApiKey)
+    : process.env.GEMINI_API_KEY;
+  if (req.user.isOwnApiKey && !apiKey) {
+    res.status(400).json({
+      success: false,
+      error:
+        'Your saved API key could not be decrypted. Re-enter your Gemini API key in Profile and save, or set ENCRYPTION_KEY to match the server where that key was first saved.',
+    });
+    return null;
+  }
+  if (!apiKey) {
+    res.status(500).json({
+      success: false,
+      error: 'AI service is not configured.',
+    });
+    return null;
+  }
+  return new GoogleGenAI({ apiKey });
+}
 
 async function generateResumeSuggestion(prompt, apiKey = '') {
   const client = genAI(apiKey);
@@ -164,18 +178,20 @@ async function generateResumeSuggestion(prompt, apiKey = '') {
   return response.text;
 }
 
-async function parseResumeText(extractedText, apiKey = '') {
+async function parseResumeText(extractedText, client, aiModel) {
 
   const prompt = getPromt('parseResume', extractedText);
 
+  console.log('generated prompt, prompt', prompt);
+
   try {
-    const client = genAI(apiKey);
     const response = await client.models.generateContent({
-      model: process.env.GEMINI_MODEL || "gemini-2.5-flash-lite",
+      model: aiModel,
       contents: prompt,
       config:{
         responseMimeType: "application/json",
-        responseJsonSchema : PARSE_RESUME
+        responseJsonSchema : PARSE_RESUME,
+        temperature: 0
     }
     });
     
@@ -243,5 +259,7 @@ async function parseResumeText(extractedText, apiKey = '') {
 
 module.exports = { 
   generateResumeSuggestion,
-  parseResumeText
+  parseResumeText,
+  resolveGeminiModel,
+  createGoogleGenAI
 };

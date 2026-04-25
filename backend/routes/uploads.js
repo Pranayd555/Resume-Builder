@@ -7,7 +7,7 @@ const { protect, checkAIActionLimit, checkTokenLimit, trackUsage, refundTokenOnE
 const User = require('../models/User');
 const logger = require('../utils/logger');
 const DocumentParser = require('../utils/documentParser');
-const { parseResumeText } = require('../services/geminiservice');
+const { parseResumeText, resolveGeminiModel, createGoogleGenAI } = require('../services/geminiservice');
 const { sendAIError } = require('../utils/aiError');
 
 const router = express.Router();
@@ -128,7 +128,8 @@ router.post('/parse-resume', [
     
     try {
       logger.info('Calling Gemini AI service to parse resume text');
-      parsedData = await parseResumeText(extractedText);
+      const client = createGoogleGenAI(req,res);
+      parsedData = await parseResumeText(extractedText, client, resolveGeminiModel(req));
       logger.info('Resume text parsed successfully with AI');
       
       // Set usage type for tracking AI action usage
