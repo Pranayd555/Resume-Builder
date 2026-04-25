@@ -14,8 +14,14 @@ const CustomDatePicker = ({
   disabled = false,
   ...props
 }) => {
+  const parseDateValue = (dateValue) => {
+    if (!dateValue || dateValue === 'null' || dateValue === 'undefined') return null;
+    const parsed = new Date(dateValue);
+    return Number.isNaN(parsed.getTime()) ? '' : parsed;
+  };
+
   // Convert string date to Date object for react-datepicker
-  const dateValue = value ? new Date(value) : null;
+  const dateValue = parseDateValue(value);
 
   const handleDateChange = (date) => {
     // Convert Date object back to YYYY-MM-DD string format

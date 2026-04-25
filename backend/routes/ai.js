@@ -9,6 +9,7 @@ const { GoogleGenAI } = require("@google/genai");
 const { decryptUserGeminiKey } = require('../utils/keyEncryption');
 const { getPromt } = require('../utils/aiPrompts');
 const { sendAIError } = require('../utils/aiError');
+const { resolveGeminiModel, createGoogleGenAI } = require('../services/geminiservice');
 require('dotenv').config();
 
 const router = express.Router();
@@ -19,33 +20,6 @@ const stripHtmlTags = (text) => {
   return text.replace(/<[^>]*>/g, '').trim();
 };
 
-const resolveGeminiModel = (req) => {
-  const userModel = req?.user?.geminiModel;
-  if (typeof userModel === 'string' && userModel.trim()) return userModel.trim();
-  return process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
-};
-
-function createGoogleGenAI(req, res) {
-  const apiKey = req.user.isOwnApiKey
-    ? decryptUserGeminiKey(req.user.geminiApiKey)
-    : process.env.GEMINI_API_KEY;
-  if (req.user.isOwnApiKey && !apiKey) {
-    res.status(400).json({
-      success: false,
-      error:
-        'Your saved API key could not be decrypted. Re-enter your Gemini API key in Profile and save, or set ENCRYPTION_KEY to match the server where that key was first saved.',
-    });
-    return null;
-  }
-  if (!apiKey) {
-    res.status(500).json({
-      success: false,
-      error: 'AI service is not configured.',
-    });
-    return null;
-  }
-  return new GoogleGenAI({ apiKey });
-}
 
 const ATS_SCHEMA = {
   "type": "OBJECT",
