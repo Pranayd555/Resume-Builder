@@ -26,18 +26,21 @@ import {
 
 
 // Utility functions
+const isValidDate = (date) => date instanceof Date && !Number.isNaN(date.getTime());
+
 const formatDateForInput = (dateString) => {
-  if (!dateString) return '';
+  if (!dateString || dateString === 'null' || dateString === 'undefined') return '';
   if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
     return dateString;
   }
-  try {
-    const date = new Date(dateString);
-    return date.toISOString().split('T')[0];
-  } catch (error) {
-    console.error('Error formatting date:', dateString, error);
+
+  const date = new Date(dateString);
+  if (!isValidDate(date)) {
+    console.warn('Invalid date passed to formatDateForInput:', dateString);
     return '';
   }
+
+  return date.toISOString().split('T')[0];
 };
 
 // Reusable components
