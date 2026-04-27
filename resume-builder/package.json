@@ -8,8 +8,11 @@
   },
   "dependencies": {
     "@ckeditor/ckeditor5-react": "^11.0.0",
+    "@dicebear/collection": "^9.4.2",
+    "@dicebear/core": "^9.4.2",
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
+    "@icons/material": "^0.4.1",
     "@lottiefiles/dotlottie-web": "^0.51.1",
     "@radix-ui/react-dialog": "^1.1.15",
     "axios": "^1.6.0",

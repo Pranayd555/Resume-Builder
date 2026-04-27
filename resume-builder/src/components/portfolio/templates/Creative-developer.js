@@ -29,7 +29,7 @@ const METRIC_COLORS = {
 function Navbar({ data }) {
   const [active, setActive] = useState("About");
   return (
-    <nav className="fixed top-0 w-full z-50 border-b bg-slate-900/80 backdrop-blur-md border-slate-800/50 shadow-sm">
+    <nav className="border-b bg-slate-900/80 backdrop-blur-md border-slate-800/50 shadow-sm">
       <div className="flex justify-between items-center max-w-7xl mx-auto px-6 h-16">
         <div className="text-xl font-bold tracking-tighter text-white font-epilogue">
           {data.name}

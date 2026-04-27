@@ -220,15 +220,14 @@ function Projects({ data }) {
               Published in Harvard Business Review, discussing adaptive leadership in volatility.
             </p>
           </div>
-          <a
-            href="#"
-            className="text-[#003ec7] font-bold mt-6 inline-flex items-center gap-2 group"
+          <button
+            className="text-[#003ec7] font-bold mt-6 inline-flex items-center gap-2 group cursor-pointer"
           >
             Read Paper{" "}
             <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
               arrow_forward
             </span>
-          </a>
+          </button>
         </div>
 
         <div className="bg-[#003ec7] p-8 rounded-xl flex flex-col justify-between text-white">
@@ -239,15 +238,14 @@ function Projects({ data }) {
               A framework for ESG compliance in modern manufacturing.
             </p>
           </div>
-          <a
-            href="#"
-            className="font-bold mt-6 inline-flex items-center gap-2 group"
+          <button
+            className="font-bold mt-6 inline-flex items-center gap-2 group cursor-pointer"
           >
             View Details{" "}
             <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
               arrow_forward
             </span>
-          </a>
+          </button>
         </div>
 
         {rest[0] && (
@@ -340,13 +338,12 @@ function CTA({ data }) {
           <span className="material-symbols-outlined">mail</span>
           Initiate Discussion
         </a>
-        <a
-          href="#"
-          className="border border-slate-400 text-slate-900 px-12 py-4 rounded-lg font-epilogue font-bold hover:bg-slate-50 transition-all inline-flex items-center justify-center gap-2"
+        <button
+          className="border border-slate-400 text-slate-900 px-12 py-4 rounded-lg font-epilogue font-bold hover:bg-slate-50 transition-all inline-flex items-center justify-center gap-2 cursor-pointer"
         >
           <span className="material-symbols-outlined">calendar_today</span>
           Schedule Briefing
-        </a>
+        </button>
       </div>
     </section>
   );

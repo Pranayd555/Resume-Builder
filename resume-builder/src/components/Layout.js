@@ -27,7 +27,8 @@ const Layout = ({ children }) => {
     '/admin/analytics',
     '/admin/email-test',
     '/admin/settings',
-    '/portfolio/:user'
+    '/portfolio/:user',
+    '/portfolio/view'
   ];
   
   let shouldShowHeader = !routesWithoutHeader.some(pattern => 

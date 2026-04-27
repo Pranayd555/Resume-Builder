@@ -179,9 +179,6 @@ function Skills({ data }) {
 
 // ─── Projects Bento ───────────────────────────────────────────────────────────
 function Projects({ data }) {
-  const featured = data.projects.filter((_, i) => i === 0 || i === 1);
-  const side = data.projects.filter((_, i) => i === 2 || i === 3);
-
   return (
     <section className="py-32 bg-slate-900 text-white" id="projects">
       <div className="max-w-7xl mx-auto px-6">

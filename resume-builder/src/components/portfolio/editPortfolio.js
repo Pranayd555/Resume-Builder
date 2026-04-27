@@ -20,7 +20,6 @@ const EditPortfolio = () => {
   const [uploadingFile, setUploadingFile] = useState(false);
   const [currentStep, setCurrentStep] = useState('resume-selection'); // 'resume-selection' or 'edit-portfolio'
   const [portfolioData, setPortfolioData] = useState(createPortfolioModel());
-  const [errors, setErrors] = useState({});
   const [tokenBalance, setTokenBalance] = useState(0);
   const [isTokenExhausted, setIsTokenExhausted] = useState(false);
   const fileInputRef = useRef(null);
@@ -163,50 +162,9 @@ const EditPortfolio = () => {
   }
   };
 
-  const handleInputChange = (section, field, value) => {
-    if (section === 'root') {
-      setPortfolioData(prev => ({
-        ...prev,
-        [field]: value
-      }));
-    } else {
-      setPortfolioData(prev => ({
-        ...prev,
-        [section]: {
-          ...prev[section],
-          [field]: value
-        }
-      }));
-    }
-  };
 
-  const validatePortfolio = () => {
-    const newErrors = {};
-
-    if (!portfolioData.title?.trim()) {
-      newErrors.title = 'Portfolio title is required';
-    }
-
-    if (!portfolioData.personalInfo.fullName?.trim()) {
-      newErrors.fullName = 'Full name is required';
-    }
-
-    if (!portfolioData.personalInfo.email?.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(portfolioData.personalInfo.email)) {
-      newErrors.email = 'Please enter a valid email';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
 
   const handleSavePortfolio = async () => {
-    if (!validatePortfolio()) {
-      toast.error('Please fix validation errors');
-      return;
-    }
-
     try {
       setLoading(true);
 
