@@ -308,7 +308,7 @@ function createGoogleGenAI(req, res) {
 }
 
 async function generateResumeSuggestion(prompt, apiKey = '') {
-  const client = genAI(apiKey);
+  const client = new GoogleGenAI({ apiKey });
   const response = await client.models.generateContent({
     model: process.env.GEMINI_MODEL || "gemini-2.5-flash-lite",
     contents: prompt,
@@ -395,12 +395,11 @@ async function parseResumeText(extractedText, client, aiModel) {
   }
 }
 
-async function parsePortfolioText(extractedText, apiKey = '') {
+async function parsePortfolioText(extractedText, genAI) {
   const prompt = getPromt('parsePortfolio', extractedText);
 
   try {
-    const client = genAI(apiKey);
-    const response = await client.models.generateContent({
+    const response = await genAI.models.generateContent({
       model: process.env.GEMINI_MODEL || "gemini-2.5-flash-lite",
       contents: prompt,
       config:{

@@ -3,7 +3,7 @@ const { protect, checkTokenLimit, trackUsage, refundTokenOnError, skipIfBYOK, ch
 const Portfolio = require('../models/Portfolio');
 const Resume = require('../models/Resume');
 const User = require('../models/User');
-const { parseResumeText, parsePortfolioText } = require('../services/geminiservice');
+const { parseResumeText, parsePortfolioText, createGoogleGenAI } = require('../services/geminiservice');
 const DocumentParser = require('../utils/documentParser');
 const logger = require('../utils/logger');
 const { sendAIError } = require('../utils/aiError');
@@ -312,7 +312,8 @@ router.post('/parse-resume/:resumeId', [
     // Check if user already has a portfolio
     let portfolio = await Portfolio.findOne({ user: req.user.id });
     const resumeText = JSON.stringify({...req.body});
-    let portfolioData = await parsePortfolioText(resumeText, req.user.id);
+    const genAI = createGoogleGenAI(req, res);
+    let portfolioData = await parsePortfolioText(resumeText, genAI);
 
     // Get user for username generation
     const user = await User.findById(req.user.id);

@@ -1,7 +1,7 @@
 import { useState } from "react";
 
-const NAV_LINKS = ["About", "Experience", "Skills", "Projects", "Education"];
-
+import { CheckCircleIcon, BookOpenIcon, StarIcon, ArrowRightIcon, EnvelopeIcon, CalendarDaysIcon, AcademicCapIcon, LinkIcon } from "@heroicons/react/24/outline";
+const NAV_LINKS = ["about", "experience", "skills", "projects", "education"];
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 function Navbar({ data }) {
   const [active, setActive] = useState("About");
@@ -135,7 +135,7 @@ function Experience({ data }) {
                           isCurrent || i === 0 ? "text-[#003ec7]" : "text-slate-400"
                         }`}
                       >
-                        check_circle
+                      <CheckCircleIcon className="text-sm shrink-0 mt-0.5" />
                       </span>
                       {b}
                     </li>
@@ -211,7 +211,7 @@ function Projects({ data }) {
         <div className="bg-white border border-slate-200 p-8 rounded-xl flex flex-col justify-between hover:shadow-xl transition-shadow">
           <div>
             <span className="material-symbols-outlined text-[#003ec7] mb-4 block">
-              menu_book
+            <BookOpenIcon className="text-[#003ec7] mb-4 block" />
             </span>
             <h3 className="font-epilogue font-bold text-xl text-slate-900">
               The Agile Executive
@@ -224,15 +224,13 @@ function Projects({ data }) {
             className="text-[#003ec7] font-bold mt-6 inline-flex items-center gap-2 group cursor-pointer"
           >
             Read Paper{" "}
-            <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
-              arrow_forward
-            </span>
+            <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
 
         <div className="bg-[#003ec7] p-8 rounded-xl flex flex-col justify-between text-white">
           <div>
-            <span className="material-symbols-outlined mb-4 block">stars</span>
+            <StarIcon className="text-[#003ec7] mb-4 block" />
             <h3 className="font-epilogue font-bold text-xl">Governance Redefined</h3>
             <p className="text-blue-200 mt-2">
               A framework for ESG compliance in modern manufacturing.
@@ -242,9 +240,7 @@ function Projects({ data }) {
             className="font-bold mt-6 inline-flex items-center gap-2 group cursor-pointer"
           >
             View Details{" "}
-            <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
-              arrow_forward
-            </span>
+            <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
 
@@ -322,6 +318,78 @@ function EducationCerts({ data }) {
   );
 }
 
+// ─── Certifications ───────────────────────────────────────────────────────────
+// Renders only when data.certificationsList is a non-empty array
+function CertificationsSection({ data }) {
+  const items = data.certificationsList;
+  if (!items?.length) return null;
+
+  return (
+    <section className="py-24 bg-white border-y border-slate-200">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="text-center mb-16">
+          <h2 className="text-[30px] leading-[38px] font-semibold font-epilogue text-slate-900">
+            Professional Certifications
+          </h2>
+          <div className="h-1 w-24 bg-[#003ec7] mx-auto mt-4" />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {items.map(({ icon, label }) => (
+            <div
+              key={label}
+              className="bg-[#faf8ff] p-4 border border-slate-100 rounded-lg flex items-center gap-4"
+            >
+              <AcademicCapIcon className="w-6 h-6 text-[#003ec7]" />
+              <span className="font-medium text-slate-900">{label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Testimonials ─────────────────────────────────────────────────────────────
+// Renders only when data.testimonials is a non-empty array
+function TestimonialsSection({ data }) {
+  const items = data.testimonials;
+  if (!items?.length) return null;
+
+  return (
+    <section className="py-24 max-w-7xl mx-auto px-6">
+      <div className="text-center mb-16">
+        <h2 className="text-[48px] leading-[56px] font-bold tracking-[-0.02em] font-epilogue text-slate-900">
+          Testimonials
+        </h2>
+        <div className="h-1 w-24 bg-[#003ec7] mx-auto mt-4" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+        {items.map(({ quote, name, title, avatar }) => (
+          <div key={name} className="flex flex-col">
+            <LinkIcon className="w-12 h-12 text-[#0052ff] mb-6" />
+            <p className="text-lg italic mb-8 leading-relaxed text-slate-700">"{quote}"</p>
+            <div className="flex items-center gap-4">
+              <img
+                src={avatar}
+                alt={name}
+                className="w-12 h-12 rounded-full object-cover"
+              />
+              <div>
+                <p className="font-semibold font-epilogue text-base leading-none mb-1">
+                  {name}
+                </p>
+                <p className="text-[10px] font-bold tracking-widest uppercase text-slate-500">
+                  {title}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 // ─── CTA ──────────────────────────────────────────────────────────────────────
 function CTA({ data }) {
   return (
@@ -335,13 +403,13 @@ function CTA({ data }) {
           href={`mailto:${data.email}`}
           className="bg-[#003ec7] text-white px-12 py-4 rounded-lg font-epilogue font-bold hover:shadow-xl transition-all inline-flex items-center justify-center gap-2"
         >
-          <span className="material-symbols-outlined">mail</span>
+          <EnvelopeIcon className="w-4 h-4" />
           Initiate Discussion
         </a>
         <button
           className="border border-slate-400 text-slate-900 px-12 py-4 rounded-lg font-epilogue font-bold hover:bg-slate-50 transition-all inline-flex items-center justify-center gap-2 cursor-pointer"
         >
-          <span className="material-symbols-outlined">calendar_today</span>
+          <CalendarDaysIcon className="w-4 h-4" />
           Schedule Briefing
         </button>
       </div>
@@ -395,6 +463,8 @@ export default function CorporateExecutiveTemplate({ data }) {
         <Skills data={data} />
         <Projects data={data} />
         <EducationCerts data={data} />
+        <CertificationsSection data={data} />
+        <TestimonialsSection data={data} />
         <CTA data={data} />
       </main>
       <Footer data={data} />

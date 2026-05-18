@@ -36,7 +36,7 @@ const Layout = ({ children }) => {
   );
   if(location.pathname.includes('portfolio')) {
     // 2. Define the paths you want to keep the header for
-  const excludedSubPaths = ['edit', 'view'];
+  const excludedSubPaths = ['edit', 'select-template'];
   const match = matchPath({ path: '/portfolio/:user' }, location.pathname);
 
   // 3. Logic: Match exists AND it's not an excluded path

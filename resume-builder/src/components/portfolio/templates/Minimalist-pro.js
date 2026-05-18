@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CheckCircleIcon, BookOpenIcon, StarIcon, ArrowRightIcon, EnvelopeIcon, CalendarDaysIcon, AcademicCapIcon, ChatBubbleOvalLeftEllipsisIcon, LinkIcon } from "@heroicons/react/24/outline";
 
 const NAV_LINKS = ["about", "experience", "skills", "projects", "education"];
 
@@ -162,9 +163,7 @@ function Skills({ data }) {
               key={label}
               className="p-6 bg-white border border-slate-100 rounded-xl hover:shadow-lg transition-shadow"
             >
-              <span className="material-symbols-outlined text-[#003ec7] text-3xl mb-4 block">
-                {icon}
-              </span>
+              <CheckCircleIcon className="w-8 h-8 text-[#003ec7] mb-4 block" />
               <h4 className="text-[30px] leading-[38px] font-semibold font-epilogue text-lg mb-2">
                 {label}
               </h4>
@@ -248,12 +247,7 @@ function Testimonials({ data }) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
         {data.testimonials.map(({ quote, name, title, avatar }) => (
           <div key={name} className="flex flex-col">
-            <span
-              className="material-symbols-outlined text-[#0052ff] text-4xl mb-6"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              format_quote
-            </span>
+            <LinkIcon className="w-12 h-12 text-[#0052ff] mb-6" />
             <p className="text-lg italic mb-8 leading-relaxed text-slate-700">"{quote}"</p>
             <div className="flex items-center gap-4">
               <img
@@ -270,6 +264,38 @@ function Testimonials({ data }) {
                 </p>
               </div>
             </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ─── Certifications ───────────────────────────────────────────────────────────
+// Renders only when data.certificationsList is a non-empty array
+function CertificationsSection({ data }) {
+  const items = data.certificationsList;
+  if (!items?.length) return null;
+
+  return (
+    <section className="py-32 max-w-7xl mx-auto px-6">
+      <div className="text-center mb-16">
+        <span className="text-xs font-bold tracking-[0.2em] uppercase text-[#003ec7] mb-4 block">
+          Credentials
+        </span>
+        <h2 className="text-[48px] leading-[56px] font-bold tracking-[-0.02em] font-epilogue">
+          Certifications
+        </h2>
+        <div className="h-1 w-24 bg-[#003ec7] mx-auto mt-4" />
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {items.map(({ icon, label }) => (
+          <div
+            key={label}
+            className="bg-white p-4 border border-slate-100 rounded-lg flex items-center gap-4"
+          >
+            <AcademicCapIcon className="w-6 h-6 text-[#003ec7]" />
+            <span className="font-medium text-slate-900">{label}</span>
           </div>
         ))}
       </div>
@@ -352,6 +378,7 @@ export default function MinimalistProTemplate({ data }) {
         <Experience data={data} />
         <Skills data={data} />
         <Projects data={data} />
+        <CertificationsSection data={data} />
         <Testimonials data={data} />
         <CTA data={data} />
       </main>

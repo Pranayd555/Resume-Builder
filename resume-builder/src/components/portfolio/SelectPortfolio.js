@@ -10,8 +10,11 @@ const SelectPortfolio = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState(PORTFOLIO_TEMPLATES.MODERN_INTERACTIVE);
+  const [portfolioData, setPortfolioData] = useState(location.state?.portfolio || null);
+  const [selectedTemplate, setSelectedTemplate] = useState(portfolioData?.template || null);
   const [hoveredTemplate, setHoveredTemplate] = useState(null);
+
+
 
   const templates = [
     {
@@ -20,7 +23,8 @@ const SelectPortfolio = () => {
       description: PORTFOLIO_TEMPLATE_DESCRIPTIONS['modern-interactive'].description,
       features: ['Smooth animations', 'Interactive elements', 'Modern design', 'Fully responsive'],
       color: 'from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800',
-      borderColor: 'border-blue-300 dark:border-blue-600'
+      borderColor: 'border-blue-300 dark:border-blue-600',
+      isSelected: false
     },
     {
       id: PORTFOLIO_TEMPLATES.MINIMALIST_PRO,
@@ -28,7 +32,8 @@ const SelectPortfolio = () => {
       description: PORTFOLIO_TEMPLATE_DESCRIPTIONS['minimalist-pro'].description,
       features: ['Clean layout', 'Content focused', 'Professional', 'Elegant design'],
       color: 'from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800',
-      borderColor: 'border-gray-300 dark:border-gray-600'
+      borderColor: 'border-gray-300 dark:border-gray-600',
+      isSelected: false
     },
     {
       id: PORTFOLIO_TEMPLATES.CREATIVE_DEVELOPER,
@@ -36,7 +41,8 @@ const SelectPortfolio = () => {
       description: PORTFOLIO_TEMPLATE_DESCRIPTIONS['creative-developer'].description,
       features: ['Bold design', 'Creative layout', 'Tech-focused', 'Eye-catching'],
       color: 'from-purple-50 to-purple-100 dark:from-purple-900 dark:to-purple-800',
-      borderColor: 'border-purple-300 dark:border-purple-600'
+      borderColor: 'border-purple-300 dark:border-purple-600',
+      isSelected: false
     },
     {
       id: PORTFOLIO_TEMPLATES.CORPORATE_EXECUTIVE,
@@ -44,7 +50,8 @@ const SelectPortfolio = () => {
       description: PORTFOLIO_TEMPLATE_DESCRIPTIONS['corporate-executive'].description,
       features: ['Executive style', 'Formal design', 'Professional tone', 'Business ready'],
       color: 'from-amber-50 to-amber-100 dark:from-amber-900 dark:to-amber-800',
-      borderColor: 'border-amber-300 dark:border-amber-600'
+      borderColor: 'border-amber-300 dark:border-amber-600',
+      isSelected: false
     }
   ];
 
@@ -53,21 +60,19 @@ const SelectPortfolio = () => {
       setLoading(true);
 
       // Get the portfolio ID from location state or fetch current portfolio
-      let portfolioData;
-      if (location.state?.portfolioData) {
-        portfolioData = location.state.portfolioData;
-      } else {
+      if (!portfolioData) {
         const response = await portfolioAPI.getPortfolio();
         if (!response.success) {
           toast.error('Portfolio not found');
           navigate('/portfolio/edit');
           return;
         }
-        portfolioData = response.data;
+        setPortfolioData(response.data);
       }
 
       // Update portfolio with selected template
-      const updateResponse = await portfolioAPI.updatePortfolio(portfolioData.id, {
+      const updateResponse = await portfolioAPI.updatePortfolio(portfolioData._id, {
+        ...portfolioData,
         template: selectedTemplate
       });
 
@@ -83,10 +88,10 @@ const SelectPortfolio = () => {
     }
   };
 
-  const handlePreviewTemplate = () => {
-    // Navigate to a preview page to see how the template looks
-    navigate('/portfolio/view', { state: { template: selectedTemplate } });
-  };
+  // const handlePreviewTemplate = () => {
+  //   // Navigate to a preview page to see how the template looks
+  //   navigate('/portfolio/preview', { state: { template: selectedTemplate } });
+  // };
 
   if (loading) {
     return <AuthLoader />;
@@ -154,7 +159,8 @@ const SelectPortfolio = () => {
                 <span
                   onClick={(e) => {
                     e.stopPropagation();
-                    handlePreviewTemplate();
+                    // handlePreviewTemplate();
+                    setSelectedTemplate(template.id)
                   }}
                   className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
                 >

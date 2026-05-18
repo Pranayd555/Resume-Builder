@@ -19,7 +19,6 @@ import CorporateExecutiveTemplate from './templates/Corporate-executive';
 import CreativeDeveloperTemplate from './templates/Creative-developer';
 import MinimalistProTemplate from './templates/Minimalist-pro';
 import ModernInteractiveTemplate from './templates/Modern-interactive';
-import { samplePortfolioData } from './portfolioSchema';
 
 const TEMPLATE_PREVIEWS = {
   'creative-developer': CreativeDeveloperTemplate,
@@ -130,7 +129,7 @@ const ViewPortfolio = () => {
   };
 
   const SelectedTemplate = TEMPLATE_PREVIEWS[portfolioData?.template] || CreativeDeveloperTemplate;
-  const previewData = { ...samplePortfolioData, ...portfolioData };
+  const previewData = { ...portfolioData };
   const templateLabel = portfolioData?.template
     ? portfolioData.template.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
     : 'Unknown';

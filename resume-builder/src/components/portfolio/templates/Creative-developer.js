@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CheckCircleIcon, CodeBracketIcon, LinkIcon, ArrowRightIcon, ChevronLeftIcon, ChevronRightIcon, AcademicCapIcon, ChatBubbleOvalLeftEllipsisIcon, BoltIcon, CheckBadgeIcon } from "@heroicons/react/24/outline";
 
 // ─── Inline styles ────────────────────────────────────────────────────────────
 const S = {
@@ -80,9 +81,7 @@ function Hero({ data }) {
             className="bg-[#003ec7] text-white text-xs font-bold tracking-widest uppercase px-8 py-4 rounded-lg flex items-center gap-2 group hover:shadow-[0_0_20px_rgba(0,62,199,0.4)] transition-all"
           >
             VIEW PROJECTS
-            <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">
-              arrow_forward
-            </span>
+            <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </a>
           <a
             href={data.cvUrl}
@@ -103,9 +102,7 @@ function Hero({ data }) {
             />
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center">
-                <span className="material-symbols-outlined text-6xl text-[#003ec7] mb-4 block">
-                  code
-                </span>
+                <CodeBracketIcon className="w-16 h-16 text-[#003ec7] mb-4 block" />
                 <div className="font-mono text-sm text-[#00e293] px-4 py-2 bg-slate-900/90 rounded border border-slate-700">
                   {`const developer = { status: 'innovating' };`}
                 </div>
@@ -116,7 +113,7 @@ function Hero({ data }) {
         <div style={S.glass} className="absolute -bottom-6 -left-6 p-6 rounded-xl hidden lg:block">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-[#7000ff] flex items-center justify-center">
-              <span className="material-symbols-outlined text-white">bolt</span>
+              <BoltIcon className="w-6 h-6 text-white" />
             </div>
             <div>
               <div className="text-white font-bold font-epilogue">
@@ -170,14 +167,16 @@ function Projects({ data }) {
           </h2>
         </div>
         <div className="flex gap-4">
-          {["west", "east"].map((icon) => (
-            <button
-              key={icon}
-              className="p-3 border border-slate-700 rounded-full text-slate-400 hover:border-[#003ec7] hover:text-[#003ec7] transition-all"
-            >
-              <span className="material-symbols-outlined">{icon}</span>
-            </button>
-          ))}
+          <button
+            className="p-3 border border-slate-700 rounded-full text-slate-400 hover:border-[#003ec7] hover:text-[#003ec7] transition-all"
+          >
+            <ChevronLeftIcon className="w-4 h-4" />
+          </button>
+          <button
+            className="p-3 border border-slate-700 rounded-full text-slate-400 hover:border-[#003ec7] hover:text-[#003ec7] transition-all"
+          >
+            <ChevronRightIcon className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
@@ -195,7 +194,7 @@ function Projects({ data }) {
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <span className="material-symbols-outlined text-white text-3xl">link</span>
+                <LinkIcon className="w-8 h-8 text-white" />
               </div>
             </div>
             <div className="p-6 flex-1 flex flex-col">
@@ -216,9 +215,7 @@ function Projects({ data }) {
                 className="font-mono text-sm text-[#003ec7] flex items-center gap-2 group/link"
               >
                 Case Study{" "}
-                <span className="material-symbols-outlined text-sm group-hover/link:translate-x-1 transition-transform">
-                  arrow_right_alt
-                </span>
+                <ArrowRightIcon className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
               </a>
             </div>
           </div>
@@ -365,11 +362,113 @@ function ExperienceEducation({ data }) {
           </div>
           <div className="mt-8 pt-8 border-t border-slate-700/50">
             <div className="flex items-center gap-2 text-[#003ec7] font-mono text-sm">
-              <span className="material-symbols-outlined text-sm">verified</span>
+              <CheckBadgeIcon className="w-4 h-4" />
               <span>GPA 3.9 / 4.0</span>
             </div>
           </div>
         </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Certifications ───────────────────────────────────────────────────────────
+// Renders only when data.certificationsList is a non-empty array
+function CertificationsSection({ data }) {
+  const items = data.certificationsList;
+  if (!items?.length) return null;
+
+  return (
+    <section className="max-w-7xl mx-auto px-6 mb-32">
+      <div className="text-center mb-12">
+        <span className="text-xs font-bold tracking-widest uppercase text-[#d1bcff] mb-3 block">
+          Credentials
+        </span>
+        <h2 className="text-[48px] leading-[56px] font-bold tracking-[-0.02em] font-epilogue text-white">
+          Certifications
+        </h2>
+      </div>
+
+      <div
+        style={S.glass}
+        className="rounded-3xl p-8 flex flex-wrap gap-4"
+      >
+        {items.map(({ icon, label }) => (
+          <div
+            key={label}
+            className="flex items-center gap-4 bg-slate-800 border border-slate-700 rounded-2xl px-5 py-4 hover:border-[#003ec7] hover:shadow-md transition-all group w-fit"
+          >
+            <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center shrink-0 group-hover:bg-slate-600 transition-colors">
+              <AcademicCapIcon className="w-4 h-4" />
+            </div>
+            <p className="text-sm font-medium text-slate-300 leading-snug">
+              {label}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ─── Testimonials ─────────────────────────────────────────────────────────────
+// Renders only when data.testimonials is a non-empty array
+function TestimonialsSection({ data }) {
+  const items = data.testimonials;
+  if (!items?.length) return null;
+
+  return (
+    <section className="max-w-7xl mx-auto px-6 mb-32">
+      <div className="text-center mb-12">
+        <span className="text-xs font-bold tracking-widest uppercase text-[#d1bcff] mb-3 block">
+          Kind Words
+        </span>
+        <h2 className="text-[48px] leading-[56px] font-bold tracking-[-0.02em] font-epilogue text-white">
+          What People Say
+        </h2>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {items.map(({ quote, name, title, avatar }) => (
+          <div
+            key={name}
+            style={S.glass}
+            className="relative p-8 rounded-3xl flex flex-col justify-between gap-8 hover:-translate-y-1 transition-transform duration-300"
+          >
+            <LinkIcon className="w-12 h-12 absolute -top-6" />
+
+            <p className="text-slate-300 leading-relaxed italic flex-1">
+              "{quote}"
+            </p>
+
+            <div className="flex items-center gap-4 border-t border-slate-700 pt-6">
+              {avatar ? (
+                <img
+                  src={avatar}
+                  alt={name}
+                  className="w-11 h-11 rounded-full object-cover ring-2 ring-slate-600"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                    e.currentTarget.nextSibling.style.display = "flex";
+                  }}
+                />
+              ) : null}
+              <div
+                className="w-11 h-11 rounded-full bg-slate-700 text-white text-sm font-bold items-center justify-center hidden shrink-0"
+              >
+                {name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+              </div>
+              <div>
+                <p className="font-semibold text-white font-epilogue leading-tight">
+                  {name}
+                </p>
+                <p className="text-xs font-bold tracking-widest uppercase text-slate-400 mt-0.5">
+                  {title}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   );
@@ -456,6 +555,8 @@ export default function CreativeDeveloperTemplate({ data }) {
         <Projects data={data} />
         <Skills data={data} />
         <ExperienceEducation data={data} />
+        <CertificationsSection data={data} />
+        <TestimonialsSection data={data} />
         <CTA data={data} />
       </main>
       <Footer data={data} />

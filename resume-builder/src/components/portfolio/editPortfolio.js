@@ -191,8 +191,8 @@ const EditPortfolio = () => {
 
       if (response.success) {
         toast.success('Portfolio saved successfully!');
-        const portfolioId = response.data?.id || response.data?._id;
-        navigate(PORTFOLIO_ROUTES.SELECTTEMPLATES, { state: { portfolioId } });
+        const portfolio = response.data;
+        navigate(PORTFOLIO_ROUTES.SELECTTEMPLATES, { state: { portfolio } });
       }
     } catch (error) {
       toast.error(error.userMessage || error.message || 'Failed to save portfolio');
