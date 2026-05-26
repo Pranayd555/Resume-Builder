@@ -11,7 +11,7 @@ export const createUserModel = (data = {}) => ({
   bio: data.bio || '',
   geminiApiKey: data.geminiApiKey || '',
   geminiModel: data.geminiModel || '',
-  isOwnApiKey: data.isOwnApiKey || false,
+  isOwnApiKey: Boolean(data.isOwnApiKey),
   profilePicture: data.profilePicture || { url: '', publicId: '' },
   googleId: data.googleId || null,
   linkedinId: data.linkedinId || null,
