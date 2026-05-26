@@ -702,5 +702,271 @@ module.exports = [
                     `},
         creator: null,
         tags: ['minimalist', 'clean', 'simple', 'modern', 'readable', 'single-column']
+    },
+    {
+        name: 'Minimalist Edge',
+        description: 'A sharp minimalist resume with a structured split layout, accent details, and plenty of white space.',
+        category: 'minimalist',
+        preview: {
+            thumbnail: {
+                url: 'https://via.placeholder.com/300x400/111827/f8fafc?text=Minimalist%20Edge'
+            }
+        },
+        layout: {
+            type: 'single-column',
+            sections: [
+                { name: 'personalInfo', position: 1, isRequired: true, isVisible: true },
+                { name: 'summary', position: 2, isRequired: false, isVisible: true },
+                { name: 'workExperience', position: 3, isRequired: false, isVisible: true },
+                { name: 'education', position: 4, isRequired: false, isVisible: true },
+                { name: 'skills', position: 5, isRequired: false, isVisible: true },
+                { name: 'projects', position: 6, isRequired: false, isVisible: true },
+                { name: 'achievements', position: 7, isRequired: false, isVisible: true },
+                { name: 'certifications', position: 8, isRequired: false, isVisible: true },
+                { name: 'languages', position: 9, isRequired: false, isVisible: true },
+                { name: 'customFields', position: 10, isRequired: false, isVisible: true }
+            ]
+        },
+        styling: {
+            colors: {
+                primary: '#111827',
+                secondary: '#475569',
+                accent: '#f8fafc',
+                text: '#1f2937',
+                background: '#ffffff'
+            },
+            fonts: {
+                primary: 'Inter',
+                secondary: 'Inter',
+                sizes: { heading: 20, subheading: 14, body: 12.5, small: 10 },
+            },
+            template: {
+                headerLevel: 'h2',
+                headerFontSize: 20,
+                fontSize: 12.5,
+                lineSpacing: 1.4,
+                sectionSpacing: 1.2,
+                fontFamily: 'Inter, sans-serif'
+            }
+        },
+        availability: { tier: 'free', isPublic: true, isActive: true },
+        templateCode: {
+            html: `
+            <article class="resume minimalist-edge" itemscope itemtype="http://schema.org/Person">
+                <header class="header">
+                    <div class="accent-bar"></div>
+                    <div class="header-main">
+                        <div class="name-block">
+                            <h1 class="name primaryFont" itemprop="name">{{personalInfo.fullName}}</h1>
+                            {{#unless isFresher}}<p class="title secondaryFont" itemprop="title">{{title}}</p>{{/unless}}
+                        </div>
+                        <div class="contact-panel secondaryFont">
+                            {{#if personalInfo.email}}<span><a href="mailto:{{personalInfo.email}}">{{personalInfo.email}}</a></span>{{/if}}
+                            {{#if personalInfo.phone}}<span>{{personalInfo.phone}}</span>{{/if}}
+                            {{#if personalInfo.website}}<span><a href="{{personalInfo.website}}" target="_blank">{{personalInfo.website}}</a></span>{{/if}}
+                            {{#if personalInfo.linkedin}}<span><a href="{{personalInfo.linkedin}}" target="_blank">{{personalInfo.linkedin}}</a></span>{{/if}}
+                            {{#if personalInfo.github}}<span><a href="{{personalInfo.github}}" target="_blank">{{personalInfo.github}}</a></span>{{/if}}
+                            {{#if personalInfo.address}}<span>{{personalInfo.address}}</span>{{/if}}
+                        </div>
+                    </div>
+                </header>
+                <div class="body-grid">
+                    <main class="main-column">
+                        {{#if summary}}
+                        <section class="section-block summary-block">
+                            <h2 class="section-title primaryFont">About</h2>
+                            <div class="summary-text secondaryFont">{{{summary}}}</div>
+                        </section>
+                        {{/if}}
+
+                        {{#if workExperience}}
+                        <section class="section-block">
+                            <h2 class="section-title primaryFont">Experience</h2>
+                            {{#each workExperience}}
+                            <div class="entry">
+                                <div class="entry-header">
+                                    <div>
+                                        <p class="entry-title primaryFont" itemprop="title">{{jobTitle}}</p>
+                                        <p class="entry-subtitle secondaryFont">{{company}}{{#if location}}, {{location}}{{/if}}</p>
+                                    </div>
+                                    <p class="entry-date secondaryFont">
+                                        <time itemprop="startDate">{{formatDate startDate}}</time> — {{#if isCurrentJob}}Present{{else}}<time>{{formatDate endDate}}</time>{{/if}}
+                                    </p>
+                                </div>
+                                {{#if description}}<div class="entry-body secondaryFont" itemprop="description">{{{description}}}</div>{{/if}}
+                                {{#if achievements}}
+                                <ul class="entry-list secondaryFont">
+                                    {{#each achievements}}<li>{{this}}</li>{{/each}}
+                                </ul>
+                                {{/if}}
+                            </div>
+                            {{/each}}
+                        </section>
+                        {{/if}}
+
+                        {{#if education}}
+                        <section class="section-block">
+                            <h2 class="section-title primaryFont">Education</h2>
+                            {{#each education}}
+                            <div class="entry">
+                                <div class="entry-header">
+                                    <div>
+                                        <p class="entry-title primaryFont" itemprop="credentialCategory">{{degree}}</p>
+                                        <p class="entry-subtitle secondaryFont">{{institution}}{{#if location}}, {{location}}{{/if}}</p>
+                                    </div>
+                                    <p class="entry-date secondaryFont">
+                                        {{#if startDate}}<time itemprop="startDate">{{formatDate startDate}}</time> — {{/if}}{{#if isCurrentlyStudying}}Present{{else}}<time>{{formatDate endDate}}</time>{{/if}}
+                                    </p>
+                                </div>
+                                {{#if description}}<div class="entry-body secondaryFont">{{{description}}}</div>{{/if}}
+                            </div>
+                            {{/each}}
+                        </section>
+                        {{/if}}
+
+                        {{#if projects}}
+                        <section class="section-block">
+                            <h2 class="section-title primaryFont">Projects</h2>
+                            {{#each projects}}
+                            <div class="entry">
+                                <div class="entry-header">
+                                    <div>
+                                        <p class="entry-title primaryFont">{{name}}</p>
+                                        {{#if technologies}}<p class="entry-subtitle secondaryFont">{{#each technologies}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</p>{{/if}}
+                                    </div>
+                                    {{#if startDate}}<p class="entry-date secondaryFont">{{formatDate startDate}} — {{#if endDate}}{{formatDate endDate}}{{else}}Present{{/if}}</p>{{/if}}
+                                </div>
+                                {{#if description}}<div class="entry-body secondaryFont">{{{description}}}</div>{{/if}}
+                                {{#if url}}<div class="link-row secondaryFont"><a href="{{url}}" target="_blank">{{url}}</a></div>{{/if}}
+                                {{#if githubUrl}}<div class="link-row secondaryFont"><a href="{{githubUrl}}" target="_blank">{{githubUrl}}</a></div>{{/if}}
+                            </div>
+                            {{/each}}
+                        </section>
+                        {{/if}}
+                    </main>
+                    <aside class="aside-column">
+                        {{#if skills}}
+                        <section class="aside-section">
+                            <h3 class="aside-title primaryFont">Skills</h3>
+                            <div class="skills-wrap">
+                                {{#each skills}}
+                                <div class="skill-group">
+                                    <p class="skill-group-title secondaryFont">{{category}}</p>
+                                    <div class="skill-items">
+                                        {{#each items}}<span class="skill-pill">{{name}}{{#if level}} • {{level}}{{/if}}</span>{{/each}}
+                                    </div>
+                                </div>
+                                {{/each}}
+                            </div>
+                        </section>
+                        {{/if}}
+
+                        {{#if certifications}}
+                        <section class="aside-section">
+                            <h3 class="aside-title primaryFont">Certifications</h3>
+                            {{#each certifications}}
+                            <div class="aside-entry">
+                                <p class="entry-title secondaryFont"><strong>{{name}}</strong></p>
+                                <p class="entry-subtitle secondaryFont">{{issuer}}{{#if date}} • {{formatDate date}}{{/if}}</p>
+                            </div>
+                            {{/each}}
+                        </section>
+                        {{/if}}
+
+                        {{#if languages}}
+                        <section class="aside-section">
+                            <h3 class="aside-title primaryFont">Languages</h3>
+                            <div class="language-grid secondaryFont">
+                                {{#each languages}}
+                                <div class="language-pair">
+                                    <span>{{name}}</span>
+                                    <span>{{proficiency}}</span>
+                                </div>
+                                {{/each}}
+                            </div>
+                        </section>
+                        {{/if}}
+
+                        {{#if achievements}}
+                        <section class="aside-section">
+                            <h3 class="aside-title primaryFont">Achievements</h3>
+                            <ul class="aside-list secondaryFont">
+                                {{#each achievements}}<li>{{#if title}}<strong>{{title}}</strong>{{/if}} {{#if description}} - {{{description}}}{{/if}} {{#if date}} ({{formatDate date}}){{/if}}</li>{{/each}}
+                            </ul>
+                        </section>
+                        {{/if}}
+
+                        {{#if customFields}}
+                        <section class="aside-section">
+                            <h3 class="aside-title primaryFont">Additional</h3>
+                            {{#each customFields}}
+                            <div class="aside-entry">
+                                <p class="entry-title primaryFont">{{title}}</p>
+                                <p class="entry-body secondaryFont">{{content}}</p>
+                            </div>
+                            {{/each}}
+                        </section>
+                        {{/if}}
+                    </aside>
+                </div>
+            </article>`,
+            css: `
+            /* Tighter layout: reduce outer padding and use space efficiently */
+            .resume.minimalist-edge { width: 100%; max-width: 8.25in; margin: 0 auto; padding: 0.35in 0.35in; font-family: 'Inter', sans-serif; background: #ffffff; color: #111827; font-size: 12.5px; line-height: 1.45; }
+            .accent-bar { width: 3rem; height: 4px; background: #111827; margin-bottom: 0.75rem; border-radius: 9999px; }
+            .header { padding-bottom: 0.9rem; border-bottom: 1px solid #e5e7eb; margin-bottom: 1rem; }
+            .header-main { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.75rem; align-items: flex-end; }
+            .name-block { min-width: 0; flex: 0 1 auto; }
+            .name { margin: 0; font-size: 1.6rem; line-height: 1.05; letter-spacing: -0.02em; }
+            .title { margin: 0.25rem 0 0; font-size: 0.98rem; color: #475569; font-weight: 500; }
+            .contact-panel { display: flex; flex-wrap: wrap; gap: 0.45rem; align-items: center; font-size: 0.88rem; }
+            .contact-panel span { display: inline-flex; gap: 0.35rem; align-items: center; }
+            .contact-panel a { color: #111827; text-decoration: none; }
+            .contact-panel a:hover { text-decoration: underline; }
+            /* Use slightly more balanced columns so main content has more usable width */
+            .body-grid { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); gap: 1rem; }
+            .main-column, .aside-column { width: 100%; }
+            .aside-column { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 0.9rem; }
+            .section-block { margin-bottom: 1rem; }
+            .section-title { margin: 0 0 0.5rem; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.12em; color: #111827; }
+            .summary-text, .entry-body, .entry-subtitle, .link-row, .aside-entry p, .aside-list li { color: #475569; }
+            /* Reduce left gutter on entries so more horizontal space is used */
+            .entry { margin-bottom: 0.95rem; padding-left: 0.6rem; border-left: 2px solid #111827; }
+            .entry-header { display: flex; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; align-items: baseline; margin-bottom: 0.35rem; }
+            .entry-title { margin: 0 0 0.15rem; font-size: 1rem; font-weight: 700; color: #111827; }
+            .entry-subtitle { margin: 0; font-size: 0.9rem; color: #475569; }
+            .entry-date { margin: 0; font-size: 0.86rem; color: #6b7280; white-space: nowrap; }
+            .entry-body { margin: 0.25rem 0 0; font-size: 0.95rem; }
+            .entry-list { margin: 0.5rem 0 0 1rem; padding: 0; list-style-type: disc; }
+            .entry-list li { margin-bottom: 0.35rem; }
+            .link-row { margin-top: 0.35rem; }
+            .link-row a { color: #111827; text-decoration: none; }
+            .link-row a:hover { text-decoration: underline; }
+            .aside-section { margin-bottom: 1rem; }
+            .aside-title { margin: 0 0 0.5rem; font-size: 0.82rem; letter-spacing: 0.12em; text-transform: uppercase; }
+            .skills-wrap { display: grid; gap: 0.6rem; }
+            .skill-group-title { margin: 0 0 0.25rem; font-size: 0.88rem; color: #475569; font-weight: 600; }
+            .skill-items { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+            .skill-pill { display: inline-flex; align-items: center; padding: 0.3rem 0.5rem; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 9999px; font-size: 0.8rem; color: #111827; }
+            .aside-entry { margin-bottom: 0.6rem; }
+            .language-grid { display: grid; gap: 0.45rem; }
+            .language-pair { display: flex; justify-content: space-between; color: #475569; font-size: 0.88rem; }
+            .aside-list { margin: 0; padding-left: 1rem; list-style-type: disc; }
+            .aside-list li { margin-bottom: 0.4rem; }
+            .aside-entry p { margin: 0.12rem 0 0; font-size: 0.88rem; }
+            @media (max-width: 700px) {
+                .body-grid { grid-template-columns: 1fr; }
+                .aside-column { order: initial; }
+            }
+            @media (max-width: 640px) {
+                .resume.minimalist-edge { padding: 0.45rem; }
+                .header-main { flex-direction: column; align-items: flex-start; }
+                .contact-panel { justify-content: flex-start; }
+                .name { font-size: 1.5rem; }
+            }
+            `
+        },
+        creator: null,
+        tags: ['minimalist', 'edge', 'split-layout', 'clean', 'professional']
     }
 ]
