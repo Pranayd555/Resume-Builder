@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { feedbackAPI, apiHelpers } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useRouteScrollToTop } from '../hooks/useAutoScroll';
+import { SUPPORT_EMAIL, PRODUCT_NAME } from '../constants/brand';
 import { toast } from 'react-toastify';
 import {
   ChevronLeftIcon,
@@ -101,8 +102,8 @@ function Feedback() {
                 Get in Touch
               </h2>
               <p className="text-gray-600 mb-8 leading-relaxed">
-                Have questions or suggestions about Presmistique - AI Resume Builder? I'd love to hear from you. As a solo developer,
-                your feedback is incredibly valuable for improving the application.
+                Have questions or suggestions about {PRODUCT_NAME}? We'd love to hear from you.
+                Your feedback helps us improve the product for everyone.
               </p>
 
               <div className="space-y-6">
@@ -113,8 +114,8 @@ function Feedback() {
                     </div>
                     <div className="flex-1">
                       <p className="font-bold text-gray-900 text-lg group-hover:text-blue-700 transition-colors">Email Support</p>
-                      <p className="text-gray-600 group-hover:text-gray-800 transition-colors">pranaydaspr@gmail.com</p>
-                      <p className="text-sm text-gray-500 mt-1">I'll respond within 48 hours</p>
+                      <p className="text-gray-600 group-hover:text-gray-800 transition-colors">{SUPPORT_EMAIL}</p>
+                      <p className="text-sm text-gray-500 mt-1">We respond within 48 hours</p>
                     </div>
                   </div>
                 </div>
@@ -127,7 +128,7 @@ function Feedback() {
                     <div className="flex-1">
                       <p className="font-bold text-gray-900 text-lg group-hover:text-green-700 transition-colors">Business Hours</p>
                       <p className="text-gray-600 group-hover:text-gray-800 transition-colors">Monday - Friday: 9 AM - 6 PM IST</p>
-                      <p className="text-sm text-gray-500 mt-1">When I am available to respond</p>
+                      <p className="text-sm text-gray-500 mt-1">When our team is available to respond</p>
                     </div>
                   </div>
                 </div>

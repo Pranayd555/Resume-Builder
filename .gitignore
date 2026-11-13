@@ -118,3 +118,4 @@ backend/logs/
 .env.development
 .env.test
 .env.production 
+.codelens/

@@ -37,7 +37,7 @@ const HomePage = () => {
   useRouteScrollToTop();
   const currentYear = new Date().getFullYear();
   const githubRepoUrl =
-    process.env.REACT_APP_GITHUB_REPO_URL || 'https://github.com/Pranayd555/Resume-Builder';
+    process.env.REACT_APP_GITHUB_REPO_URL || '';
 
   const { scrollY } = useScroll();
   const scale = useTransform(scrollY, [0, 300], [1, 0.8]);
@@ -511,6 +511,7 @@ const HomePage = () => {
                   <SparklesIcon className="w-6 h-6" />
                   Suggest Enhancement
                 </motion.button>
+                {githubRepoUrl && (
                 <motion.a
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -522,6 +523,7 @@ const HomePage = () => {
                   <CodeBracketIcon className="w-6 h-6" />
                   GitHub Community
                 </motion.a>
+                )}
               </div>
                 : <div className="flex flex-wrap sm:flex-row gap-4 justify-center md:justify-start">
                   <AttentionSeeker duration={3000}>
@@ -538,6 +540,7 @@ const HomePage = () => {
                   >
                     Learn More
                   </button>
+                  {githubRepoUrl && (
                   <motion.a
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -549,6 +552,7 @@ const HomePage = () => {
                     <CodeBracketIcon className="w-5 h-5" />
                     GitHub Community
                   </motion.a>
+                  )}
                 </div>
               }
             </div>
