@@ -11,6 +11,7 @@ import {
   EnvelopeIcon
 } from '@heroicons/react/24/outline';
 import AnimatedBackground from '../AnimatedBackground';
+import { SUPPORT_EMAIL } from '../../constants/brand';
 
 const Shipping = () => {
   const navigate = useNavigate();
@@ -117,7 +118,7 @@ const Shipping = () => {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-slate-200 dark:border-gray-600">
                     <div className="flex items-center text-slate-700 dark:text-gray-200">
                       <EnvelopeIcon className="w-5 h-5 mr-3 text-indigo-600" />
-                      <span className="font-medium">pranaydaspr@gmail.com</span>
+                      <a href={`mailto:${SUPPORT_EMAIL}`} className="font-medium hover:underline">{SUPPORT_EMAIL}</a>
                     </div>
                     <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-gray-500">
                       Response within 48 hours

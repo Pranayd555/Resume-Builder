@@ -15,6 +15,7 @@ import {
   ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline';
 import AnimatedBackground from '../AnimatedBackground';
+import { SUPPORT_EMAIL } from '../../constants/brand';
 
 const ContactUs = () => {
   const navigate = useNavigate();
@@ -95,7 +96,7 @@ const ContactUs = () => {
     {
       icon: EnvelopeIcon,
       title: 'Email Support',
-      details: ['pranaydaspr@gmail.com'],
+      details: [SUPPORT_EMAIL],
       description: 'Get help with your account and technical issues',
       color: 'text-blue-500',
       bg: 'bg-blue-50/50 dark:bg-blue-900/10'
@@ -190,7 +191,7 @@ const ContactUs = () => {
               <p className="text-sm text-red-700/70 dark:text-red-400/70 mb-2">
                 For critical issues affecting account access:
               </p>
-              <p className="font-bold text-red-600 dark:text-red-400">pranaydaspr@gmail.com</p>
+              <a href={`mailto:${SUPPORT_EMAIL}`} className="font-bold text-red-600 dark:text-red-400 hover:underline">{SUPPORT_EMAIL}</a>
             </div>
           </div>
 

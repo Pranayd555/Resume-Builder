@@ -1000,7 +1000,7 @@ router.get('/google/callback',
       
       // Fallback to production URL if CLIENT_URL is not set
       if (!clientUrl) {
-        clientUrl = 'https://resume-builder-pranay-das-projects.vercel.app';
+        clientUrl = 'https://presmistique.in';
       }
       
       const redirectUrl = `${clientUrl}/auth/callback?token=${token}`;
@@ -1053,7 +1053,7 @@ router.get('/linkedin/callback',
       let clientUrl = process.env.CLIENT_URL;
       
       if (!clientUrl) {
-        clientUrl = 'https://resume-builder-pranay-das-projects.vercel.app';
+        clientUrl = 'https://presmistique.in';
       }
       
       const redirectUrl = `${clientUrl}/auth/callback?token=${token}`;
