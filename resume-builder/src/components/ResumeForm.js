@@ -3,6 +3,17 @@ import { useNavigate, useLocation, Link, useBlocker } from 'react-router-dom';
 import { resumeAPI, apiHelpers, uploadAPI } from '../services/api';
 import { toast } from 'react-toastify';
 import { validators } from '../models/dataModels';
+import {
+  validateResumeEntries,
+  prepareResumePayload,
+  normalizeImportedResume,
+  mapServerErrors,
+  stepForErrorKey,
+  describeErrorKey,
+  gpaError,
+  isBlankRow,
+  isDateOrderValid
+} from '../utils/resumeValidation';
 import { useFormScroll, useScrollToTop } from '../hooks/useAutoScroll';
 import { useAuth } from '../contexts/AuthContext';
 import CustomCKEditorComponent from './customCkeditor.js';
@@ -161,6 +172,8 @@ function ResumeForm() {
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [validationErrors, setValidationErrors] = useState({});
+  // Show the per-step error list after a save attempt fails
+  const [showErrorSummary, setShowErrorSummary] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingResumeId, setEditingResumeId] = useState(null);
   const [showClearModal, setShowClearModal] = useState(false);
@@ -323,7 +336,9 @@ function ResumeForm() {
 
         // Store the extracted text data
         const extractedText = response.data.originalText;
-        const parsedData = response.data.parsedData;
+        // Parser dates come as "Jan 2021" / "Present"; convert to what the date
+        // pickers and the server expect.
+        const parsedData = normalizeImportedResume(response.data.parsedData);
 
         if (extractedText) {
           // Store the extracted text in form data for reference
@@ -535,167 +550,42 @@ function ResumeForm() {
     };
   };
 
-  const formatValidationErrors = (apiErrors) => {
-    const formattedErrors = {};
-    apiErrors.forEach(error => {
-      if (error.path === 'personalInfo.fullName') {
-        formattedErrors.fullName = error.msg;
-      } else if (error.path === 'personalInfo.email') {
-        formattedErrors.email = error.msg;
-      } else if (error.path === 'title') {
-        formattedErrors.title = error.msg;
-      } else {
-        formattedErrors[error.path] = error.msg;
-      }
-    });
-    return formattedErrors;
-  };
-
   const validateForm = useCallback((isDraft = false) => {
-    const errors = {};
+    // 1. Every rule the server enforces (shared with backend/utils/resumeValidation.js).
+    //    Blank rows are ignored here because they are stripped before submit.
+    const errors = validateResumeEntries(formData);
 
-    // Check title
-    if (!formData.title || formData.title.trim() === '') {
-      errors.title = 'Resume title is required';
-    }
+    // 2. Name, email and phone come from the profile and are read-only here, so
+    //    point the user at their profile when one is missing.
+    Object.assign(errors, validateProfileData());
 
-    // Check profile data availability
-    const profileErrors = validateProfileData();
-    Object.assign(errors, profileErrors);
-
-    // Email validation
-    if (!profileErrors.email && formData.personalInfo.email) {
-      const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
-      if (!emailRegex.test(formData.personalInfo.email)) {
-        errors.email = 'Please provide a valid email';
-      }
-    }
-
-    // Work experience individual field validation (always run if entry started)
-    if (!formData.isFresher) {
-      formData.workExperience.forEach((exp, index) => {
-        // Only validate if the experience entry has been started (any field has content)
-        if (exp.jobTitle || exp.company || exp.startDate || exp.endDate || exp.description) {
-          if (!validators.required(exp.jobTitle)) {
-            errors[`workExperience_${index}_jobTitle`] = 'Job title is required';
-          }
-          if (!validators.required(exp.company)) {
-            errors[`workExperience_${index}_company`] = 'Company name is required';
-          }
-          if (!validators.required(exp.startDate)) {
-            errors[`workExperience_${index}_startDate`] = 'Start date is required';
-          }
-        }
-      });
-    }
-
-    // Skills validation - check for empty skill names
-    formData.skills.forEach((skillCategory, categoryIndex) => {
-      skillCategory.items.forEach((skill, skillIndex) => {
-        if (!skill.name || skill.name.trim() === '') {
-          errors[`skills_${categoryIndex}_${skillIndex}_name`] = 'Skill name cannot be empty. Please fill it or remove it.';
-        }
-      });
-    });
-
-    // Validate partially filled items - items that have ANY content must have required fields
-    // Work Experience - if any field is filled, required fields must be completed
-    if (!formData.isFresher) {
-      formData.workExperience.forEach((exp, index) => {
-        const hasAnyContent = exp.jobTitle || exp.company || exp.location || exp.startDate || exp.endDate || exp.description;
-        if (hasAnyContent) {
-          if (!exp.jobTitle?.trim()) {
-            errors[`workExperience_${index}_jobTitle`] = 'Job title is required or remove this entry';
-          }
-          if (!exp.company?.trim()) {
-            errors[`workExperience_${index}_company`] = 'Company is required or remove this entry';
-          }
-          if (!exp.startDate) {
-            errors[`workExperience_${index}_startDate`] = 'Start date is required or remove this entry';
-          }
-        }
-      });
-    }
-
-    // Education - if any field is filled, required fields must be completed
+    // 3. Completeness rules for a finished resume. These are stricter than the
+    //    server on purpose (the server accepts partial drafts).
     formData.education.forEach((edu, index) => {
-      const hasAnyContent = edu.degree || edu.institution || edu.location || edu.startDate || edu.endDate || edu.gpa || edu.description;
-      if (hasAnyContent) {
-        if (!edu.degree?.trim()) {
-          errors[`education_${index}_degree`] = 'Degree is required or remove this entry';
-        }
-        if (!edu.institution?.trim()) {
-          errors[`education_${index}_institution`] = 'Institution is required or remove this entry';
-        }
-        if (!edu.isCurrentlyStudying && !edu.endDate) {
-          errors[`education_${index}_endDate`] = 'End date is required or remove this entry';
-        }
-        if (!edu.gpa) {
-          errors[`education_${index}_gpa`] = 'GPA is required or remove this entry';
-        }
-      }
-    });
-
-    // Projects - if any field is filled, name is required
-    formData.projects.forEach((project, index) => {
-      const hasAnyContent = project.name || project.description || project.url || project.githubUrl || (project.technologies && project.technologies.length > 0);
-      if (hasAnyContent && !project.name?.trim()) {
-        errors[`projects_${index}_name`] = 'Project name is required or remove this entry';
-      }
-    });
-
-    // Achievements - if any field is filled, title is required
-    formData.achievements.forEach((achievement, index) => {
-      const hasAnyContent = achievement.title || achievement.description || achievement.date || achievement.issuer;
-      if (hasAnyContent && !achievement.title?.trim()) {
-        errors[`achievements_${index}_title`] = 'Achievement title is required or remove this entry';
-      }
-    });
-
-    // Certifications - if any field is filled, name and issuer are required
-    formData.certifications.forEach((cert, index) => {
-      const hasAnyContent = cert.name || cert.issuer || cert.date || cert.expiryDate || cert.credentialId || cert.url;
-      if (hasAnyContent) {
-        if (!cert.name?.trim()) {
-          errors[`certifications_${index}_name`] = 'Certification name is required or remove this entry';
-        }
-        if (!cert.issuer?.trim()) {
-          errors[`certifications_${index}_issuer`] = 'Issuer is required or remove this entry';
-        }
+      if (!isBlankRow('education', edu) && !validators.required(String(edu.gpa ?? '').trim())) {
+        errors[`education_${index}_gpa`] = errors[`education_${index}_gpa`] || 'GPA is required';
       }
     });
 
     if (!isDraft) {
-      // Additional validation for final submission
       if (!formData.personalInfo.address || formData.personalInfo.address.trim() === '') {
         errors.address = 'Address is required';
       }
 
-      // Work experience validation (skip if user is a fresher)
       if (!formData.isFresher) {
-        let hasValidWorkExperience = false;
-        formData.workExperience.forEach((exp) => {
-          if (exp.jobTitle && exp.company && exp.startDate) {
-            hasValidWorkExperience = true;
-          }
-        });
+        const hasValidWorkExperience = formData.workExperience.some(exp =>
+          exp.jobTitle?.trim() && exp.company?.trim() && exp.startDate
+        );
         if (!hasValidWorkExperience) {
           errors.workExperience = 'At least one work experience entry is required (Job Title, Company, and Start Date)';
         }
       }
 
-      // Education validation
-      let hasValidEducation = false;
-      formData.education.forEach((edu, index) => {
-        if (edu.degree && edu.institution && edu.endDate && edu.gpa) {
-          hasValidEducation = true;
-        }
-        if (edu.startDate && edu.endDate && new Date(edu.startDate) > new Date(edu.endDate)) {
-          errors[`education_${index}_dateRange`] = 'End date must be after start date';
-        }
-      });
+      const hasValidEducation = formData.education.some(edu =>
+        edu.degree?.trim() && edu.institution?.trim() && (edu.endDate || edu.isCurrentlyStudying) && String(edu.gpa ?? '').trim()
+      );
       if (!hasValidEducation) {
-        errors.education = 'At least one education entry is required (Degree, Institution, End Date, and GPA)';
+        errors.education = 'At least one education entry is required (Degree, Institution, End Date or "Currently studying", and GPA)';
       }
     }
 
@@ -703,7 +593,44 @@ function ResumeForm() {
       isValid: Object.keys(errors).length === 0,
       errors
     };
+    // validateProfileData reads the cached profile, not component state
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData]);
+
+  // Show a set of field errors: jump to the step holding the first one, show a
+  // toast that names the field, and scroll to it.
+  const showValidationErrors = (errors, fallbackMessage) => {
+    const keys = Object.keys(errors);
+    setValidationErrors(errors);
+    setShowErrorSummary(true);
+    if (keys.length === 0) {
+      toast.error(fallbackMessage || 'Please fix the highlighted fields');
+      return;
+    }
+    const firstKey = keys.reduce((best, key) => (stepForErrorKey(key) < stepForErrorKey(best) ? key : best), keys[0]);
+    const targetStep = stepForErrorKey(firstKey);
+    const where = describeErrorKey(firstKey);
+    const more = keys.length > 1 ? ` (and ${keys.length - 1} more)` : '';
+    toast.error(`${where ? `${where}: ` : ''}${errors[firstKey]}${more}`);
+    if (targetStep !== currentStep) {
+      setCurrentStep(targetStep);
+      saveToLocalStorage(formData, targetStep, isEditMode);
+    }
+    setTimeout(() => {
+      scrollToFirstError();
+    }, 150);
+  };
+
+  // Turn a failed save into field-level errors when the server sent them.
+  const handleSaveError = (error, indexMap, fallbackMessage) => {
+    const data = error?.response?.data;
+    const serverErrors = data?.errors || (Array.isArray(data?.details) ? data.details : null);
+    if (error?.response?.status === 400 && Array.isArray(serverErrors) && serverErrors.length > 0) {
+      showValidationErrors(mapServerErrors(serverErrors, indexMap), data?.error);
+      return;
+    }
+    toast.error(apiHelpers.formatError(error) || fallbackMessage);
+  };
 
   // Event handlers
   const handleInputChange = (section, field, value, index = null) => {
@@ -779,7 +706,7 @@ function ResumeForm() {
         if (profileErrors[field]) {
           errors[field] = profileErrors[field];
         } else if (field === 'email' && formData.personalInfo.email && !validators.email(formData.personalInfo.email)) {
-          errors.email = 'Please enter a valid email';
+          errors.email = 'Please provide a valid email';
         } else {
           // Clear the error if field is now valid
           setValidationErrors(prev => {
@@ -818,8 +745,8 @@ function ResumeForm() {
             errors[`workExperience_${index}_startDate`] = 'Start date is required';
           }
           if ((field === 'startDate' || field === 'endDate') && exp.startDate && exp.endDate && !exp.isCurrentJob) {
-            if (!validators.dateRange(exp.startDate, exp.endDate)) {
-              errors[`workExperience_${index}_dateRange`] = 'End date must be after start date';
+            if (!isDateOrderValid(exp.startDate, exp.endDate)) {
+              errors[`workExperience_${index}_dateRange`] = 'End date cannot be before start date';
             }
           }
         }
@@ -848,8 +775,8 @@ function ResumeForm() {
         if (field === 'endDate') {
           if (!edu.isCurrentlyStudying && !validators.required(edu.endDate)) {
             errors[`education_${index}_endDate`] = 'End date is required';
-          } else if (edu.startDate && edu.endDate && new Date(edu.startDate) > new Date(edu.endDate)) {
-            errors[`education_${index}_dateRange`] = 'End date must be after start date';
+          } else if (!edu.isCurrentlyStudying && !isDateOrderValid(edu.startDate, edu.endDate)) {
+            errors[`education_${index}_dateRange`] = 'End date cannot be before start date';
           } else {
             setValidationErrors(prev => {
               const newErrors = { ...prev };
@@ -863,19 +790,15 @@ function ResumeForm() {
         if (field === 'gpa' && !validators.required(edu.gpa)) {
           errors[`education_${index}_gpa`] = 'GPA is required';
         } else if (field === 'gpa' && edu.gpa) {
-          const gpaValue = parseFloat(edu.gpa);
-          if (isNaN(gpaValue) || gpaValue < 0 || gpaValue > 10) {
-            errors[`education_${index}_gpa`] = 'GPA must be between 0 and 10';
-          } else {
-            const decimalPlaces = edu.gpa.toString().split('.')[1]?.length || 0;
-            if (decimalPlaces > 2) {
-              errors[`education_${index}_gpa`] = 'GPA can have maximum 2 decimal places';
-            }
+          // Same range as the server: 0-100 covers both CGPA (e.g. 8.5) and percentages (e.g. 85)
+          const gpaMessage = gpaError(edu.gpa);
+          if (gpaMessage) {
+            errors[`education_${index}_gpa`] = gpaMessage;
           }
         }
         if ((field === 'startDate' || field === 'endDate') && edu.startDate && edu.endDate && !edu.isCurrentlyStudying) {
-          if (!validators.dateRange(edu.startDate, edu.endDate)) {
-            errors[`education_${index}_dateRange`] = 'End date must be after start date';
+          if (!isDateOrderValid(edu.startDate, edu.endDate)) {
+            errors[`education_${index}_dateRange`] = 'End date cannot be before start date';
           }
         }
       } else if (section === 'certifications') {
@@ -1287,15 +1210,19 @@ function ResumeForm() {
     checkEditMode();
   }, [location.state, navigate, user]); // Added navigate to dependencies to fix eslint warning
 
-  // Clear validation errors when moving to step 1 (only title validation is relevant)
+  // Hide the error summary once every error is fixed
+  useEffect(() => {
+    if (Object.keys(validationErrors).length === 0) setShowErrorSummary(false);
+  }, [validationErrors]);
+
+  // Clear validation errors when moving to step 1 (only step-1 fields are relevant)
   useEffect(() => {
     if (currentStep === 1) {
       setValidationErrors(prev => {
         const newErrors = {};
-        // Only keep title validation error if it exists
-        if (prev.title) {
-          newErrors.title = prev.title;
-        }
+        Object.keys(prev).forEach(key => {
+          if (stepForErrorKey(key) === 1) newErrors[key] = prev[key];
+        });
         return newErrors;
       });
     }
@@ -1320,110 +1247,30 @@ function ResumeForm() {
     }
   }, [user, currentStep]);
 
-  // Function to clean data before sending to backend
-  const cleanFormDataForBackend = (data) => {
-    const cleanedData = JSON.parse(JSON.stringify(data)); // Deep clone
+  // Build the request body: strips blank rows, normalizes dates/enums and keeps
+  // a map from payload rows back to form rows for server error messages.
+  const cleanFormDataForBackend = (data) => prepareResumePayload(data);
 
-    // Clean work experience - remove completely empty entries
-    if (cleanedData.workExperience) {
-      cleanedData.workExperience = cleanedData.workExperience.filter(exp => {
-        // Keep entry if at least one required field is filled
-        return exp.jobTitle?.trim() || exp.company?.trim() || exp.startDate;
-      });
-    }
-
-    // Clean education - remove completely empty entries
-    if (cleanedData.education) {
-      cleanedData.education = cleanedData.education.filter(edu => {
-        // Keep entry if at least one required field is filled
-        return edu.degree?.trim() || edu.institution?.trim() || edu.endDate || edu.gpa;
-      });
-    }
-
-    // Clean projects - remove completely empty entries
-    if (cleanedData.projects) {
-      cleanedData.projects = cleanedData.projects.filter(project => {
-        // Keep entry if project name is filled (main required field)
-        return project.name?.trim();
-      });
-    }
-
-    // Clean achievements - remove completely empty entries
-    if (cleanedData.achievements) {
-      cleanedData.achievements = cleanedData.achievements.filter(achievement => {
-        // Keep entry if title is filled (main required field)
-        return achievement.title?.trim();
-      });
-    }
-
-    // Clean certifications - remove completely empty entries
-    if (cleanedData.certifications) {
-      cleanedData.certifications = cleanedData.certifications.filter(cert => {
-        // Keep entry if at least name or issuer is filled
-        return cert.name?.trim() || cert.issuer?.trim();
-      });
-    }
-
-    // Clean skills - remove items with null level and empty skill names
-    if (cleanedData.skills) {
-      cleanedData.skills = cleanedData.skills.map(skillCategory => ({
-        ...skillCategory,
-        items: skillCategory.items ? skillCategory.items.filter(item =>
-          item.name?.trim() && item.level !== null
-        ) : []
-      })).filter(skillCategory => skillCategory.category?.trim() && skillCategory.items.length > 0);
-    }
-
-    // Clean languages - remove items with null proficiency or empty name
-    if (cleanedData.languages) {
-      cleanedData.languages = cleanedData.languages.filter(lang =>
-        lang.name?.trim() && lang.proficiency !== null
-      );
-    }
-
-    // Clean other null values that might cause issues
-    if (cleanedData.personalInfo) {
-      Object.keys(cleanedData.personalInfo).forEach(key => {
-        if (cleanedData.personalInfo[key] === null) {
-          cleanedData.personalInfo[key] = '';
-        }
-      });
-    }
-
-    return cleanedData;
-  };
-
-
+  // saveDraft is memoized for the navigation blocker; reach the latest error
+  // helpers through a ref so it doesn't re-create on every render.
+  const errorUiRef = useRef({});
+  errorUiRef.current = { showValidationErrors, handleSaveError };
 
   // Manual save functionality
   const saveDraft = useCallback(async () => {
+    let indexMap;
     try {
-      // Check if form has minimal required content for draft saving
+      // Drafts only need what the server needs; partial rows must still be valid.
       const validation = validateForm(true);
       if (!validation.isValid) {
-        // setValidationErrors(validation.errors);
-
-        // Check if there are any basic field errors (title, fullName, email)
-        const basicFieldErrors = ['title', 'fullName', 'email'];
-        const hasBasicFieldErrors = Object.keys(validation.errors).some(errorKey =>
-          basicFieldErrors.includes(errorKey)
-        );
-
-        if (hasBasicFieldErrors) {
-          toast.warning('Please add Title, Full Name and Email before saving a draft');
-        } else {
-          toast.warning('Please fill missing fields before saving draft');
-        }
-
-        setTimeout(() => {
-          scrollToFirstError();
-        }, 100);
+        errorUiRef.current.showValidationErrors(validation.errors);
         return;
       }
 
-      // Clean the data before sending to backend
-      const cleanedFormData = cleanFormDataForBackend(formData);
-      const response = await resumeAPI.autoSaveDraft(cleanedFormData, editingResumeId);
+      // Strip blank rows and normalize before sending
+      const prepared = cleanFormDataForBackend(formData);
+      indexMap = prepared.indexMap;
+      const response = await resumeAPI.autoSaveDraft(prepared.payload, editingResumeId);
 
       if (response.success) {
         // Update the editing resume ID if this is a new draft
@@ -1432,33 +1279,14 @@ function ResumeForm() {
         }
         setLastSaved(new Date());
         setIsDirty(false); // Reset isDirty after successful draft save
+        setShowErrorSummary(false);
         toast.success('Draft saved successfully!');
       }
     } catch (error) {
       console.error('Save failed:', error);
-
-
-      // Handle validation errors
-      if (error?.response?.data?.errors) {
-        const validationErrors = error.response.data.errors;
-        const formattedErrors = formatValidationErrors(validationErrors);
-        setValidationErrors(formattedErrors);
-
-        // Show toast with first error message
-        const firstError = validationErrors[0];
-        if (firstError) {
-          toast.error(firstError.msg);
-        }
-
-        // Scroll to first error
-        setTimeout(() => {
-          scrollToFirstError();
-        }, 100);
-      } else {
-        toast.error('Failed to save draft. Please try again.');
-      }
+      errorUiRef.current.handleSaveError(error, indexMap, 'Failed to save draft. Please try again.');
     }
-  }, [editingResumeId, formData, scrollToFirstError, validateForm]);
+  }, [editingResumeId, formData, validateForm]);
 
   useEffect(() => {
     if (blocker.state === 'blocked') {
@@ -1494,39 +1322,35 @@ function ResumeForm() {
   }, [blocker, saveDraft]);
 
   const handleSubmit = async () => {
+    let indexMap;
     try {
       setLoading(true);
 
-      // Validate form before submission with comprehensive requirements
+      // Validate every step (not just the current one) before submitting
       const validation = validateForm();
       if (!validation.isValid) {
-        setValidationErrors(validation.errors);
-        toast.error('Please complete all required fields before submitting');
-
-        // Scroll to first error after a short delay
-        setTimeout(() => {
-          scrollToFirstError();
-        }, 100);
-
+        showValidationErrors(validation.errors);
         setLoading(false);
         return;
       }
 
       // Clear validation errors if form is valid
       setValidationErrors({});
+      setShowErrorSummary(false);
 
       let response;
       let resumeId = editingResumeId;
 
-      // Clean the data before sending to backend
-      const cleanedFormData = cleanFormDataForBackend(formData);
+      // Strip blank rows and normalize before sending
+      const prepared = cleanFormDataForBackend(formData);
+      indexMap = prepared.indexMap;
 
       if (isEditMode && editingResumeId) {
         // Update existing resume
-        response = await resumeAPI.updateResume(editingResumeId, cleanedFormData);
+        response = await resumeAPI.updateResume(editingResumeId, prepared.payload);
       } else {
         // Create new resume
-        response = await resumeAPI.saveFormData(cleanedFormData);
+        response = await resumeAPI.saveFormData(prepared.payload);
         resumeId = response.data.resumeId;
       }
 
@@ -1558,8 +1382,7 @@ function ResumeForm() {
         throw new Error(response.error || 'Failed to save resume details');
       }
     } catch (error) {
-      const errorMessage = apiHelpers.formatError(error);
-      toast.error(errorMessage);
+      handleSaveError(error, indexMap, 'Failed to save resume. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -1636,6 +1459,51 @@ function ResumeForm() {
     setIsDirty(false); // Reset isDirty state
     setIsInitialLoad(true);
     toast.success('Form data cleared successfully!');
+  };
+
+  // After a failed save, list this step's problems at the top (some fields, like
+  // technologies or URLs, have no inline error slot) and say which other steps
+  // still need attention.
+  const renderErrorSummary = () => {
+    const keys = Object.keys(validationErrors);
+    if (!showErrorSummary || keys.length === 0) return null;
+    const here = keys.filter(key => stepForErrorKey(key) === currentStep);
+    const otherSteps = [...new Set(keys.map(stepForErrorKey).filter(step => step !== currentStep))].sort((a, b) => a - b);
+    if (here.length === 0 && otherSteps.length === 0) return null;
+    return (
+      <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg" role="alert">
+        <div className="flex items-start gap-2">
+          <ExclamationTriangleIcon className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-red-700">
+            {here.length > 0 && (
+              <>
+                <p className="font-medium mb-1">Please fix the following before saving:</p>
+                <ul className="list-disc ml-5 space-y-0.5">
+                  {here.map(key => {
+                    const where = describeErrorKey(key);
+                    return <li key={key}>{where ? `${where}: ` : ''}{validationErrors[key]}</li>;
+                  })}
+                </ul>
+              </>
+            )}
+            {otherSteps.length > 0 && (
+              <p className={here.length > 0 ? 'mt-2' : ''}>
+                Also check: {otherSteps.map(step => (
+                  <button
+                    key={step}
+                    type="button"
+                    onClick={() => setCurrentStep(step)}
+                    className="underline font-medium mr-2 hover:text-red-900"
+                  >
+                    Step {step}
+                  </button>
+                ))}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const renderStepContent = () => {
@@ -2287,7 +2155,7 @@ function ResumeForm() {
                 type="number"
                 step="0.01"
                 min="0"
-                max="10"
+                max="100"
                 required
                 value={edu.gpa}
                 onChange={(e) => {
@@ -2303,7 +2171,7 @@ function ResumeForm() {
                   ? 'border-red-300 focus:border-red-500'
                   : 'border-gray-300'
                   }`}
-                placeholder="8.50"
+                placeholder="8.50 or 85"
               />
               {validationErrors[`education_${index}_gpa`] && (
                 <p className="text-red-600 text-sm mt-1">{validationErrors[`education_${index}_gpa`]}</p>
@@ -2503,10 +2371,18 @@ function ResumeForm() {
                 const newSkills = [...formData.skills];
                 newSkills[categoryIndex].category = e.target.value;
                 setFormData(prev => ({ ...prev, skills: newSkills }));
+                setValidationErrors(prev => {
+                  const newErrors = { ...prev };
+                  delete newErrors[`skills_${categoryIndex}_category`];
+                  return newErrors;
+                });
               }}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
+              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${validationErrors[`skills_${categoryIndex}_category`] ? 'border-red-300 focus:border-red-500' : 'border-gray-300'}`}
               placeholder="e.g., Programming Languages, Tools, Frameworks"
             />
+            {validationErrors[`skills_${categoryIndex}_category`] && (
+              <p className="text-red-600 text-sm mt-1">{validationErrors[`skills_${categoryIndex}_category`]}</p>
+            )}
           </div>
 
           <div>
@@ -2760,9 +2636,12 @@ function ResumeForm() {
                   const techs = e.target.value.split(',').map(tech => tech.trim()).filter(tech => tech);
                   handleInputChange('projects', 'technologies', techs, index);
                 }}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white"
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${validationErrors[`projects_${index}_technologies`] ? 'border-red-300 focus:border-red-500' : 'border-gray-300'}`}
                 placeholder="React, Node.js, MongoDB"
               />
+              {validationErrors[`projects_${index}_technologies`] && (
+                <p className="text-red-600 text-sm mt-1">{validationErrors[`projects_${index}_technologies`]}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
@@ -3190,51 +3069,11 @@ function ResumeForm() {
     const allErrors = validateForm().errors;
     const errors = {};
 
-    switch (currentStep) {
-      case 1:
-        if (allErrors.title) errors.title = allErrors.title;
-        break;
-      case 2:
-        if (allErrors.fullName) errors.fullName = allErrors.fullName;
-        if (allErrors.email) errors.email = allErrors.email;
-        if (allErrors.phone) errors.phone = allErrors.phone;
-        if (allErrors.address) errors.address = allErrors.address;
-        break;
-      case 3:
-        Object.keys(allErrors).forEach(key => {
-          if (key.startsWith('workExperience')) errors[key] = allErrors[key];
-        });
-        break;
-      case 4:
-        Object.keys(allErrors).forEach(key => {
-          if (key.startsWith('education')) errors[key] = allErrors[key];
-        });
-        break;
-      case 5:
-        Object.keys(allErrors).forEach(key => {
-          if (key.startsWith('skills')) errors[key] = allErrors[key];
-        });
-        break;
-      case 6:
-        Object.keys(allErrors).forEach(key => {
-          if (key.startsWith('projects')) errors[key] = allErrors[key];
-        });
-        break;
-      case 7:
-        Object.keys(allErrors).forEach(key => {
-          if (key.startsWith('achievements')) errors[key] = allErrors[key];
-        });
-        break;
-      case 8:
-        Object.keys(allErrors).forEach(key => {
-          if (key.startsWith('certifications') || key.startsWith('languages')) {
-            errors[key] = allErrors[key];
-          }
-        });
-        break;
-      default:
-        break;
-    }
+    // Every error belongs to exactly one step (see stepForErrorKey), so nothing
+    // can block Save from a step the user isn't looking at without being shown.
+    Object.keys(allErrors).forEach(key => {
+      if (stepForErrorKey(key) === currentStep) errors[key] = allErrors[key];
+    });
 
     return {
       isValid: Object.keys(errors).length === 0,
@@ -3404,6 +3243,8 @@ function ResumeForm() {
             </div>
           )}
 
+          {renderErrorSummary()}
+
           {renderStepContent()}
 
           
@@ -3443,7 +3284,8 @@ function ResumeForm() {
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="px-2 py-2 sm:px-6 sm:py-3 text-white rounded-lg bg-gradient-to-br from-green-400 to-green-600 rounded-md hover:from-green-500 hover:to-green-500 transition-all duration-200 flex items-center justify-center gap-1 sm:gap-2 font-semibold text-sm sm:text-base min-w-0 flex-shrink-0"
+                disabled={loading || uploadingResume}
+                className="px-2 py-2 sm:px-6 sm:py-3 text-white rounded-lg bg-gradient-to-br from-green-400 to-green-600 rounded-md hover:from-green-500 hover:to-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-1 sm:gap-2 font-semibold text-sm sm:text-base min-w-0 flex-shrink-0"
               >
                 <BookmarkIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="hidden sm:inline">Save Now</span>

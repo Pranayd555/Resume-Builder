@@ -1,0 +1,417 @@
+/**
+ * Resume payload validation shared by the resume create/update routes.
+ *
+ * The resume form (resume-builder/src/utils/resumeValidation.js) mirrors these
+ * rules so the client never enables Save for data the server will reject.
+ * If you change a rule or limit here, change it there too.
+ *
+ * Pipeline used by the routes:
+ *   normalizeResumeBody  -> trims strings, strips blank rows, normalizes dates/enums
+ *   resume*Rules         -> express-validator rules for the top-level fields
+ *   rejectInvalidResume  -> 400 with field-level errors if any rule failed
+ *   Mongoose schema      -> nested rules; failures go through sendResumeError
+ */
+const { body, validationResult } = require('express-validator');
+
+// Same limits as models/Resume.js. Keep both files in sync.
+const LIMITS = {
+  title: 100,
+  fullName: 100,
+  phone: 20,
+  address: 200,
+  url: 200,
+  jobTitle: 100,
+  company: 100,
+  location: 100,
+  degree: 100,
+  institution: 100,
+  longText: 10000,
+  achievement: 500,
+  skillCategory: 500,
+  skillName: 500,
+  projectName: 100,
+  technology: 50,
+  achievementTitle: 200,
+  issuer: 100,
+  certName: 100,
+  credentialId: 100,
+  languageName: 50,
+  customFieldTitle: 100
+};
+
+// Deliberately permissive: one "@", no spaces, a dot in the domain, TLD of 2+ chars.
+// Allows plus-addressing and long TLDs (.info, .technology), which the old regex rejected.
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+const SKILL_LEVELS = ['beginner', 'intermediate', 'advanced', 'expert'];
+const LANGUAGE_PROFICIENCIES = ['basic', 'conversational', 'fluent', 'native'];
+const CUSTOM_FIELD_TYPES = ['text', 'list', 'date'];
+
+// Common wording (LinkedIn/ILR scales, AI resume parsing) mapped onto the stored enum.
+const PROFICIENCY_SYNONYMS = {
+  beginner: 'basic',
+  elementary: 'basic',
+  'elementary proficiency': 'basic',
+  limited: 'basic',
+  intermediate: 'conversational',
+  working: 'conversational',
+  'limited working': 'conversational',
+  'limited working proficiency': 'conversational',
+  'professional working': 'fluent',
+  'professional working proficiency': 'fluent',
+  professional: 'fluent',
+  'full professional': 'fluent',
+  'full professional proficiency': 'fluent',
+  advanced: 'fluent',
+  proficient: 'fluent',
+  expert: 'fluent',
+  bilingual: 'native',
+  'native or bilingual': 'native',
+  'native or bilingual proficiency': 'native',
+  'mother tongue': 'native'
+};
+
+const SKILL_LEVEL_SYNONYMS = {
+  basic: 'beginner',
+  novice: 'beginner',
+  elementary: 'beginner',
+  medium: 'intermediate',
+  proficient: 'advanced',
+  experienced: 'advanced',
+  master: 'expert'
+};
+
+const PRESENT_TOKENS = ['present', 'current', 'currently', 'now', 'ongoing', 'till date', 'to date', 'today'];
+
+const MONTHS = {
+  jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, sept: 9, oct: 10, nov: 11, dec: 12
+};
+
+const pad = (n) => String(n).padStart(2, '0');
+const isoDate = (y, m, d) => `${y}-${pad(m)}-${pad(d)}`;
+
+const isBlank = (value) =>
+  value === undefined || value === null || (typeof value === 'string' && value.trim() === '');
+
+const isPresentToken = (value) =>
+  typeof value === 'string' && PRESENT_TOKENS.includes(value.trim().toLowerCase());
+
+/**
+ * Turn the date shapes the form and the resume parser produce into "YYYY-MM-DD".
+ * Returns null for blank/"Present", or the original value when it can't be parsed
+ * (Mongoose then reports it as an invalid date for that exact field).
+ */
+const normalizeDate = (value) => {
+  if (isBlank(value) || isPresentToken(value)) return null;
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? value : value.toISOString().slice(0, 10);
+  if (typeof value !== 'string') return value;
+
+  const v = value.trim();
+  let m;
+  // 2021-03-15, 2021-03-15T00:00:00.000Z
+  if ((m = v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:T.*)?$/))) return isoDate(m[1], +m[2], +m[3]);
+  // 2021-03, 2021/03
+  if ((m = v.match(/^(\d{4})[-/](\d{1,2})$/))) return isoDate(m[1], +m[2], 1);
+  // 03/2021, 3-2021
+  if ((m = v.match(/^(\d{1,2})[-/](\d{4})$/))) return isoDate(m[2], +m[1], 1);
+  // 2021
+  if ((m = v.match(/^(\d{4})$/))) return isoDate(m[1], 1, 1);
+  // Mar 2021, March 2021, Mar. 2021, Mar-2021
+  if ((m = v.match(/^([A-Za-z]{3,9})\.?[\s,-]+(\d{4})$/))) {
+    const month = MONTHS[m[1].slice(0, 4).toLowerCase()] || MONTHS[m[1].slice(0, 3).toLowerCase()];
+    if (month) return isoDate(m[2], month, 1);
+  }
+  const parsed = new Date(v);
+  if (!Number.isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
+  return value;
+};
+
+const normalizeEnum = (value, allowed, synonyms) => {
+  if (isBlank(value)) return undefined; // let the schema default apply
+  if (typeof value !== 'string') return value;
+  const key = value.trim().toLowerCase();
+  if (allowed.includes(key)) return key;
+  if (synonyms[key]) return synonyms[key];
+  return value.trim(); // unknown value: the schema rejects it with a clear message
+};
+
+// "8.5", 8.5, "8.5/10", "85%" -> number. Blank -> undefined. Anything else is left for the schema.
+const normalizeGpa = (value) => {
+  if (isBlank(value)) return undefined;
+  if (typeof value === 'number') return value;
+  if (typeof value !== 'string') return value;
+  const m = value.trim().match(/^(\d+(?:\.\d+)?)\s*(?:%|\/\s*\d+(?:\.\d+)?)?$/);
+  return m ? Number(m[1]) : value;
+};
+
+const trimDeep = (value) => {
+  if (typeof value === 'string') return value.trim();
+  if (Array.isArray(value)) return value.map(trimDeep);
+  if (value && typeof value === 'object' && !(value instanceof Date)) {
+    const out = {};
+    Object.keys(value).forEach((k) => { out[k] = trimDeep(value[k]); });
+    return out;
+  }
+  return value;
+};
+
+const cleanStringList = (list) =>
+  Array.isArray(list) ? list.filter((s) => typeof s === 'string' && s.trim() !== '') : list;
+
+// A row is blank when none of its user-entered fields has content.
+// Flags and dropdown defaults (isCurrentJob, level, proficiency, type) don't count.
+const hasContent = (entry, fields) =>
+  entry && typeof entry === 'object' && fields.some((f) => {
+    const v = entry[f];
+    return Array.isArray(v) ? v.some((x) => !isBlank(x)) : !isBlank(v);
+  });
+
+const CONTENT_FIELDS = {
+  workExperience: ['jobTitle', 'company', 'location', 'startDate', 'endDate', 'description', 'achievements'],
+  education: ['degree', 'institution', 'location', 'startDate', 'endDate', 'gpa', 'description'],
+  projects: ['name', 'description', 'technologies', 'url', 'githubUrl', 'startDate', 'endDate'],
+  achievements: ['title', 'description', 'date', 'issuer'],
+  certifications: ['name', 'issuer', 'date', 'expiryDate', 'credentialId', 'url'],
+  languages: ['name'],
+  customFields: ['title', 'content']
+};
+
+const keepRows = (list, section) =>
+  Array.isArray(list) ? list.filter((row) => hasContent(row, CONTENT_FIELDS[section])) : list;
+
+/**
+ * Returns a normalized copy of the resume content in `body`. Only touches the
+ * resume content fields; anything else (resumeId, templateId, styling) is passed through.
+ */
+const normalizeResumePayload = (input) => {
+  if (!input || typeof input !== 'object') return input;
+  const data = { ...input };
+
+  if (typeof data.title === 'string') data.title = data.title.trim();
+  if (data.personalInfo && typeof data.personalInfo === 'object') {
+    const pi = trimDeep(data.personalInfo);
+    Object.keys(pi).forEach((k) => { if (pi[k] === null) pi[k] = ''; });
+    if (typeof pi.email === 'string') pi.email = pi.email.toLowerCase();
+    data.personalInfo = pi;
+  }
+  if (typeof data.summary === 'string') data.summary = data.summary.trim();
+
+  // Freshers have no work experience; the model clears it on save anyway, so
+  // don't let leftover rows fail validation first.
+  if (data.isFresher === true && data.workExperience !== undefined) data.workExperience = [];
+
+  if (Array.isArray(data.workExperience)) {
+    data.workExperience = keepRows(trimDeep(data.workExperience), 'workExperience').map((exp) => {
+      const out = { ...exp };
+      if (isPresentToken(exp.endDate)) out.isCurrentJob = true;
+      out.startDate = normalizeDate(exp.startDate);
+      out.endDate = out.isCurrentJob ? null : normalizeDate(exp.endDate);
+      out.achievements = cleanStringList(exp.achievements);
+      return out;
+    });
+  }
+
+  if (Array.isArray(data.education)) {
+    data.education = keepRows(trimDeep(data.education), 'education').map((edu) => {
+      const out = { ...edu };
+      if (isPresentToken(edu.endDate)) out.isCurrentlyStudying = true;
+      out.startDate = normalizeDate(edu.startDate);
+      out.endDate = out.isCurrentlyStudying ? null : normalizeDate(edu.endDate);
+      out.gpa = normalizeGpa(edu.gpa);
+      if (out.gpa === undefined) delete out.gpa;
+      return out;
+    });
+  }
+
+  if (Array.isArray(data.skills)) {
+    data.skills = trimDeep(data.skills)
+      .map((cat) => {
+        if (!cat || typeof cat !== 'object') return cat;
+        const items = Array.isArray(cat.items)
+          ? cat.items
+            .filter((item) => item && !isBlank(item.name))
+            .map((item) => {
+              const out = { ...item, level: normalizeEnum(item.level, SKILL_LEVELS, SKILL_LEVEL_SYNONYMS) };
+              if (out.level === undefined) delete out.level;
+              return out;
+            })
+          : cat.items;
+        return { ...cat, items };
+      })
+      .filter((cat) => cat && (!isBlank(cat.category) || (Array.isArray(cat.items) && cat.items.length > 0)));
+  }
+
+  if (Array.isArray(data.projects)) {
+    data.projects = keepRows(trimDeep(data.projects), 'projects').map((p) => ({
+      ...p,
+      technologies: cleanStringList(p.technologies),
+      startDate: normalizeDate(p.startDate),
+      endDate: normalizeDate(p.endDate)
+    }));
+  }
+
+  if (Array.isArray(data.achievements)) {
+    data.achievements = keepRows(trimDeep(data.achievements), 'achievements').map((a) => ({
+      ...a,
+      date: normalizeDate(a.date)
+    }));
+  }
+
+  if (Array.isArray(data.certifications)) {
+    data.certifications = keepRows(trimDeep(data.certifications), 'certifications').map((c) => ({
+      ...c,
+      date: normalizeDate(c.date),
+      expiryDate: normalizeDate(c.expiryDate)
+    }));
+  }
+
+  if (Array.isArray(data.languages)) {
+    data.languages = keepRows(trimDeep(data.languages), 'languages').map((l) => {
+      const out = { ...l, proficiency: normalizeEnum(l.proficiency, LANGUAGE_PROFICIENCIES, PROFICIENCY_SYNONYMS) };
+      if (out.proficiency === undefined) delete out.proficiency;
+      return out;
+    });
+  }
+
+  if (Array.isArray(data.customFields)) {
+    data.customFields = keepRows(trimDeep(data.customFields), 'customFields').map((f) => {
+      const out = { ...f, type: normalizeEnum(f.type, CUSTOM_FIELD_TYPES, {}) };
+      if (out.type === undefined) delete out.type;
+      return out;
+    });
+  }
+
+  return data;
+};
+
+// Express middleware: normalize before the validators run.
+const normalizeResumeBody = (req, res, next) => {
+  req.body = normalizeResumePayload(req.body || {});
+  next();
+};
+
+const emailRule = (chain) => chain
+  .trim()
+  .notEmpty().withMessage('Email is required')
+  .bail()
+  .matches(EMAIL_REGEX).withMessage('Please provide a valid email');
+
+// Create (and the form's first save): title, name and email are the only required fields.
+const resumeCreateRules = [
+  body('title').trim()
+    .notEmpty().withMessage('Resume title is required').bail()
+    .isLength({ max: LIMITS.title }).withMessage(`Title cannot exceed ${LIMITS.title} characters`),
+  body('personalInfo.fullName').trim()
+    .notEmpty().withMessage('Full name is required').bail()
+    .isLength({ max: LIMITS.fullName }).withMessage(`Full name cannot exceed ${LIMITS.fullName} characters`),
+  emailRule(body('personalInfo.email'))
+];
+
+// Update / auto-save: the same fields, but only checked when present.
+const resumeUpdateRules = [
+  body('title').optional().trim()
+    .notEmpty().withMessage('Resume title is required').bail()
+    .isLength({ max: LIMITS.title }).withMessage(`Title cannot exceed ${LIMITS.title} characters`),
+  body('personalInfo.fullName').optional().trim()
+    .notEmpty().withMessage('Full name is required').bail()
+    .isLength({ max: LIMITS.fullName }).withMessage(`Full name cannot exceed ${LIMITS.fullName} characters`),
+  emailRule(body('personalInfo.email').optional())
+];
+
+const FIELD_LABELS = {
+  startDate: 'start date',
+  endDate: 'end date',
+  date: 'date',
+  expiryDate: 'expiry date',
+  gpa: 'GPA'
+};
+
+/** Mongoose ValidationError -> [{ field: 'education.0.endDate', message }] */
+const formatMongooseErrors = (error) => {
+  if (!error || !error.errors) return [];
+  return Object.keys(error.errors)
+    // A failing subdocument also reports the parent array path; keep only the leaf errors.
+    .filter((key) => !Object.keys(error.errors).some((other) => other !== key && other.startsWith(`${key}.`)))
+    .map((key) => {
+      const err = error.errors[key];
+      const leaf = key.split('.').pop();
+      let message = err.message;
+      if (err.name === 'CastError' || err.kind === 'date' || err.kind === 'Number') {
+        if (err.kind === 'date' || err.kind === 'Date') message = `Enter a valid ${FIELD_LABELS[leaf] || 'date'}`;
+        else if (err.kind === 'Number') message = `${FIELD_LABELS[leaf] || 'Value'} must be a number`;
+        else message = `Invalid value for ${FIELD_LABELS[leaf] || leaf}`;
+      } else if (err.kind === 'enum') {
+        message = `Choose one of: ${(err.properties && err.properties.enumValues || []).join(', ')}`;
+      }
+      return { field: key, message };
+    });
+};
+
+/** express-validator result -> [{ field, message }] (first error per field) */
+const formatRuleErrors = (result) => {
+  const seen = new Set();
+  return result.array()
+    .filter((e) => { const k = e.path || e.param; if (seen.has(k)) return false; seen.add(k); return true; })
+    .map((e) => ({ field: e.path || e.param, message: e.msg }));
+};
+
+const validationResponse = (fieldErrors) => {
+  const errors = fieldErrors.map(({ field, message }) => ({
+    field,
+    message,
+    // express-validator style keys, kept for older clients
+    path: field,
+    msg: message
+  }));
+  const first = errors[0];
+  return {
+    success: false,
+    error: first
+      ? `Please fix ${errors.length === 1 ? 'this field' : `${errors.length} fields`}: ${first.message}`
+      : 'Validation failed',
+    errors,
+    details: errors
+  };
+};
+
+// Express middleware: stop with field-level errors if any rule failed.
+const rejectInvalidResume = (req, res, next) => {
+  const result = validationResult(req);
+  if (result.isEmpty()) return next();
+  return res.status(400).json(validationResponse(formatRuleErrors(result)));
+};
+
+/**
+ * Error handler for resume saves. Returns true if it sent a 400 for a
+ * validation/cast error, false otherwise (caller sends its own 500).
+ */
+const sendResumeValidationError = (error, res) => {
+  if (error && error.name === 'ValidationError') {
+    res.status(400).json(validationResponse(formatMongooseErrors(error)));
+    return true;
+  }
+  if (error && error.name === 'CastError') {
+    const field = error.path || 'unknown';
+    res.status(400).json(validationResponse([{ field, message: `Invalid value for ${field}` }]));
+    return true;
+  }
+  return false;
+};
+
+module.exports = {
+  LIMITS,
+  EMAIL_REGEX,
+  SKILL_LEVELS,
+  LANGUAGE_PROFICIENCIES,
+  normalizeDate,
+  normalizeGpa,
+  normalizeResumePayload,
+  normalizeResumeBody,
+  resumeCreateRules,
+  resumeUpdateRules,
+  rejectInvalidResume,
+  formatMongooseErrors,
+  formatRuleErrors,
+  validationResponse,
+  sendResumeValidationError
+};
