@@ -112,5 +112,7 @@ jobs:
           ssh vps "docker logout ghcr.io" || true
           exit $status
 
+      # Run from the VPS: Cloudflare's bot protection returns 403 to GitHub's
+      # data-centre IPs. This still exercises Cloudflare -> nginx -> container.
       - name: Public health check
-        run: curl -fsS --retry 5 --retry-delay 3 https://api.presmistique.in/health
+        run: ssh vps "curl -fsS --retry 5 --retry-delay 3 https://api.presmistique.in/health"
