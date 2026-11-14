@@ -58,10 +58,14 @@ else
   exit 1
 fi
 
-# Keep the current and previous images for instant rollback; remove older ones
-docker images "$API_IMAGE" --format '{{.Tag}}' \
-  | grep -v -x -e "$NEW_TAG" -e "${PREV_TAG:-__none__}" -e '<none>' \
-  | while read -r tag; do docker rmi "$API_IMAGE:$tag" >/dev/null 2>&1 || true; done
+# Keep the current and previous images for instant rollback; remove older ones.
+# Cleanup must never fail a deploy that is already healthy (grep exits 1 when
+# there is nothing to remove, which pipefail would otherwise turn into a failure).
+old_tags="$(docker images "$API_IMAGE" --format '{{.Tag}}' \
+  | grep -v -x -e "$NEW_TAG" -e "${PREV_TAG:-__none__}" -e '<none>' || true)"
+for tag in $old_tags; do
+  docker rmi "$API_IMAGE:$tag" >/dev/null 2>&1 || true
+done
 docker image prune -f --filter "label=org.opencontainers.image.title=presmistique-api" >/dev/null 2>&1 || true
 
 echo "==> Done"
