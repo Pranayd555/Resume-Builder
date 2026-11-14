@@ -2,29 +2,31 @@
 alwaysApply: true
 ---
 
-# Resume Builder Project Structure
+# Presmistique Project Structure
 
-This is a full-stack Resume Builder application with React frontend and Node.js/Express backend, designed for both web and mobile deployment.
+Presmistique - AI Resume Builder (https://presmistique.in, API https://api.presmistique.in): a full-stack app with a React frontend and a Node.js/Express backend, designed for both web and mobile clients.
 
 ## 🏗️ Project Architecture
 
 ### **Core Structure**
 - **Frontend**: [resume-builder/](mdc:resume-builder/) - React application with Tailwind CSS
 - **Backend**: [backend/](mdc:backend/) - Node.js/Express API server
-- **Database**: MongoDB with Mongoose ODM
-- **Deployment**: Docker, Vercel (frontend), Render (backend)
+- **Database**: MongoDB with Mongoose ODM (MongoDB Atlas in production)
+- **Deployment**: Cloudflare Pages (frontend); Docker image on GHCR deployed to a VPS behind nginx (backend) — see [docs/DEPLOYMENT.md](mdc:docs/DEPLOYMENT.md)
 
 ### **Key Entry Points**
 - **Frontend**: [resume-builder/src/App.js](mdc:resume-builder/src/App.js) - Main React application
 - **Backend**: [backend/server.js](mdc:backend/server.js) - Express server configuration
-- **Docker**: [docker-compose.yml](mdc:docker-compose.yml) - Development environment
+- **Backend image**: [backend/Dockerfile](mdc:backend/Dockerfile) - Production image (Node 22 + Debian Chromium)
+- **Local Docker**: [docker-compose.yml](mdc:docker-compose.yml) - API + throwaway local MongoDB
+- **Production stack**: [deploy/](mdc:deploy/) - `docker-compose.yml` + `deploy.sh` copied to the VPS
+- **CI/CD**: [.github/workflows/](mdc:.github/workflows/) - `ci.yml` (PR checks), `deploy-backend.yml` (API deploy)
 
 ### **Technology Stack**
 - **Frontend**: React 19, Tailwind CSS, React Router, Axios
-- **Backend**: Node.js 22, Express, MongoDB, JWT Authentication
+- **Backend**: Node.js 22, Express, MongoDB, JWT Authentication, Puppeteer + Chromium for PDFs/thumbnails
 - **AI Integration**: Google Gemini AI for resume parsing and analysis
-- **Payments**: Razorpay integration for subscriptions
-- **File Storage**: Cloudinary for profile pictures and uploads
+- **Payments**: Razorpay integration for subscriptions and token purchases
 - **Security**: Helmet, CORS, Rate limiting, XSS protection
 
 ### **Key Directories**
@@ -32,24 +34,28 @@ This is a full-stack Resume Builder application with React frontend and Node.js/
 - **Models**: [backend/models/](mdc:backend/models/) - Database schemas
 - **Components**: [resume-builder/src/components/](mdc:resume-builder/src/components/) - React components
 - **Templates**: [backend/assets/](mdc:backend/assets/) - Resume templates and styling
-- **Scripts**: [backend/scripts/](mdc:backend/scripts/) - Utility and build scripts
+- **Scripts**: [backend/scripts/](mdc:backend/scripts/) - Seeding, thumbnail and admin scripts
+- **Docs**: [docs/](mdc:docs/) - Project documentation
 
 ### **Development Workflow**
-1. **Local Development**: Use `docker-compose up` for full stack
-2. **Backend Only**: `cd backend && npm run dev`
+1. **Local Development (Docker)**: `docker compose up --build` (API + local MongoDB), then `cd resume-builder && npm start`
+2. **Backend Only (Node)**: `cd backend && npm run dev` (needs your own MongoDB)
 3. **Frontend Only**: `cd resume-builder && npm start`
-4. **Database**: MongoDB with connection string in environment
+4. **Tests**: `cd backend && npm test`; CI runs on every PR and `main` requires "CI passed"
 
 ### **Environment Configuration**
-- **Backend**: [backend/env.template](mdc:backend/env.template) - Environment variables template
-- **Frontend**: React environment variables in build process
-- **Docker**: [docker-compose.yml](mdc:docker-compose.yml) - Container configuration
+- **Backend**: [backend/env.template](mdc:backend/env.template) - Environment variables template (local `backend/.env`; production `/opt/presmistique/api.env` on the VPS)
+- **Frontend**: [resume-builder/env.template](mdc:resume-builder/env.template) - `REACT_APP_*` build-time variables (production values in Cloudflare Pages)
 
 ### **Documentation Structure**
-- **Main Docs**: [PROJECT_DOCUMENTATION.md](mdc:PROJECT_DOCUMENTATION.md) - Central documentation index
-- **Setup**: [backend/SETUP.md](mdc:backend/SETUP.md) - Quick setup guide
-- **Templates**: [TEMPLATES_README.md](mdc:TEMPLATES_README.md) - Template system documentation
-- **Subscriptions**: [SUBSCRIPTION_IMPLEMENTATION.md](mdc:SUBSCRIPTION_IMPLEMENTATION.md) - Payment system
+- **Main Docs**: [docs/PROJECT_DOCUMENTATION.md](mdc:docs/PROJECT_DOCUMENTATION.md) - Central documentation index
+- **Deployment**: [docs/DEPLOYMENT.md](mdc:docs/DEPLOYMENT.md) - CI/CD, rollback, server setup
+- **Setup**: [docs/BACKEND_SETUP.md](mdc:docs/BACKEND_SETUP.md) - Quick setup guide
+- **Templates**: [docs/TEMPLATES_README.md](mdc:docs/TEMPLATES_README.md) - Template system documentation
+- **Payments**: [docs/RAZORPAY_IMPLEMENTATION.md](mdc:docs/RAZORPAY_IMPLEMENTATION.md) - Payment system
+
+### **Branding**
+- The only public contact is presmistique@gmail.com (frontend: `resume-builder/src/constants/brand.js`). Never add personal names, emails, phone numbers or GitHub usernames to user-facing code or docs.
 
 ### **Mobile Support**
 - CORS configured for mobile apps (`capacitor://localhost`, `ionic://localhost`)

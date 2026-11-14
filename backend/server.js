@@ -121,13 +121,11 @@ const corsOptions = {
     const allowedOrigins = [
       'http://localhost:3000',
       'http://localhost:3001',
-      'https://resume-builder-pranayd555-pranay-das-projects.vercel.app',
-      'https://resume-builder-pranay-das-projects.vercel.app',
-      'https://resume-builder-dev-pranay-das.vercel.app',
       "https://presmistique.in",
       "https://www.presmistique.in",
       "https://resume-builder-6rc.pages.dev",
-      "https://*.pages.dev",
+      // Cloudflare Pages preview deployments of this project only
+      "https://*.resume-builder-6rc.pages.dev",
       'http://localhost',
       'https://localhost'
     ];

@@ -43,20 +43,15 @@ npm run seed:all-templates
 6. **Academic Category** (1 template)
    - Academic Research
 
-### Template Testing
-
-#### `testTemplates.js` - Template Validation
-Tests template functionality and validates template data.
+### Account & Token Utilities
 
 ```bash
-npm run test:templates
+npm run unlock-account -- user@example.com     # unlock a locked account
+npm run add-tokens -- user@example.com 50      # preview only; append --force to actually add the tokens
 ```
 
-**What it does:**
-- Connects to database and fetches all templates
-- Validates template structure and required fields
-- Tests template rendering with sample data
-- Reports issues and validation results
+In production, run any of these scripts inside the API container from `/opt/presmistique`:
+`docker compose exec api npm run <script> -- <args>` (see [docs/DEPLOYMENT.md](../../docs/DEPLOYMENT.md)).
 
 ## 🖼️ Thumbnail Management (Puppeteer System)
 
@@ -141,7 +136,7 @@ npm run generate-thumbnails generate
 
 ### 3. Verify Setup
 ```bash
-npm run test:templates
+curl http://localhost:5000/api/templates
 ```
 
 ## 🔧 Technical Details
@@ -176,7 +171,6 @@ The Puppeteer system uses comprehensive sample data:
 ```
 backend/scripts/
 ├── seedAllTemplates.js                    # Main template seeder
-├── testTemplates.js                       # Template validation
 ├── generatePuppeteerThumbnails.js         # Thumbnail generation
 ├── updateTemplatesWithPuppeteerThumbnails.js  # Database updates
 ├── PUPPETEER_THUMBNAILS_README.md        # Detailed documentation

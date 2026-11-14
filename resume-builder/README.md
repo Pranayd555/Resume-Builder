@@ -1,26 +1,29 @@
-# Resume Builder (Frontend)
+# Presmistique - AI Resume Builder (Frontend)
 
-React frontend for the Resume Builder application. Uses **CRACO + Tailwind CSS** and connects to the Express backend.
+React frontend for Presmistique, live at https://presmistique.in. Uses **CRACO + Tailwind CSS** and connects to the Express backend.
 
 ## Prerequisites
 
-- Node.js (see `resume-builder/package.json` → `engines`)
-- Backend running on `http://localhost:5000` (or your deployed backend)
+- Node.js (version in `resume-builder/.nvmrc`)
+- Backend running on `http://localhost:5000` (see the root [README](../README.md))
 
 ## Environment variables
 
-Create `resume-builder/.env`:
+Copy `env.template` to `resume-builder/.env`:
 
 ```env
-REACT_APP_API_URL=http://localhost:5000
-REACT_APP_ENVIRONMENT=development
+REACT_APP_API_URL=http://localhost:5000/api
 ```
 
-Optional (payments):
+Optional:
 
 ```env
-REACT_APP_RAZORPAY_KEY_ID=rzp_test_your_key_id
+REACT_APP_RAZORPAY_KEY_ID=rzp_test_your_key_id   # payments
+REACT_APP_SUPPORT_EMAIL=presmistique@gmail.com   # defaults to this value
+REACT_APP_CKEDITOR_LICENSE_KEY=...               # CKEditor license
 ```
+
+`REACT_APP_*` values are baked into the build, so never put secrets in them.
 
 ## Run locally
 
@@ -41,7 +44,9 @@ npm run build
 
 ## Deployment
 
-- Frontend: Vercel
-- Backend: Render
+Cloudflare Pages builds this directory automatically through its Git integration:
 
-See `CI_CD_SETUP.md` and `.github/workflows/README.md` at the repo root.
+- `main` → production at https://presmistique.in (with `REACT_APP_API_URL=https://api.presmistique.in/api`)
+- other branches (e.g. `dev`) → preview URLs on `*.resume-builder-6rc.pages.dev`
+
+Pull requests also run `npm run build` in CI. See [docs/DEPLOYMENT.md](../docs/DEPLOYMENT.md).

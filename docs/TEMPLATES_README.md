@@ -75,13 +75,13 @@ cp env.template .env
 npm run seed:all-templates
 ```
 
-### 4. Test Templates
+### 4. Generate Thumbnails (optional)
 
 ```bash
-npm run test:templates
+npm run generate-thumbnails generate
 ```
 
-This will generate HTML files in the `output/` directory that you can view in your browser.
+This renders each template with sample data and saves previews to `backend/thumbnails/`.
 
 ## 🏗️ Template Structure
 
@@ -151,18 +151,11 @@ This will generate HTML files in the `output/` directory that you can view in yo
 
 ## 🧪 Testing Templates
 
-### Run Template Tests
+### Preview Templates
 
-```bash
-npm run test:templates
-```
-
-### Test Output
-
-The test creates:
-- Individual HTML files for each template
-- `index.html` - Gallery view of all templates
-- Template statistics and breakdown
+There is no dedicated template test script. To check templates visually, generate thumbnails
+(`npm run generate-thumbnails generate`) and review the files in `backend/thumbnails/`, or create a resume
+with the template in the app and export it as PDF.
 
 ### Test Data
 
@@ -426,8 +419,8 @@ After seeding, templates are loaded from `backend/assets/` into MongoDB and are 
 ## 🚀 Next Steps
 
 1. **Seed Templates**: Run `npm run seed:all-templates`
-2. **Test Templates**: Run `npm run test:templates`
-3. **View Gallery**: Open `output/index.html` in your browser
+2. **Generate Thumbnails**: Run `npm run generate-thumbnails generate`
+3. **Review**: Check the previews in `backend/thumbnails/`
 4. **Customize**: Modify templates or create new ones
 5. **Deploy**: Templates are ready for production use
 

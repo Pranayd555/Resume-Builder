@@ -22,7 +22,7 @@ globs: backend/**/*.js,backend/**/*.json
 - **User Routes**: [backend/routes/users.js](mdc:backend/routes/users.js) - Profile management
 - **Resume Routes**: [backend/routes/resumes.js](mdc:backend/routes/resumes.js) - CRUD operations
 - **Template Routes**: [backend/routes/templates.js](mdc:backend/routes/templates.js) - Template management
-- **Subscription Routes**: [backend/routes/subscriptions.js](mdc:backend/routes/subscriptions.js) - Payment plans
+- **Payment Routes**: [backend/routes/payment.js](mdc:backend/routes/payment.js) - Razorpay orders, webhooks, refunds
 - **Upload Routes**: [backend/routes/uploads.js](mdc:backend/routes/uploads.js) - File handling
 - **AI Routes**: [backend/routes/ai.js](mdc:backend/routes/ai.js) - AI-powered features
 
@@ -56,9 +56,14 @@ globs: backend/**/*.js,backend/**/*.json
 - **Token System**: AI action usage tracking and limits
 
 ### **Development Scripts**
-- **Build Scripts**: [backend/scripts/](mdc:backend/scripts/) - Build and deployment utilities
-- **Template Management**: Template seeding and thumbnail generation
-- **Database Utilities**: User management and data migration scripts
+- **Scripts**: [backend/scripts/](mdc:backend/scripts/) - Seeding, thumbnail and admin utilities (no build step; the API runs straight from source)
+- **Template Management**: `npm run seed:all-templates`, `npm run generate-thumbnails`, `npm run update-thumbnails`
+- **Database Utilities**: `npm run unlock-account`, `npm run add-tokens`, plus migration scripts
+- **Production**: run them inside the container from `/opt/presmistique`: `docker compose exec api npm run <script>`
+
+### **Puppeteer / Chromium**
+- Always launch through `getLaunchOptions()` / `getBrowser()` in [backend/utils/browserManager.js](mdc:backend/utils/browserManager.js)
+- Production image uses Debian Chromium via `PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium`; locally Puppeteer uses its own downloaded Chrome
 
 ### **Error Handling**
 - **Global Handler**: [backend/middleware/errorHandler.js](mdc:backend/middleware/errorHandler.js)
@@ -96,5 +101,6 @@ CLOUDINARY_CLOUD_NAME=cloud-storage
 ### **Testing and Development**
 - **Health Check**: `GET /health` - Server status endpoint
 - **Development**: `npm run dev` with nodemon
-- **Production**: `npm start` with proper error handling
+- **Tests**: `npm test` (refund calculator tests; also run in CI)
+- **Production**: Docker image (`node server.js`), see [docs/DEPLOYMENT.md](mdc:docs/DEPLOYMENT.md)
 - **Database**: MongoDB with Mongoose ODM

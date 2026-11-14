@@ -76,7 +76,8 @@ const corsOptions = {
   origin: function (origin, callback) {
     const allowedOrigins = [
       'http://localhost:3000',
-      'https://your-frontend-domain.com',
+      'https://presmistique.in',
+      'https://www.presmistique.in',
       'capacitor://localhost',
       'ionic://localhost'
     ];

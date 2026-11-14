@@ -212,13 +212,15 @@ NODE_ENV=development
 ## Production Deployment
 
 ### Recommended Settings
+Production values live in `/opt/presmistique/api.env` on the VPS (see [DEPLOYMENT.md](DEPLOYMENT.md));
+apply changes with `docker compose up -d --force-recreate api`.
 ```bash
 # Production email configuration
 EMAIL_SERVICE=gmail
-EMAIL_USER=noreply@yourdomain.com
-EMAIL_FROM_NAME=Your App Name
-SUPPORT_EMAIL=support@yourdomain.com
-APP_NAME=Your App Name
+EMAIL_USER=presmistique@gmail.com
+EMAIL_FROM_NAME=Presmistique - AI Resume Builder
+SUPPORT_EMAIL=presmistique@gmail.com
+APP_NAME=Presmistique - AI Resume Builder
 ```
 
 ### Monitoring
@@ -281,17 +283,17 @@ For issues with email setup:
 ## Example Complete Configuration
 
 ```bash
-# .env file
+# backend/.env locally, /opt/presmistique/api.env in production
 EMAIL_SERVICE=gmail
-EMAIL_USER=noreply@myresumeapp.com
-EMAIL_PASS=abcd-efgh-ijkl-mnop
-EMAIL_FROM_NAME=My Resume App
+EMAIL_USER=presmistique@gmail.com
+EMAIL_PASS=<16-character app password>
+EMAIL_FROM_NAME=Presmistique - AI Resume Builder
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 EMAIL_SECURE=false
-SUPPORT_EMAIL=support@myresumeapp.com
-APP_NAME=My Resume App
-CLIENT_URL=https://myresumeapp.com
+SUPPORT_EMAIL=presmistique@gmail.com
+APP_NAME=Presmistique - AI Resume Builder
+CLIENT_URL=https://presmistique.in
 ```
 
 This configuration will enable all email features with professional branding and proper delivery. 

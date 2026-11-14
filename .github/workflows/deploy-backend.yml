@@ -1,0 +1,116 @@
+name: Deploy API
+
+# Builds the backend image, pushes it to GHCR and rolls it out on the VPS.
+# The frontend is deployed by Cloudflare Pages on its own (main = production).
+#
+# Required secrets (Settings > Secrets and variables > Actions):
+#   VPS_HOST         server IP / hostname
+#   VPS_USER         SSH user (root)
+#   VPS_SSH_KEY      private key of the dedicated deploy key
+#   VPS_KNOWN_HOSTS  output of `ssh-keyscan <host>` (pins the server's host key)
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'deploy/**'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Roll back / redeploy an existing tag (e.g. sha-1a2b3c4). Leave empty to build main.'
+        required: false
+        default: ''
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    name: Build & push image
+    if: github.event_name == 'push' || inputs.image_tag == ''
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Image name and tag
+        id: meta
+        run: |
+          echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/presmistique-api" >> "$GITHUB_OUTPUT"
+          echo "tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: backend
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
+            ${{ steps.meta.outputs.image }}:latest
+          labels: |
+            org.opencontainers.image.title=presmistique-api
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,scope=api,mode=max
+
+  deploy:
+    name: Deploy to VPS
+    needs: build
+    if: always() && (needs.build.result == 'success' || (needs.build.result == 'skipped' && inputs.image_tag != ''))
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://api.presmistique.in/health
+    env:
+      TAG: ${{ needs.build.outputs.tag || inputs.image_tag }}
+      IMAGE: ghcr.io/${{ github.repository_owner }}/presmistique-api
+      DEPLOY_DIR: /opt/presmistique
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: deploy
+
+      - name: Configure SSH
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf 'Host vps\n  HostName %s\n  User %s\n  IdentityFile ~/.ssh/deploy_key\n  IdentitiesOnly yes\n  StrictHostKeyChecking yes\n' \
+            "$VPS_HOST" "$VPS_USER" > ~/.ssh/config
+
+      - name: Upload compose file and deploy script
+        run: |
+          ssh vps "mkdir -p $DEPLOY_DIR"
+          scp deploy/docker-compose.yml deploy/deploy.sh "vps:$DEPLOY_DIR/"
+          ssh vps "chmod +x $DEPLOY_DIR/deploy.sh"
+
+      - name: Pull ${{ env.TAG }} and roll out
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          printf '%s' "$GHCR_TOKEN" | ssh vps "docker login ghcr.io -u ${{ github.actor }} --password-stdin"
+          status=0
+          IMAGE="${IMAGE,,}"   # GHCR paths must be lowercase
+          ssh vps "API_IMAGE=$IMAGE $DEPLOY_DIR/deploy.sh $TAG" || status=$?
+          ssh vps "docker logout ghcr.io" || true
+          exit $status
+
+      - name: Public health check
+        run: curl -fsS --retry 5 --retry-delay 3 https://api.presmistique.in/health

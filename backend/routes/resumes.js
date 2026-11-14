@@ -6,8 +6,7 @@ const Template = require('../models/Template');
 const OptimizedTemplateRenderer = require('../utils/templateRenderer');
 const logger = require('../utils/logger');
 const puppeteer = require('puppeteer');
-const chromium = require('@sparticuz/chromium');
-const { withPage } = require('../utils/browserManager');
+const { withPage, getLaunchOptions } = require('../utils/browserManager');
 const sharp = require('sharp');
 
 const router = express.Router();
@@ -797,37 +796,6 @@ router.get('/:id/preview/pdf-images', protect, async (req, res) => {
       </html>
     `;
 
-    // Launch headless Chromium (Sparticuz on Linux, Puppeteer locally)
-    const isLinux = process.platform === 'linux';
-    let executablePath;
-    let launchArgs;
-    let defaultViewport;
-    let headlessOption;
-
-    if (isLinux) {
-      try {
-        executablePath = await chromium.executablePath();
-        launchArgs = chromium.args;
-        defaultViewport = chromium.defaultViewport;
-        headlessOption = chromium.headless;
-      } catch (e) { }
-    }
-
-    if (!executablePath) {
-      executablePath = typeof puppeteer.executablePath === 'function' ? puppeteer.executablePath() : undefined;
-      launchArgs = [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--no-first-run',
-        '--no-zygote',
-        '--single-process'
-      ];
-      defaultViewport = null;
-      headlessOption = 'new';
-    }
-
     // Use shared browser and a managed page to avoid cold starts per request on Render
     const result = await withPage(async (page) => {
       await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
@@ -1142,35 +1110,6 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
 
     logger.info('HTML content generated for pdf', htmlContent)
 
-    // Create PDF using Puppeteer. Use Sparticuz Chromium on Linux (Render), fallback locally
-    const isLinux = process.platform === 'linux';
-    let executablePath;
-
-    if (isLinux) {
-      try {
-        executablePath = await chromium.executablePath();
-        launchArgs = chromium.args;
-        defaultViewport = chromium.defaultViewport;
-        headlessOption = chromium.headless;
-      } catch (e) {
-        // Fall through to default Puppeteer on failure
-      }
-    }
-
-    if (!executablePath) {
-      executablePath = typeof puppeteer.executablePath === 'function' ? puppeteer.executablePath() : undefined;
-      launchArgs = [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--no-first-run',
-        '--no-zygote',
-        '--single-process'
-      ];
-      defaultViewport = null;
-      headlessOption = 'new';
-    }
     // Use shared browser
     const pdfBuffer = await withPage(async (page) => {
 
@@ -1392,34 +1331,7 @@ router.get('/:id/download/docx', protect, async (req, res) => {
     `;
 
     // Convert HTML to DOCX using puppeteer and a custom approach
-    const isLinuxDocx = process.platform === 'linux';
-    let docxExecutablePath;
-    let docxArgs;
-    let docxViewport;
-    let docxHeadless;
-
-    if (isLinuxDocx) {
-      try {
-        docxExecutablePath = await chromium.executablePath();
-        docxArgs = chromium.args;
-        docxViewport = chromium.defaultViewport;
-        docxHeadless = chromium.headless;
-      } catch (e) { }
-    }
-
-    if (!docxExecutablePath) {
-      docxExecutablePath = typeof puppeteer.executablePath === 'function' ? puppeteer.executablePath() : undefined;
-      docxArgs = ['--no-sandbox', '--disable-setuid-sandbox'];
-      docxViewport = null;
-      docxHeadless = 'new';
-    }
-
-    const browser = await puppeteer.launch({
-      headless: docxHeadless,
-      executablePath: docxExecutablePath,
-      args: docxArgs,
-      defaultViewport: docxViewport
-    });
+    const browser = await puppeteer.launch(getLaunchOptions());
 
     const page = await browser.newPage();
     await page.setContent(htmlContent, { waitUntil: 'networkidle0' });

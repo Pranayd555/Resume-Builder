@@ -68,7 +68,7 @@ Content-Type: application/json
   "amount": 100,
   "currency": "INR",
   "email": "user@example.com",
-  "contact": "+919876543210"
+  "contact": "+91XXXXXXXXXX"
 }
 ```
 
@@ -387,14 +387,15 @@ logger.error('Create order error:', error);
 ### Production Checklist
 - [ ] Set up live Razorpay keys
 - [ ] Configure webhook URL in Razorpay dashboard
-- [ ] Set webhook secret in environment variables
+- [ ] Set `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` and `RAZORPAY_WEBHOOK_SECRET` in `/opt/presmistique/api.env` on the VPS (see [DEPLOYMENT.md](DEPLOYMENT.md))
+- [ ] Set the live `REACT_APP_RAZORPAY_KEY_ID` in the Cloudflare Pages project settings
 - [ ] Test payment flow in production
 - [ ] Monitor webhook events
 - [ ] Set up error alerting
 
 ### Webhook URL Configuration
 ```
-Production: https://yourdomain.com/api/payment/webhook
+Production: https://api.presmistique.in/api/payment/webhook
 Development: https://your-ngrok-url.ngrok.io/api/payment/webhook
 ```
 
