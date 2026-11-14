@@ -1,0 +1,128 @@
+name: CI
+
+# Checks every pull request (and pushes to dev). Nothing here deploys.
+# Branch protection on main requires the "CI passed" job.
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - 'deploy/**'
+              - '.github/workflows/**'
+            frontend:
+              - 'resume-builder/**'
+              - '.github/workflows/**'
+
+  backend:
+    name: Backend checks
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      PUPPETEER_SKIP_DOWNLOAD: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - name: Syntax check
+        run: git ls-files '*.js' | xargs -n 1 node --check
+      - name: Unit tests
+        run: npm test
+      - name: Lint deploy script
+        working-directory: deploy
+        run: bash -n deploy.sh
+
+  backend-image:
+    name: Backend image
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          load: true
+          tags: presmistique-api:ci
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,scope=api,mode=max
+      - name: Smoke test (server boots, Chromium renders a PDF)
+        run: |
+          docker run --rm --entrypoint node presmistique-api:ci -e "
+            const puppeteer = require('puppeteer');
+            const { getLaunchOptions } = require('./utils/browserManager');
+            (async () => {
+              const browser = await puppeteer.launch(getLaunchOptions());
+              const page = await browser.newPage();
+              await page.setContent('<h1>Presmistique</h1>');
+              const pdf = await page.pdf({ format: 'A4' });
+              console.log('Chromium', await browser.version(), '- PDF bytes:', pdf.length);
+              await browser.close();
+              process.exit(pdf.length > 1000 ? 0 : 1);
+            })().catch(e => { console.error(e); process.exit(1); });
+          "
+
+  frontend:
+    name: Frontend build
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: resume-builder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: resume-builder/.nvmrc
+          cache: npm
+          cache-dependency-path: resume-builder/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - name: Build
+        run: npm run build
+        env:
+          CI: false
+
+  ci-passed:
+    name: CI passed
+    needs: [changes, backend, backend-image, frontend]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any check failed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
+      - run: echo "All required checks passed (skipped = no changes in that area)."

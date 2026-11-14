@@ -31,6 +31,10 @@ GOOGLE_CLIENT_SECRET=your-google-client-secret
 LINKEDIN_CLIENT_ID=your-linkedin-client-id
 LINKEDIN_CLIENT_SECRET=your-linkedin-client-secret
 
+# Callback URLs (Google defaults to http://localhost:5000/api/auth/google/callback)
+GOOGLE_CALLBACK_URL=http://localhost:5000/api/auth/google/callback
+LINKEDIN_CALLBACK_URL=http://localhost:5000/api/auth/linkedin/callback
+
 # Other required variables (see env.template for full list)
 MONGODB_URI=your-mongodb-connection-string
 JWT_SECRET=your-jwt-secret
@@ -46,7 +50,7 @@ CLIENT_URL=http://localhost:3000
 5. Configure the OAuth consent screen
 6. Set the authorized redirect URIs:
    - `http://localhost:5000/api/auth/google/callback` (for development)
-   - `https://yourdomain.com/api/auth/google/callback` (for production)
+   - `https://api.presmistique.in/api/auth/google/callback` (for production)
 7. Copy the Client ID and Client Secret to your `.env` file
 
 ### 3. LinkedIn OAuth Setup
@@ -56,7 +60,7 @@ CLIENT_URL=http://localhost:3000
 3. Configure the OAuth 2.0 settings
 4. Set the authorized redirect URIs:
    - `http://localhost:5000/api/auth/linkedin/callback` (for development)
-   - `https://yourdomain.com/api/auth/linkedin/callback` (for production)
+   - `https://api.presmistique.in/api/auth/linkedin/callback` (for production)
 5. Copy the Client ID and Client Secret to your `.env` file
 
 ## Frontend Configuration
@@ -67,8 +71,10 @@ Create a `.env` file in the `resume-builder` directory:
 
 ```env
 # Backend API base URL (used by frontend to initiate OAuth redirects)
-REACT_APP_API_URL=http://localhost:5000
+REACT_APP_API_URL=http://localhost:5000/api
 ```
+
+In production this is `https://api.presmistique.in/api`, set in the Cloudflare Pages project settings.
 
 **Note**: The frontend does not need Google/LinkedIn client IDs because OAuth is handled by the backend. The UI simply redirects the browser to the backend OAuth endpoints.
 
@@ -147,10 +153,21 @@ LOG_LEVEL=debug
 
 ## Production Deployment
 
-1. **Update redirect URIs** in OAuth provider settings
-2. **Set production environment variables**
-3. **Configure HTTPS** (required for OAuth in production)
-4. **Update CLIENT_URL** to your production domain
+1. **Add the production redirect URIs** in the Google and LinkedIn app settings:
+   - `https://api.presmistique.in/api/auth/google/callback`
+   - `https://api.presmistique.in/api/auth/linkedin/callback`
+2. **Set the production variables** in `/opt/presmistique/api.env` on the VPS:
+   ```env
+   GOOGLE_CLIENT_ID=...
+   GOOGLE_CLIENT_SECRET=...
+   GOOGLE_CALLBACK_URL=https://api.presmistique.in/api/auth/google/callback
+   LINKEDIN_CLIENT_ID=...
+   LINKEDIN_CLIENT_SECRET=...
+   LINKEDIN_CALLBACK_URL=https://api.presmistique.in/api/auth/linkedin/callback
+   CLIENT_URL=https://presmistique.in
+   ```
+   then apply them with `docker compose up -d --force-recreate api` (see [DEPLOYMENT.md](DEPLOYMENT.md)).
+3. **HTTPS** is provided by nginx with Let's Encrypt on `api.presmistique.in` (required for OAuth in production).
 
 ## Support
 
@@ -158,4 +175,4 @@ If you encounter issues:
 1. Check the backend logs for error messages
 2. Verify all environment variables are set correctly
 3. Test with a fresh OAuth application
-4. Contact support with specific error messages 
+4. Contact presmistique@gmail.com with specific error messages 

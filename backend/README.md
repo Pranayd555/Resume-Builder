@@ -1,6 +1,6 @@
-# Resume Builder Backend API
+# Presmistique API (backend)
 
-A comprehensive Node.js/Express backend for the Resume Builder application, designed to serve both web and mobile clients with support for Play Store deployment.
+Node.js/Express backend for Presmistique - AI Resume Builder, serving both web and mobile clients. Production: `https://api.presmistique.in`.
 
 ## Features
 
@@ -18,85 +18,57 @@ A comprehensive Node.js/Express backend for the Resume Builder application, desi
 
 - **Runtime**: Node.js 22 (see `backend/package.json` → `engines`)
 - **Framework**: Express.js
-- **Database**: MongoDB with Mongoose
+- **Database**: MongoDB with Mongoose (MongoDB Atlas in production)
 - **Authentication**: JWT, Passport.js (Google/LinkedIn OAuth)
 - **Payments**: Razorpay
-- **File Storage**: Cloudinary
+- **AI**: Google Gemini
+- **PDF & thumbnails**: Puppeteer + Chromium, Handlebars templates
 - **Validation**: express-validator
 - **Security**: Helmet, CORS, express-rate-limit
-- **Logging**: Winston
+- **Logging**: Winston, Morgan
+- **Container**: `Dockerfile` (node:22-bookworm-slim + Debian Chromium)
 - **Development**: Nodemon
 
 ## Quick Start
 
-### 1. Installation
+### 1. Environment
 
 ```bash
 cd backend
-npm install
-```
-
-### 2. Environment Setup
-
-Copy the environment template and configure:
-
-```bash
 cp env.template .env
 ```
 
-Required environment variables:
+Fill in the values you need; `env.template` documents every variable. The minimum for a working API is
+`MONGODB_URI`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `SESSION_SECRET` and `CLIENT_URL=http://localhost:3000`.
 
-```env
-# Server Configuration
-NODE_ENV=development
-PORT=5000
+### 2a. Run with Docker (same image as production)
 
-# Database
-MONGODB_URI=mongodb://localhost:27017/resumebuilder
-
-# JWT Configuration
-JWT_SECRET=your-super-secret-jwt-key-here-make-it-long-and-complex
-JWT_EXPIRES_IN=7d
-JWT_REFRESH_SECRET=your-refresh-token-secret-here
-
-# OAuth Configuration (optional)
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-LINKEDIN_CLIENT_ID=your-linkedin-client-id
-LINKEDIN_CLIENT_SECRET=your-linkedin-client-secret
-
-# Razorpay Configuration (optional)
-RAZORPAY_KEY_ID=rzp_test_your_key_id
-RAZORPAY_KEY_SECRET=your_key_secret
-RAZORPAY_WEBHOOK_SECRET=your_webhook_secret
-
-# File Upload Configuration (optional)
-CLOUDINARY_CLOUD_NAME=your-cloudinary-cloud-name
-CLOUDINARY_API_KEY=your-cloudinary-api-key
-CLOUDINARY_API_SECRET=your-cloudinary-api-secret
-
-# Client URLs
-CLIENT_URL=http://localhost:3000
-MOBILE_APP_URL_SCHEME=resumebuilder
-```
-
-### 3. Database Setup
-
-Make sure MongoDB is running locally or update `MONGODB_URI` with your cloud database connection string.
-
-### 4. Start Development Server
+From the repo root:
 
 ```bash
+docker compose up --build
+```
+
+This builds this directory's `Dockerfile` and starts it with a throwaway local MongoDB
+(`MONGODB_URI` and `CLIENT_URL` are overridden, so your Atlas database is never touched).
+
+### 2b. Run with Node directly
+
+Requires Node 22 and a reachable MongoDB (local, or a development Atlas cluster in `MONGODB_URI`).
+
+```bash
+cd backend
+npm install      # Puppeteer downloads its own Chrome for local PDF rendering
 npm run dev
 ```
 
-The server will start on `http://localhost:5000`
+Either way the API runs on `http://localhost:5000` (health check: `GET /health`).
 
 ## API Documentation
 
 ### Base URL
 - Development: `http://localhost:5000/api`
-- Production: `https://your-domain.com/api`
+- Production: `https://api.presmistique.in/api`
 
 ### Authentication
 
@@ -197,48 +169,19 @@ The backend is configured to work with mobile applications:
 
 ## Deployment
 
-### Environment Variables for Production
+Production runs this directory's `Dockerfile` on a VPS behind nginx at `https://api.presmistique.in`.
+Merging to `main` builds the image, pushes it to GitHub Container Registry and rolls it out with a health
+check and automatic rollback. Production secrets live in `/opt/presmistique/api.env` on the server
+(`NODE_ENV=production` and `PORT=5000` are set by the compose file).
 
-Update these for production:
+See [docs/DEPLOYMENT.md](../docs/DEPLOYMENT.md) for the full flow, rollback and server setup.
 
-```env
-NODE_ENV=production
-PORT=5000
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/resumebuilder
-CLIENT_URL=https://your-frontend-domain.com
-JWT_SECRET=your-production-jwt-secret-very-long-and-random
-```
+### Database
 
-### Deployment Platforms
-
-This repository is set up to deploy:
-- **Frontend** to Vercel
-- **Backend** to Render
-
-See:
-- `CI_CD_SETUP.md` (GitHub Actions secrets + workflow behavior)
-- `RENDER_DEPLOYMENT.md` (zip-based Render deployment flow)
-
-#### AWS/Digital Ocean
-1. Set up server with Node.js
-2. Clone repository
-3. Install dependencies
-4. Configure environment
-5. Use PM2 for process management:
-```bash
-npm install -g pm2
-pm2 start server.js --name "resume-builder-api"
-pm2 startup
-pm2 save
-```
-
-### Database Deployment
-
-#### MongoDB Atlas (Recommended)
-1. Create cluster at mongodb.com
-2. Create database user
-3. Whitelist IP addresses
-4. Update `MONGODB_URI` in environment
+Production uses MongoDB Atlas:
+1. Create a cluster and a database user
+2. Allow the VPS IP in Network Access
+3. Put the connection string in `MONGODB_URI` in `api.env`
 
 ## Third-Party Integrations
 
@@ -247,13 +190,15 @@ pm2 save
 2. Create OAuth 2.0 credentials
 3. Add authorized redirect URIs:
    - `http://localhost:5000/api/auth/google/callback` (development)
-   - `https://your-api-domain.com/api/auth/google/callback` (production)
-4. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`
+   - `https://api.presmistique.in/api/auth/google/callback` (production)
+4. Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and, in production, `GOOGLE_CALLBACK_URL`
 
 ### LinkedIn OAuth Setup
 1. Create LinkedIn app at developer.linkedin.com
-2. Add redirect URLs
-3. Set `LINKEDIN_CLIENT_ID` and `LINKEDIN_CLIENT_SECRET`
+2. Add redirect URLs (`http://localhost:5000/api/auth/linkedin/callback`, `https://api.presmistique.in/api/auth/linkedin/callback`)
+3. Set `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET` and `LINKEDIN_CALLBACK_URL`
+
+See [docs/OAUTH_SETUP.md](../docs/OAUTH_SETUP.md) for details.
 
 ### razorpay Setup
 1. Create razorpay account
@@ -291,27 +236,39 @@ pm2 save
 ## Development
 
 ### Scripts
-- `npm start` - Start production server
+- `npm start` - Start the server (`node server.js`)
 - `npm run dev` - Start development server with nodemon
-- `npm test` - Run tests
-- `npm run seed` - Seed database with sample data
+- `npm test` - Run the refund calculator tests
+- `npm run seed:all-templates` - Seed all resume templates
+- `npm run generate-thumbnails` / `npm run update-thumbnails` - Generate template thumbnails with Puppeteer (see [scripts/README.md](scripts/README.md))
+- `npm run unlock-account -- <email>` - Unlock a locked user account
+- `npm run add-tokens -- <email> <count> --force` - Add tokens to a user (without `--force` it only previews)
+
+In production, run admin scripts inside the container from `/opt/presmistique`:
+`docker compose exec api npm run <script>`.
 
 ### Project Structure
 ```
 backend/
-├── config/           # Configuration files
-├── middleware/       # Custom middleware
+├── assets/          # Resume template definitions
+├── config/          # Configuration (Passport, etc.)
+├── middleware/      # Custom middleware
 ├── models/          # Database models
 ├── routes/          # API routes
-├── utils/           # Utility functions
-├── logs/            # Log files
+├── scripts/         # Seeding, thumbnails and admin scripts
+├── services/        # Service layer
+├── templates/       # Email templates
+├── thumbnails/      # Generated template thumbnails (served at /thumbnails)
+├── utils/           # Utilities (browserManager, refundCalculator, emailService, ...)
+├── Dockerfile       # Production image
+├── env.template     # Environment variable reference
 ├── server.js        # Main server file
-└── package.json     # Dependencies
+└── package.json     # Dependencies and scripts
 ```
 
 ## Support
 
-For deployment and configuration support:
+For deployment and configuration support (contact: presmistique@gmail.com):
 1. Check the logs in `logs/` directory
 2. Verify all environment variables are set
 3. Ensure database connectivity

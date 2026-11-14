@@ -1,13 +1,17 @@
 # Quick Setup Guide
 
-This guide will get your Resume Builder backend running quickly for both development and Play Store deployment.
+This guide gets the Presmistique backend running locally for development. Production deployment is covered in [DEPLOYMENT.md](DEPLOYMENT.md).
+
+> Prefer Docker? From the repo root, `cp backend/env.template backend/.env` and run `docker compose up --build`.
+> That starts the API in the production image together with a throwaway local MongoDB, so steps 1, 4 and 5 below are not needed.
 
 ## 🚀 Immediate Setup (5 minutes)
 
 ### 1. Install Dependencies
+Requires Node 22.
 ```bash
 cd backend
-npm install
+npm install   # Puppeteer also downloads the Chrome it uses for local PDF rendering
 ```
 
 ### 2. Create Environment File
@@ -52,7 +56,7 @@ The backend is pre-configured for mobile apps with these CORS settings:
 ### API Base URL
 For your mobile app, use:
 - Development: `http://localhost:5000/api`
-- Production: `https://your-deployed-domain.com/api`
+- Production: `https://api.presmistique.in/api`
 
 ## 🔧 Optional Integrations
 
@@ -124,23 +128,12 @@ All API responses follow this format:
 }
 ```
 
-## 🚀 Quick Deployment
+## 🚀 Deployment
 
-### 1. Railway (Recommended - Free)
-1. Push to GitHub
-2. Connect to [Railway](https://railway.app)
-3. Set environment variables
-4. Deploy automatically
+The API is deployed as a Docker image to a VPS by GitHub Actions whenever `backend/**` changes on `main`.
+See [DEPLOYMENT.md](DEPLOYMENT.md) for the pipeline, rollback and server setup.
 
-### 2. Heroku
-```bash
-heroku create your-app-name
-heroku config:set JWT_SECRET=your-secret
-heroku config:set MONGODB_URI=your-mongo-uri
-git push heroku main
-```
-
-### 3. MongoDB Atlas (Database)
+### MongoDB Atlas (Database)
 1. Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
 2. Create free cluster
 3. Get connection string
@@ -212,6 +205,6 @@ Visit `http://localhost:5000/health` to verify server is running.
 3. 🔄 Add OAuth providers (optional)
 4. 🔄 Set up razorpay for payments (optional)
 5. 🔄 Configure file uploads (optional)
-6. 🚀 Deploy to production
+6. 🚀 Deploy to production ([DEPLOYMENT.md](DEPLOYMENT.md))
 
 Your backend is now ready for both web and mobile deployment! 🎉 

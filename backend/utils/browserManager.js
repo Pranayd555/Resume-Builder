@@ -1,5 +1,4 @@
 const puppeteer = require('puppeteer');
-const chromium = require('@sparticuz/chromium');
 const logger = require('./logger');
 
 let sharedBrowser = null;
@@ -9,45 +8,29 @@ const MAX_CONCURRENT_PAGES = 5; // Increased to allow more concurrent pages
 const MAX_RETRIES = 3; // Define max retries for page operations
 const queue = [];
 
-async function launchBrowser() {
-  const isLinux = process.platform === 'linux';
-  let executablePath;
-  let launchArgs;
-  let defaultViewport;
-  let headlessOption;
-
-  if (isLinux) {
-    try {
-      executablePath = await chromium.executablePath();
-      launchArgs = chromium.args;
-      defaultViewport = chromium.defaultViewport;
-      headlessOption = chromium.headless;
-    } catch (e) {
-      logger.warn('Chromium (Sparticuz) path resolution failed; falling back to Puppeteer default');
-    }
-  }
-
-  if (!executablePath) {
-    executablePath = typeof puppeteer.executablePath === 'function' ? puppeteer.executablePath() : undefined;
-    launchArgs = [
+/**
+ * Chromium launch options shared by every Puppeteer caller.
+ * In Docker/production PUPPETEER_EXECUTABLE_PATH points at the system Chromium
+ * (/usr/bin/chromium in the image). Locally it is unset and Puppeteer uses the
+ * Chrome it downloaded on npm install.
+ */
+function getLaunchOptions() {
+  return {
+    headless: 'new',
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+    args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
       '--disable-gpu',
-      '--no-first-run',
-      '--no-zygote',
-      '--single-process'
-    ];
-    defaultViewport = null;
-    headlessOption = 'new';
-  }
+      '--no-first-run'
+    ],
+    defaultViewport: null
+  };
+}
 
-  const browser = await puppeteer.launch({
-    headless: headlessOption,
-    executablePath,
-    args: launchArgs,
-    defaultViewport
-  });
+async function launchBrowser() {
+  const browser = await puppeteer.launch(getLaunchOptions());
 
   browser.on('disconnected', () => {
     sharedBrowser = null;
@@ -113,6 +96,7 @@ async function withPage(fn) {
 
 module.exports = {
   getBrowser,
+  getLaunchOptions,
   withPage,
 };
 

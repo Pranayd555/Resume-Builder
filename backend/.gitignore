@@ -93,8 +93,6 @@ public
 tmp/
 temp/
 
-# Build artifacts (keep deploy/ but allow render-deployment.zip)
-deploy/
 
 # Editor directories and files
 .vscode/
@@ -125,8 +123,5 @@ public/uploads/
 *.sql
 *.dump
 
-# Large zip files - excluded from git completely
+# Archives never belong in git
 *.zip
-node_modules.zip
-# Allow render-deployment.zip for automated deployments
-!render-deployment.zip 

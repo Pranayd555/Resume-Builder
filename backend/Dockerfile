@@ -1,72 +1,38 @@
-# Multi-stage build for optimization
-FROM node:18-alpine AS builder
+# Presmistique API — production image
+# Debian (not Alpine) so the distro Chromium works reliably with Puppeteer.
+FROM node:22-bookworm-slim
 
-# Set working directory
-WORKDIR /app
+ENV NODE_ENV=production \
+    PORT=5000 \
+    PUPPETEER_SKIP_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
-# Install system dependencies for build
-RUN apk add --no-cache \
-    chromium \
-    nss \
-    freetype \
-    freetype-dev \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont
-
-# Set environment variables for Puppeteer
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-
-# Copy package files first for better caching
-COPY package*.json .npmrc ./
-
-# Install dependencies with optimization
-RUN npm install --only=production --no-audit --progress=false && \
-    npm cache clean --force
-
-# Production stage
-FROM node:18-alpine AS production
+# System Chromium + fonts used when rendering resumes to PDF
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      chromium \
+      ca-certificates \
+      fonts-liberation \
+      fonts-dejavu-core \
+      fonts-noto-color-emoji \
+ && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Install only runtime system dependencies
-RUN apk add --no-cache \
-    chromium \
-    nss \
-    freetype \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont
+# Dependencies first so code-only changes reuse this layer
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --no-audit --no-fund && npm cache clean --force
 
-# Set environment variables for Puppeteer
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
-    NODE_ENV=production
-
-# Copy dependencies from builder stage
-COPY --from=builder /app/node_modules ./node_modules
-
-# Copy application code
 COPY . .
 
-# Create logs directory
-RUN mkdir -p logs
+# Only logs/ and uploads/ are written at runtime; mount them as volumes in production
+RUN mkdir -p logs uploads/profile-pictures uploads/resumes \
+ && chown -R node:node logs uploads
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
-
-# Change ownership of the app directory
-RUN chown -R nodejs:nodejs /app
-USER nodejs
-
-# Expose port
+USER node
 EXPOSE 5000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:5000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })" || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://127.0.0.1:'+(process.env.PORT||5000)+'/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
 
-# Start the application
-CMD ["npm", "start"] 
+CMD ["node", "server.js"]

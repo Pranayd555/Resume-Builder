@@ -33,6 +33,10 @@ The required dependencies are already included in `package.json`:
 - `puppeteer` - For browser automation and screenshots
 - `handlebars` - For template rendering
 
+Locally, `npm install` downloads the Chrome build Puppeteer uses. In the production Docker image the Debian
+`chromium` package is used instead (`PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium`). All launches go through
+`getLaunchOptions()` in `backend/utils/browserManager.js`, which handles both cases.
+
 ## Usage
 
 ### Basic Commands
@@ -285,19 +289,21 @@ ls -la thumbnails/
 
 ## Production Deployment
 
-### Server Configuration
+### How thumbnails reach production
 
-1. **Static File Serving**: Ensure thumbnails directory is served by web server
-2. **CDN Integration**: Consider using CDN for thumbnail delivery
-3. **Backup Strategy**: Include thumbnails in backup procedures
+`backend/thumbnails/` is committed to the repo and copied into the API Docker image, where Express serves it at
+`/thumbnails`. The production container cannot persistently write there, so generate thumbnails **locally**,
+commit the files, and let the normal deploy ship them (see [docs/DEPLOYMENT.md](../../docs/DEPLOYMENT.md)).
+If template records in the production database need their thumbnail URLs refreshed, run the database update
+against production with the correct `BASE_URL` set.
 
 ### Environment Setup
 
 ```bash
 # Production environment variables
 NODE_ENV=production
-BASE_URL=https://your-domain.com
-MONGODB_URI=mongodb://production-server:27017/resumebuilder
+BASE_URL=https://api.presmistique.in
+MONGODB_URI=<production MongoDB Atlas connection string>
 ```
 
 ### Monitoring

@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer');
+const { getLaunchOptions } = require('./browserManager');
 const path = require('path');
 const fs = require('fs').promises;
 const handlebars = require('handlebars');
@@ -18,16 +19,10 @@ class PuppeteerThumbnailGenerator {
       await fs.mkdir(this.outputDir, { recursive: true });
 
       // Launch browser
+      const launchOptions = getLaunchOptions();
       this.browser = await puppeteer.launch({
-        headless: 'new',
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--disable-gpu',
-          '--window-size=1920,1080'
-        ]
+        ...launchOptions,
+        args: [...launchOptions.args, '--window-size=1920,1080']
       });
 
       console.log('✅ Puppeteer browser initialized');

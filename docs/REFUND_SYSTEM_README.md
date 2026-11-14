@@ -28,10 +28,9 @@ This is a comprehensive refund calculation system designed for the Resume Builde
 ### Documentation
 | File | Content |
 |------|---------|
-| `backend/utils/REFUND_CALCULATION_GUIDE.md` | Detailed guide with formulas |
-| `backend/utils/REFUND_IMPLEMENTATION_SUMMARY.md` | Quick reference & checklist |
-| `backend/utils/REFUND_VISUAL_GUIDE.md` | Flowcharts & decision trees |
-| `REFUND_SYSTEM_README.md` | This file |
+| [`docs/REFUND_TOKEN_DEDUCTION_LOGIC.md`](REFUND_TOKEN_DEDUCTION_LOGIC.md) | Token deduction rules |
+| [`docs/REFUND_VISUAL_GUIDE.md`](REFUND_VISUAL_GUIDE.md) | Flowcharts & decision trees |
+| `docs/REFUND_SYSTEM_README.md` | This file |
 
 ---
 
@@ -397,10 +396,9 @@ Potential improvements:
 ## 📞 Support & Questions
 
 ### Documentation Files
-- **Detailed Guide**: `backend/utils/REFUND_CALCULATION_GUIDE.md`
-- **Implementation Summary**: `backend/utils/REFUND_IMPLEMENTATION_SUMMARY.md`
-- **Visual Guide**: `backend/utils/REFUND_VISUAL_GUIDE.md`
-- **Test Suite**: `backend/utils/refundCalculator.test.js`
+- **Token Deduction Rules**: [REFUND_TOKEN_DEDUCTION_LOGIC.md](REFUND_TOKEN_DEDUCTION_LOGIC.md)
+- **Visual Guide**: [REFUND_VISUAL_GUIDE.md](REFUND_VISUAL_GUIDE.md)
+- **Test Suite**: `backend/utils/refundCalculator.test.js` (run with `cd backend && npm test`; also runs in CI)
 
 ### Code Files
 - **Calculator**: `backend/utils/refundCalculator.js`
@@ -491,7 +489,7 @@ For implementation questions or issues:
 1. Review documentation files
 2. Check test suite for examples
 3. Review code comments
-4. Contact development team
+4. Contact the team at presmistique@gmail.com
 
 ---
 

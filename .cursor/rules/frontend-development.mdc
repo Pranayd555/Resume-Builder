@@ -25,7 +25,7 @@ globs: resume-builder/src/**/*.js,resume-builder/src/**/*.jsx,resume-builder/src
 - **Resume Builder**: [resume-builder/src/components/ResumeForm.js](mdc:resume-builder/src/components/ResumeForm.js) - Main resume creation
 - **Template Selection**: [resume-builder/src/components/TemplateSelection.js](mdc:resume-builder/src/components/TemplateSelection.js) - Template picker
 - **Resume Preview**: [resume-builder/src/components/ResumePreviewEnhanced.js](mdc:resume-builder/src/components/ResumePreviewEnhanced.js) - PDF preview
-- **Authentication**: [resume-builder/src/components/login.js](mdc:resume-builder/src/components/login.js) - Login/Register forms
+- **Authentication**: [resume-builder/src/components/login.js](mdc:resume-builder/src/components/public/login.js) - Login/Register forms
 
 ### **Styling Guidelines**
 - **Framework**: Tailwind CSS with custom configuration
@@ -59,7 +59,7 @@ globs: resume-builder/src/**/*.js,resume-builder/src/**/*.jsx,resume-builder/src
 - **Form State**: Local component state with controlled inputs
 
 ### **API Integration**
-- **Base URL**: `process.env.REACT_APP_API_URL` or `http://localhost:5000`
+- **Base URL**: `process.env.REACT_APP_API_URL` (includes `/api`, e.g. `http://localhost:5000/api`)
 - **Authentication**: JWT tokens in Authorization header
 - **Error Handling**: Toast notifications with react-toastify
 - **Loading States**: Component-level loading indicators
@@ -91,13 +91,11 @@ globs: resume-builder/src/**/*.js,resume-builder/src/**/*.jsx,resume-builder/src
 
 ### **Environment Configuration**
 ```javascript
-// Development
-REACT_APP_API_URL=http://localhost:5000
-REACT_APP_ENVIRONMENT=development
+// Development (resume-builder/.env, from env.template)
+REACT_APP_API_URL=http://localhost:5000/api
 
-// Production
-REACT_APP_API_URL=https://your-backend-domain.com
-REACT_APP_ENVIRONMENT=production
+// Production (set in Cloudflare Pages project settings; baked in at build time)
+REACT_APP_API_URL=https://api.presmistique.in/api
 ```
 
 ### **Component Patterns**

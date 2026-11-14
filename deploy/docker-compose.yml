@@ -1,0 +1,38 @@
+# Production stack for the Presmistique API on the VPS.
+#
+# Lives at /opt/presmistique on the server. The "Deploy API" workflow copies this
+# file and deploy.sh there on every deploy; nothing else needs to be in that folder:
+#
+#   /opt/presmistique/
+#   ├── docker-compose.yml   (this file)
+#   ├── deploy.sh            (pull + health check + rollback)
+#   ├── .env                 (API_IMAGE=... and IMAGE_TAG=..., written by deploy.sh)
+#   ├── api.env              (application secrets, chmod 600, never committed)
+#   └── data/{uploads,logs}  (persistent volumes, owned by uid 1000)
+#
+# nginx on the host proxies https://api.presmistique.in -> 127.0.0.1:5000.
+name: presmistique
+
+services:
+  api:
+    image: ${API_IMAGE:?API_IMAGE must be set in .env}:${IMAGE_TAG:?IMAGE_TAG must be set in .env}
+    container_name: presmistique-api
+    restart: unless-stopped
+    init: true
+    env_file: api.env
+    environment:
+      NODE_ENV: production
+      PORT: "5000"
+    ports:
+      - "127.0.0.1:5000:5000"
+    volumes:
+      - ./data/uploads:/app/uploads
+      - ./data/logs:/app/logs
+    # Chromium needs more shared memory than Docker's 64 MB default
+    shm_size: "512mb"
+    mem_limit: 1536m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
