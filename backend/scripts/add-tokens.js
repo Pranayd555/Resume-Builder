@@ -29,6 +29,14 @@ const { toTokenBalance, creditTokens } = require('../utils/tokenCalculator');
 
 const describe = (b) => `${b.total} total (${b.purchased} purchased + ${b.bonus} bonus)`;
 
+// Linear-time sanity check (no backtracking regex): one @, a dot after it, no spaces.
+const looksLikeEmail = (value) => {
+  if (typeof value !== 'string' || value.length > 254 || value.includes(' ')) return false;
+  const at = value.indexOf('@');
+  const dot = value.lastIndexOf('.');
+  return at > 0 && at === value.lastIndexOf('@') && dot > at + 1 && dot < value.length - 1;
+};
+
 const addTokens = async (email, tokenCount, { purchased, force }) => {
   const user = await User.findOne({ email: email.toLowerCase() }).select('firstName lastName email tokens bonusTokens');
   if (!user) {
@@ -74,7 +82,7 @@ const main = async () => {
   const tokenCount = Number(positional.find(arg => /^\d+$/.test(arg)));
   const options = { purchased: args.includes('--purchased'), force: args.includes('--force') };
 
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (!looksLikeEmail(email)) {
     console.log('❌ Please provide a valid email address');
     showUsage();
     process.exit(1);

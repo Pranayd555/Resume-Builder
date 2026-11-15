@@ -51,7 +51,7 @@ export function normalizeBalance(raw) {
  */
 export function extractBalance(body) {
   if (!body || typeof body !== 'object') return null;
-  return normalizeBalance(body.tokens) || normalizeBalance(body.data && body.data.tokens);
+  return normalizeBalance(body.tokens) || normalizeBalance(body.data?.tokens);
 }
 
 /** True when two balances are the same. */

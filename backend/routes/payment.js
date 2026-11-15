@@ -7,6 +7,10 @@ const crypto = require('crypto');
 const emailService = require('../utils/emailService');
 const RefundCalculator = require('../utils/refundCalculator');
 const { toTokenBalance, tokenPayload, creditTokens, deductTokens } = require('../utils/tokenCalculator');
+const { logSafe } = require('../utils/logSafe');
+
+// Razorpay order/payment ids: short alphanumeric strings with underscores.
+const RAZORPAY_ID = /^\w{1,64}$/;
 
 // Token packages: price is in rupees. The server decides how many tokens a
 // payment buys from the verified amount; the token count sent by the client
@@ -62,7 +66,7 @@ async function grantBonusTokens(user, tokens, reason, admin) {
     throw err;
   }
 
-  logger.info(`Admin ${admin.email} gave ${tokens} bonus tokens to user ${user.email}. Reason: ${reason}. New balance: ${balance.purchased} purchased + ${balance.bonus} bonus`);
+  logger.info(`Admin ${logSafe(admin.email)} gave ${Number(tokens)} bonus tokens to user ${logSafe(user.email)}. Reason: ${logSafe(reason)}. New balance: ${Number(balance.purchased)} purchased + ${Number(balance.bonus)} bonus`);
 
   // Email is best-effort; never fail the grant because of it.
   try {
@@ -194,6 +198,16 @@ router.post('/complete-token-purchase', protect, async (req, res) => {
       });
     }
 
+    // Reject anything that isn't a plain id (objects, operators, newlines)
+    // before it reaches a query, Razorpay or a log line.
+    if (typeof order_id !== 'string' || typeof payment_id !== 'string' || typeof signature !== 'string' ||
+        !RAZORPAY_ID.test(order_id) || !RAZORPAY_ID.test(payment_id) || !Number.isFinite(Number(amount))) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid payment information'
+      });
+    }
+
     // Verify Razorpay signature
     const body = order_id + '|' + payment_id;
     const expectedSignature = crypto
@@ -256,7 +270,7 @@ router.post('/complete-token-purchase', protect, async (req, res) => {
     // Decide what was bought from the verified amount, not the client's token count.
     const selectedPackage = TOKEN_PACKAGES.find(pkg => pkg.price === Number(amount));
     if (!selectedPackage) {
-      logger.error(`Captured payment ${payment_id} for user ${user.email}: amount ₹${amount} matches no token package; tokens not credited, needs manual review`);
+      logger.error(`Captured payment ${logSafe(payment_id)} for user ${logSafe(user.email)}: amount ₹${Number(amount)} matches no token package; tokens not credited, needs manual review`);
       return res.status(400).json({
         success: false,
         message: 'Payment amount does not match a token package. Please contact support.'
@@ -266,7 +280,7 @@ router.post('/complete-token-purchase', protect, async (req, res) => {
     const bonusTokens = selectedPackage.bonus;
     const totalAdded = regularTokens + bonusTokens;
     if (Number(tokens) !== totalAdded) {
-      logger.warn(`Token count from client (${tokens}) differs from package for ₹${amount} (${totalAdded}); crediting the package`);
+      logger.warn(`Token count from client (${logSafe(tokens, 20)}) differs from package for ₹${Number(amount)} (${totalAdded}); crediting the package`);
     }
 
     const before = toTokenBalance(user);
@@ -299,7 +313,7 @@ router.post('/complete-token-purchase', protect, async (req, res) => {
     const updatedBalance = await creditTokens(
       user._id,
       { purchased: regularTokens, bonus: bonusTokens },
-      { filter: { 'razorpayTransactions.transactionId': { $ne: payment_id } }, push: transactionData }
+      { unlessTransactionId: payment_id, push: transactionData }
     );
     if (!updatedBalance) {
       return res.status(400).json({
@@ -308,7 +322,7 @@ router.post('/complete-token-purchase', protect, async (req, res) => {
       });
     }
 
-    logger.info(`Token purchase completed for user ${user.email}: ${regularTokens} + ${bonusTokens} bonus tokens for ₹${amount}`);
+    logger.info(`Token purchase completed for user ${logSafe(user.email)}: ${regularTokens} + ${bonusTokens} bonus tokens for ₹${Number(amount)}`);
 
     // Send payment invoice email
     try {
@@ -980,6 +994,243 @@ router.post('/calculate-refund/:transactionId', protect, async (req, res) => {
   }
 });
 
+// ---- Admin refund processing helpers ----
+
+const formatDateIN = (date = new Date()) => date.toLocaleDateString('en-IN', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit'
+});
+
+const displayName = (user) => user.firstName || user.email.split('@')[0];
+
+// Emails are best-effort: log the outcome, never fail the request.
+async function sendBestEffort(label, user, send) {
+  try {
+    const emailResult = await send();
+    if (emailResult.success) {
+      logger.info(`✅ ${label} email sent successfully to ${user.email}`);
+    } else {
+      logger.warn(`❌ Failed to send ${label} email to ${user.email}: ${emailResult.error}`);
+    }
+  } catch (emailError) {
+    logger.error(`💥 Error sending ${label} email to ${user.email}:`, emailError);
+  }
+}
+
+// Approve requested, but the calculator says the refund is not eligible.
+async function closeAsNotEligible({ req, res, user, transaction, transactionId, refundResult, notes }) {
+  const totalAvailable = Math.max(0, refundResult.currentTokens - (refundResult.bonusTokensAdded - refundResult.currentBonusTokens));
+  await sendBestEffort('not-eligible', user, () => emailService.sendRefundNotEligibleEmail({
+    email: user.email,
+    name: displayName(user),
+    transactionId: transaction.transactionId,
+    orderId: transaction.orderId,
+    amountPaid: transaction.amount,
+    refundReason: refundResult.message,
+    boughtTokens: refundResult.boughtTokens,
+    bonusTokensAdded: refundResult.bonusTokensAdded,
+    currentTokenBalance: refundResult.currentTokens,
+    totalAvailable
+  }));
+
+  await user.updateTransactionStatus(transactionId, 'refund_rejected', {
+    refundProcessedBy: req.user.email,
+    refundProcessedAt: new Date(),
+    adminNotes: notes,
+    refundStatus: 'not_eligible',
+    refundScenario: refundResult.scenario,
+    refundReason: refundResult.message
+  });
+
+  logger.info(`Admin ${req.user.email} processed refund for ${transactionId} - NOT ELIGIBLE (Scenario ${refundResult.scenario})`);
+
+  return res.json({
+    success: true,
+    message: 'Refund request processed - Not eligible for refund',
+    data: {
+      transactionId,
+      status: 'not_eligible',
+      scenario: refundResult.scenario,
+      refundAmount: 0,
+      reason: refundResult.message,
+      details: {
+        boughtTokens: refundResult.boughtTokens,
+        bonusTokensAdded: refundResult.bonusTokensAdded,
+        currentBalance: refundResult.currentTokens,
+        currentBonusBalance: refundResult.currentBonusTokens
+      }
+    }
+  });
+}
+
+// Pay the refund through Razorpay, then remove the refunded tokens.
+async function payEligibleRefund({ req, res, user, transaction, transactionId, refundResult, notes }) {
+  let refund;
+  try {
+    // First check if payment still exists and is capturable
+    const payment = await razorpay.payments.fetch(transaction.paymentId);
+    if (payment.status !== 'captured') {
+      return res.status(400).json({
+        success: false,
+        message: 'Payment is not in a refundable state'
+      });
+    }
+
+    // Create refund with calculated amount
+    refund = await razorpay.payments.refund(transaction.paymentId, {
+      amount: refundResult.refundAmount,
+      notes: {
+        adminId: req.user.id,
+        adminEmail: req.user.email,
+        refundReason: transaction.metadata?.refundReason,
+        refundScenario: refundResult.scenario,
+        refundPercentage: refundResult.refundPercentage,
+        adminNotes: notes
+      }
+    });
+  } catch (razorpayError) {
+    logger.error('Razorpay refund error:', razorpayError);
+    await user.updateTransactionStatus(transactionId, 'refund_requested', {
+      refundProcessedBy: req.user.email,
+      refundProcessedAt: new Date(),
+      adminNotes: notes,
+      refundStatus: 'rejected',
+      refundReason: `Razorpay Error: ${razorpayError.message}`,
+      refundScenario: refundResult.scenario
+    });
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to process refund via Razorpay',
+      error: razorpayError.message
+    });
+  }
+
+  await user.updateTransactionStatus(transactionId, 'refunded', {
+    status: 'refunded',
+    refundedAt: new Date(),
+    refundId: refund.id,
+    refundAmount: refundResult.refundAmount,
+    refundProcessedBy: req.user.email,
+    refundProcessedAt: new Date(),
+    adminNotes: notes,
+    refundStatus: 'completed',
+    refundScenario: refundResult.scenario,
+    refundPercentage: refundResult.refundPercentage
+  });
+
+  // Per-scenario rules live in RefundCalculator.getTokenDeduction (see
+  // docs/REFUND_TOKEN_DEDUCTION_LOGIC.md). One atomic update, so AI actions
+  // running at the same moment can't be lost or overwritten.
+  const deduction = RefundCalculator.getTokenDeduction(refundResult);
+  const tokensToDeduct = deduction.purchased;
+  const bonusTokensToDeduct = deduction.bonus;
+  let newBalance = toTokenBalance(user);
+  if (tokensToDeduct > 0 || bonusTokensToDeduct > 0) {
+    newBalance = await deductTokens(user._id, deduction);
+    logger.info(`User ${logSafe(user.email)} tokens updated after refund (Scenario ${Number(refundResult.scenario)}): -${Number(tokensToDeduct)} purchased, -${Number(bonusTokensToDeduct)} bonus. Now ${Number(newBalance.purchased)} purchased + ${Number(newBalance.bonus)} bonus`);
+  }
+
+  await sendBestEffort('refund completion', user, () => emailService.sendRefundCompletionEmail({
+    email: user.email,
+    name: displayName(user),
+    transactionId,
+    orderId: transaction.orderId,
+    refundAmount: RefundCalculator.paiseToRupees(refundResult.refundAmount),
+    refundId: refund.id,
+    processedDate: formatDateIN()
+  }));
+
+  logger.info(`Admin ${req.user.email} approved refund for transaction ${transactionId} - Scenario ${refundResult.scenario}, Amount: ₹${RefundCalculator.paiseToRupees(refundResult.refundAmount)}, Tokens deducted: ${tokensToDeduct} regular + ${bonusTokensToDeduct} bonus`);
+
+  return res.json({
+    success: true,
+    message: 'Refund approved and processed successfully',
+    data: {
+      transactionId,
+      refundId: refund.id,
+      status: 'refunded',
+      refundAmount: RefundCalculator.paiseToRupees(refundResult.refundAmount),
+      refundAmountInPaise: refundResult.refundAmount,
+      refundPercentage: refundResult.refundPercentage,
+      scenario: refundResult.scenario,
+      originalAmount: RefundCalculator.paiseToRupees(transaction.amount),
+      tokensDeducted: {
+        regular: tokensToDeduct,
+        bonus: bonusTokensToDeduct,
+        total: tokensToDeduct + bonusTokensToDeduct
+      },
+      newBalance: {
+        regular: newBalance.purchased,
+        bonus: newBalance.bonus,
+        total: newBalance.total
+      },
+      userTokenBalance: newBalance
+    }
+  });
+}
+
+async function approveRefund(ctx) {
+  const { user, transaction, transactionId, res } = ctx;
+  const refundResult = RefundCalculator.calculateRefund(
+    transaction,
+    { tokens: toTokenBalance(user).purchased, bonusTokens: toTokenBalance(user).bonus },
+    transaction.amount
+  );
+
+  logger.info(`Refund calculation for ${transactionId}:`, {
+    scenario: refundResult.scenario,
+    status: refundResult.status,
+    refundAmount: refundResult.refundAmount,
+    refundPercentage: refundResult.refundPercentage,
+    message: refundResult.message
+  });
+
+  if (refundResult.status === 'error') {
+    return res.status(400).json({
+      success: false,
+      message: `Refund cannot be calculated for this transaction: ${refundResult.error}`
+    });
+  }
+  if (refundResult.status === 'not_eligible') {
+    return closeAsNotEligible({ ...ctx, refundResult });
+  }
+  return payEligibleRefund({ ...ctx, refundResult });
+}
+
+async function rejectRefund({ req, res, user, transaction, transactionId, notes }) {
+  await user.updateTransactionStatus(transactionId, 'captured', {
+    refundProcessedBy: req.user.email,
+    refundProcessedAt: new Date(),
+    adminNotes: notes,
+    refundStatus: 'rejected'
+  });
+
+  await sendBestEffort('refund rejection', user, () => emailService.sendRefundRejectionEmail({
+    email: user.email,
+    name: displayName(user),
+    transactionId,
+    orderId: transaction.orderId,
+    amount: transaction.amount / 100,
+    rejectionReason: notes,
+    rejectedDate: formatDateIN()
+  }));
+
+  logger.info(`Admin ${req.user.email} rejected refund for transaction ${transactionId}`);
+
+  return res.json({
+    success: true,
+    message: 'Refund request rejected',
+    data: {
+      transactionId,
+      status: 'captured',
+      rejectionReason: notes
+    }
+  });
+}
+
 // @desc    Admin: Process refund (approve or reject)
 // @route   POST /api/payment/admin/process-refund/:transactionId
 // @access  Private (Admin only)
@@ -1005,299 +1256,19 @@ router.post('/admin/process-refund/:transactionId', protect, async (req, res) =>
 
     // Find user with the transaction
     const user = await User.findOne({
-      'razorpayTransactions.transactionId': transactionId,
+      'razorpayTransactions.transactionId': String(transactionId),
       'razorpayTransactions.status': 'refund_requested'
     });
-
-    if (!user) {
+    const transaction = user?.getTransactionById(transactionId);
+    if (transaction?.status !== 'refund_requested') {
       return res.status(404).json({
         success: false,
         message: 'Refund request not found'
       });
     }
 
-    // Get the transaction
-    const transaction = user.getTransactionById(transactionId);
-    if (!transaction || transaction.status !== 'refund_requested') {
-      return res.status(404).json({
-        success: false,
-        message: 'Refund request not found'
-      });
-    }
-
-    if (action === 'approve') {
-      // Calculate refund using RefundCalculator
-      const refundResult = RefundCalculator.calculateRefund(
-        transaction,
-        { tokens: toTokenBalance(user).purchased, bonusTokens: toTokenBalance(user).bonus },
-        transaction.amount
-      );
-
-      logger.info(`Refund calculation for ${transactionId}:`, {
-        scenario: refundResult.scenario,
-        status: refundResult.status,
-        refundAmount: refundResult.refundAmount,
-        refundPercentage: refundResult.refundPercentage,
-        message: refundResult.message
-      });
-
-      if (refundResult.status === 'error') {
-        return res.status(400).json({
-          success: false,
-          message: `Refund cannot be calculated for this transaction: ${refundResult.error}`
-        });
-      }
-
-      // Check if refund is eligible
-      if (refundResult.status === 'not_eligible') {
-        // Send not-eligible email to user
-        try {
-          logger.info(`Sending not-eligible email to ${user.email} for transaction ${transactionId}`);
-
-          const totalAvailable = Math.max(0, refundResult.currentTokens - (refundResult.bonusTokensAdded - refundResult.currentBonusTokens));
-
-          const emailResult = await emailService.sendRefundNotEligibleEmail({
-            email: user.email,
-            name: user.firstName || user.email.split('@')[0],
-            transactionId: transaction.transactionId,
-            orderId: transaction.orderId,
-            amountPaid: transaction.amount,
-            refundReason: refundResult.message,
-            boughtTokens: refundResult.boughtTokens,
-            bonusTokensAdded: refundResult.bonusTokensAdded,
-            currentTokenBalance: refundResult.currentTokens,
-            totalAvailable: totalAvailable
-          });
-
-          if (emailResult.success) {
-            logger.info(`✅ Not-eligible email sent successfully to ${user.email}`);
-          } else {
-            logger.warn(`❌ Failed to send not-eligible email to ${user.email}: ${emailResult.error}`);
-          }
-        } catch (emailError) {
-          logger.error(`💥 Error sending not-eligible email to ${user.email}:`, emailError);
-        }
-
-        // Update transaction with rejection
-        const rejectionData = {
-          refundProcessedBy: req.user.email,
-          refundProcessedAt: new Date(),
-          adminNotes: notes,
-          refundStatus: 'not_eligible',
-          refundScenario: refundResult.scenario,
-          refundReason: refundResult.message
-        };
-
-        await user.updateTransactionStatus(transactionId, 'refund_rejected', rejectionData);
-
-        logger.info(`Admin ${req.user.email} processed refund for ${transactionId} - NOT ELIGIBLE (Scenario ${refundResult.scenario})`);
-
-        return res.json({
-          success: true,
-          message: 'Refund request processed - Not eligible for refund',
-          data: {
-            transactionId: transactionId,
-            status: 'not_eligible',
-            scenario: refundResult.scenario,
-            refundAmount: 0,
-            reason: refundResult.message,
-            details: {
-              boughtTokens: refundResult.boughtTokens,
-              bonusTokensAdded: refundResult.bonusTokensAdded,
-              currentBalance: refundResult.currentTokens,
-              currentBonusBalance: refundResult.currentBonusTokens
-            }
-          }
-        });
-      }
-
-      // Process refund via Razorpay for eligible refunds
-      try {
-        // First check if payment still exists and is capturable
-        const payment = await razorpay.payments.fetch(transaction.paymentId);
-
-        if (payment.status !== 'captured') {
-          return res.status(400).json({
-            success: false,
-            message: 'Payment is not in a refundable state'
-          });
-        }
-
-        // Create refund with calculated amount
-        const refund = await razorpay.payments.refund(transaction.paymentId, {
-          amount: refundResult.refundAmount,
-          notes: {
-            adminId: req.user.id,
-            adminEmail: req.user.email,
-            refundReason: transaction.metadata?.refundReason,
-            refundScenario: refundResult.scenario,
-            refundPercentage: refundResult.refundPercentage,
-            adminNotes: notes
-          }
-        });
-
-        // Update transaction status with refund details
-        const refundData = {
-          status: 'refunded',
-          refundedAt: new Date(),
-          refundId: refund.id,
-          refundAmount: refundResult.refundAmount,
-          refundProcessedBy: req.user.email,
-          refundProcessedAt: new Date(),
-          adminNotes: notes,
-          refundStatus: 'completed',
-          refundScenario: refundResult.scenario,
-          refundPercentage: refundResult.refundPercentage
-        };
-
-        await user.updateTransactionStatus(transactionId, 'refunded', refundData);
-
-        // ============ DEDUCT TOKENS FROM USER ACCOUNT ============
-        // Per-scenario rules live in RefundCalculator.getTokenDeduction (see
-        // docs/REFUND_TOKEN_DEDUCTION_LOGIC.md). One atomic update, so AI
-        // actions running at the same moment can't be lost or overwritten.
-        const deduction = RefundCalculator.getTokenDeduction(refundResult);
-        const tokensToDeduct = deduction.purchased;
-        const bonusTokensToDeduct = deduction.bonus;
-        let newBalance = toTokenBalance(user);
-        if (tokensToDeduct > 0 || bonusTokensToDeduct > 0) {
-          newBalance = await deductTokens(user._id, deduction);
-          logger.info(`User ${user.email} tokens updated after refund (Scenario ${refundResult.scenario}): -${tokensToDeduct} purchased, -${bonusTokensToDeduct} bonus. Now ${newBalance.purchased} purchased + ${newBalance.bonus} bonus`);
-        }
-        // ============ END TOKEN DEDUCTION ============
-
-        // Send refund completion email
-        try {
-          logger.info(`Attempting to send refund completion email to ${user.email} for transaction ${transactionId}`);
-
-          const emailResult = await emailService.sendRefundCompletionEmail({
-            email: user.email,
-            name: user.firstName || user.email.split('@')[0],
-            transactionId: transactionId,
-            orderId: transaction.orderId,
-            refundAmount: RefundCalculator.paiseToRupees(refundResult.refundAmount),
-            refundId: refund.id,
-            processedDate: new Date().toLocaleDateString('en-IN', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            })
-          });
-
-          if (emailResult.success) {
-            logger.info(`✅ Refund completion email sent successfully to ${user.email}`);
-          } else {
-            logger.warn(`❌ Failed to send refund completion email to ${user.email}: ${emailResult.error}`);
-          }
-        } catch (emailError) {
-          logger.error(`💥 Error sending refund completion email to ${user.email}:`, emailError);
-        }
-
-        logger.info(`Admin ${req.user.email} approved refund for transaction ${transactionId} - Scenario ${refundResult.scenario}, Amount: ₹${RefundCalculator.paiseToRupees(refundResult.refundAmount)}, Tokens deducted: ${tokensToDeduct} regular + ${bonusTokensToDeduct} bonus`);
-
-        res.json({
-          success: true,
-          message: 'Refund approved and processed successfully',
-          data: {
-            transactionId: transactionId,
-            refundId: refund.id,
-            status: 'refunded',
-            refundAmount: RefundCalculator.paiseToRupees(refundResult.refundAmount),
-            refundAmountInPaise: refundResult.refundAmount,
-            refundPercentage: refundResult.refundPercentage,
-            scenario: refundResult.scenario,
-            originalAmount: RefundCalculator.paiseToRupees(transaction.amount),
-            tokensDeducted: {
-              regular: tokensToDeduct,
-              bonus: bonusTokensToDeduct,
-              total: tokensToDeduct + bonusTokensToDeduct
-            },
-            newBalance: {
-              regular: newBalance.purchased,
-              bonus: newBalance.bonus,
-              total: newBalance.total
-            },
-            userTokenBalance: newBalance
-          }
-        });
-
-      } catch (razorpayError) {
-        logger.error('Razorpay refund error:', razorpayError);
-
-        // Update transaction with failed refund status
-        const failedRefundData = {
-          refundProcessedBy: req.user.email,
-          refundProcessedAt: new Date(),
-          adminNotes: notes,
-          refundStatus: 'rejected',
-          refundReason: `Razorpay Error: ${razorpayError.message}`,
-          refundScenario: refundResult.scenario
-        };
-
-        await user.updateTransactionStatus(transactionId, 'refund_requested', failedRefundData);
-
-        return res.status(500).json({
-          success: false,
-          message: 'Failed to process refund via Razorpay',
-          error: razorpayError.message
-        });
-      }
-
-    } else if (action === 'reject') {
-      // Reject refund request
-      const rejectionData = {
-        refundProcessedBy: req.user.email,
-        refundProcessedAt: new Date(),
-        adminNotes: notes,
-        refundStatus: 'rejected'
-      };
-
-      await user.updateTransactionStatus(transactionId, 'captured', rejectionData);
-
-      // Send refund rejection email
-      try {
-        logger.info(`Attempting to send refund rejection email to ${user.email} for transaction ${transactionId}`);
-
-        const emailResult = await emailService.sendRefundRejectionEmail({
-          email: user.email,
-          name: user.firstName || user.email.split('@')[0],
-          transactionId: transactionId,
-          orderId: transaction.orderId,
-          amount: transaction.amount / 100,
-          rejectionReason: notes,
-          rejectedDate: new Date().toLocaleDateString('en-IN', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          })
-        });
-
-        if (emailResult.success) {
-          logger.info(`✅ Refund rejection email sent successfully to ${user.email}`);
-        } else {
-          logger.warn(`❌ Failed to send refund rejection email to ${user.email}: ${emailResult.error}`);
-        }
-      } catch (emailError) {
-        logger.error(`💥 Error sending refund rejection email to ${user.email}:`, emailError);
-      }
-
-      logger.info(`Admin ${req.user.email} rejected refund for transaction ${transactionId}`);
-
-      res.json({
-        success: true,
-        message: 'Refund request rejected',
-        data: {
-          transactionId: transactionId,
-          status: 'captured',
-          rejectionReason: notes
-        }
-      });
-    }
-
+    const ctx = { req, res, user, transaction, transactionId, notes };
+    return action === 'approve' ? await approveRefund(ctx) : await rejectRefund(ctx);
   } catch (error) {
     logger.error('Process refund error:', error);
     res.status(500).json({

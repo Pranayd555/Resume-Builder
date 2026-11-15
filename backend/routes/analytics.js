@@ -7,6 +7,7 @@ const User = require('../models/User');
 // Subscription model no longer needed
 const logger = require('../utils/logger');
 const { toTokenBalance, tokenPayload, spendTokens } = require('../utils/tokenCalculator');
+const { logSafe } = require('../utils/logSafe');
 
 // @desc    Track resume view
 // @route   POST /api/analytics/resume/:id/view
@@ -275,7 +276,7 @@ router.post('/ai-action', protect, async (req, res) => {
       });
     }
 
-    logger.info(`AI action tracked: ${actionType} (${tokensUsed} tokens) by user ${req.user.email}`);
+    logger.info(`AI action tracked: ${logSafe(actionType, 50)} (${tokensUsed} tokens) by user ${logSafe(req.user.email)}`);
 
     res.json({
       success: true,

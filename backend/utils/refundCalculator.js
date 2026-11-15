@@ -16,6 +16,103 @@ const logger = require('./logger');
  * spent bonus first (see utils/tokenCalculator.js).
  */
 
+// ---- Scenario helpers (amounts in paise) ----
+
+const fullRefund = (paid, message) => ({ refundAmount: paid, refundPercentage: 100, message });
+
+// Refund for `effective` of the `bought` tokens, at the price paid per token.
+const partialRefund = (paid, bought, effective, message) => ({
+  refundAmount: Math.round((paid / bought) * effective),
+  refundPercentage: (effective / bought) * 100,
+  message
+});
+
+const notEligible = (message) => ({ refundAmount: 0, refundPercentage: 0, status: 'not_eligible', message });
+
+// Scenarios 1 and 2: the purchase had no bonus.
+function scenarioWithoutBonus({ paid, bought, tokens }) {
+  if (tokens >= bought) {
+    return { scenario: 1, ...fullRefund(paid, 'Full refund approved - token balance is sufficient') };
+  }
+  return {
+    scenario: 2,
+    ...partialRefund(paid, bought, tokens,
+      `Partial refund approved - ${bought - tokens} tokens have been used. Refunding for ${tokens} unused tokens.`)
+  };
+}
+
+// Scenario 5: purchased and bonus tokens both partly used. The bonus used
+// reduces the refundable tokens; under 1 token left means not eligible.
+function scenarioBothUsed({ paid, bought, tokens, bonusUsed }) {
+  const effective = tokens - bonusUsed;
+  if (effective < 1) {
+    return {
+      scenario: 5,
+      ...notEligible('Refund not possible as per policy - tokens have been used beyond the purchased amount plus bonus used.')
+    };
+  }
+  return {
+    scenario: 5,
+    ...partialRefund(paid, bought, effective,
+      `Partial refund approved - ${bought - tokens} purchased tokens and ${bonusUsed} bonus tokens have been used.`)
+  };
+}
+
+// Scenario 6: some purchased tokens used, but the bonus pool still holds at
+// least this purchase's bonus (e.g. a bonus was granted later). No bonus from
+// this purchase counts as used, so refund the unused purchased tokens, as in
+// scenario 2.
+function scenarioPurchasedUsedBonusCovered({ paid, bought, tokens }) {
+  if (tokens < 1) {
+    return { scenario: 6, ...notEligible('Refund not possible as per policy - all purchased tokens have been used.') };
+  }
+  return {
+    scenario: 6,
+    ...partialRefund(paid, bought, tokens,
+      `Partial refund approved - ${bought - tokens} purchased tokens have been used. Refunding for ${tokens} unused tokens.`)
+  };
+}
+
+// Scenarios 3 to 6: the purchase came with bonus tokens.
+function scenarioWithBonus({ paid, bought, tokens, bonus, bonusAdded }) {
+  const purchasedIntact = tokens >= bought;
+  const bonusIntact = bonus >= bonusAdded;
+  const bonusUsed = bonusAdded - bonus;
+
+  if (purchasedIntact && bonusIntact) {
+    return {
+      scenario: 3,
+      ...fullRefund(paid, 'Full refund approved - both purchased tokens and bonus tokens are available')
+    };
+  }
+  if (purchasedIntact) {
+    // Scenario 4: bonus partly used, purchased intact
+    const effective = bought - bonusUsed;
+    return {
+      scenario: 4,
+      ...partialRefund(paid, bought, effective,
+        `Partial refund approved - ${bonusUsed} bonus tokens have been used. Refunding for ${effective} effective tokens.`)
+    };
+  }
+  if (!bonusIntact) {
+    return scenarioBothUsed({ paid, bought, tokens, bonusUsed });
+  }
+  return scenarioPurchasedUsedBonusCovered({ paid, bought, tokens });
+}
+
+function validateInputs(transaction, currentUserState) {
+  if (!transaction?.metadata) {
+    throw new Error('Invalid transaction data');
+  }
+  if (currentUserState?.tokens === undefined || currentUserState?.bonusTokens === undefined) {
+    throw new Error('Invalid user state');
+  }
+  const { boughtTokens } = transaction.metadata;
+  if (!boughtTokens || boughtTokens < 1) {
+    throw new Error('Invalid transaction: tokens bought not found or invalid');
+  }
+}
+
 class RefundCalculator {
   /**
    * Main refund calculation method
@@ -26,139 +123,26 @@ class RefundCalculator {
    */
   static calculateRefund(transaction, currentUserState, paidAmount) {
     try {
-      // Validate inputs
-      if (!transaction || !transaction.metadata) {
-        throw new Error('Invalid transaction data');
-      }
-
-      if (!currentUserState || currentUserState.tokens === undefined || currentUserState.bonusTokens === undefined) {
-        throw new Error('Invalid user state');
-      }
+      validateInputs(transaction, currentUserState);
 
       const { tokens: currentTokens, bonusTokens: currentBonusTokens } = currentUserState;
       const { boughtTokens, bonusTokensAdded } = transaction.metadata;
       const paidInPaise = paidAmount || transaction.amount;
+      const input = {
+        paid: paidInPaise,
+        bought: boughtTokens,
+        tokens: currentTokens,
+        bonus: currentBonusTokens,
+        bonusAdded: bonusTokensAdded
+      };
 
-      // Validate transaction metadata
-      if (!boughtTokens || boughtTokens < 1) {
-        throw new Error('Invalid transaction: tokens bought not found or invalid');
-      }
-
-      // Helper function to determine scenario and calculate refund
-      const hasBonus = bonusTokensAdded && bonusTokensAdded > 0;
-
-      let scenario, refundData;
-
-      if (!hasBonus) {
-        // Scenarios 1 & 2: No bonus
-        if (currentTokens >= boughtTokens) {
-          // Scenario 1: Full refund
-          scenario = 1;
-          refundData = {
-            refundAmount: paidInPaise,
-            refundPercentage: 100,
-            message: 'Full refund approved - token balance is sufficient'
-          };
-        } else {
-          // Scenario 2: Partial refund based on token usage
-          scenario = 2;
-          const tokensUsed = boughtTokens - currentTokens;
-          const refundPercentage = (currentTokens / boughtTokens) * 100;
-          const refundAmount = Math.round((paidInPaise / boughtTokens) * currentTokens);
-
-          refundData = {
-            refundAmount,
-            refundPercentage,
-            message: `Partial refund approved - ${tokensUsed} tokens have been used. Refunding for ${currentTokens} unused tokens.`
-          };
-        }
-      } else {
-        // Scenarios 3, 4, 5, 6: With bonus
-        const totalTokensWithBonus = boughtTokens + bonusTokensAdded;
-        const currentBonusAvailable = currentBonusTokens;
-        const bonusUsed = bonusTokensAdded - currentBonusAvailable;
-
-        if (currentTokens >= boughtTokens && currentBonusTokens >= bonusTokensAdded) {
-          // Scenario 3: Full refund - both regular and bonus tokens are available
-          scenario = 3;
-          refundData = {
-            refundAmount: paidInPaise,
-            refundPercentage: 100,
-            message: 'Full refund approved - both purchased tokens and bonus tokens are available'
-          };
-        } else if (currentTokens >= boughtTokens && currentBonusTokens < bonusTokensAdded) {
-          // Scenario 4: Partial refund - regular tokens ok, bonus not fully available
-          scenario = 4;
-          const bonusUsedAmount = bonusTokensAdded - currentBonusAvailable;
-          const effectiveTokensToRefundFor = boughtTokens - bonusUsedAmount;
-          const refundPercentage = (effectiveTokensToRefundFor / boughtTokens) * 100;
-          const refundAmount = Math.round((paidInPaise / boughtTokens) * effectiveTokensToRefundFor);
-
-          refundData = {
-            refundAmount,
-            refundPercentage,
-            message: `Partial refund approved - ${bonusUsedAmount} bonus tokens have been used. Refunding for ${effectiveTokensToRefundFor} effective tokens.`
-          };
-        } else if (currentTokens < boughtTokens && currentBonusTokens < bonusTokensAdded) {
-          // Scenarios 5 & 6: Both regular and bonus tokens are partially used
-          scenario = currentBonusTokens > bonusTokensAdded - currentBonusTokens ? 5 : 5; // Both treated as 5/6
-
-          // Calculate total available tokens (accounting for bonus usage)
-          const bonusUsedAmount = bonusTokensAdded - currentBonusAvailable;
-          const regularTokensUsed = boughtTokens - currentTokens;
-          
-          // Effective tokens for refund = current available - tokens lost from bonus
-          const effectiveTokensForRefund = currentTokens - bonusUsedAmount;
-
-          // Check if refund is possible (must be at least 1 token)
-          if (effectiveTokensForRefund < 1) {
-            refundData = {
-              refundAmount: 0,
-              refundPercentage: 0,
-              status: 'not_eligible',
-              message: 'Refund not possible as per policy - tokens have been used beyond the purchased amount plus bonus used.'
-            };
-          } else {
-            const refundPercentage = (effectiveTokensForRefund / boughtTokens) * 100;
-            const refundAmount = Math.round((paidInPaise / boughtTokens) * effectiveTokensForRefund);
-
-            refundData = {
-              refundAmount,
-              refundPercentage,
-              message: `Partial refund approved - ${regularTokensUsed} purchased tokens and ${bonusUsedAmount} bonus tokens have been used.`
-            };
-          }
-        } else {
-          // Scenario 6: some purchased tokens used, but the bonus pool still
-          // holds at least this purchase's bonus (e.g. a bonus was granted
-          // later). No bonus from this purchase counts as used, so refund the
-          // unused purchased tokens, as in scenario 2.
-          scenario = 6;
-          const regularTokensUsed = boughtTokens - currentTokens;
-
-          if (currentTokens < 1) {
-            refundData = {
-              refundAmount: 0,
-              refundPercentage: 0,
-              status: 'not_eligible',
-              message: 'Refund not possible as per policy - all purchased tokens have been used.'
-            };
-          } else {
-            refundData = {
-              refundAmount: Math.round((paidInPaise / boughtTokens) * currentTokens),
-              refundPercentage: (currentTokens / boughtTokens) * 100,
-              message: `Partial refund approved - ${regularTokensUsed} purchased tokens have been used. Refunding for ${currentTokens} unused tokens.`
-            };
-          }
-        }
-      }
+      const refundData = bonusTokensAdded > 0 ? scenarioWithBonus(input) : scenarioWithoutBonus(input);
 
       // Ensure refund amount never exceeds paid amount
       refundData.refundAmount = Math.min(refundData.refundAmount || 0, paidInPaise);
 
       return {
         ...refundData,
-        scenario,
         paid: paidInPaise,
         currentTokens,
         currentBonusTokens,

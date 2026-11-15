@@ -1015,26 +1015,29 @@ function Profile() {
                 )}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              {/* AI token balance (read-only, so a heading rather than a form label) */}
+              <section aria-labelledby="profile-ai-tokens-heading">
+                <h3 id="profile-ai-tokens-heading" className="block text-sm font-medium text-gray-700 mb-2">
                   AI Tokens
-                </label>
-                {user.isOwnApiKey ? (
-                  <p className="text-gray-900 font-medium" data-testid="profile-token-balance">
-                    Not used: AI actions run on your own Gemini API key
-                    <span className="block text-sm text-gray-500 font-normal">
-                      Balance kept for later: {balance.total} ({balance.purchased} purchased + {balance.bonus} bonus)
-                    </span>
-                  </p>
-                ) : (
-                  <p className="text-gray-900 font-medium" data-testid="profile-token-balance">
-                    {balance.total} {balance.total === 1 ? 'token' : 'tokens'}
-                    <span className="block text-sm text-gray-500 font-normal">
-                      {balance.purchased} purchased (refundable) + {balance.bonus} bonus
-                    </span>
-                  </p>
-                )}
-              </div>
+                </h3>
+                <div className="text-gray-900 font-medium" data-testid="profile-token-balance">
+                  {user.isOwnApiKey ? (
+                    <>
+                      <span className="block">Not used: AI actions run on your own Gemini API key</span>
+                      <span className="block text-sm text-gray-500 font-normal">
+                        {`Balance kept for later: ${balance.total} (${balance.purchased} purchased + ${balance.bonus} bonus)`}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="block">{`${balance.total} ${balance.total === 1 ? 'token' : 'tokens'}`}</span>
+                      <span className="block text-sm text-gray-500 font-normal">
+                        {`${balance.purchased} purchased (refundable) + ${balance.bonus} bonus`}
+                      </span>
+                    </>
+                  )}
+                </div>
+              </section>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">

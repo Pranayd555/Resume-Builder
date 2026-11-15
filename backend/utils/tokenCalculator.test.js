@@ -185,7 +185,7 @@ describe('database token operations', { skip: !MONGO_URI && 'TOKEN_TEST_MONGODB_
     const txn = { transactionId: 'pay_123', orderId: 'order_1', amount: 19900, status: 'captured', metadata: { boughtTokens: 25, bonusTokensAdded: 5, type: 'token_purchase' } };
     const attempts = await Promise.all(Array.from({ length: 5 }, () =>
       ledger.creditTokens(user._id, { purchased: 25, bonus: 5 }, {
-        filter: { 'razorpayTransactions.transactionId': { $ne: 'pay_123' } },
+        unlessTransactionId: 'pay_123',
         push: txn
       })
     ));

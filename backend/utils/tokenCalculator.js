@@ -22,6 +22,22 @@
 // Lazily required so models/User.js can import the pure helpers below
 // without a circular dependency.
 const getUserModel = () => require('../models/User');
+const mongoose = require('mongoose');
+
+/**
+ * Validate and cast a user id before it goes into a query. Anything that is
+ * not a valid ObjectId (e.g. an object such as { $ne: null } from a request
+ * body) is rejected instead of being passed to MongoDB.
+ */
+function toObjectId(id) {
+  const value = id instanceof mongoose.Types.ObjectId ? id.toHexString() : String(id);
+  if (!mongoose.Types.ObjectId.isValid(value) || !/^[a-f0-9]{24}$/i.test(value)) {
+    const err = new Error('Invalid user id');
+    err.statusCode = 400;
+    throw err;
+  }
+  return new mongoose.Types.ObjectId(value);
+}
 
 /** Coerce a stored value to a non-negative whole number of tokens. */
 function toCount(value) {
@@ -34,14 +50,14 @@ function toCount(value) {
  * Missing, null, negative or non-numeric values count as 0.
  */
 function toTokenBalance(source) {
-  const purchased = toCount(source && source.tokens);
-  const bonus = toCount(source && source.bonusTokens);
+  const purchased = toCount(source?.tokens);
+  const bonus = toCount(source?.bonusTokens);
   return { purchased, bonus, total: purchased + bonus };
 }
 
 /** The balance shape sent to clients. */
 function tokenPayload(balance) {
-  const { purchased, bonus, total } = balance && typeof balance.total === 'number'
+  const { purchased, bonus, total } = typeof balance?.total === 'number'
     ? balance
     : toTokenBalance(balance);
   return {
@@ -62,7 +78,7 @@ function tokenPayload(balance) {
 function splitSpend(balance, amount = 1) {
   const need = toCount(amount);
   if (need < 1) throw new Error('Spend amount must be a positive integer');
-  const { purchased, bonus, total } = toTokenBalance({ tokens: balance.purchased, bonusTokens: balance.bonus });
+  const { bonus, total } = toTokenBalance({ tokens: balance.purchased, bonusTokens: balance.bonus });
   if (total < need) return null;
   const fromBonus = Math.min(bonus, need);
   return { fromBonus, fromPurchased: need - fromBonus };
@@ -113,7 +129,7 @@ function notFound() {
 
 /** Current balance from the database. Throws (404) if the user is missing. */
 async function getTokenBalance(userId) {
-  const user = await getUserModel().findById(userId).select(BALANCE_PROJECTION).lean();
+  const user = await getUserModel().findById(toObjectId(userId)).select(BALANCE_PROJECTION).lean();
   if (!user) throw notFound();
   return toTokenBalance(user);
 }
@@ -127,7 +143,7 @@ async function spendTokens(userId, amount = 1) {
   if (need < 1) throw new Error('Spend amount must be a positive integer');
 
   const before = await getUserModel().findOneAndUpdate(
-    { _id: userId, ...hasAtLeastFilter(need) },
+    { _id: toObjectId(userId), ...hasAtLeastFilter(need) },
     buildSpendPipeline(need),
     { new: false, projection: BALANCE_PROJECTION, lean: true }
   );
@@ -148,18 +164,23 @@ async function spendTokens(userId, amount = 1) {
 }
 
 /**
- * Atomically add tokens to either pool. Optional `filter` is merged into the
- * query (e.g. to make a purchase idempotent) and `push` adds a transaction to
- * razorpayTransactions in the same write.
- * @returns {Promise<{purchased, bonus, total} | null>} null if the filter did not match.
+ * Atomically add tokens to either pool. `push` adds a transaction to
+ * razorpayTransactions in the same write. With `unlessTransactionId`, nothing
+ * happens if that transaction is already recorded (makes a purchase idempotent).
+ * @returns {Promise<{purchased, bonus, total} | null>} null if the user is
+ *   missing or the transaction was already recorded.
  */
-async function creditTokens(userId, { purchased = 0, bonus = 0 } = {}, { filter = {}, push } = {}) {
+async function creditTokens(userId, { purchased = 0, bonus = 0 } = {}, { unlessTransactionId, push } = {}) {
   const update = { $inc: { tokens: toCount(purchased), bonusTokens: toCount(bonus) } };
   if (push) {
     update.$push = { razorpayTransactions: { $each: [push], $position: 0, $slice: 50 } };
   }
+  const query = { _id: toObjectId(userId) };
+  if (unlessTransactionId !== undefined) {
+    query['razorpayTransactions.transactionId'] = { $ne: String(unlessTransactionId) };
+  }
   const user = await getUserModel().findOneAndUpdate(
-    { _id: userId, ...filter },
+    query,
     update,
     { new: true, projection: BALANCE_PROJECTION, lean: true }
   );
@@ -179,7 +200,7 @@ async function refundSpend(userId, spent) {
 /** Atomically remove tokens (e.g. after a refund), clamping each pool at zero. */
 async function deductTokens(userId, amounts) {
   const user = await getUserModel().findOneAndUpdate(
-    { _id: userId },
+    { _id: toObjectId(userId) },
     buildDeductPipeline(amounts),
     { new: true, projection: BALANCE_PROJECTION, lean: true }
   );
@@ -189,6 +210,7 @@ async function deductTokens(userId, amounts) {
 
 module.exports = {
   // pure helpers
+  toObjectId,
   toTokenBalance,
   tokenPayload,
   splitSpend,

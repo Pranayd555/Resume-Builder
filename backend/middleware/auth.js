@@ -116,7 +116,7 @@ const chargeAIToken = async (req, res, next) => {
   try {
     result = await spendTokens(req.user._id, AI_ACTION_COST);
   } catch (error) {
-    logger.error(`Error charging AI token for user ${req.user && req.user._id}: ${error.message}`);
+    logger.error(`Error charging AI token for user ${req.user?._id}: ${error.message}`);
     return res.status(error.statusCode === 404 ? 404 : 500).json({
       success: false,
       error: error.statusCode === 404 ? 'User not found' : 'Error checking token balance'
@@ -153,14 +153,16 @@ const chargeAIToken = async (req, res, next) => {
 
   const originalJson = res.json.bind(res);
   res.json = (body) => {
-    if (!settled && body && body.success === false) {
-      refund().then((balance) => {
-        if (balance && typeof body === 'object') {
-          body.tokens = tokenPayload(balance);
-          if (body.data && typeof body.data === 'object') delete body.data.tokens;
-        }
-        originalJson(body);
-      });
+    if (!settled && body?.success === false) {
+      refund()
+        .then((balance) => {
+          if (balance && typeof body === 'object') {
+            body.tokens = tokenPayload(balance);
+            if (typeof body.data === 'object' && body.data !== null) delete body.data.tokens;
+          }
+        })
+        .catch((error) => logger.error(`Error attaching refunded balance: ${error.message}`))
+        .finally(() => originalJson(body));
       return res;
     }
     if (res.statusCode < 400) settled = true;
@@ -169,7 +171,8 @@ const chargeAIToken = async (req, res, next) => {
 
   // Non-JSON failures (res.send, error handler, etc.)
   res.on('finish', () => {
-    if (!settled && res.statusCode >= 400) refund();
+    // refund() handles its own errors and never rejects
+    if (!settled && res.statusCode >= 400) void refund();
     settled = true;
   });
 

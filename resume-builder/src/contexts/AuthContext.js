@@ -376,7 +376,7 @@ export const AuthProvider = ({ children }) => {
     
     // A fresh user object from the server carries tokenBalance; use it. The
     // raw `tokens` field is not trusted as the balance.
-    if (userData && userData.tokenBalance) {
+    if (userData?.tokenBalance) {
       apiHelpers.updateTokenData(userData.tokenBalance);
     }
     

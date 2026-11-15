@@ -176,7 +176,7 @@ const userSchema = new mongoose.Schema({
     },
     status: {
       type: String,
-      enum: ['created', 'authorized', 'captured', 'refunded', 'refund_requested', 'failed'],
+      enum: ['created', 'authorized', 'captured', 'refunded', 'refund_requested', 'refund_rejected', 'failed'],
       required: true
     },
     paymentId: String,
@@ -206,7 +206,7 @@ const userSchema = new mongoose.Schema({
     refundReason: String,
     refundStatus: {
       type: String,
-      enum: ['pending', 'approved', 'rejected', 'processing', 'completed'],
+      enum: ['pending', 'approved', 'rejected', 'not_eligible', 'processing', 'completed'],
       sparse: true
     },
     metadata: mongoose.Schema.Types.Mixed
