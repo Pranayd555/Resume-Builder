@@ -1,5 +1,7 @@
 # Refund Calculation - Visual Decision Guide
 
+> **Pools and spending order.** "Current" below means the user's two pools: purchased tokens (`tokens`, refundable) and bonus tokens (`bonusTokens`, not refundable). AI actions spend **bonus first, then purchased** (`backend/utils/tokenCalculator.js`), so bonus runs out before any purchased token is touched. Only purchased tokens are ever paid back; zero-amount bonus grants are never refundable.
+
 ## 🔄 Refund Decision Tree
 
 ```
@@ -249,6 +251,37 @@
 
 ---
 
+### BRANCH 4: PURCHASED USED, BONUS STILL COVERED (Scenario 6)
+
+```
+   Current purchased < bought  AND  current bonus >= this purchase's bonus
+   (bonus was topped up later, e.g. a feedback reward)
+           │
+      ┌────▼──────────────────────┐
+      │ No bonus from this        │
+      │ purchase counts as used:  │
+      │ effective = current       │
+      │             purchased     │
+      └────┬──────────────────────┘
+           │
+      ┌────▼──────────────┐
+      │ Purchased >= 1 ?  │
+      └────┬──────┬───────┘
+          YES     NO
+           │      │
+   ┌───────▼──┐ ┌─▼────────────┐
+   │ Partial  │ │ NOT ELIGIBLE │
+   │ refund   │ └──────────────┘
+   │ Example: │
+   │ 100+50,  │
+   │ curr 40  │
+   │ bonus 60 │
+   │ = ₹400   │
+   └──────────┘
+```
+
+---
+
 ## 🎯 Quick Reference Table
 
 ### Decision Points
@@ -260,6 +293,7 @@
 | All current tokens used? | Check purchased tokens | Scenario 5/6 |
 | Purchased tokens all intact? | Scenario 4 (calc bonus) | Scenario 5/6 |
 | Effective tokens >= 1? | Scenario 5B (calc %) | Scenario 5A (not eligible) |
+| Purchased used but bonus >= bonus added? | Scenario 6 (refund unused purchased) | Scenario 5 |
 
 ---
 
@@ -295,6 +329,11 @@ If Both Used:
 ├─ If Effective < 1: Scenario 5A (Not Eligible)
 ├─ If Effective >= 1: Scenario 5B (Partial)
 └─ Formula: (Paid ÷ Bought) × Effective
+
+If Purchased Used, Bonus Still >= Added:
+├─ Result: Scenario 6
+├─ Formula: (Paid ÷ Bought) × Current purchased
+└─ If Current purchased < 1: Not Eligible
 ```
 
 ---

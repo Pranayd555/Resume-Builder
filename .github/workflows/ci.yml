@@ -47,6 +47,13 @@ jobs:
         working-directory: backend
     env:
       PUPPETEER_SKIP_DOWNLOAD: 'true'
+      # Throwaway database for the token balance tests (utils/tokenCalculator.test.js)
+      TOKEN_TEST_MONGODB_URI: mongodb://127.0.0.1:27017/token-test
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -111,6 +118,11 @@ jobs:
           cache: npm
           cache-dependency-path: resume-builder/package-lock.json
       - run: npm ci --no-audit --no-fund
+      - name: Unit tests
+        # The project's own test script (craco test); nothing is fetched at run time.
+        run: npm test -- --watchAll=false --passWithNoTests
+        env:
+          CI: true
       - name: Build
         run: npm run build
         env:

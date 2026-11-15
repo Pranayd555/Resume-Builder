@@ -194,7 +194,7 @@ const ATSScoreDisplay = ({ resume, isCardHovered }) => {
 
 function ResumeList() {
   const navigate = useNavigate();
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, canUseAI } = useAuth();
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [hoveredCardId, setHoveredCardId] = useState(null);
   const [focusedCardId, setFocusedCardId] = useState(null);
@@ -204,16 +204,9 @@ function ResumeList() {
   const [selectedResumeForAts, setSelectedResumeForAts] = useState(null);
   const [error, setError] = useState(null);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
-  const [ showBanner, setShowBanner] = useState(false);
-  const [isTokenExhausted, setIsTokenExhausted] = useState(false);
-  // Get initial token balance
-  useEffect(() => {
-    if(!user.isOwnApiKey) {
-      const balance = apiHelpers.getTokenBalance();
-      setIsTokenExhausted( balance <= 0);
-      setShowBanner(true);
-    }
-  }, [user.isOwnApiKey]);
+  // Out-of-tokens banner (never for BYOK users). Balance comes from AuthContext.
+  const [showBanner, setShowBanner] = useState(true);
+  const isTokenExhausted = !canUseAI;
 
   // Email verification state
   const [showEmailVerification, setShowEmailVerification] = useState(false);

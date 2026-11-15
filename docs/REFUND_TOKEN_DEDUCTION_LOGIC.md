@@ -4,6 +4,19 @@
 
 When a refund is approved and processed, the corresponding tokens are automatically deducted from the user's account to maintain consistency between the payment system and token inventory.
 
+### Token pools (background)
+
+Each user has two pools on the `User` document:
+
+| Field | Pool | Refundable | Filled by |
+|-------|------|-----------|-----------|
+| `tokens` | Purchased | Yes | Razorpay purchases |
+| `bonusTokens` | Bonus | No | Signup bonus, feedback/bug-report rewards, admin grants, package bonus |
+
+- **Spending order:** AI actions spend **bonus first, then purchased** (`backend/utils/tokenCalculator.js`). This keeps refundable tokens as long as possible; it is why scenario 4 ("bonus used, purchased intact") is the common partial case.
+- **Balance shown to users:** `total = purchased + bonus`. Every API response that reports a balance uses `{ purchased, bonus, total }`.
+- **Refunds only ever pay for purchased tokens.** The bonus pool can only *reduce* a refund (when this purchase's bonus was used), never increase it. Bonus grants (zero-amount `admin_bonus` transactions) are not refundable at all.
+
 ---
 
 ## 🎯 Deduction Rules by Scenario
@@ -81,23 +94,37 @@ When a refund is approved and processed, the corresponding tokens are automatica
 
 ---
 
+### Scenario 6: Purchased Used, Bonus Still Covered
+**Condition**: Some purchased tokens used, but the bonus pool still holds at least this purchase's bonus (for example a feedback bonus was granted after the purchase)  
+**Refund**: Unused purchased tokens, as in scenario 2 (no bonus from this purchase counts as used); not eligible if no purchased tokens remain  
+**Tokens Deducted**: `currentTokens` + `bonusTokensAdded` (only this purchase's bonus; other bonus tokens stay)
+
+**Example**:
+- User buys: 100 tokens (+ 50 bonus) for ₹1000
+- Bonus-first spending uses the 50 bonus, then 60 purchased; later an admin grants 60 bonus
+- Current balance: 40 regular, 60 bonus
+- Refund: ₹400 (40%)
+- **Deduction: 40 regular + 50 bonus**
+- New balance: 0 regular, 10 bonus
+
+Before this was added, this state made the calculator throw and the admin saw a server error.
+
+---
+
 ## 💾 Implementation Details
 
 ### Deduction Process
 
-1. **Calculate tokens to deduct** based on scenario
-2. **Update user.tokens** field
-3. **Update user.bonusTokens** field
-4. **Save user** to database
-5. **Log** deduction details
-6. **Return** new balance to client
+1. `RefundCalculator.getTokenDeduction(refundResult)` returns `{ purchased, bonus }` for the scenario (unit tested per scenario in `backend/utils/refundCalculator.test.js`)
+2. `deductTokens(userId, { purchased, bonus })` from `backend/utils/tokenCalculator.js` removes them in **one atomic MongoDB update**, clamping each pool at 0. AI actions running at the same moment can't be lost or overwritten (the old code saved the whole user document from a stale copy).
+3. **Log** deduction details
+4. **Return** the new balance to the admin client (`newBalance`, `userTokenBalance`)
 
 ### Safety Checks
 
 ```javascript
-// Tokens never go below 0
-user.tokens = Math.max(0, (user.tokens || 0) - tokensToDeduct);
-user.bonusTokens = Math.max(0, (user.bonusTokens || 0) - bonusTokensToDeduct);
+// One update; each pool is clamped at 0 inside MongoDB
+await deductTokens(user._id, RefundCalculator.getTokenDeduction(refundResult));
 ```
 
 ### Logging
@@ -156,7 +183,7 @@ Admin Approves
     ↓
 RefundCalculator determines scenario
     ↓
-    ├─ If Scenario 1-5B (Eligible)
+    ├─ If Scenario 1-5B or 6 (Eligible)
     │  ├─ Create refund via Razorpay
     │  ├─ Calculate tokens to deduct
     │  ├─ Deduct from user account
@@ -164,7 +191,7 @@ RefundCalculator determines scenario
     │  ├─ Send completion email
     │  └─ Return success + new balance
     │
-    └─ If Scenario 5A (Not Eligible)
+    └─ If Scenario 5A or 6 with no purchased tokens left (Not Eligible)
        ├─ No refund processed
        ├─ No tokens deducted
        ├─ Send not-eligible email
@@ -229,7 +256,7 @@ Result:
 ## 🔐 Validation
 
 Before deducting tokens:
-1. ✅ Refund must be eligible (scenario 1-5B)
+1. ✅ Refund must be eligible (scenario 1-5B or 6)
 2. ✅ Razorpay refund must succeed
 3. ✅ Transaction must exist in database
 4. ✅ User must have valid token balance
@@ -280,6 +307,6 @@ For questions about token deduction:
 
 ---
 
-**Last Updated**: October 31, 2025  
-**Version**: 1.0  
+**Last Updated**: November 15, 2026  
+**Version**: 1.1 (scenario 6, atomic deduction)  
 **Status**: ✅ Implemented and Ready

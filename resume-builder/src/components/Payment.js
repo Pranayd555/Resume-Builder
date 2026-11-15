@@ -12,10 +12,12 @@ import {
   // CreditCardIcon
 } from '@heroicons/react/24/outline';
 import AnimatedBackground from './AnimatedBackground';
+import { useAuth } from '../contexts/AuthContext';
 // import { paymentAPI, apiHelpers } from '../services/api';
 
 const Payment = () => {
   const navigate = useNavigate();
+  const { user, balance, refreshBalance } = useAuth();
   const [tokenAmount, setTokenAmount] = useState(5);
   // const [loading, setLoading] = useState(false);
   // const [razorpayLoaded, setRazorpayLoaded] = useState(false);
@@ -28,6 +30,11 @@ const Payment = () => {
     { amount: 50, price: 349, bonus: 15 },
     { amount: 100, price: 599, bonus: 40 }
   ];
+
+  // Show the latest balance (grants and refunds can change it server-side)
+  useEffect(() => {
+    refreshBalance();
+  }, [refreshBalance]);
 
   useEffect(() => {
     // Load Razorpay script
@@ -134,25 +141,10 @@ const Payment = () => {
               toast.success('Payment successful!');
               toast.success(`${paymentData.tokens} tokens added to your account!`);
 
-              // Update token data with bonus tokens
-              if (completeResponse.data?.tokens) {
-                const tokenData = {
-                  balance: completeResponse.data.tokens.balance || 0,
-                  purchasedTokens: completeResponse.data.tokens.purchasedTokens || 0,
-                  bonusTokens: completeResponse.data.tokens.bonusTokens || 0
-                };
-                apiHelpers.updateTokenData(tokenData);
-              } else {
-                // Final fallback: fetch latest token balance from API
-                try {
-                  const { analyticsAPI } = await import('../services/api');
-                  const tokenResponse = await analyticsAPI.getTokenBalance();
-                  if (tokenResponse.success && tokenResponse.data) {
-                    apiHelpers.updateTokenData(tokenResponse.data);
-                  }
-                } catch (error) {
-                  console.error('Failed to fetch updated token balance:', error);
-                }
+              // The API layer applies the new balance from data.tokens; make
+              // sure it is fresh even if that field was missing.
+              if (!completeResponse.data?.tokens) {
+                await refreshBalance();
               }
 
               navigate('/dashboard');
@@ -257,6 +249,26 @@ const Payment = () => {
           <p className="text-gray-500 dark:text-gray-300 text-lg max-w-2xl mx-auto">
             Purchase tokens to use AI features. Tokens are used for AI-powered resume optimization.
           </p>
+
+          {/* Current balance */}
+          {user?.isOwnApiKey ? (
+            <p className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/30 text-blue-700 dark:text-blue-300 text-sm font-medium">
+              <KeyIcon className="w-4 h-4" />
+              You're using your own Gemini API key, so AI actions don't use tokens.
+            </p>
+          ) : (
+            <div className="mt-6 inline-flex items-center gap-3 px-5 py-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700/30" data-testid="payment-token-balance">
+              <CurrencyDollarIcon className="w-5 h-5 text-green-600 dark:text-green-400" />
+              <div className="text-left">
+                <div className="text-green-700 dark:text-green-300 font-semibold">
+                  Your balance: {balance.total} {balance.total === 1 ? 'token' : 'tokens'}
+                </div>
+                <div className="text-green-600 dark:text-green-400 text-xs">
+                  {balance.purchased} purchased (refundable) + {balance.bonus} bonus
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Token Purchase Section */}

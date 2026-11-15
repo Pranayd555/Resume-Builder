@@ -3,7 +3,7 @@ const multer = require('multer');
 const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs').promises;
-const { protect, checkAIActionLimit, checkTokenLimit, trackUsage, refundTokenOnError, skipIfBYOK } = require('../middleware/auth');
+const { protect, chargeAIToken, trackUsage, skipIfBYOK } = require('../middleware/auth');
 const User = require('../models/User');
 const logger = require('../utils/logger');
 const DocumentParser = require('../utils/documentParser');
@@ -80,9 +80,7 @@ const handleMulterError = (error, req, res, next) => {
 // @access  Private
 router.post('/parse-resume', [
   protect,
-  skipIfBYOK(checkAIActionLimit),
-  skipIfBYOK(checkTokenLimit),
-  skipIfBYOK(refundTokenOnError),
+  skipIfBYOK(chargeAIToken),
   (req, res, next) => {
     upload.single('file')(req, res, (err) => {
       if (err) {
@@ -154,7 +152,6 @@ router.post('/parse-resume', [
             parsedData: null,
             fileName: originalname,
             message: 'Resume text extracted successfully (AI parsing failed)',
-            tokens: req.tokens || 0,
           },
         },
       });
@@ -167,7 +164,7 @@ router.post('/parse-resume', [
         parsedData: parsedData,
         fileName: originalname,
         message: 'Resume text extracted and parsed successfully',
-        tokens: req.tokens || 0
+        tokens: req.tokens
       },
     });
 

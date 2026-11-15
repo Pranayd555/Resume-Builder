@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react';
-import { authAPI, apiHelpers } from '../services/api';
+import React, { createContext, useContext, useReducer, useEffect, useRef, useCallback } from 'react';
+import { authAPI, apiHelpers, tokenAPI } from '../services/api';
+import { EMPTY_BALANCE, normalizeBalance, sameBalance, canUseAI as canUseAIFor } from '../utils/tokenBalance';
 import { createUserModel, validators } from '../models/dataModels';
 import { toast } from 'react-toastify';
 
@@ -9,7 +10,13 @@ const initialState = {
   isAuthenticated: false,
   isLoading: true,
   error: null,
+  // AI token balance { purchased, bonus, total }: the one copy every component
+  // reads. Updated from any API response that carries it (see services/api.js).
+  balance: EMPTY_BALANCE,
 };
+
+// user.tokens mirrors balance.total for older code that still reads it.
+const withTokens = (user, balance) => (user ? { ...user, tokens: balance.total } : user);
 
 // Action types
 const AUTH_ACTIONS = {
@@ -19,6 +26,7 @@ const AUTH_ACTIONS = {
   LOGOUT: 'LOGOUT',
   UPDATE_USER: 'UPDATE_USER',
   CLEAR_ERROR: 'CLEAR_ERROR',
+  SET_BALANCE: 'SET_BALANCE',
 };
 
 // Reducer
@@ -38,7 +46,7 @@ const authReducer = (state, action) => {
     case AUTH_ACTIONS.LOGIN_SUCCESS:
       return {
         ...state,
-        user: action.payload,
+        user: withTokens(action.payload, state.balance),
         isAuthenticated: true,
         isLoading: false,
         error: null,
@@ -46,6 +54,7 @@ const authReducer = (state, action) => {
     case AUTH_ACTIONS.LOGOUT:
       return {
         ...state,
+        balance: EMPTY_BALANCE,
         user: null,
         isAuthenticated: false,
         isLoading: false,
@@ -54,8 +63,15 @@ const authReducer = (state, action) => {
     case AUTH_ACTIONS.UPDATE_USER:
       return {
         ...state,
-        user: action.payload,
+        user: withTokens(action.payload, state.balance),
         error: null,
+      };
+    case AUTH_ACTIONS.SET_BALANCE:
+      if (sameBalance(state.balance, action.payload)) return state;
+      return {
+        ...state,
+        balance: action.payload,
+        user: withTokens(state.user, action.payload),
       };
     case AUTH_ACTIONS.CLEAR_ERROR:
       return {
@@ -72,7 +88,11 @@ const AuthContext = createContext();
 
 // Auth provider component
 export const AuthProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(authReducer, initialState);
+  const [state, dispatch] = useReducer(authReducer, initialState, (init) => ({
+    ...init,
+    // Cached balance for the first paint; /auth/me replaces it right away.
+    balance: (apiHelpers.getAuthToken() && apiHelpers.getTokenData()) || EMPTY_BALANCE,
+  }));
   
   // Track if we're already initializing to prevent duplicate calls
   const isInitializingRef = useRef(false);
@@ -117,14 +137,12 @@ export const AuthProvider = ({ children }) => {
     initializeAuth();
   }, []);
 
-  // Listen for token balance updates
+  // Keep the balance in sync with every API response that reports it
   useEffect(() => {
     const handleTokenBalanceUpdate = (event) => {
-      const { balance } = event.detail;
-      if (state.user && balance !== undefined) {
-        const updatedUser = { ...state.user, tokens: balance };
-        apiHelpers.setCurrentUserData(updatedUser);
-        dispatch({ type: AUTH_ACTIONS.UPDATE_USER, payload: updatedUser });
+      const balance = normalizeBalance(event.detail);
+      if (balance) {
+        dispatch({ type: AUTH_ACTIONS.SET_BALANCE, payload: balance });
       }
     };
 
@@ -144,7 +162,40 @@ export const AuthProvider = ({ children }) => {
       window.removeEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
       window.removeEventListener('userDataUpdated', handleUserDataUpdate);
     };
-  }, [state.user]);
+  }, []);
+
+  // Fetch the latest balance from the server. Call it after anything that may
+  // change tokens outside an API response this app reads (e.g. an admin grant).
+  const lastRefreshRef = useRef(0);
+  const refreshBalance = useCallback(async ({ minIntervalMs = 0 } = {}) => {
+    if (!apiHelpers.getAuthToken()) return null;
+    const now = Date.now();
+    if (now - lastRefreshRef.current < minIntervalMs) return null;
+    lastRefreshRef.current = now;
+    try {
+      const response = await tokenAPI.getBalance();
+      // The response interceptor has already broadcast it.
+      return normalizeBalance(response?.data?.tokens);
+    } catch (error) {
+      console.error('Failed to refresh token balance:', error);
+      return null;
+    }
+  }, []);
+
+  // Refresh when the tab regains focus, so grants, refunds and actions in
+  // other tabs show up without a reload.
+  useEffect(() => {
+    if (!state.isAuthenticated) return undefined;
+    const onVisible = () => {
+      if (!document.hidden) refreshBalance({ minIntervalMs: 15000 });
+    };
+    window.addEventListener('focus', onVisible);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.removeEventListener('focus', onVisible);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [state.isAuthenticated, refreshBalance]);
 
   // Login function
   const login = async (credentials) => {
@@ -167,7 +218,6 @@ export const AuthProvider = ({ children }) => {
         apiHelpers.setAuthToken(token);
         const userData = createUserModel(user);
         apiHelpers.setCurrentUserData(userData);
-        apiHelpers.setTokenBalance(userData.tokens);
         
         dispatch({ type: AUTH_ACTIONS.LOGIN_SUCCESS, payload: userData });
         toast.success('Login successful!');
@@ -324,9 +374,10 @@ export const AuthProvider = ({ children }) => {
     const updatedUser = createUserModel(userData);
     apiHelpers.setCurrentUserData(updatedUser);
     
-    // Update token data if available
-    if (userData.tokens !== undefined) {
-      apiHelpers.setTokenBalance(userData.tokens);
+    // A fresh user object from the server carries tokenBalance; use it. The
+    // raw `tokens` field is not trusted as the balance.
+    if (userData?.tokenBalance) {
+      apiHelpers.updateTokenData(userData.tokenBalance);
     }
     
     dispatch({ type: AUTH_ACTIONS.UPDATE_USER, payload: updatedUser });
@@ -538,6 +589,11 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: state.isAuthenticated,
     isLoading: state.isLoading,
     error: state.error,
+    // AI tokens: { purchased, bonus, total }
+    balance: state.balance,
+    // True when the user may start an AI action (BYOK, or at least 1 token)
+    canUseAI: canUseAIFor(state.user, state.balance),
+    refreshBalance,
     
     // Actions
     login,

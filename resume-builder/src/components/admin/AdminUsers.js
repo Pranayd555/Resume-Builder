@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { adminAPI } from '../../services/adminApi';
 import { toast } from 'react-toastify';
+import { useAuth } from '../../contexts/AuthContext';
+import { userRecordBalance } from '../../utils/tokenBalance';
 
 const AdminUsers = () => {
+  const { user: currentUser, refreshBalance } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({
@@ -66,6 +69,9 @@ const AdminUsers = () => {
 
       if (response.success) {
         toast.success(`${tokens} bonus tokens added successfully`);
+        if (currentUser && String(currentUser.id) === String(userId)) {
+          refreshBalance();
+        }
         fetchUsers(pagination.page, searchTerm);
         setShowUserModal(false);
       } else {
@@ -201,7 +207,12 @@ const AdminUsers = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                      {user.tokens || 0}
+                      {userRecordBalance(user).total}
+                      {userRecordBalance(user).bonus > 0 && (
+                        <span className="block text-xs text-gray-500 dark:text-gray-400">
+                          {userRecordBalance(user).purchased} purchased + {userRecordBalance(user).bonus} bonus
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                       {formatDate(user.createdAt)}

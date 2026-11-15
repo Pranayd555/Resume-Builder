@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { toTokenBalance } = require('../utils/tokenCalculator');
+const { isPurchaseTransaction } = require('../utils/refundCalculator');
 
 const userSchema = new mongoose.Schema({
   // Basic Info
@@ -139,12 +141,15 @@ const userSchema = new mongoose.Schema({
     }
   },
   
-  // Token System
+  // Token System: two pools, kept separate because only purchased tokens are
+  // refundable. Read and change them only through utils/tokenCalculator.js.
+  // Purchased tokens (Razorpay, refundable)
   tokens: {
     type: Number,
     default: 0,
     min: 0
   },
+  // Bonus tokens (signup, feedback, admin grants, package bonus; not refundable)
   bonusTokens: {
     type: Number,
     default: 0,
@@ -171,7 +176,7 @@ const userSchema = new mongoose.Schema({
     },
     status: {
       type: String,
-      enum: ['created', 'authorized', 'captured', 'refunded', 'refund_requested', 'failed'],
+      enum: ['created', 'authorized', 'captured', 'refunded', 'refund_requested', 'refund_rejected', 'failed'],
       required: true
     },
     paymentId: String,
@@ -201,7 +206,7 @@ const userSchema = new mongoose.Schema({
     refundReason: String,
     refundStatus: {
       type: String,
-      enum: ['pending', 'approved', 'rejected', 'processing', 'completed'],
+      enum: ['pending', 'approved', 'rejected', 'not_eligible', 'processing', 'completed'],
       sparse: true
     },
     metadata: mongoose.Schema.Types.Mixed
@@ -260,6 +265,12 @@ userSchema.virtual('isLocked').get(function() {
   return !!(this.lockUntil && this.lockUntil > Date.now());
 });
 
+// Combined token balance { purchased, bonus, total }. Virtuals are included in
+// toJSON/toObject, so every user object sent to a client carries it.
+userSchema.virtual('tokenBalance').get(function() {
+  return toTokenBalance(this);
+});
+
 // Virtual for gemini api key
 userSchema.virtual('isOwnApiKey').get(function() {
   return !!(this.geminiApiKey);
@@ -278,7 +289,9 @@ userSchema.virtual('razorpayTransactionsWithRefundStatus').get(function() {
 
     return {
       ...transaction.toObject(),
-      isRefundable: (transaction.status === 'captured' || transaction.status === 'refund_requested') &&
+      // Only paid purchases can be refunded; bonus grants never can.
+      isRefundable: isPurchaseTransaction(transaction) &&
+                   (transaction.status === 'captured' || transaction.status === 'refund_requested') &&
                    !transaction.refundedAt &&
                    daysDifference <= 7
     };
@@ -410,47 +423,9 @@ userSchema.methods.clearEmailOtp = function() {
   this.emailOtpExpire = undefined;
 };
 
-// Method to check if user has enough tokens (bonus + regular)
-userSchema.methods.hasTokens = function(requiredTokens = 1) {
-  const totalTokens = (this.tokens || 0) + (this.bonusTokens || 0);
-  return totalTokens >= requiredTokens;
-};
-
-// Method to get total available tokens
-userSchema.methods.getTotalTokens = function() {
-  return (this.tokens || 0) + (this.bonusTokens || 0);
-};
-
-// Method to consume tokens (bonus first, then regular)
-userSchema.methods.consumeTokens = function(tokensToConsume = 1) {
-  const totalAvailable = this.getTotalTokens();
-  if (totalAvailable < tokensToConsume) {
-    throw new Error('Insufficient tokens');
-  }
-  
-  // Consume bonus tokens first
-  if (this.bonusTokens >= tokensToConsume) {
-    this.bonusTokens -= tokensToConsume;
-  } else {
-    const remainingFromBonus = tokensToConsume - this.bonusTokens;
-    this.bonusTokens = 0;
-    this.tokens -= remainingFromBonus;
-  }
-  
-  return this.save();
-};
-
-// Method to add regular tokens
-userSchema.methods.addTokens = function(tokensToAdd) {
-  this.tokens += tokensToAdd;
-  return this.save();
-};
-
-// Method to add bonus tokens
-userSchema.methods.addBonusTokens = function(tokensToAdd) {
-  this.bonusTokens += tokensToAdd;
-  return this.save();
-};
+// Token balances are changed only through utils/tokenCalculator.js (atomic,
+// bonus-first). The old read-modify-save helpers (hasTokens, consumeTokens,
+// addTokens, addBonusTokens) were removed: concurrent requests could overspend.
 
 // Method to add Razorpay transaction (maintains last 20 transactions)
 userSchema.methods.addRazorpayTransaction = function(transactionData) {

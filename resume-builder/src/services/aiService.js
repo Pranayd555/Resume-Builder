@@ -1,4 +1,5 @@
 import { apiHelpers } from "./api";
+import { extractBalance } from "../utils/tokenBalance";
 
 class AIService {
   constructor() {
@@ -22,7 +23,9 @@ class AIService {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({}));
+      // Error bodies can carry the balance (refunded token, or "not enough tokens")
+      apiHelpers.updateTokenData(extractBalance(errorData));
       
       // Handle specific token exhaustion errors
       if (response.status === 402 || (errorData.error && errorData.error.includes('tokens'))) {
@@ -34,30 +37,8 @@ class AIService {
 
      const responseData = await response.json();
      
-     // Update token data if present in response (new structure with bonus tokens)
-     if (responseData && responseData.data && responseData.data.tokens) {
-       const tokenData = responseData.data.tokens;
-       if (typeof tokenData === 'object' && (tokenData.balance !== undefined || tokenData.purchasedTokens !== undefined)) {
-         // New structure with bonus tokens
-         console.log('🔄 AI Service: Updating token data (new structure):', tokenData);
-         apiHelpers.updateTokenData(tokenData);
-       } else if (typeof tokenData === 'number') {
-         // Legacy structure - just balance
-         console.log('🔄 AI Service: Updating token balance (legacy):', tokenData);
-         apiHelpers.updateTokenBalance(tokenData);
-       }
-     }
-     
-     // Also check for tokens at root level
-     if (responseData && responseData.tokens !== undefined) {
-       if (typeof responseData.tokens === 'object' && (responseData.tokens.balance !== undefined || responseData.tokens.purchasedTokens !== undefined)) {
-         // New structure with bonus tokens
-         apiHelpers.updateTokenData(responseData.tokens);
-       } else if (typeof responseData.tokens === 'number') {
-         // Legacy structure - just balance
-         apiHelpers.updateTokenBalance(responseData.tokens);
-       }
-     }
+     // Keep the app-wide balance in sync (no balance is sent for BYOK users)
+     apiHelpers.updateTokenData(extractBalance(responseData));
 
      return responseData;
   }
@@ -173,7 +154,9 @@ class AIService {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({}));
+      // Error bodies can carry the balance (refunded token, or "not enough tokens")
+      apiHelpers.updateTokenData(extractBalance(errorData));
       
       // Handle specific token exhaustion errors
       if (response.status === 402 || (errorData.error && errorData.error.includes('tokens'))) {
@@ -185,31 +168,9 @@ class AIService {
 
      const result = await response.json();
      
-     // Update token data if present in response (new structure with bonus tokens)
-     if (result && result.data && result.data.tokens) {
-       const tokenData = result.data.tokens;
-       if (typeof tokenData === 'object' && (tokenData.balance !== undefined || tokenData.purchasedTokens !== undefined)) {
-         // New structure with bonus tokens
-         console.log('🔄 AI Service (ATS): Updating token data (new structure):', tokenData);
-         apiHelpers.updateTokenData(tokenData);
-       } else if (typeof tokenData === 'number') {
-         // Legacy structure - just balance
-         console.log('🔄 AI Service (ATS): Updating token balance (legacy):', tokenData);
-         apiHelpers.updateTokenBalance(tokenData);
-       }
-     }
-     
-     // Also check for tokens at root level
-     if (result && result.tokens !== undefined) {
-       if (typeof result.tokens === 'object' && (result.tokens.balance !== undefined || result.tokens.purchasedTokens !== undefined)) {
-         // New structure with bonus tokens
-         apiHelpers.updateTokenData(result.tokens);
-       } else if (typeof result.tokens === 'number') {
-         // Legacy structure - just balance
-         apiHelpers.updateTokenBalance(result.tokens);
-       }
-     }
-     
+     // Keep the app-wide balance in sync (no balance is sent for BYOK users)
+     apiHelpers.updateTokenData(extractBalance(result));
+
      // Backend returns { success: true, data: { atsAnalysis, ... } }
      return {
        success: true,
