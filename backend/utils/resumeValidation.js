@@ -91,7 +91,7 @@ const SKILL_LEVEL_SYNONYMS = {
   master: 'expert'
 };
 
-const PRESENT_TOKENS = ['present', 'current', 'currently', 'now', 'ongoing', 'till date', 'to date', 'today'];
+const PRESENT_TOKENS = new Set(['present', 'current', 'currently', 'now', 'ongoing', 'till date', 'to date', 'today']);
 
 const MONTHS = {
   jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, sept: 9, oct: 10, nov: 11, dec: 12
@@ -108,7 +108,36 @@ const isBlank = (value) =>
   value === undefined || value === null || (typeof value === 'string' && value.trim() === '');
 
 const isPresentToken = (value) =>
-  typeof value === 'string' && PRESENT_TOKENS.includes(value.trim().toLowerCase());
+  typeof value === 'string' && PRESENT_TOKENS.has(value.trim().toLowerCase());
+
+const monthNumber = (name) =>
+  MONTHS[name.slice(0, 4).toLowerCase()] || MONTHS[name.slice(0, 3).toLowerCase()];
+
+// Each entry: [pattern, build(match) -> "YYYY-MM-DD" or null to keep looking].
+const DATE_PATTERNS = [
+  // 2021-03-15, 2021-03-15T00:00:00.000Z
+  [/^(\d{4})-(\d{1,2})-(\d{1,2})(?:T.*)?$/, (m) => isoDate(m[1], +m[2], +m[3])],
+  // 2021-03, 2021/03
+  [/^(\d{4})[-/](\d{1,2})$/, (m) => isoDate(m[1], +m[2], 1)],
+  // 03/2021, 3-2021
+  [/^(\d{1,2})[-/](\d{4})$/, (m) => isoDate(m[2], +m[1], 1)],
+  // 2021
+  [/^(\d{4})$/, (m) => isoDate(m[1], 1, 1)],
+  // Mar 2021, March 2021, Mar. 2021, Mar-2021
+  [/^([A-Za-z]{3,9})\.?[\s,-]+(\d{4})$/, (m) => {
+    const month = monthNumber(m[1]);
+    return month ? isoDate(m[2], month, 1) : null;
+  }]
+];
+
+const parseKnownDateFormat = (v) => {
+  for (const [pattern, build] of DATE_PATTERNS) {
+    const match = pattern.exec(v);
+    const result = match ? build(match) : null;
+    if (result) return result;
+  }
+  return null;
+};
 
 /**
  * Turn the date shapes the form and the resume parser produce into "YYYY-MM-DD".
@@ -123,20 +152,8 @@ const normalizeDate = (value) => {
   const v = value.trim();
   // Real dates are short; leave anything long for the schema to reject as invalid.
   if (v.length > MAX_DATE_INPUT) return value;
-  let m;
-  // 2021-03-15, 2021-03-15T00:00:00.000Z
-  if ((m = v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:T.*)?$/))) return isoDate(m[1], +m[2], +m[3]);
-  // 2021-03, 2021/03
-  if ((m = v.match(/^(\d{4})[-/](\d{1,2})$/))) return isoDate(m[1], +m[2], 1);
-  // 03/2021, 3-2021
-  if ((m = v.match(/^(\d{1,2})[-/](\d{4})$/))) return isoDate(m[2], +m[1], 1);
-  // 2021
-  if ((m = v.match(/^(\d{4})$/))) return isoDate(m[1], 1, 1);
-  // Mar 2021, March 2021, Mar. 2021, Mar-2021
-  if ((m = v.match(/^([A-Za-z]{3,9})\.?[\s,-]+(\d{4})$/))) {
-    const month = MONTHS[m[1].slice(0, 4).toLowerCase()] || MONTHS[m[1].slice(0, 3).toLowerCase()];
-    if (month) return isoDate(m[2], month, 1);
-  }
+  const known = parseKnownDateFormat(v);
+  if (known) return known;
   const parsed = new Date(v);
   if (!Number.isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
   return value;
@@ -151,14 +168,24 @@ const normalizeEnum = (value, allowed, synonyms) => {
   return value.trim(); // unknown value: the schema rejects it with a clear message
 };
 
+const DECIMAL_RE = /^\d+(?:\.\d+)?$/;
+
 // "8.5", 8.5, "8.5/10", "85%" -> number. Blank -> undefined. Anything else is left for the schema.
 const normalizeGpa = (value) => {
   if (isBlank(value)) return undefined;
   if (typeof value === 'number') return value;
   if (typeof value !== 'string') return value;
   if (value.length > MAX_GPA_INPUT) return value;
-  const m = value.trim().match(/^(\d+(?:\.\d+)?)\s*(?:%|\/\s*\d+(?:\.\d+)?)?$/);
-  return m ? Number(m[1]) : value;
+  let number = value.trim();
+  if (number.endsWith('%')) {
+    number = number.slice(0, -1).trim();
+  } else if (number.includes('/')) {
+    const slash = number.indexOf('/');
+    const scale = number.slice(slash + 1).trim();
+    if (!DECIMAL_RE.test(scale)) return value;
+    number = number.slice(0, slash).trim();
+  }
+  return DECIMAL_RE.test(number) ? Number(number) : value;
 };
 
 const trimDeep = (value) => {
@@ -196,6 +223,67 @@ const CONTENT_FIELDS = {
 const keepRows = (list, section) =>
   Array.isArray(list) ? list.filter((row) => hasContent(row, CONTENT_FIELDS[section])) : list;
 
+// Set an enum field, or drop it when blank so the schema default applies.
+const withEnum = (row, field, allowed, synonyms) => {
+  const out = { ...row, [field]: normalizeEnum(row[field], allowed, synonyms) };
+  if (out[field] === undefined) delete out[field];
+  return out;
+};
+
+const normalizePersonalInfo = (personalInfo) => {
+  const pi = trimDeep(personalInfo);
+  Object.keys(pi).forEach((k) => { if (pi[k] === null) pi[k] = ''; });
+  if (typeof pi.email === 'string') pi.email = pi.email.toLowerCase();
+  return pi;
+};
+
+const normalizeWorkRow = (exp) => {
+  const out = { ...exp };
+  if (isPresentToken(exp.endDate)) out.isCurrentJob = true;
+  out.startDate = normalizeDate(exp.startDate);
+  out.endDate = out.isCurrentJob ? null : normalizeDate(exp.endDate);
+  out.achievements = cleanStringList(exp.achievements);
+  return out;
+};
+
+const normalizeEducationRow = (edu) => {
+  const out = { ...edu };
+  if (isPresentToken(edu.endDate)) out.isCurrentlyStudying = true;
+  out.startDate = normalizeDate(edu.startDate);
+  out.endDate = out.isCurrentlyStudying ? null : normalizeDate(edu.endDate);
+  out.gpa = normalizeGpa(edu.gpa);
+  if (out.gpa === undefined) delete out.gpa;
+  return out;
+};
+
+const normalizeSkillCategory = (cat) => {
+  if (!cat || typeof cat !== 'object') return cat;
+  if (!Array.isArray(cat.items)) return cat;
+  const items = cat.items
+    .filter((item) => item && !isBlank(item.name))
+    .map((item) => withEnum(item, 'level', SKILL_LEVELS, SKILL_LEVEL_SYNONYMS));
+  return { ...cat, items };
+};
+
+const hasSkillContent = (cat) =>
+  cat && (!isBlank(cat.category) || (Array.isArray(cat.items) && cat.items.length > 0));
+
+// Row-based sections: blank rows are dropped, then each row is normalized.
+const ROW_NORMALIZERS = {
+  workExperience: normalizeWorkRow,
+  education: normalizeEducationRow,
+  projects: (p) => ({
+    ...p,
+    technologies: cleanStringList(p.technologies),
+    startDate: normalizeDate(p.startDate),
+    endDate: normalizeDate(p.endDate)
+  }),
+  achievements: (a) => ({ ...a, date: normalizeDate(a.date) }),
+  certifications: (c) => ({ ...c, date: normalizeDate(c.date), expiryDate: normalizeDate(c.expiryDate) }),
+  languages: (l) => withEnum(l, 'proficiency', LANGUAGE_PROFICIENCIES, PROFICIENCY_SYNONYMS),
+  customFields: (f) => withEnum(f, 'type', CUSTOM_FIELD_TYPES, {})
+};
+
 /**
  * Returns a normalized copy of the resume content in `body`. Only touches the
  * resume content fields; anything else (resumeId, templateId, styling) is passed through.
@@ -205,97 +293,23 @@ const normalizeResumePayload = (input) => {
   const data = { ...input };
 
   if (typeof data.title === 'string') data.title = data.title.trim();
-  if (data.personalInfo && typeof data.personalInfo === 'object') {
-    const pi = trimDeep(data.personalInfo);
-    Object.keys(pi).forEach((k) => { if (pi[k] === null) pi[k] = ''; });
-    if (typeof pi.email === 'string') pi.email = pi.email.toLowerCase();
-    data.personalInfo = pi;
-  }
   if (typeof data.summary === 'string') data.summary = data.summary.trim();
+  if (data.personalInfo && typeof data.personalInfo === 'object') {
+    data.personalInfo = normalizePersonalInfo(data.personalInfo);
+  }
 
   // Freshers have no work experience; the model clears it on save anyway, so
   // don't let leftover rows fail validation first.
   if (data.isFresher === true && data.workExperience !== undefined) data.workExperience = [];
 
-  if (Array.isArray(data.workExperience)) {
-    data.workExperience = keepRows(trimDeep(data.workExperience), 'workExperience').map((exp) => {
-      const out = { ...exp };
-      if (isPresentToken(exp.endDate)) out.isCurrentJob = true;
-      out.startDate = normalizeDate(exp.startDate);
-      out.endDate = out.isCurrentJob ? null : normalizeDate(exp.endDate);
-      out.achievements = cleanStringList(exp.achievements);
-      return out;
-    });
-  }
-
-  if (Array.isArray(data.education)) {
-    data.education = keepRows(trimDeep(data.education), 'education').map((edu) => {
-      const out = { ...edu };
-      if (isPresentToken(edu.endDate)) out.isCurrentlyStudying = true;
-      out.startDate = normalizeDate(edu.startDate);
-      out.endDate = out.isCurrentlyStudying ? null : normalizeDate(edu.endDate);
-      out.gpa = normalizeGpa(edu.gpa);
-      if (out.gpa === undefined) delete out.gpa;
-      return out;
-    });
-  }
+  Object.entries(ROW_NORMALIZERS).forEach(([section, normalizeRow]) => {
+    if (Array.isArray(data[section])) {
+      data[section] = keepRows(trimDeep(data[section]), section).map(normalizeRow);
+    }
+  });
 
   if (Array.isArray(data.skills)) {
-    data.skills = trimDeep(data.skills)
-      .map((cat) => {
-        if (!cat || typeof cat !== 'object') return cat;
-        const items = Array.isArray(cat.items)
-          ? cat.items
-            .filter((item) => item && !isBlank(item.name))
-            .map((item) => {
-              const out = { ...item, level: normalizeEnum(item.level, SKILL_LEVELS, SKILL_LEVEL_SYNONYMS) };
-              if (out.level === undefined) delete out.level;
-              return out;
-            })
-          : cat.items;
-        return { ...cat, items };
-      })
-      .filter((cat) => cat && (!isBlank(cat.category) || (Array.isArray(cat.items) && cat.items.length > 0)));
-  }
-
-  if (Array.isArray(data.projects)) {
-    data.projects = keepRows(trimDeep(data.projects), 'projects').map((p) => ({
-      ...p,
-      technologies: cleanStringList(p.technologies),
-      startDate: normalizeDate(p.startDate),
-      endDate: normalizeDate(p.endDate)
-    }));
-  }
-
-  if (Array.isArray(data.achievements)) {
-    data.achievements = keepRows(trimDeep(data.achievements), 'achievements').map((a) => ({
-      ...a,
-      date: normalizeDate(a.date)
-    }));
-  }
-
-  if (Array.isArray(data.certifications)) {
-    data.certifications = keepRows(trimDeep(data.certifications), 'certifications').map((c) => ({
-      ...c,
-      date: normalizeDate(c.date),
-      expiryDate: normalizeDate(c.expiryDate)
-    }));
-  }
-
-  if (Array.isArray(data.languages)) {
-    data.languages = keepRows(trimDeep(data.languages), 'languages').map((l) => {
-      const out = { ...l, proficiency: normalizeEnum(l.proficiency, LANGUAGE_PROFICIENCIES, PROFICIENCY_SYNONYMS) };
-      if (out.proficiency === undefined) delete out.proficiency;
-      return out;
-    });
-  }
-
-  if (Array.isArray(data.customFields)) {
-    data.customFields = keepRows(trimDeep(data.customFields), 'customFields').map((f) => {
-      const out = { ...f, type: normalizeEnum(f.type, CUSTOM_FIELD_TYPES, {}) };
-      if (out.type === undefined) delete out.type;
-      return out;
-    });
+    data.skills = trimDeep(data.skills).map(normalizeSkillCategory).filter(hasSkillContent);
   }
 
   return data;
@@ -347,7 +361,7 @@ const FIELD_LABELS = {
 
 /** Mongoose ValidationError -> [{ field: 'education.0.endDate', message }] */
 const formatMongooseErrors = (error) => {
-  if (!error || !error.errors) return [];
+  if (!error?.errors) return [];
   return Object.keys(error.errors)
     // A failing subdocument also reports the parent array path; keep only the leaf errors.
     .filter((key) => !Object.keys(error.errors).some((other) => other !== key && other.startsWith(`${key}.`)))
@@ -360,7 +374,7 @@ const formatMongooseErrors = (error) => {
         else if (err.kind === 'Number') message = `${FIELD_LABELS[leaf] || 'Value'} must be a number`;
         else message = `Invalid value for ${FIELD_LABELS[leaf] || leaf}`;
       } else if (err.kind === 'enum') {
-        message = `Choose one of: ${(err.properties && err.properties.enumValues || []).join(', ')}`;
+        message = `Choose one of: ${(err.properties?.enumValues || []).join(', ')}`;
       }
       return { field: key, message };
     });
@@ -370,7 +384,14 @@ const formatMongooseErrors = (error) => {
 const formatRuleErrors = (result) => {
   const seen = new Set();
   return result.array()
-    .filter((e) => { const k = e.path || e.param; if (seen.has(k)) return false; seen.add(k); return true; })
+    .filter((e) => {
+      const key = e.path || e.param;
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    })
     .map((e) => ({ field: e.path || e.param, message: e.msg }));
 };
 
@@ -383,11 +404,10 @@ const validationResponse = (fieldErrors) => {
     msg: message
   }));
   const first = errors[0];
+  const which = errors.length === 1 ? 'this field' : errors.length + ' fields';
   return {
     success: false,
-    error: first
-      ? `Please fix ${errors.length === 1 ? 'this field' : `${errors.length} fields`}: ${first.message}`
-      : 'Validation failed',
+    error: first ? `Please fix ${which}: ${first.message}` : 'Validation failed',
     errors,
     details: errors
   };
@@ -405,11 +425,11 @@ const rejectInvalidResume = (req, res, next) => {
  * validation/cast error, false otherwise (caller sends its own 500).
  */
 const sendResumeValidationError = (error, res) => {
-  if (error && error.name === 'ValidationError') {
+  if (error?.name === 'ValidationError') {
     res.status(400).json(validationResponse(formatMongooseErrors(error)));
     return true;
   }
-  if (error && error.name === 'CastError') {
+  if (error?.name === 'CastError') {
     const field = error.path || 'unknown';
     res.status(400).json(validationResponse([{ field, message: `Invalid value for ${field}` }]));
     return true;

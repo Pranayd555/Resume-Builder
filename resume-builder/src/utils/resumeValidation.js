@@ -48,8 +48,9 @@ export const isValidEmail = (value) =>
 export const SKILL_LEVELS = ['beginner', 'intermediate', 'advanced', 'expert'];
 export const LANGUAGE_PROFICIENCIES = ['basic', 'conversational', 'fluent', 'native'];
 
-const PRESENT_TOKENS = ['present', 'current', 'currently', 'now', 'ongoing', 'till date', 'to date', 'today'];
+const PRESENT_TOKENS = new Set(['present', 'current', 'currently', 'now', 'ongoing', 'till date', 'to date', 'today']);
 const MONTHS = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, sept: 9, oct: 10, nov: 11, dec: 12 };
+const MAX_DATE_INPUT = 40; // real dates are short; anything longer is flagged as invalid
 
 const pad = (n) => String(n).padStart(2, '0');
 const isoDate = (y, m, d) => `${y}-${pad(m)}-${pad(d)}`;
@@ -58,13 +59,37 @@ export const isBlank = (value) =>
   value === undefined || value === null || (typeof value === 'string' && value.trim() === '');
 
 export const isPresentToken = (value) =>
-  typeof value === 'string' && PRESENT_TOKENS.includes(value.trim().toLowerCase());
+  typeof value === 'string' && PRESENT_TOKENS.has(value.trim().toLowerCase());
 
 const isRealCalendarDate = (iso) => {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
   if (!m) return false;
   const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
   return d.getUTCFullYear() === +m[1] && d.getUTCMonth() === +m[2] - 1 && d.getUTCDate() === +m[3];
+};
+
+const monthNumber = (name) =>
+  MONTHS[name.slice(0, 4).toLowerCase()] || MONTHS[name.slice(0, 3).toLowerCase()];
+
+// Same formats as the server. Each entry: [pattern, build(match) -> ISO date or null].
+const DATE_PATTERNS = [
+  [/^(\d{4})-(\d{1,2})-(\d{1,2})(?:T.*)?$/, (m) => isoDate(m[1], +m[2], +m[3])],
+  [/^(\d{4})[-/](\d{1,2})$/, (m) => isoDate(m[1], +m[2], 1)],
+  [/^(\d{1,2})[-/](\d{4})$/, (m) => isoDate(m[2], +m[1], 1)],
+  [/^(\d{4})$/, (m) => isoDate(m[1], 1, 1)],
+  [/^([A-Za-z]{3,9})\.?[\s,-]+(\d{4})$/, (m) => {
+    const month = monthNumber(m[1]);
+    return month ? isoDate(m[2], month, 1) : null;
+  }]
+];
+
+const parseKnownDateFormat = (v) => {
+  for (const [pattern, build] of DATE_PATTERNS) {
+    const match = pattern.exec(v);
+    const result = match ? build(match) : null;
+    if (result) return result;
+  }
+  return null;
 };
 
 /**
@@ -79,16 +104,9 @@ export const toDateInputValue = (value) => {
   }
   if (typeof value !== 'string') return value;
   const v = value.trim();
-  if (v.length > 40) return value; // real dates are short; flag anything long as invalid
-  let m;
-  if ((m = v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:T.*)?$/))) return isoDate(m[1], +m[2], +m[3]);
-  if ((m = v.match(/^(\d{4})[-/](\d{1,2})$/))) return isoDate(m[1], +m[2], 1);
-  if ((m = v.match(/^(\d{1,2})[-/](\d{4})$/))) return isoDate(m[2], +m[1], 1);
-  if ((m = v.match(/^(\d{4})$/))) return isoDate(m[1], 1, 1);
-  if ((m = v.match(/^([A-Za-z]{3,9})\.?[\s,-]+(\d{4})$/))) {
-    const month = MONTHS[m[1].slice(0, 4).toLowerCase()] || MONTHS[m[1].slice(0, 3).toLowerCase()];
-    if (month) return isoDate(m[2], month, 1);
-  }
+  if (v.length > MAX_DATE_INPUT) return value;
+  const known = parseKnownDateFormat(v);
+  if (known) return known;
   const parsed = new Date(v);
   if (!Number.isNaN(parsed.getTime())) return isoDate(parsed.getFullYear(), parsed.getMonth() + 1, parsed.getDate());
   return value;
@@ -137,13 +155,12 @@ const stripHtml = (v) => {
   if (typeof v !== 'string') return v;
   let out = '';
   let inTag = false;
-  for (let i = 0; i < v.length; i += 1) {
-    const ch = v[i];
+  for (const ch of v) {
     if (ch === '<') inTag = true;
     else if (ch === '>' && inTag) inTag = false;
     else if (!inTag) out += ch;
   }
-  return out.split('&nbsp;').join(' ');
+  return out.replaceAll('&nbsp;', ' ');
 };
 
 export const isBlankRow = (section, row) => {
@@ -221,11 +238,11 @@ export const validateResumeEntries = (formData) => {
   });
 
   (formData.skills || []).forEach((cat, ci) => {
-    const items = (cat && cat.items) || [];
+    const items = cat?.items || [];
     const filled = items.filter((item) => item && !isBlank(item.name));
     if (filled.length > 0 && isBlank(cat.category)) set(`skills_${ci}_category`, 'Category name is required');
-    max(`skills_${ci}_category`, cat && cat.category, LIMITS.skillCategory, 'Category');
-    items.forEach((item, si) => max(`skills_${ci}_${si}_name`, item && item.name, LIMITS.skillName, 'Skill name'));
+    max(`skills_${ci}_category`, cat?.category, LIMITS.skillCategory, 'Category');
+    items.forEach((item, si) => max(`skills_${ci}_${si}_name`, item?.name, LIMITS.skillName, 'Skill name'));
   });
 
   (formData.projects || []).forEach((p, i) => {
@@ -287,15 +304,16 @@ const keepWithIndex = (list, section) =>
  */
 export const prepareResumePayload = (formData) => {
   const { extractedText, parsedData, ...rest } = formData; // UI-only, can be large
-  const payload = JSON.parse(JSON.stringify(rest));
+  // Shallow copy: every section below is rebuilt with new arrays and objects,
+  // so the form state is never mutated.
+  const payload = { ...rest };
   const indexMap = {};
 
   if (typeof payload.title === 'string') payload.title = payload.title.trim();
   if (payload.personalInfo) {
-    Object.keys(payload.personalInfo).forEach((key) => {
-      const v = payload.personalInfo[key];
-      payload.personalInfo[key] = v === null ? '' : trimStr(v);
-    });
+    payload.personalInfo = Object.fromEntries(
+      Object.entries(payload.personalInfo).map(([key, v]) => [key, v === null ? '' : trimStr(v)])
+    );
   }
 
   const section = (name, mapRow) => {
@@ -443,7 +461,41 @@ export const normalizeImportedResume = (parsed) => {
   return out;
 };
 
-const PERSONAL_FIELDS = ['fullName', 'email', 'phone', 'address', 'website', 'linkedin', 'github', 'profilePicture'];
+const PERSONAL_FIELDS = new Set(['fullName', 'email', 'phone', 'address', 'website', 'linkedin', 'github', 'profilePicture']);
+
+// Payload row index -> form row index (falls back to the payload index).
+const formIndex = (map, payloadIndex) => map?.[payloadIndex] ?? payloadIndex;
+
+// skills.<cat>.category / skills.<cat>.items.<item>.<field>
+const skillsErrorKey = (parts, indexMap) => {
+  const cat = indexMap.skills?.[+parts[1]];
+  const ci = cat ? cat.index : +parts[1];
+  if (parts[2] === 'items' && parts.length >= 5) {
+    const si = formIndex(cat?.items, +parts[3]);
+    return `skills_${ci}_${si}_${parts[4]}`;
+  }
+  return `skills_${ci}_${parts[2]}`;
+};
+
+// <section>.<row>.<field>; end-date errors go where the form shows them.
+const sectionErrorKey = (parts, message, indexMap) => {
+  const [section, row] = parts;
+  const i = formIndex(indexMap[section], +row);
+  let field = parts[2];
+  const endDateShownAsRange = section === 'workExperience' || /before start date/i.test(message);
+  if (field === 'endDate' && endDateShownAsRange) field = 'dateRange';
+  return `${section}_${i}_${field}`;
+};
+
+/** Form error key for one server error path, e.g. 'education.1.endDate' -> 'education_3_endDate'. */
+const serverPathToKey = (path, message, indexMap) => {
+  const parts = String(path).split('.');
+  if (parts[0] === 'personalInfo' && parts[1]) return parts[1];
+  if (parts.length < 3) return path;
+  if (parts[0] === 'skills') return skillsErrorKey(parts, indexMap);
+  if (CONTENT_FIELDS[parts[0]]) return sectionErrorKey(parts, message, indexMap);
+  return path;
+};
 
 /**
  * Map server field errors ({ field: 'education.1.endDate', message }) to form
@@ -453,30 +505,9 @@ export const mapServerErrors = (serverErrors, indexMap = {}) => {
   const formErrors = {};
   (serverErrors || []).forEach((err) => {
     const path = err.field || err.path || err.param;
-    const message = err.message || err.msg || 'Invalid value';
     if (!path) return;
-    const parts = String(path).split('.');
-    let key = path;
-
-    if (parts[0] === 'personalInfo' && parts[1]) {
-      key = parts[1];
-    } else if (parts[0] === 'skills' && parts.length >= 3) {
-      const cat = indexMap.skills && indexMap.skills[+parts[1]];
-      const ci = cat ? cat.index : +parts[1];
-      if (parts[2] === 'items' && parts.length >= 5) {
-        const si = cat && cat.items[+parts[3]] !== undefined ? cat.items[+parts[3]] : +parts[3];
-        key = `skills_${ci}_${si}_${parts[4]}`;
-      } else {
-        key = `skills_${ci}_${parts[2]}`;
-      }
-    } else if (CONTENT_FIELDS[parts[0]] && parts.length >= 3) {
-      const map = indexMap[parts[0]];
-      const i = map && map[+parts[1]] !== undefined ? map[+parts[1]] : +parts[1];
-      let field = parts[2];
-      if (field === 'endDate' && /before start date/i.test(message)) field = 'dateRange';
-      if (parts[0] === 'workExperience' && field === 'endDate') field = 'dateRange'; // where the form shows end-date errors
-      key = `${parts[0]}_${i}_${field}`;
-    }
+    const message = err.message || err.msg || 'Invalid value';
+    const key = serverPathToKey(path, message, indexMap);
     if (!formErrors[key]) formErrors[key] = message;
   });
   return formErrors;
@@ -495,7 +526,7 @@ const SECTION_STEPS = {
 /** Which form step shows the field behind an error key. */
 export const stepForErrorKey = (key) => {
   if (key === 'title' || key === 'summary') return 1;
-  if (PERSONAL_FIELDS.includes(key)) return 2;
+  if (PERSONAL_FIELDS.has(key)) return 2;
   const section = String(key).split('_')[0];
   return SECTION_STEPS[section] || 1;
 };

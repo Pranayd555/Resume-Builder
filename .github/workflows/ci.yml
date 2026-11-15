@@ -112,7 +112,8 @@ jobs:
           cache-dependency-path: resume-builder/package-lock.json
       - run: npm ci --no-audit --no-fund
       - name: Unit tests
-        run: npx craco test --watchAll=false --passWithNoTests
+        # The project's own test script (craco test); nothing is fetched at run time.
+        run: npm test -- --watchAll=false --passWithNoTests
         env:
           CI: true
       - name: Build

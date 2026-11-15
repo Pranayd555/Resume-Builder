@@ -611,7 +611,8 @@ function ResumeForm() {
     const targetStep = stepForErrorKey(firstKey);
     const where = describeErrorKey(firstKey);
     const more = keys.length > 1 ? ` (and ${keys.length - 1} more)` : '';
-    toast.error(`${where ? `${where}: ` : ''}${errors[firstKey]}${more}`);
+    const prefix = where ? where + ': ' : '';
+    toast.error(prefix + errors[firstKey] + more);
     if (targetStep !== currentStep) {
       setCurrentStep(targetStep);
       saveToLocalStorage(formData, targetStep, isEditMode);
@@ -1506,6 +1507,9 @@ function ResumeForm() {
     );
   };
 
+  // Red border for inputs that have a validation error
+  const errorBorderClass = (key) => (validationErrors[key] ? 'border-red-300 focus:border-red-500' : 'border-gray-300');
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
@@ -2378,7 +2382,7 @@ function ResumeForm() {
                   return newErrors;
                 });
               }}
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${validationErrors[`skills_${categoryIndex}_category`] ? 'border-red-300 focus:border-red-500' : 'border-gray-300'}`}
+              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${errorBorderClass('skills_' + categoryIndex + '_category')}`}
               placeholder="e.g., Programming Languages, Tools, Frameworks"
             />
             {validationErrors[`skills_${categoryIndex}_category`] && (
@@ -2637,7 +2641,7 @@ function ResumeForm() {
                   const techs = e.target.value.split(',').map(tech => tech.trim()).filter(tech => tech);
                   handleInputChange('projects', 'technologies', techs, index);
                 }}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${validationErrors[`projects_${index}_technologies`] ? 'border-red-300 focus:border-red-500' : 'border-gray-300'}`}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-gray-900 bg-white dark:bg-white ${errorBorderClass('projects_' + index + '_technologies')}`}
                 placeholder="React, Node.js, MongoDB"
               />
               {validationErrors[`projects_${index}_technologies`] && (
