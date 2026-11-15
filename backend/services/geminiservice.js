@@ -7,7 +7,9 @@ const { PARSE_RESUME_SCHEMA, PARSE_SYSTEM_INSTRUCTION, buildParsePrompt } = requ
 const { stripCodeFences } = require('../utils/aiOutput');
 require('dotenv').config();
 
-const DEFAULT_MODEL = 'gemini-2.5-flash-lite';
+// Server default when neither the user (BYOK) nor GEMINI_MODEL names a model.
+// Keep in sync with backend/env.template and resume-builder/src/constants/ai.js.
+const DEFAULT_MODEL = 'gemini-3.5-flash-lite';
 
 // Per-call time limits. The browser waits longer (src/config/timeouts.js), so
 // the server always answers first, with a clear error and a refunded token.
@@ -107,6 +109,20 @@ const callWithTimeout = async (client, params, timeoutMs) => {
 
 const BLOCKED_REASONS = new Set(['SAFETY', 'PROHIBITED_CONTENT', 'BLOCKLIST', 'SPII', 'RECITATION']);
 
+// The answer's text parts. Gemini 3 responses also carry a thoughtSignature
+// part, and the SDK's `response.text` getter logs a warning about it on every
+// call, so read the parts directly (thought summaries are skipped).
+const responseText = (response) => {
+  const parts = response?.candidates?.[0]?.content?.parts;
+  if (Array.isArray(parts)) {
+    return parts
+      .filter((part) => typeof part?.text === 'string' && !part.thought)
+      .map((part) => part.text)
+      .join('');
+  }
+  return typeof response?.text === 'string' ? response.text : '';
+};
+
 const readResponse = (response, { json }) => {
   const candidate = response?.candidates?.[0];
   const finishReason = candidate?.finishReason;
@@ -114,7 +130,7 @@ const readResponse = (response, { json }) => {
   if (blockReason || BLOCKED_REASONS.has(finishReason)) {
     throw new AIOutputError(`AI response blocked (${blockReason || finishReason})`, 'blocked');
   }
-  const text = typeof response?.text === 'string' ? response.text : '';
+  const text = responseText(response);
   if (!text.trim()) throw new AIOutputError('AI returned an empty response', 'empty');
   // Cut-off JSON can't be repaired reliably; cut-off rich text is trimmed by the length guards.
   if (json && finishReason === 'MAX_TOKENS') throw new AIOutputError('AI response was cut off', 'truncated');

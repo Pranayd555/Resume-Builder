@@ -121,6 +121,29 @@ describe('POST /api/ai/rewrite', () => {
     assert.equal(sent.generationConfig.responseMimeType, 'application/json');
   });
 
+  test('Gemini 3 reply (thought summary + thoughtSignature parts) -> only the answer text is used', async () => {
+    const answer = JSON.stringify({ content: '<ul><li>Owned billing</li></ul>' });
+    stub.queue.push({
+      status: 200,
+      body: {
+        candidates: [{
+          content: {
+            role: 'model',
+            parts: [
+              { text: 'Considering how to tighten the bullet...', thought: true },
+              { text: answer, thoughtSignature: 'c2lnbmF0dXJl' }
+            ]
+          },
+          finishReason: 'STOP',
+          index: 0
+        }]
+      }
+    });
+    const { status, body } = await post('/ai/rewrite', { content: JOB, field: 'workExperience' });
+    assert.equal(status, 200);
+    assert.equal(body.data.rewrittenContent, '<ul><li>Owned billing</li></ul>');
+  });
+
   test('output longer than the field allows is cut to fit', async () => {
     stub.queue.push(geminiReply(JSON.stringify({ content: `<p>${'Built resilient payment platforms for global merchants. '.repeat(40)}</p>` })));
     const { status, body } = await post('/ai/rewrite', { content: '<p>Backend engineer who builds payment platforms for merchants.</p>', field: 'summary' });

@@ -5,6 +5,7 @@ import { authAPI, uploadAPI, apiHelpers } from '../services/api';
 import { toast } from 'react-toastify';
 import { useAutoScroll, useScrollToTop } from '../hooks/useAutoScroll';
 import EmailVerification from './EmailVerification';
+import { DEFAULT_GEMINI_MODEL } from '../constants/ai';
 import {
   UserCircleIcon,
   PencilIcon,
@@ -1093,7 +1094,7 @@ function Profile() {
                       onBlur={() => handleFieldBlur('geminiModel')}
                       className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 dark:text-gray-900 ${errors.geminiModel ? 'border-red-500 focus:ring-red-500' : 'border-gray-300'
                         }`}
-                      placeholder='Example: gemini-2.5-flash-lite (optional)'
+                      placeholder={`Example: ${DEFAULT_GEMINI_MODEL} (optional)`}
                     />
                     {errors.geminiModel && (
                       <p className="text-red-500 text-sm mt-1">{errors.geminiModel}</p>
@@ -1102,7 +1103,7 @@ function Profile() {
                 ) : (
                   <p className="text-gray-900 leading-relaxed break-all">
                     {profile.geminiModel || (
-                      <span className="text-gray-500 italic">Default (gemini-2.5-flash-lite)</span>
+                      <span className="text-gray-500 italic">Default ({DEFAULT_GEMINI_MODEL})</span>
                     )}
                   </p>
                 )}
