@@ -1,152 +1,55 @@
-// resume-ai-backend/geminiService.js
-const { GoogleGenAI } = require("@google/genai");
-const { getPromt } = require('../utils/aiPrompts');
-const { decryptUserGeminiKey } = require("../utils/keyEncryption");
+// Gemini access for every AI feature: client creation (server key or the
+// user's own key), one generate helper with a timeout and a single retry on
+// transient errors, and strict JSON parsing for structured output.
+const { GoogleGenAI } = require('@google/genai');
+const { decryptUserGeminiKey } = require('../utils/keyEncryption');
+const { PARSE_RESUME_SCHEMA, PARSE_SYSTEM_INSTRUCTION, buildParsePrompt } = require('../utils/resumeImport');
+const { stripCodeFences } = require('../utils/aiOutput');
 require('dotenv').config();
 
-const PARSE_RESUME = {
-  "type": "OBJECT",
-  "properties": {
-    "personalInfo": {
-      "type": "OBJECT",
-      "properties": {
-        "fullName": { "type": "STRING" },
-        "email": { "type": "STRING" },
-        "phone": { "type": "STRING" },
-        "address": { "type": "STRING" },
-        "website": { "type": "STRING" },
-        "linkedin": { "type": "STRING" },
-        "github": { "type": "STRING" }
-      },
-      "required": ["fullName", "email"]
-    },
-    "summary": { "type": "STRING" },
-    "workExperience": {
-      "type": "ARRAY",
-      "items": {
-        "type": "OBJECT",
-        "properties": {
-          "jobTitle": { "type": "STRING" },
-          "company": { "type": "STRING" },
-          "location": { "type": "STRING" },
-          "startDate": { "type": "STRING" },
-          "endDate": { "type": "STRING", "nullable": true },
-          "isCurrentJob": { "type": "BOOLEAN" },
-          "description": { "type": "STRING" },
-          "achievements": { "type": "ARRAY", "items": { "type": "STRING" } }
-        },
-        "required": ["jobTitle", "company", "startDate", "isCurrentJob"]
-      }
-    },
-    "education": {
-      "type": "ARRAY",
-      "items": {
-        "type": "OBJECT",
-        "properties": {
-          "degree": { "type": "STRING" },
-          "institution": { "type": "STRING" },
-          "location": { "type": "STRING" },
-          "startDate": { "type": "STRING" },
-          "endDate": { "type": "STRING", "nullable": true },
-          "isCurrentlyStudying": { "type": "BOOLEAN" },
-          "gpa": { "type": "NUMBER", "nullable": true },
-          "description": { "type": "STRING" }
-        },
-        "required": ["degree", "institution", "isCurrentlyStudying"]
-      }
-    },
-    "skills": {
-      "type": "ARRAY",
-      "items": {
-        "type": "OBJECT",
-        "properties": {
-          "category": { "type": "STRING" },
-          "items": {
-            "type": "ARRAY",
-            "items": {
-              "type": "OBJECT",
-              "properties": {
-                "name": { "type": "STRING" },
-                "level": { 
-                  "type": "STRING", 
-                  "enum": ["beginner", "intermediate", "advanced", "expert"] 
-                }
-              },
-              "required": ["name", "level"]
-            }
-          }
-        },
-        "required": ["category", "items"]
-      }
-    },
-    "projects": {
-      "type": "ARRAY",
-      "items": {
-        "type": "OBJECT",
-        "properties": {
-          "name": { "type": "STRING" },
-          "description": { "type": "STRING" },
-          "technologies": { "type": "ARRAY", "items": { "type": "STRING" } },
-          "url": { "type": "STRING" },
-          "githubUrl": { "type": "STRING" },
-          "startDate": { "type": "STRING", "nullable": true },
-          "endDate": { "type": "STRING", "nullable": true }
-        },
-        "required": ["name", "description", "technologies"]
-      }
-    },
-    "achievements": {
-      "type": "ARRAY",
-      "items": {
-        "type": "OBJECT",
-        "properties": {
-          "title": { "type": "STRING" },
-          "description": { "type": "STRING" },
-          "date": { "type": "STRING", "nullable": true },
-          "issuer": { "type": "STRING" }
-        },
-        "required": ["title"]
-      }
-    },
-    "certifications": {
-      "type": "ARRAY",
-      "items": {
-        "type": "OBJECT",
-        "properties": {
-          "name": { "type": "STRING" },
-          "issuer": { "type": "STRING" },
-          "date": { "type": "STRING", "nullable": true },
-          "expiryDate": { "type": "STRING", "nullable": true },
-          "credentialId": { "type": "STRING" },
-          "url": { "type": "STRING" }
-        },
-        "required": ["name", "issuer"]
-      }
-    },
-    "languages": {
-      "type": "ARRAY",
-      "items": {
-        "type": "OBJECT",
-        "properties": {
-          "name": { "type": "STRING" },
-          "proficiency": { 
-            "type": "STRING", 
-            "enum": ["basic", "conversational", "fluent", "native"] 
-          }
-        },
-        "required": ["name", "proficiency"]
-      }
-    }
-  },
+// Server default when neither the user (BYOK) nor GEMINI_MODEL names a model.
+// Keep in sync with backend/env.template and resume-builder/src/constants/ai.js.
+const DEFAULT_MODEL = 'gemini-3.5-flash-lite';
+
+// Per-call time limits. The browser waits longer (src/config/timeouts.js), so
+// the server always answers first, with a clear error and a refunded token.
+const AI_TIMEOUTS = {
+  parseResume: 90000,
+  rewrite: 45000,
+  atsScore: 75000,
+  resumeEdit: 90000,
+  template: 90000
 };
 
-// Initialize Google Gen AI client using options object (required by @google/genai v1.16+)
+/** The model returned nothing usable (empty, blocked, cut off, or not the JSON we asked for). */
+class AIOutputError extends Error {
+  constructor(message, reason = 'invalid') {
+    super(message);
+    this.name = 'AIOutputError';
+    this.reason = reason;
+  }
+}
+
+/** The model did not answer within the time limit. */
+class AITimeoutError extends Error {
+  constructor(ms) {
+    super(`AI request timed out after ${ms} ms`);
+    this.name = 'AITimeoutError';
+    this.code = 'AI_TIMEOUT';
+  }
+}
+
 const resolveGeminiModel = (req) => {
   const userModel = req?.user?.geminiModel;
   if (typeof userModel === 'string' && userModel.trim()) return userModel.trim();
-  return process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
+  return process.env.GEMINI_MODEL || DEFAULT_MODEL;
 };
 
+/**
+ * Gemini client for this request: the user's own key (BYOK) or the server key.
+ * On a configuration problem it sends the error response itself and returns null,
+ * so callers must stop when they get null.
+ */
 function createGoogleGenAI(req, res) {
   const apiKey = req.user.isOwnApiKey
     ? decryptUserGeminiKey(req.user.geminiApiKey)
@@ -169,96 +72,149 @@ function createGoogleGenAI(req, res) {
   return new GoogleGenAI({ apiKey });
 }
 
-async function generateResumeSuggestion(prompt, apiKey = '') {
-  const client = genAI(apiKey);
-  const response = await client.models.generateContent({
-    model: process.env.GEMINI_MODEL || "gemini-2.5-flash-lite",
-    contents: prompt,
+const statusOf = (error) => {
+  const status = Number(error?.status ?? error?.code);
+  return Number.isFinite(status) ? status : 0;
+};
+
+const isTransient = (error) => {
+  if (error instanceof AITimeoutError || error instanceof AIOutputError) return false;
+  const status = statusOf(error);
+  if (status === 500 || status === 502 || status === 503) return true;
+  return ['ECONNRESET', 'ETIMEDOUT', 'EAI_AGAIN', 'ECONNREFUSED'].includes(error?.code);
+};
+
+const wait = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
+
+/** Run one model call, rejecting with AITimeoutError after `timeoutMs` (and aborting the request). */
+const callWithTimeout = async (client, params, timeoutMs) => {
+  const controller = new AbortController();
+  let timer;
+  const timeout = new Promise((resolve, reject) => {
+    timer = setTimeout(() => {
+      controller.abort();
+      reject(new AITimeoutError(timeoutMs));
+    }, timeoutMs);
   });
-  return response.text;
-}
-
-async function parseResumeText(extractedText, client, aiModel) {
-
-  const prompt = getPromt('parseResume', extractedText);
-
-  console.log('generated prompt, prompt', prompt);
-
   try {
-    const response = await client.models.generateContent({
-      model: aiModel,
-      contents: prompt,
-      config:{
-        responseMimeType: "application/json",
-        responseJsonSchema : PARSE_RESUME,
-        temperature: 0
-    }
+    const request = client.models.generateContent({
+      ...params,
+      config: { ...params.config, abortSignal: controller.signal }
     });
-    
-    let jsonText = response.text;
-    
-    // Extract JSON using regex pattern (similar to AI routes)
-    const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('No valid JSON found in AI response');
-    }
-    
-    let cleaned = jsonMatch[0];
-    
-    // Clean up common JSON formatting issues from Gemini
-    try {
-      // First, try to parse as-is
-      JSON.parse(cleaned);
-    } catch (firstError) {
-      
-      // Fix common Gemini JSON issues
-      cleaned = cleaned
-        .replace(/'/g, '"') // Replace single quotes with double quotes
-        .replace(/(\w+):/g, '"$1":') // Add quotes around unquoted property names
-        .replace(/,(\s*[}\]])/g, '$1') // Remove trailing commas
-        .replace(/:\s*([^",{\[\s][^",}\]\s]*)\s*([,}])/g, ': "$1"$2') // Quote unquoted string values
-        .replace(/:\s*([^",{\[\s][^",}\]\s]*)\s*([,}])/g, ': "$1"$2'); // Second pass for nested cases
-      
-    }
-    
-    
-    // Parse the JSON response with fallback
-    let parsedData;
-    try {
-      parsedData = JSON.parse(cleaned);
-    } catch (parseError) {
-      console.error('JSON parsing failed even after cleaning:', parseError);
-      console.error('Problematic JSON:', cleaned.substring(parseError.message.match(/position (\d+)/)?.[1] - 50 || 0, parseError.message.match(/position (\d+)/)?.[1] + 50 || 100));
-      
-      // Try a more aggressive cleaning approach
-      cleaned = cleaned
-        .replace(/'/g, '"')
-        .replace(/([^"]\w+):/g, '"$1":')
-        .replace(/,(\s*[}\]])/g, '$1')
-        .replace(/:\s*([^",{\[\s][^",}\]\s]*?)\s*([,}])/g, ': "$1"$2');
-      
-      try {
-        parsedData = JSON.parse(cleaned);
-      } catch (finalError) {
-        throw new Error(`Failed to parse JSON after multiple attempts: ${finalError.message}`);
-      }
-    }
-    
-    // Validate that we have the expected structure
-    if (!parsedData || typeof parsedData !== 'object') {
-      throw new Error('Invalid JSON structure returned from AI');
-    }
-    
-    return parsedData;
-  } catch (error) {
-    console.error('Error parsing resume with Gemini:', error);
-    // Re-throw the original provider error so callers can map status/messages correctly.
-    throw error;
+    return await Promise.race([request, timeout]);
+  } finally {
+    clearTimeout(timer);
   }
+};
+
+const BLOCKED_REASONS = new Set(['SAFETY', 'PROHIBITED_CONTENT', 'BLOCKLIST', 'SPII', 'RECITATION']);
+
+// The answer's text parts. Gemini 3 responses also carry a thoughtSignature
+// part, and the SDK's `response.text` getter logs a warning about it on every
+// call, so read the parts directly (thought summaries are skipped).
+const responseText = (response) => {
+  const parts = response?.candidates?.[0]?.content?.parts;
+  if (Array.isArray(parts)) {
+    return parts
+      .filter((part) => typeof part?.text === 'string' && !part.thought)
+      .map((part) => part.text)
+      .join('');
+  }
+  return typeof response?.text === 'string' ? response.text : '';
+};
+
+const readResponse = (response, { json }) => {
+  const candidate = response?.candidates?.[0];
+  const finishReason = candidate?.finishReason;
+  const blockReason = response?.promptFeedback?.blockReason;
+  if (blockReason || BLOCKED_REASONS.has(finishReason)) {
+    throw new AIOutputError(`AI response blocked (${blockReason || finishReason})`, 'blocked');
+  }
+  const text = responseText(response);
+  if (!text.trim()) throw new AIOutputError('AI returned an empty response', 'empty');
+  // Cut-off JSON can't be repaired reliably; cut-off rich text is trimmed by the length guards.
+  if (json && finishReason === 'MAX_TOKENS') throw new AIOutputError('AI response was cut off', 'truncated');
+  return text;
+};
+
+/**
+ * One model call with the shared safety net.
+ * @param {object} opts
+ * @param {object} opts.client        GoogleGenAI instance
+ * @param {string} opts.model
+ * @param {string} opts.contents      user content (the data)
+ * @param {string} [opts.systemInstruction]  the task and rules
+ * @param {object} [opts.schema]      JSON Schema -> structured JSON output
+ * @param {number} [opts.temperature]
+ * @param {number} [opts.maxOutputTokens]
+ * @param {number} opts.timeoutMs
+ * @returns {Promise<string>} response text
+ */
+async function generate({ client, model, contents, systemInstruction, schema, temperature = 0.4, maxOutputTokens = 4096, timeoutMs }) {
+  const config = { temperature, maxOutputTokens };
+  if (systemInstruction) config.systemInstruction = systemInstruction;
+  if (schema) {
+    config.responseMimeType = 'application/json';
+    config.responseJsonSchema = schema;
+  }
+  const params = { model, contents, config };
+  let response;
+  try {
+    response = await callWithTimeout(client, params, timeoutMs);
+  } catch (error) {
+    if (!isTransient(error)) throw error;
+    await wait(800);
+    response = await callWithTimeout(client, params, timeoutMs);
+  }
+  return readResponse(response, { json: Boolean(schema) });
 }
 
-module.exports = { 
-  generateResumeSuggestion,
+/** Parse a JSON object from model output. Strict: no guessing at broken JSON. */
+const parseJsonObject = (text) => {
+  const cleaned = stripCodeFences(text);
+  const attempts = [cleaned];
+  const first = cleaned.indexOf('{');
+  const last = cleaned.lastIndexOf('}');
+  if (first > 0 || (last !== -1 && last < cleaned.length - 1)) attempts.push(cleaned.slice(first, last + 1));
+  for (const candidate of attempts) {
+    try {
+      const value = JSON.parse(candidate);
+      if (value && typeof value === 'object' && !Array.isArray(value)) return value;
+    } catch {
+      // try the next candidate
+    }
+  }
+  throw new AIOutputError('AI response was not valid JSON', 'invalid_json');
+};
+
+/** generate() + parseJsonObject(). */
+async function generateJson(opts) {
+  const text = await generate({ temperature: 0, ...opts });
+  return parseJsonObject(text);
+}
+
+/** Resume text -> raw parsed JSON (shape: PARSE_RESUME_SCHEMA). Normalise it with resumeImport.normalizeParsedResume. */
+async function parseResumeText(extractedText, client, model) {
+  return generateJson({
+    client,
+    model,
+    contents: buildParsePrompt(extractedText),
+    systemInstruction: PARSE_SYSTEM_INSTRUCTION,
+    schema: PARSE_RESUME_SCHEMA,
+    temperature: 0,
+    maxOutputTokens: 16384,
+    timeoutMs: AI_TIMEOUTS.parseResume
+  });
+}
+
+module.exports = {
+  AI_TIMEOUTS,
+  AIOutputError,
+  AITimeoutError,
+  DEFAULT_MODEL,
+  generate,
+  generateJson,
+  parseJsonObject,
   parseResumeText,
   resolveGeminiModel,
   createGoogleGenAI

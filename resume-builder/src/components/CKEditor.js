@@ -159,7 +159,8 @@ const CKEditorComponent = ({
   isProMode = false, // Pro mode for different AI button functionality
   onAIContentChange = null, // Callback for AI content changes
   onAILoading = null, // Callback for AI loading state
-  originalText = null // if original resumeData available
+  originalText = null, // if original resumeData available
+  aiField = "general" // resume field type, so AI output fits that field
 }) => {
   const [isLayoutReady, setIsLayoutReady] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -784,6 +785,7 @@ const CKEditorComponent = ({
               onAIContentChange={onAIContentChange}
               onAILoading={onAILoading}
               originalText={originalText === value ? null : originalText}
+              aiField={aiField}
               isMobile={isMobile} />
             {isProMode && (
               <button

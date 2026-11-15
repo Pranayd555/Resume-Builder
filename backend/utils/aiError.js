@@ -37,9 +37,40 @@ function getGeminiProviderError(err) {
   return null;
 }
 
+const errorResult = (httpStatus, type, retryable, userMessage, model, err) => ({
+  httpStatus,
+  payload: {
+    success: false,
+    error: userMessage,
+    details: { type, provider: 'gemini', retryable, model: model || undefined },
+  },
+  provider: { code: undefined, status: undefined, message: err?.message },
+});
+
+// Errors raised by our own AI helpers (services/geminiservice.js) rather than the provider.
+function normalizeLocalAIError(err, model) {
+  const name = err?.name;
+  if (name === 'AITimeoutError' || name === 'AbortError' || name === 'TimeoutError') {
+    return errorResult(504, 'AI_TIMEOUT', true,
+      'The AI took too long to respond. Please try again.', model, err);
+  }
+  if (name === 'AIOutputError' && err.reason === 'blocked') {
+    return errorResult(422, 'AI_BLOCKED', false,
+      "The AI couldn't process this content. Please edit the text and try again.", model, err);
+  }
+  if (name === 'AIOutputError') {
+    return errorResult(502, 'AI_BAD_OUTPUT', true,
+      "The AI returned an incomplete answer. Please try again.", model, err);
+  }
+  return null;
+}
+
 function normalizeGeminiError(err, context = {}) {
   const model = context.model;
   const isOwnApiKey = !!context.isOwnApiKey;
+
+  const local = normalizeLocalAIError(err, model);
+  if (local) return local;
 
   const providerPayload = getGeminiProviderError(err);
   const providerError = providerPayload?.error;
@@ -104,17 +135,26 @@ function normalizeGeminiError(err, context = {}) {
     }
   } else if (
     lowerMsg.includes('model') &&
-    (lowerMsg.includes('not found') ||
+    (numericCode === 404 ||
+      lowerMsg.includes('not found') ||
+      lowerMsg.includes('no longer available') ||
       lowerMsg.includes('unknown') ||
       lowerMsg.includes('unsupported') ||
       lowerMsg.includes('invalid'))
   ) {
-    httpStatus = 400;
     type = 'AI_MODEL';
     retryable = false;
-    userMessage = model
-      ? `The configured AI model "${model}" is invalid or unavailable. Update your model in Profile and try again.`
-      : 'The configured AI model is invalid or unavailable. Update your model in Profile and try again.';
+    if (isOwnApiKey) {
+      // BYOK users choose their model in Profile.
+      httpStatus = 400;
+      userMessage = model
+        ? `The AI model "${model}" is invalid or no longer available. Choose another model in Profile and try again.`
+        : 'The configured AI model is invalid or no longer available. Choose another model in Profile and try again.';
+    } else {
+      // Server model: nothing the user can change, so don't send them to Profile.
+      httpStatus = 503;
+      userMessage = 'The AI service is temporarily unavailable. Please try again later.';
+    }
   } else if (
     numericCode === 400 ||
     lowerMsg.includes('invalid argument') ||
