@@ -1,7 +1,8 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const multer = require('multer');
-const { protect, checkAIActionLimit, checkTokenLimit, trackUsage, refundTokenOnError, skipIfBYOK } = require('../middleware/auth');
+const { protect, chargeAIToken, trackUsage, skipIfBYOK } = require('../middleware/auth');
+const { getTokenBalance, tokenPayload } = require('../utils/tokenCalculator');
 const Resume = require('../models/Resume');
 const logger = require('../utils/logger');
 const DocumentParser = require('../utils/documentParser');
@@ -315,9 +316,7 @@ const upload = multer({
 // @access  Private
 router.post('/rewrite', [
   protect,
-  skipIfBYOK(checkAIActionLimit),
-  skipIfBYOK(checkTokenLimit),
-  skipIfBYOK(refundTokenOnError),
+  skipIfBYOK(chargeAIToken),
   body('content').trim().isLength({ min: 10 }).withMessage('Content must be at least 10 characters'),
   body('tone').optional().isIn(['professional', 'casual', 'formal', 'creative']).withMessage('Invalid tone'),
   body('style').optional().isIn(['concise', 'detailed', 'action-oriented', 'achievement-focused']).withMessage('Invalid style')
@@ -367,7 +366,7 @@ router.post('/rewrite', [
           tone,
           style,
           message: 'Content enhanced successfully',
-          tokens: req.tokens || 0
+          tokens: req.tokens
         }
       });
 
@@ -391,9 +390,7 @@ router.post('/rewrite', [
 // @access  Private
 router.post('/summarize', [
   protect,
-  skipIfBYOK(checkAIActionLimit),
-  skipIfBYOK(checkTokenLimit),
-  skipIfBYOK(refundTokenOnError),
+  skipIfBYOK(chargeAIToken),
   body('content').trim().isLength({ min: 20 }).withMessage('Content must be at least 20 characters')
 ], trackUsage, async (req, res) => {
   try {
@@ -439,7 +436,7 @@ router.post('/summarize', [
           originalContent: content,
           summary: enhancedText,
           message: 'Content enhanced successfully',
-          tokens: req.tokens || 0
+          tokens: req.tokens
         }
       });
 
@@ -464,23 +461,18 @@ router.post('/summarize', [
 // @access  Private
 router.get('/usage', protect, async (req, res) => {
   try {
-    const User = require('../models/User');
-    const user = await User.findById(req.user.id);
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
-    }
+    // Both pools count (bonus + purchased). This used to report purchased only.
+    const balance = await getTokenBalance(req.user._id);
 
     res.json({
       success: true,
       data: {
-        tokensAvailable: user.tokens || 0,
+        tokensAvailable: balance.total,
         plan: 'free',
-        remainingActions: user.tokens || 0,
-        cycleStartDate: user.createdAt,
+        remainingActions: balance.total,
+        tokens: tokenPayload(balance),
+        isOwnApiKey: !!req.user.isOwnApiKey,
+        cycleStartDate: req.user.createdAt,
         nextBillingDate: null,
         billingCycle: 'token-based',
         daysUntilReset: null
@@ -500,9 +492,7 @@ router.get('/usage', protect, async (req, res) => {
 // @access  Private
 router.post('/ats-score', [
   protect,
-  skipIfBYOK(checkAIActionLimit),
-  skipIfBYOK(checkTokenLimit),
-  skipIfBYOK(refundTokenOnError),
+  skipIfBYOK(chargeAIToken),
   upload.single('jobDescriptionFile'), // Handle file upload for job description
   body('resumeId').isMongoId().withMessage('Valid resume ID is required'),
   body('jobDescription').optional().trim().isLength({ min: 10 }).withMessage('Job description must be at least 10 characters'),
@@ -683,7 +673,7 @@ router.post('/ats-score', [
           inputType: inputType,
           atsAnalysis: atsAnalysis,
           message: 'ATS score analysis completed and saved successfully',
-          tokens: req.tokens || 0
+          tokens: req.tokens
         }
       });
 
@@ -755,9 +745,7 @@ router.get('/ats-score/:resumeId', protect, async (req, res) => {
 // @access  Private
 router.post('/adjust-tone', [
   protect,
-  skipIfBYOK(checkAIActionLimit),
-  skipIfBYOK(checkTokenLimit),
-  skipIfBYOK(refundTokenOnError),
+  skipIfBYOK(chargeAIToken),
   body('resumeId').isMongoId().withMessage('Valid resume ID is required'),
   body('resume_json').isObject().withMessage('Resume JSON is required'),
   body('ats_analysis').isObject().withMessage('ATS analysis is required'),
@@ -846,7 +834,7 @@ router.post('/adjust-tone', [
       success: true,
       data: updatedResumeData,
       message: 'Resume tone adjusted successfully',
-      tokens: req.tokens || 0
+      tokens: req.tokens
     });
 
   } catch (error) {
@@ -862,9 +850,7 @@ router.post('/adjust-tone', [
 // @access  Private
 router.post('/enhance-keywords', [
   protect,
-  skipIfBYOK(checkAIActionLimit),
-  skipIfBYOK(checkTokenLimit),
-  skipIfBYOK(refundTokenOnError),
+  skipIfBYOK(chargeAIToken),
   body('resumeId').isMongoId().withMessage('Valid resume ID is required'),
   body('resume_json').isObject().withMessage('Resume JSON is required'),
   body('ats_analysis').isObject().withMessage('ATS analysis is required'),
@@ -961,7 +947,7 @@ router.post('/enhance-keywords', [
       success: true,
       data: updatedResumeData,
       message: 'Keywords enhanced successfully',
-      tokens: req.tokens || 0
+      tokens: req.tokens
     });
 
   } catch (error) {
@@ -977,9 +963,7 @@ router.post('/enhance-keywords', [
 // @access  Private
 router.post('/generate-pdf-template', [
   protect,
-  skipIfBYOK(checkAIActionLimit),
-  skipIfBYOK(checkTokenLimit),
-  skipIfBYOK(refundTokenOnError),
+  skipIfBYOK(chargeAIToken),
   body('content').trim().isLength({ min: 20 }).withMessage('Content must be at least 20 characters')
 ], trackUsage, async (req, res) => {
   try {
@@ -1026,7 +1010,7 @@ router.post('/generate-pdf-template', [
           templateContent,
           templateType: 'PDF Template',
           message: 'PDF template generated successfully',
-          tokens: req.tokens || 0
+          tokens: req.tokens
         }
       });
 
@@ -1050,9 +1034,7 @@ router.post('/generate-pdf-template', [
 // @access  Private
 router.post('/restructure-template', [
   protect,
-  skipIfBYOK(checkAIActionLimit),
-  skipIfBYOK(checkTokenLimit),
-  skipIfBYOK(refundTokenOnError),
+  skipIfBYOK(chargeAIToken),
   body('content').trim().isLength({ min: 50 }).withMessage('Content must be at least 50 characters for restructuring')
 ], trackUsage, async (req, res) => {
   try {
@@ -1100,7 +1082,7 @@ router.post('/restructure-template', [
           structureType: 'Restructured Template',
           improvements: ['Enhanced formatting', 'Improved ATS compatibility', 'Better visual hierarchy', 'Professional styling'],
           message: 'Template restructured successfully',
-          tokens: req.tokens || 0
+          tokens: req.tokens
         }
       });
 

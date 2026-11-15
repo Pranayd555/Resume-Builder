@@ -231,6 +231,85 @@ class RefundCalculatorTest {
       results.tests.push({ test: 'Currency Conversion', passed: false, error: error.message });
     }
 
+    // ---- Token balance / spending-order tests ----
+    const check = (name, fn) => {
+      try {
+        const pass = fn() === true;
+        console.log(`${pass ? '✓' : '✗'} ${name}: ${pass ? 'PASS' : 'FAIL'}`);
+        results.passed += pass ? 1 : 0;
+        results.failed += pass ? 0 : 1;
+        results.tests.push({ test: name, passed: pass });
+      } catch (error) {
+        console.log(`✗ ${name}: FAIL - ${error.message}`);
+        results.failed++;
+        results.tests.push({ test: name, passed: false, error: error.message });
+      }
+    };
+    const { splitSpend } = require('./tokenCalculator');
+    const purchase = (bought, bonus, amount) => ({
+      transactionId: `txn_${bought}_${bonus}`,
+      amount,
+      status: 'captured',
+      metadata: { boughtTokens: bought, bonusTokensAdded: bonus, type: 'token_purchase' }
+    });
+
+    console.log('📋 SCENARIO 6 + balance tests');
+
+    // Scenario 6: purchased partly used, bonus pool topped up later (>= bonus added)
+    check('Scenario 6: refund unused purchased tokens', () => {
+      const r = RefundCalculator.calculateRefund(purchase(100, 50, 100000), { tokens: 40, bonusTokens: 60 }, 100000);
+      return r.scenario === 6 && r.status === 'eligible' && r.refundAmount === 40000 && r.refundPercentage === 40;
+    });
+    check('Scenario 6: not eligible when no purchased tokens left', () => {
+      const r = RefundCalculator.calculateRefund(purchase(100, 50, 100000), { tokens: 0, bonusTokens: 60 }, 100000);
+      return r.scenario === 6 && r.status === 'not_eligible' && r.refundAmount === 0;
+    });
+
+    // Refunds depend only on purchased tokens: a big bonus balance never raises one
+    check('Bonus balance never increases the refund (no-bonus purchase)', () => {
+      const r = RefundCalculator.calculateRefund(purchase(100, 0, 100000), { tokens: 30, bonusTokens: 500 }, 100000);
+      return r.scenario === 2 && r.refundAmount === 30000;
+    });
+    check('Bonus-only user cannot refund a bonus grant', () => {
+      const grant = { transactionId: 'admin_bonus_1', amount: 0, status: 'captured', metadata: { tokensAdded: 10, bonusTokensAdded: 10, type: 'admin_bonus' } };
+      const r = RefundCalculator.calculateRefund(grant, { tokens: 0, bonusTokens: 10 }, 0);
+      return r.status === 'error' && RefundCalculator.isPurchaseTransaction(grant) === false;
+    });
+    check('isPurchaseTransaction: paid purchase is refundable type', () =>
+      RefundCalculator.isPurchaseTransaction(purchase(25, 5, 19900)) === true &&
+      RefundCalculator.isPurchaseTransaction(null) === false
+    );
+
+    // Spending order (bonus first) feeds the refund scenarios as documented
+    check('Bonus-first spend keeps purchased intact -> scenario 4', () => {
+      // bought 100 + 50 bonus, plus 5 signup bonus; spend 20 AI actions
+      const spent = splitSpend({ purchased: 100, bonus: 55 }, 20);
+      const state = { tokens: 100 - spent.fromPurchased, bonusTokens: 55 - spent.fromBonus };
+      const r = RefundCalculator.calculateRefund(purchase(100, 50, 100000), state, 100000);
+      return spent.fromBonus === 20 && spent.fromPurchased === 0 && r.scenario === 4 && r.refundAmount === 85000;
+    });
+    check('Bonus-first spend: signup bonus is used before purchase bonus -> scenario 3', () => {
+      const spent = splitSpend({ purchased: 100, bonus: 55 }, 5);
+      const state = { tokens: 100 - spent.fromPurchased, bonusTokens: 55 - spent.fromBonus };
+      const r = RefundCalculator.calculateRefund(purchase(100, 50, 100000), state, 100000);
+      return r.scenario === 3 && r.refundAmount === 100000;
+    });
+
+    // Token deduction after an approved refund, per scenario
+    const deduction = (bought, bonus, tokens, bonusTokens) =>
+      RefundCalculator.getTokenDeduction(
+        RefundCalculator.calculateRefund(purchase(bought, bonus, 100000), { tokens, bonusTokens }, 100000)
+      );
+    const same = (a, b) => a.purchased === b.purchased && a.bonus === b.bonus;
+    check('Deduction scenario 1: all purchased', () => same(deduction(100, 0, 100, 0), { purchased: 100, bonus: 0 }));
+    check('Deduction scenario 2: unused purchased', () => same(deduction(100, 0, 30, 0), { purchased: 30, bonus: 0 }));
+    check('Deduction scenario 3: purchased + purchase bonus', () => same(deduction(100, 50, 100, 50), { purchased: 100, bonus: 50 }));
+    check('Deduction scenario 4: purchased + remaining bonus', () => same(deduction(100, 50, 100, 20), { purchased: 100, bonus: 20 }));
+    check('Deduction scenario 5: everything left', () => same(deduction(100, 50, 60, 5), { purchased: 60, bonus: 5 }));
+    check('Deduction scenario 6: unused purchased + purchase bonus only', () => same(deduction(100, 50, 40, 60), { purchased: 40, bonus: 50 }));
+    check('Deduction for error result is zero', () => same(RefundCalculator.getTokenDeduction({ status: 'error' }), { purchased: 0, bonus: 0 }));
+    console.log('');
+
     // Summary
     console.log('═'.repeat(60));
     console.log('📊 TEST SUMMARY');

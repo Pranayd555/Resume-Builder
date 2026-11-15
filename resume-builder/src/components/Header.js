@@ -15,16 +15,10 @@ import Swal from "sweetalert2";
 function Header() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout, user, isAuthenticated} = useAuth();
+  const { logout, user, isAuthenticated, balance } = useAuth();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [showMenu, setShowMenu] = useState(false);
   const [profilePictureVersion, setProfilePictureVersion] = useState(0);
-  const [tokenBalance, setTokenBalance] = useState(0);
-  const [tokenData, setTokenData] = useState({
-    balance: 0,
-    purchasedTokens: 0,
-    bonusTokens: 0,
-  });
   const mobileMenuRef = useRef(null);
   const mobileMenuButtonRef = useRef(null);
 
@@ -77,68 +71,8 @@ function Header() {
     setProfilePictureVersion((prev) => prev + 1);
   }, [user?.profilePicture]);
 
-  // Consolidated token data management
-  useEffect(() => {
-    // Helper function to update token data
-    const updateTokenData = () => {
-      const balance = apiHelpers.getTokenBalance();
-      const tokenData = apiHelpers.getTokenData();
-      const defaultTokenData = {
-        balance: 0,
-        purchasedTokens: 0,
-        bonusTokens: 0,
-      };
-
-      setTokenData(tokenData || defaultTokenData);
-      setTokenBalance(balance || 0);
-    };
-
-    // Initial load and when user changes (e.g., after login)
-    updateTokenData();
-
-    // Event handlers for various scenarios
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        updateTokenData();
-      }
-    };
-
-    const handleFocus = () => {
-      updateTokenData();
-    };
-
-    // Listen for token balance updates from API responses
-    const handleTokenBalanceUpdate = (event) => {
-      if(!user?.isOwnApiKey) {
-      setTokenBalance(event.detail.balance);
-      }
-    };
-
-    // Listen for token data updates from API responses
-    const handleTokenDataUpdate = (event) => {
-      if(!user?.isOwnApiKey) {
-      console.log("🔄 Header: Token data updated:", event.detail);
-      setTokenData(event.detail);
-      setTokenBalance(event.detail.balance || 0);
-      }
-    };
-
-    // Add event listeners
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("focus", handleFocus);
-    window.addEventListener("tokenBalanceUpdated", handleTokenBalanceUpdate);
-    window.addEventListener("tokenDataUpdated", handleTokenDataUpdate);
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("focus", handleFocus);
-      window.removeEventListener(
-        "tokenBalanceUpdated",
-        handleTokenBalanceUpdate
-      );
-      window.removeEventListener("tokenDataUpdated", handleTokenDataUpdate);
-    };
-  }, [isAuthenticated, user]); // Dependencies: re-run when user changes
+  // The token balance comes from AuthContext (`balance`), which stays in sync
+  // with every API response and refreshes when the tab regains focus.
 
   // Handle click outside to close mobile menu
   useEffect(() => {
@@ -311,12 +245,11 @@ function Header() {
               <CurrencyDollarIcon className="w-4 h-4 text-green-600 dark:text-green-400" />
               <div className="flex flex-col">
                 <span className="text-green-700 dark:text-green-300 text-xs font-semibold">
-                  {tokenData.balance || tokenBalance}
+                  {balance.total}
                 </span>
-                {tokenData.bonusTokens > 0 && (
+                {balance.bonus > 0 && (
                   <span className="text-green-600 dark:text-green-400 text-xs">
-                    {tokenData.purchasedTokens || 0} + {tokenData.bonusTokens}{" "}
-                    bonus
+                    {balance.purchased} + {balance.bonus} bonus
                   </span>
                 )}
               </div>
@@ -440,12 +373,11 @@ function Header() {
                 <CurrencyDollarIcon className="w-5 h-5 text-green-600 dark:text-green-400" />
                 <div>
                   <div className="text-green-700 dark:text-green-300 text-sm font-semibold">
-                    {tokenData.balance || tokenBalance} Tokens
+                    {balance.total} Tokens
                   </div>
                   <div className="text-green-600 dark:text-green-400 text-xs">
-                    {tokenData.bonusTokens > 0
-                      ? `${tokenData.purchasedTokens || 0} regular + ${tokenData.bonusTokens
-                      } bonus`
+                    {balance.bonus > 0
+                      ? `${balance.purchased} purchased + ${balance.bonus} bonus`
                       : "Available Balance"}
                   </div>
                 </div>

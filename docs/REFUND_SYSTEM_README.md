@@ -21,7 +21,9 @@ This is a comprehensive refund calculation system designed for the Resume Builde
 | File | Purpose | Status |
 |------|---------|--------|
 | `backend/utils/refundCalculator.js` | Main calculator engine | ✅ Created |
-| `backend/utils/refundCalculator.test.js` | Test suite (9 tests) | ✅ Created |
+| `backend/utils/refundCalculator.test.js` | Test suite (scenarios, deductions, spending order) | ✅ Created |
+| `backend/utils/tokenCalculator.js` | Token balance source of truth (pools, spending, atomic updates) | ✅ Created |
+| `backend/utils/tokenCalculator.test.js` | Balance, spending and concurrency tests | ✅ Created |
 | `backend/templates/refund-not-eligible.html` | Email template | ✅ Created |
 | `backend/utils/emailService.js` | Added method | ✅ Updated |
 
@@ -31,6 +33,23 @@ This is a comprehensive refund calculation system designed for the Resume Builde
 | [`docs/REFUND_TOKEN_DEDUCTION_LOGIC.md`](REFUND_TOKEN_DEDUCTION_LOGIC.md) | Token deduction rules |
 | [`docs/REFUND_VISUAL_GUIDE.md`](REFUND_VISUAL_GUIDE.md) | Flowcharts & decision trees |
 | `docs/REFUND_SYSTEM_README.md` | This file |
+
+---
+
+## 🪙 Token Pools, Balance and Spending Order
+
+Each user has two pools on the `User` document, kept separate because only one is refundable:
+
+| Field | Pool | Refundable | Filled by |
+|-------|------|-----------|-----------|
+| `tokens` | Purchased | Yes | Razorpay purchases (the server decides the package from the verified amount) |
+| `bonusTokens` | Bonus | No | Signup bonus, feedback / bug-report rewards, admin grants, package bonus |
+
+- **One source of truth:** `backend/utils/tokenCalculator.js`. Every response that reports a balance sends `tokens: { purchased, bonus, total }` (plus the older aliases `balance`, `purchasedTokens`, `bonusTokens`). User objects also carry `tokenBalance`.
+- **Spending order: bonus first, then purchased.** Refundable tokens are kept as long as possible, which is why scenario 4 is the usual partial refund.
+- **Atomic:** spending, grants, purchases and refund deductions are single MongoDB updates, so concurrent AI calls can't overspend or push a pool below zero. A failed AI action puts its token back into the pool it came from.
+- **BYOK** users (own Gemini key) are never charged; their balance is kept for later.
+- **Refunds:** the refundable amount depends only on purchased tokens. A large bonus balance never increases a refund, and bonus grants (zero-amount `admin_bonus` transactions) cannot be refunded.
 
 ---
 
@@ -77,6 +96,14 @@ Example: Used so many tokens that calculated refund < 1 token
 Condition: Both regular and bonus tokens used, but >=1 token value remains
 Refund: (Payment ÷ Tokens Bought) × Effective Tokens
 Example: Paid ₹1000 for 100 + 50 bonus, effective remaining = 15 → ₹150 refund (15%)
+```
+
+### Scenario 6: Purchased Used, Bonus Still Covered ✅
+```
+Condition: Some purchased tokens used, but the bonus pool still holds at least
+           this purchase's bonus (e.g. a feedback bonus granted later)
+Refund: (Payment ÷ Tokens Bought) × Current Purchased Tokens (not eligible if 0)
+Example: Paid ₹1000 for 100 + 50 bonus, 40 purchased + 60 bonus left → ₹400 refund (40%)
 ```
 
 ---
@@ -169,10 +196,11 @@ const emailService = require('../utils/emailService');
 const user = await User.findById(req.user.id);
 const transaction = user.getTransactionById(transactionId);
 
-// Calculate refund
+// Calculate refund from the sanitized pools (utils/tokenCalculator.js)
+const { purchased, bonus } = toTokenBalance(user);
 const refundResult = RefundCalculator.calculateRefund(
   transaction,
-  { tokens: user.tokens, bonusTokens: user.bonusTokens },
+  { tokens: purchased, bonusTokens: bonus },
   transaction.amount
 );
 
@@ -190,6 +218,9 @@ if (refundResult.status === 'eligible') {
     refundId: refund.id,
     refundAmount: refundResult.refundAmount
   });
+
+  // Remove the refunded tokens atomically (see REFUND_TOKEN_DEDUCTION_LOGIC.md)
+  await deductTokens(user._id, RefundCalculator.getTokenDeduction(refundResult));
 
   // Send completion email
   await emailService.sendRefundCompletionEmail({
@@ -227,18 +258,15 @@ if (refundResult.status === 'eligible') {
 ## 🧪 Running Tests
 
 ```bash
-# From backend directory
-node utils/refundCalculator.test.js
+# From backend directory: refund scenarios + token balance tests
+npm test
+
+# Include the database tests (atomic spending, concurrency, middleware,
+# migration) against a throwaway MongoDB, e.g. the root docker-compose one:
+TOKEN_TEST_MONGODB_URI=mongodb://127.0.0.1:27017/token-test npm test
 ```
 
-Expected output: 100% success rate with all 9 tests passing
-
-```
-📊 TEST SUMMARY
-✅ Passed: 9
-❌ Failed: 0
-📈 Success Rate: 100.00%
-```
+Expected output: every refund check passes (`❌ Failed: 0`) and `node --test` reports `fail 0`. CI runs both, with a MongoDB service for the database tests.
 
 ---
 
@@ -254,7 +282,7 @@ Expected output: 100% success rate with all 9 tests passing
 **Returns:**
 ```javascript
 {
-  scenario: 1-6,                    // Which scenario applies
+  scenario: 1-6,                    // Which scenario applies (undefined on error)
   refundAmount: number,             // Refund in paise
   refundPercentage: number,         // Refund as percentage (0-100)
   message: string,                  // User-friendly description
@@ -266,6 +294,15 @@ Expected output: 100% success rate with all 9 tests passing
   bonusTokensAdded: number
 }
 ```
+
+### RefundCalculator.getTokenDeduction(refundResult)
+Tokens to remove after an approved refund, per scenario
+```javascript
+RefundCalculator.getTokenDeduction(result); // e.g. { purchased: 40, bonus: 50 }
+```
+
+### RefundCalculator.isPurchaseTransaction(transaction)
+True only for a paid purchase (amount > 0, boughtTokens >= 1, not an admin bonus)
 
 ### RefundCalculator.paiseToRupees(paise)
 Converts paise to rupees for display
@@ -462,7 +499,7 @@ When bonus tokens are involved, we need to understand:
 
 ## 🎯 Success Criteria
 
-✅ System correctly calculates all 6 scenarios  
+✅ System correctly calculates all 6 scenarios (scenario 6 added November 2026; it used to throw)  
 ✅ Test suite passes 100%  
 ✅ No refund exceeds paid amount  
 ✅ Emails sent appropriately  

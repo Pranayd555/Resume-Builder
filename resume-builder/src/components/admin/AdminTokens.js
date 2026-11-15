@@ -1,8 +1,11 @@
 import React, { useState, useCallback } from 'react';
 import { adminAPI } from '../../services/adminApi';
 import { toast } from 'react-toastify';
+import { useAuth } from '../../contexts/AuthContext';
+import { userRecordBalance } from '../../utils/tokenBalance';
 
 const AdminTokens = () => {
+  const { user: currentUser, refreshBalance } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [emailSearch, setEmailSearch] = useState('');
@@ -58,6 +61,10 @@ const AdminTokens = () => {
 
       if (response.success) {
         toast.success(`${tokens} bonus tokens given successfully`);
+        // An admin granting tokens to themselves should see the header update too
+        if (currentUser && String(currentUser.id) === String(userId)) {
+          refreshBalance();
+        }
         // Refresh search results to show updated token balance
         if (emailSearch.trim()) {
           searchUsersByEmail(emailSearch);
@@ -294,14 +301,14 @@ const AdminTokens = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                       <span className="font-semibold text-blue-600 dark:text-blue-400">
-                        {user.tokens || 0}
+                        {userRecordBalance(user).total}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                      {user.purchasedTokens || 0}
+                      {userRecordBalance(user).purchased}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                      {user.bonusTokens || 0}
+                      {userRecordBalance(user).bonus}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button
@@ -347,9 +354,9 @@ const AdminTokens = () => {
                 <div className="space-y-4">
                   <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                      <div>Current Total Tokens: <span className="font-semibold text-gray-900 dark:text-white">{selectedUser.tokens || 0}</span></div>
-                      <div>Purchased: <span className="font-semibold">{selectedUser.purchasedTokens || 0}</span></div>
-                      <div>Bonus: <span className="font-semibold">{selectedUser.bonusTokens || 0}</span></div>
+                      <div>Current Total Tokens: <span className="font-semibold text-gray-900 dark:text-white">{userRecordBalance(selectedUser).total}</span></div>
+                      <div>Purchased (refundable): <span className="font-semibold">{userRecordBalance(selectedUser).purchased}</span></div>
+                      <div>Bonus: <span className="font-semibold">{userRecordBalance(selectedUser).bonus}</span></div>
                     </div>
                   </div>
 

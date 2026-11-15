@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { createApiConfig } from '../config/timeouts';
+import { extractBalance, normalizeBalance } from '../utils/tokenBalance';
 
 // Create axios instance with base configuration
 const api = axios.create({
@@ -27,31 +28,10 @@ api.interceptors.request.use(
 // Normalize API error responses in one place and avoid duplicate UI toasts
 api.interceptors.response.use(
   (response) => {
-    // Check if response contains token balance and update it
-    if (response.data) {
-      // Check for tokens in multiple possible locations
-      let tokenBalance = null;
-      let tokenData = null;
-
-      // Check direct tokens field
-      if (response.data.tokens !== undefined) {
-        tokenBalance = response.data.tokens;
-      }
-      // Check data.tokens (new structure with bonus tokens)
-      else if (response.data.data?.tokens !== undefined) {
-        tokenData = response.data.data.tokens;
-        // `balance` already represents the total usable tokens (purchased + bonus)
-        tokenBalance = response.data.data.tokens?.balance || 0;
-      }
-
-      if (tokenBalance !== null) {
-        apiHelpers.updateTokenBalance(tokenBalance);
-      }
-
-      if (tokenData) {
-        console.log('🔄 API Response: Updating token data:', tokenData);
-        apiHelpers.updateTokenData(tokenData);
-      }
+    // Any response that reports the caller's token balance updates it app-wide.
+    const balance = extractBalance(response.data);
+    if (balance) {
+      apiHelpers.updateTokenData(balance);
     }
     return response;
   },
@@ -66,6 +46,12 @@ api.interceptors.response.use(
       } catch (_) {
         // Leave as-is if parsing fails
       }
+    }
+
+    // Error responses can carry a balance too (refunded AI token, or "not enough tokens").
+    const errorBalance = extractBalance(error?.response?.data);
+    if (errorBalance) {
+      apiHelpers.updateTokenData(errorBalance);
     }
 
     // Extract a single user-friendly message from backend
@@ -716,23 +702,25 @@ export const apiHelpers = {
     localStorage.setItem('user', JSON.stringify(userData));
   },
 
-  // Token management functions
-  setTokenBalance: (balance) => {
-    localStorage.setItem('tokenBalance', JSON.stringify(balance));
-  },
+  // ---- AI token balance (see utils/tokenBalance.js) ----
+  // AuthContext owns the balance. These helpers keep a cached copy in
+  // localStorage (for the first paint after a reload) and broadcast changes
+  // with the 'tokenBalanceUpdated' event. The event's `detail.balance` and
+  // getTokenBalance() are the total (purchased + bonus), for older components.
 
-  getTokenBalance: () => {
-    const balance = localStorage.getItem('tokenBalance');
-    return balance ? JSON.parse(balance) : 0;
-  },
-
-  setTokenData: (tokenData) => {
-    localStorage.setItem('tokenData', JSON.stringify(tokenData));
-  },
-
+  // Cached balance { purchased, bonus, total }, or null if none is cached.
   getTokenData: () => {
-    const tokenData = localStorage.getItem('tokenData');
-    return tokenData ? JSON.parse(tokenData) : null;
+    try {
+      return normalizeBalance(JSON.parse(localStorage.getItem('tokenData')));
+    } catch (_) {
+      return null;
+    }
+  },
+
+  // Cached total (purchased + bonus).
+  getTokenBalance: () => {
+    const data = apiHelpers.getTokenData();
+    return data ? data.total : 0;
   },
 
   clearTokenData: () => {
@@ -740,28 +728,17 @@ export const apiHelpers = {
     localStorage.removeItem('tokenData');
   },
 
-  // Update token balance across the app
-  updateTokenBalance: (newBalance) => {
-    apiHelpers.setTokenBalance(newBalance);
-    // Dispatch custom event to notify other components
+  // Store and broadcast a balance from the API. Ignores anything that isn't a
+  // balance. Returns the normalized balance or null.
+  updateTokenData: (raw) => {
+    const balance = normalizeBalance(raw);
+    if (!balance) return null;
+    localStorage.setItem('tokenData', JSON.stringify(balance));
+    localStorage.setItem('tokenBalance', JSON.stringify(balance.total));
     window.dispatchEvent(new CustomEvent('tokenBalanceUpdated', {
-      detail: { balance: newBalance }
+      detail: { ...balance, balance: balance.total }
     }));
-  },
-
-  // Update token data with bonus tokens
-  updateTokenData: (tokenData) => {
-    apiHelpers.setTokenData(tokenData);
-    // Update balance as well
-    if (tokenData.balance !== undefined) {
-      // `balance` is already the total usable token balance
-      const totalBalance = tokenData.balance || 0;
-      apiHelpers.updateTokenBalance(totalBalance);
-    }
-    // Dispatch custom event to notify other components
-    window.dispatchEvent(new CustomEvent('tokenDataUpdated', {
-      detail: tokenData
-    }));
+    return balance;
   },
 
   // Update user data
@@ -772,6 +749,16 @@ export const apiHelpers = {
     window.dispatchEvent(new CustomEvent('userDataUpdated', {
       detail: userData
     }));
+  },
+};
+
+// Token balance
+export const tokenAPI = {
+  // Current balance; the response interceptor broadcasts it.
+  getBalance: async () => {
+    const config = createApiConfig('/users/balance');
+    const response = await api.get('/users/balance', config);
+    return response.data;
   },
 };
 

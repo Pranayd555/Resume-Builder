@@ -47,8 +47,12 @@ npm run seed:all-templates
 
 ```bash
 npm run unlock-account -- user@example.com     # unlock a locked account
-npm run add-tokens -- user@example.com 50      # preview only; append --force to actually add the tokens
+npm run add-tokens -- user@example.com 50      # preview only; append --force to add 50 BONUS tokens (not refundable)
+npm run add-tokens -- user@example.com 50 --purchased --force   # PURCHASED tokens (refundable): only to reconcile a real payment
+node scripts/normalize-token-balances.js       # dry run: users with missing/negative/fractional token fields; --apply to fix (idempotent)
 ```
+
+`normalize-token-balances.js` is optional data hygiene (the app already treats bad values as 0). Run it on a local or staging copy first and take a backup before any production run.
 
 In production, run any of these scripts inside the API container from `/opt/presmistique`:
 `docker compose exec api npm run <script> -- <args>` (see [docs/DEPLOYMENT.md](../../docs/DEPLOYMENT.md)).
