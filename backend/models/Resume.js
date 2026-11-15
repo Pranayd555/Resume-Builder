@@ -1,4 +1,12 @@
 const mongoose = require('mongoose');
+const { EMAIL_MAX_LENGTH, isValidEmail } = require('../utils/resumeValidation');
+
+// End dates may equal the start date (e.g. a one-month role or a course that
+// starts and ends in the same month); only an end date *before* the start is invalid.
+const endNotBeforeStart = function (value) {
+  if (!value || !this.startDate) return true;
+  return value >= this.startDate;
+};
 
 const resumeSchema = new mongoose.Schema({
   // Owner
@@ -29,10 +37,14 @@ const resumeSchema = new mongoose.Schema({
       required: [true, 'Email is required'],
       trim: true,
       lowercase: true,
-      match: [
-        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-        'Please provide a valid email'
-      ]
+      maxlength: [EMAIL_MAX_LENGTH, `Email cannot exceed ${EMAIL_MAX_LENGTH} characters`],
+      // isValidEmail checks the length before running the regex, so an
+      // oversized string never reaches the pattern whatever order Mongoose
+      // runs validators in.
+      validate: {
+        validator: (value) => value === undefined || value === null || value === '' || isValidEmail(value),
+        message: 'Please provide a valid email'
+      }
     },
     phone: {
       type: String,
@@ -62,7 +74,7 @@ const resumeSchema = new mongoose.Schema({
     profilePicture: {
       type: String,
       trim: true,
-      maxlength: [5000, 'Profile picture URL cannot exceed 500 characters']
+      maxlength: [5000, 'Profile picture URL cannot exceed 5000 characters']
     },
     isAddPhoto: {
       type: Boolean,
@@ -115,10 +127,8 @@ const resumeSchema = new mongoose.Schema({
     endDate: {
       type: Date,
       validate: {
-        validator: function (value) {
-          return !value || value > this.startDate;
-        },
-        message: 'End date must be after start date'
+        validator: endNotBeforeStart,
+        message: 'End date cannot be before start date'
       }
     },
     isCurrentJob: {
@@ -161,12 +171,13 @@ const resumeSchema = new mongoose.Schema({
     },
     endDate: {
       type: Date,
-      required: [true, 'End date is required'],
+      // Not required while the person is still studying there ("Currently studying").
+      required: [function () {
+        return !this.isCurrentlyStudying;
+      }, 'End date is required (or tick "Currently studying here")'],
       validate: {
-        validator: function (value) {
-          return this.startDate ? value > this.startDate : true;
-        },
-        message: 'End date must be after start date'
+        validator: endNotBeforeStart,
+        message: 'End date cannot be before start date'
       }
     },
     isCurrentlyStudying: {

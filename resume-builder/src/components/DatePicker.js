@@ -14,10 +14,15 @@ const CustomDatePicker = ({
   disabled = false,
   ...props
 }) => {
+  // Dates are stored as "YYYY-MM-DD" calendar days. Parse and format them in
+  // local time: new Date('2021-01-01') is UTC midnight and toISOString() shifts
+  // a local midnight back to the previous day east of UTC (e.g. IST), which
+  // showed and saved the day before the one the user picked.
   const parseDateValue = (dateValue) => {
     if (!dateValue || dateValue === 'null' || dateValue === 'undefined') return null;
-    const parsed = new Date(dateValue);
-    return Number.isNaN(parsed.getTime()) ? '' : parsed;
+    const match = typeof dateValue === 'string' && /^(\d{4})-(\d{2})-(\d{2})/.exec(dateValue);
+    const parsed = match ? new Date(+match[1], +match[2] - 1, +match[3]) : new Date(dateValue);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
   };
 
   // Convert string date to Date object for react-datepicker
@@ -25,7 +30,8 @@ const CustomDatePicker = ({
 
   const handleDateChange = (date) => {
     // Convert Date object back to YYYY-MM-DD string format
-    const dateString = date ? date.toISOString().split('T')[0] : '';
+    const pad = (n) => String(n).padStart(2, '0');
+    const dateString = date ? `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` : '';
     onChange(dateString);
   };
 
