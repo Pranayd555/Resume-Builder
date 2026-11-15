@@ -1,3 +1,5 @@
+import { isValidEmail } from '../utils/resumeValidation';
+
 // Data models and utilities for frontend data structures
 
 // User model
@@ -251,10 +253,9 @@ export const createTemplateUsageModel = (data = {}) => ({
 
 // Validation utilities
 export const validators = {
-  email: (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  },
+  // Shared linear-time check (length capped before the regex). The previous
+  // inline pattern backtracked quadratically on long input.
+  email: (email) => isValidEmail(typeof email === 'string' ? email.trim() : email),
 
   phone: (phone) => {
     const phoneRegex = /^[+]?[1-9][\d]{0,15}$/;

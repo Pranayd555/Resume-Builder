@@ -11,6 +11,13 @@ const sharp = require('sharp');
 
 const router = express.Router();
 const DraftTemplate = require('../models/DraftTemplate');
+const {
+  normalizeResumeBody,
+  resumeCreateRules,
+  resumeUpdateRules,
+  rejectInvalidResume,
+  sendResumeValidationError
+} = require('../utils/resumeValidation');
 
 // @desc    Save custom template draft
 // @route   POST /api/resumes/draft-template
@@ -73,29 +80,11 @@ router.get('/draft-template', protect, async (req, res) => {
 });
 
 
-// Helper function to handle Mongoose validation errors
+// Helper to answer a failed resume save. Mongoose validation/cast errors become a
+// 400 with field-level errors ({ field: 'education.0.endDate', message }) that the
+// form shows next to the matching input; anything else is a 500.
 const handleValidationError = (error, res) => {
-  if (error.name === 'ValidationError') {
-    const errors = Object.values(error.errors).map(err => ({
-      field: err.path,
-      message: err.message,
-      value: err.value
-    }));
-
-    return res.status(400).json({
-      success: false,
-      error: 'Validation failed',
-      details: errors
-    });
-  }
-
-  if (error.name === 'CastError') {
-    return res.status(400).json({
-      success: false,
-      error: 'Invalid data format',
-      details: `Invalid ${error.path}: ${error.value}`
-    });
-  }
+  if (sendResumeValidationError(error, res)) return res;
 
   // For other errors, return generic server error
   return res.status(500).json({
@@ -110,21 +99,12 @@ const handleValidationError = (error, res) => {
 // @access  Private
 router.post('/form-data', [
   protect,
-  body('title').trim().isLength({ min: 1, max: 100 }).withMessage('Title is required and must be less than 100 characters'),
-  body('personalInfo.fullName').trim().isLength({ min: 1, max: 100 }).withMessage('Full name is required'),
-  body('personalInfo.email').isEmail().withMessage('Valid email is required')
+  normalizeResumeBody,
+  ...resumeCreateRules,
+  rejectInvalidResume
 ], trackUsage, async (req, res) => {
   try {
-    logger.info('Form data request received:', { user: req.user.id, body: req.body });
-
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      logger.error('Validation errors:', errors.array());
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
-    }
+    logger.info('Form data request received:', { user: req.user.id });
 
     // Set usage type for tracking
     req.usageType = 'resume';
@@ -171,21 +151,12 @@ router.post('/form-data', [
 // @access  Private
 router.post('/auto-save', [
   protect,
-  body('title').optional().trim().isLength({ min: 1, max: 100 }),
-  body('personalInfo.fullName').optional().trim().isLength({ min: 1, max: 100 }),
-  body('personalInfo.email').optional().isEmail()
+  normalizeResumeBody,
+  ...resumeUpdateRules,
+  rejectInvalidResume
 ], async (req, res) => {
   try {
-    logger.info('Auto-save request received:', { user: req.user.id, body: req.body });
-
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      logger.error('Auto-save validation errors:', errors.array());
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
-    }
+    logger.info('Auto-save request received:', { user: req.user.id });
 
     // Check if we're updating an existing resume or creating a new one
     const { resumeId } = req.body;
@@ -1982,20 +1953,12 @@ router.get('/:id', protect, async (req, res) => {
 // @access  Private
 router.post('/', [
   protect,
-  body('title').trim().isLength({ min: 1, max: 100 }).withMessage('Title is required and must be less than 100 characters'),
+  normalizeResumeBody,
+  ...resumeCreateRules,
   body('templateId').isMongoId().withMessage('Valid template ID is required'),
-  body('personalInfo.fullName').trim().isLength({ min: 1, max: 100 }).withMessage('Full name is required'),
-  body('personalInfo.email').isEmail().withMessage('Valid email is required')
+  rejectInvalidResume
 ], async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
-    }
-
     // No subscription limits - users can create unlimited resumes
 
     // Verify template exists and is active
@@ -2052,19 +2015,11 @@ router.post('/', [
 // @access  Private
 router.put('/:id', [
   protect,
-  body('title').optional().trim().isLength({ min: 1, max: 100 }),
-  body('personalInfo.fullName').optional().trim().isLength({ min: 1, max: 100 }),
-  body('personalInfo.email').optional().isEmail()
+  normalizeResumeBody,
+  ...resumeUpdateRules,
+  rejectInvalidResume
 ], async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
-    }
-
     const resume = await Resume.findOne({
       _id: req.params.id,
       user: req.user.id

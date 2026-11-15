@@ -693,7 +693,7 @@ export const apiHelpers = {
     if (error?.response?.data?.error) {
       return error.response.data.error;
     } else if (error?.response?.data?.errors) {
-      return error.response.data.errors.map(err => err.msg).join(', ');
+      return error.response.data.errors.map(err => err.msg || err.message).join(', ');
     } else if (error?.message) {
       return error.message;
     }
