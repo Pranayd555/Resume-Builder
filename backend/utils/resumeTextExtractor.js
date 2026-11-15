@@ -164,6 +164,123 @@ const orderByColumns = (rows, gutter) => {
 };
 
 // ---------------------------------------------------------------------------
+// Small tables inside a single-column page (a 3-column skills grid, an
+// education grid with one column per qualification)
+// ---------------------------------------------------------------------------
+
+const MIN_TABLE_ROWS = 3;
+const MIN_GUTTER_WIDTH = 6;
+
+/** Empty horizontal intervals of a row between `left` and `right`. */
+const rowGaps = (row, left, right) => {
+  const gaps = [];
+  let cursor = left;
+  for (const b of row.items) {
+    if (b.x > cursor) gaps.push([cursor, b.x]);
+    cursor = Math.max(cursor, b.x + b.w);
+  }
+  if (right > cursor) gaps.push([cursor, right]);
+  return gaps;
+};
+
+const intersectGaps = (a, b) => {
+  const out = [];
+  for (const [a1, a2] of a) {
+    for (const [b1, b2] of b) {
+      const start = Math.max(a1, b1);
+      const end = Math.min(a2, b2);
+      if (end - start >= MIN_GUTTER_WIDTH) out.push([start, end]);
+    }
+  }
+  return out;
+};
+
+/** Gaps shared by every row of the run, away from the page's text edges. */
+const sharedGaps = (rows, bounds) => rows
+  .reduce((common, row) => intersectGaps(common, rowGaps(row, bounds.left, bounds.right)), [[bounds.left, bounds.right]])
+  .filter(([start, end]) => start > bounds.left + 1 && end < bounds.right - 1);
+
+const rowsWithText = (rows, test) => rows.filter((row) => row.items.some(test)).length;
+
+/** Gutter positions (midpoints) with text on both sides in at least two rows. */
+const tableGutters = (rows, bounds) => sharedGaps(rows, bounds)
+  .filter(([start, end]) => rowsWithText(rows, (b) => b.x + b.w <= start) >= 2 && rowsWithText(rows, (b) => b.x >= end) >= 2)
+  .map(([start, end]) => (start + end) / 2);
+
+const columnOf = (box, gutters) => gutters.filter((g) => box.x >= g).length;
+
+/** cells[row][column] = boxes in that cell. */
+const toCells = (rows, gutters) => rows.map((row) => {
+  const cells = Array.from({ length: gutters.length + 1 }, () => []);
+  row.items.forEach((b) => cells[columnOf(b, gutters)].push(b));
+  return cells;
+});
+
+const cellText = (cell) => joinRow(cell).trim();
+
+/** A right-aligned date column next to single-column content is not a table. */
+const isDateColumn = (cells, column) => {
+  const texts = cells.map((row) => cellText(row[column])).filter(Boolean);
+  return texts.length > 0 && texts.filter((t) => t.length <= 30 && DATE_LIKE.test(t)).length / texts.length >= 0.5;
+};
+
+/**
+ * Read column by column when cells wrap onto the next row or rows are
+ * staggered (some rows have only some columns); otherwise row by row with
+ * " | " between cells, which keeps label/value pairs ("English | Native") together.
+ */
+const tableLines = (rows, gutters) => {
+  const cells = toCells(rows, gutters);
+  const columns = gutters.length + 1;
+  const staggered = cells.some((row) => row.some((cell) => !cell.length));
+  const wraps = cells.some((row) => row.some((cell) => /[,&/-]$/.test(cellText(cell))));
+  if (!staggered && !wraps) return cells.map((row) => row.map(cellText).join(FIELD_SEPARATOR));
+  const lines = [];
+  for (let c = 0; c < columns; c += 1) cells.forEach((row) => { if (row[c].length) lines.push(cellText(row[c])); });
+  return lines;
+};
+
+// Measured against the smaller font, so a larger section heading after a table
+// (and the extra space before it) ends the run instead of joining it.
+const closeRows = (a, b) => a.y - b.y <= Math.min(a.size, b.size) * 1.9;
+
+/** Longest run of close rows starting at `start` that still shares an inner gap. */
+const growRun = (rows, start, bounds) => {
+  let end = start;
+  while (end + 1 < rows.length && closeRows(rows[end], rows[end + 1])
+    && sharedGaps(rows.slice(start, end + 2), bounds).length) end += 1;
+  return end;
+};
+
+const acceptTable = (run, gutters) => run.length >= MIN_TABLE_ROWS
+  && gutters.length > 0
+  && !isDateColumn(toCells(run, gutters), gutters.length);
+
+/** Lines for a single-column page, reading any small tables in it sensibly. */
+const orderWithTables = (rows) => {
+  if (!rows.length) return [];
+  const bounds = {
+    left: Math.min(...rows.flatMap((r) => r.items.map((b) => b.x))),
+    right: Math.max(...rows.flatMap((r) => r.items.map((b) => b.x + b.w)))
+  };
+  const lines = [];
+  let i = 0;
+  while (i < rows.length) {
+    const end = growRun(rows, i, bounds);
+    const run = rows.slice(i, end + 1);
+    const gutters = run.length >= MIN_TABLE_ROWS ? tableGutters(run, bounds) : [];
+    if (acceptTable(run, gutters)) {
+      lines.push(...tableLines(run, gutters));
+      i = end + 1;
+    } else {
+      lines.push(joinRow(rows[i].items));
+      i += 1;
+    }
+  }
+  return lines;
+};
+
+// ---------------------------------------------------------------------------
 // Links
 // ---------------------------------------------------------------------------
 
@@ -220,7 +337,7 @@ const renderPage = (collector) => async (pageData) => {
   const pageWidth = Array.isArray(pageData.view) ? pageData.view[2] - pageData.view[0] : 0;
   const gutter = findGutter(rows, pageWidth);
   if (gutter) collector.columnPages += 1;
-  const lines = gutter ? orderByColumns(rows, gutter) : rows.map((row) => joinRow(row.items));
+  const lines = gutter ? orderByColumns(rows, gutter) : orderWithTables(rows);
   return lines.join('\n');
 };
 

@@ -72,6 +72,46 @@ describe('extractResumeText (PDF)', () => {
     assert.match(text, /Data Analyst, Kestrel Retail \| Jan 2020 - Aug 2022/);
   });
 
+  test('a small table with wrapping cells is read column by column', async () => {
+    // A 3-column skills grid inside a single-column page; cells wrap onto the next row.
+    const row = (y, cells) => cells.map((text, i) => text && { x: [40, 215, 392][i], y, text }).filter(Boolean);
+    const items = [
+      { x: 40, y: 800, text: 'Summary line that runs across most of the page width, like a normal paragraph does.' },
+      { x: 40, y: 770, text: 'SKILLS', size: 13 },
+      ...row(750, ['Frontend', 'Backend', 'Cloud']),
+      ...row(738, ['Angular, React, TypeScript,', 'Node.js, Express,', 'AWS S3, Lambda,']),
+      ...row(727, ['RxJS, Redux, HTML5', 'MongoDB, Redis', 'Docker, Nginx']),
+      ...row(716, ['CSS, SCSS', '', 'Vercel, Render']),
+      { x: 40, y: 690, text: 'EXPERIENCE', size: 13 }
+    ];
+    const { text } = await extractResumeText(buildPdf(items), PDF);
+    assert.match(text, /SKILLS\nFrontend\nAngular, React, TypeScript,\nRxJS, Redux, HTML5\nCSS, SCSS\nBackend\nNode\.js, Express,\nMongoDB, Redis\nCloud\nAWS S3, Lambda,\nDocker, Nginx\nVercel, Render\nEXPERIENCE/);
+  });
+
+  test('a staggered education grid keeps each qualification together', async () => {
+    const items = [
+      { x: 40, y: 700, text: 'BSc Physics' }, { x: 205, y: 694, text: 'Higher Secondary' }, { x: 365, y: 694, text: 'Secondary' },
+      { x: 40, y: 686, text: 'Riverside University' }, { x: 205, y: 680, text: 'Hillview School' }, { x: 365, y: 680, text: 'Lakeside School' },
+      { x: 40, y: 674, text: 'Jan 2017' }, { x: 205, y: 668, text: 'Jan 2013' }, { x: 365, y: 668, text: 'Jan 2011' },
+      { x: 40, y: 664, text: 'GPA: 7.6' }, { x: 205, y: 658, text: 'GPA: 7.9' }, { x: 365, y: 658, text: 'GPA: 8.3' }
+    ];
+    const { text } = await extractResumeText(buildPdf(items), PDF);
+    assert.equal(text, 'BSc Physics\nRiverside University\nJan 2017\nGPA: 7.6\nHigher Secondary\nHillview School\nJan 2013\nGPA: 7.9\nSecondary\nLakeside School\nJan 2011\nGPA: 8.3');
+  });
+
+  test('label/value rows and right-aligned dates stay on their own lines', async () => {
+    const items = [
+      { x: 40, y: 700, text: 'English' }, { x: 300, y: 700, text: 'Native' },
+      { x: 40, y: 688, text: 'Spanish' }, { x: 300, y: 688, text: 'Fluent' },
+      { x: 40, y: 676, text: 'Hindi' }, { x: 300, y: 676, text: 'Conversational' },
+      { x: 40, y: 640, text: 'AWS Solutions Architect' }, { x: 470, y: 640, text: 'Aug 2022' },
+      { x: 40, y: 628, text: 'Kubernetes Developer' }, { x: 470, y: 628, text: 'Jan 2023' },
+      { x: 40, y: 616, text: 'Google Cloud Engineer' }, { x: 470, y: 616, text: 'Mar 2024' }
+    ];
+    const { text } = await extractResumeText(buildPdf(items), PDF);
+    assert.equal(text, 'English | Native\nSpanish | Fluent\nHindi | Conversational\nAWS Solutions Architect | Aug 2022\nKubernetes Developer | Jan 2023\nGoogle Cloud Engineer | Mar 2024');
+  });
+
   test('unreadable files get a clear message', async () => {
     await assert.rejects(extractResumeText(Buffer.from('not a pdf'), PDF), /couldn't read this file/);
     await assert.rejects(extractResumeText(buildPdf([{ x: 40, y: 800, text: 'Hi' }]), PDF), /couldn't find any text/);

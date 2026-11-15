@@ -242,6 +242,21 @@ describe('normalizeParsedResume edge cases', () => {
     assert.equal(formData.title, 'Senior Software Engineer Resume');
   });
 
+  test('an abbreviated headline ("Sr. Software Engineer") is a title, not a sentence', () => {
+    const raw = aiOutput();
+    raw.personalInfo.headline = 'Sr. Software Engineer';
+    raw.workExperience[0].jobTitle = 'Freelance Data Engineer';
+    assert.equal(normalizeParsedResume(raw, { sourceText: '' }).formData.title, 'Sr. Software Engineer Resume');
+  });
+
+  test('coverage: "Label:" lines count as placed; values dropped while normalising are still reported', () => {
+    const raw = aiOutput();
+    raw.projects = [{ name: 'RouteWise', description: '', highlights: [], technologies: ['Go', 'SQL'], url: 'not a url at all', repositoryUrl: '', startDate: '', endDate: '' }];
+    const source = 'RouteWise\nTechnologies: Go, SQL\nGPA: 3.7/4.0\nLive demo: not a url at all';
+    const { report } = normalizeParsedResume(raw, { sourceText: source });
+    assert.deepEqual(report.unplacedLines, ['Live demo: not a url at all']);
+  });
+
   test('garbage in: empty shapes out, never a crash', () => {
     for (const raw of [null, 'text', 42, { workExperience: 'x', skills: [null, 3], education: [{}] }]) {
       const { formData } = normalizeParsedResume(raw, { sourceText: '' });

@@ -52,7 +52,7 @@ const PARSE_RESUME_SCHEMA = obj({
     items: obj({
       jobTitle: str('Role or position title'),
       company: str('Employer / organisation name'),
-      location: str('Job location'),
+      location: str('Location written next to THIS job, or "". Never copy the candidate\'s home address here.'),
       startDate: str(DATE_HINT),
       endDate: str(`${DATE_HINT} Use "Present" if the role is ongoing.`),
       description: str('Intro sentence(s) that are not bullet points, verbatim'),
@@ -136,7 +136,7 @@ Rules:
 - Every piece of the resume must land somewhere: in the matching field, or in "additionalSections" under its heading. Leave out only section headings themselves and page numbers.
 - Use "" for missing text and [] for missing lists. Never write "N/A" or "Unknown".
 - Dates: copy them as written (e.g. "Mar 2021", "2019", "06/2018"). If a line shows a range such as "Mar 2021 – Present", put the first part in startDate and the second in endDate.
-- Work experience: put each bullet point in "highlights" (one entry per bullet, joining lines that were wrapped). Text that is not a bullet goes in "description". Tell the job title and the company apart; lines often read "Title, Company", "Company — Title" or "Title | Company | Dates".
+- Work experience: put each bullet point in "highlights" (one entry per bullet, joining lines that were wrapped). Text that is not a bullet goes in "description". Tell the job title and the company apart; lines often read "Title, Company", "Company — Title" or "Title | Company | Dates". Leave a job's location "" unless one is written for that job.
 - Education: the degree goes in "degree" and the subject in "fieldOfStudy"; GPA or grade in "grade".
 - Skills: one skill per entry. Keep the category labels the resume uses (e.g. "Languages: Python, Go" -> category "Languages").
 - Awards, honours and competition wins go in "achievements". Licences and certificates go in "certifications".
@@ -548,8 +548,16 @@ const collectStrings = (value, out) => {
   return out;
 };
 
+// "Technologies: Go, SQL" / "GPA: 7.65": the label is not content the user would miss.
+const stripLabel = (line) => {
+  const colon = line.indexOf(':');
+  if (colon < 1 || colon > 30) return line;
+  const label = line.slice(0, colon);
+  return label.split(' ').length <= 3 && !label.includes('http') ? line.slice(colon + 1) : line;
+};
+
 const isPlaced = (line, haystack, words) => {
-  const norm = normalizeForMatch(line);
+  const norm = normalizeForMatch(stripLabel(line));
   if (norm.length < 4 || haystack.includes(norm)) return true;
   const tokens = norm.split(' ').filter((t) => t.length > 2);
   if (!tokens.length) return true;
@@ -642,8 +650,23 @@ const normalizeAdditional = (sections) => asArray(sections)
   .map((s) => ({ title: tidyHeading(s.title) || 'Other', items: asList(s.items) }))
   .filter((s) => s.items.length);
 
+const WRITTEN_FIELDS = new Set(['startDate', 'endDate', 'date', 'expiryDate', 'proficiency', 'grade', 'headline']);
+
+/** Values of date/level/grade fields anywhere in the parser output. */
+const collectWritten = (value, out) => {
+  if (Array.isArray(value)) value.forEach((v) => collectWritten(v, out));
+  else if (value && typeof value === 'object') {
+    Object.entries(value).forEach(([k, v]) => {
+      if (WRITTEN_FIELDS.has(k) && typeof v === 'string') out.push(v);
+      else collectWritten(v, out);
+    });
+  }
+  return out;
+};
+
 // A headline is a short job title ("Senior Software Engineer"), not a sentence.
-const isHeadline = (value) => value.length <= 60 && value.split(' ').length <= 8 && !/[.!?]\s|[.!?]$/.test(value);
+// A sentence ends with a full word ("engineer."), not an abbreviation ("Sr.").
+const isHeadline = (value) => value.length <= 60 && value.split(' ').length <= 8 && !/[a-z]{3}[.!?](\s|$)/i.test(value);
 
 const suggestTitle = (personalInfo, raw, work) => {
   const stated = oneLine(raw?.personalInfo?.headline);
@@ -679,9 +702,11 @@ const normalizeParsedResume = (raw, { sourceText = '', links = [], parsedBy = 'a
   };
 
   const additionalSections = normalizeAdditional(data.additionalSections);
-  // The parser's own copy (`data`) counts as placed too: it holds dates and levels as
-  // written ("Mar 2021", "Professional working") before they became form values.
-  const unplacedLines = findUnplacedLines(sourceText, [formData, additionalSections, data, ctx.report.overflow]);
+  // Dates, grades and levels as the parser read them ("Mar 2021", "Professional working")
+  // count as placed: they became form values in another format. Nothing else from the
+  // raw answer counts, so a value dropped during normalising is still reported.
+  const asWritten = collectWritten(data, []);
+  const unplacedLines = findUnplacedLines(sourceText, [formData, additionalSections, asWritten, ctx.report.overflow]);
   return {
     formData,
     report: { parsedBy, additionalSections, unplacedLines, overflow: ctx.report.overflow, warnings: ctx.report.warnings }
