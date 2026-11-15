@@ -12,6 +12,23 @@ const { logSafe } = require('../utils/logSafe');
 // Razorpay order/payment ids: short alphanumeric strings with underscores.
 const RAZORPAY_ID = /^\w{1,64}$/;
 
+/** Validate a token purchase request. Returns an error message, or null. */
+function purchaseInputError({ order_id, payment_id, signature, tokens, amount }) {
+  if (!order_id || !payment_id || !signature || !tokens || !amount) {
+    return 'Missing required payment information';
+  }
+  // Reject anything that isn't a plain id (objects, operators, newlines)
+  // before it reaches a query, Razorpay or a log line.
+  const plainIds = [order_id, payment_id, signature].every((v) => typeof v === 'string');
+  if (!plainIds || !RAZORPAY_ID.test(order_id) || !RAZORPAY_ID.test(payment_id) || !Number.isFinite(Number(amount))) {
+    return 'Invalid payment information';
+  }
+  return null;
+}
+
+// Plain, bounded string for values stored from a request (Sonar S5147).
+const plainString = (value, max = 100) => String(value ?? '').slice(0, max);
+
 // Token packages: price is in rupees. The server decides how many tokens a
 // payment buys from the verified amount; the token count sent by the client
 // is never trusted. Keep in sync with resume-builder/src/components/Payment.js.
@@ -32,7 +49,9 @@ const BONUS_GIVEN_BY = 'The Presmistique Team';
  * in one atomic update. Used by both admin grant routes (feedback, bug
  * reports, promotions).
  */
-async function grantBonusTokens(user, tokens, reason, admin) {
+async function grantBonusTokens(user, tokens, rawReason, admin) {
+  // Plain strings only in the update document (Sonar S5147)
+  const reason = String(rawReason ?? '').slice(0, 200);
   const now = new Date();
   const id = `admin_bonus_${now.getTime()}_${user._id}`;
   const before = toTokenBalance(user);
@@ -55,7 +74,7 @@ async function grantBonusTokens(user, tokens, reason, admin) {
       newTokenBalance: before.total + tokens,
       type: 'admin_bonus',
       reason,
-      givenBy: admin.email
+      givenBy: String(admin.email)
     }
   };
 
@@ -87,12 +106,12 @@ async function grantBonusTokens(user, tokens, reason, admin) {
     });
 
     if (emailResult.success) {
-      logger.info(`✅ Bonus tokens email sent successfully to ${user.email} - Message ID: ${emailResult.messageId || 'N/A'}`);
+      logger.info(`✅ Bonus tokens email sent successfully to ${logSafe(user.email)} - Message ID: ${logSafe(emailResult.messageId || 'N/A')}`);
     } else {
-      logger.warn(`❌ Failed to send bonus tokens email to ${user.email}: ${emailResult.error}`);
+      logger.warn(`❌ Failed to send bonus tokens email to ${logSafe(user.email)}: ${logSafe(emailResult.error)}`);
     }
   } catch (emailError) {
-    logger.error(`💥 Error sending bonus tokens email to ${user.email}:`, emailError);
+    logger.error(`💥 Error sending bonus tokens email to ${logSafe(user.email)}:`, { message: emailError?.message });
   }
 
   return balance;
@@ -191,21 +210,9 @@ router.post('/complete-token-purchase', protect, async (req, res) => {
       contact
     } = req.body;
 
-    if (!order_id || !payment_id || !signature || !tokens || !amount) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required payment information'
-      });
-    }
-
-    // Reject anything that isn't a plain id (objects, operators, newlines)
-    // before it reaches a query, Razorpay or a log line.
-    if (typeof order_id !== 'string' || typeof payment_id !== 'string' || typeof signature !== 'string' ||
-        !RAZORPAY_ID.test(order_id) || !RAZORPAY_ID.test(payment_id) || !Number.isFinite(Number(amount))) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid payment information'
-      });
+    const inputError = purchaseInputError(req.body);
+    if (inputError) {
+      return res.status(400).json({ success: false, message: inputError });
     }
 
     // Verify Razorpay signature
@@ -285,15 +292,15 @@ router.post('/complete-token-purchase', protect, async (req, res) => {
 
     const before = toTokenBalance(user);
     const transactionData = {
-      transactionId: payment_id,
-      orderId: order_id,
-      amount: amount * 100, // Store in paise
-      currency: currency,
+      transactionId: plainString(payment_id),
+      orderId: plainString(order_id),
+      amount: Number(amount) * 100, // Store in paise
+      currency: plainString(currency, 10),
       status: 'captured',
-      paymentId: payment_id,
-      method: payment_method,
-      email: email,
-      contact: contact,
+      paymentId: plainString(payment_id),
+      method: plainString(payment_method, 30),
+      email: plainString(email, 254),
+      contact: plainString(contact, 30),
       createdAt: new Date(),
       capturedAt: new Date(),
       notes: `${regularTokens} AI Tokens Purchase${bonusTokens > 0 ? ` + ${bonusTokens} Bonus` : ''}`,
@@ -304,7 +311,7 @@ router.post('/complete-token-purchase', protect, async (req, res) => {
         regularTokensAdded: regularTokens,
         newTokenBalance: before.total + totalAdded,
         type: 'token_purchase',
-        razorpaySignature: signature
+        razorpaySignature: plainString(signature, 200)
       }
     };
 
@@ -313,7 +320,7 @@ router.post('/complete-token-purchase', protect, async (req, res) => {
     const updatedBalance = await creditTokens(
       user._id,
       { purchased: regularTokens, bonus: bonusTokens },
-      { unlessTransactionId: payment_id, push: transactionData }
+      { unlessTransactionId: plainString(payment_id), push: transactionData }
     );
     if (!updatedBalance) {
       return res.status(400).json({
@@ -1011,12 +1018,12 @@ async function sendBestEffort(label, user, send) {
   try {
     const emailResult = await send();
     if (emailResult.success) {
-      logger.info(`✅ ${label} email sent successfully to ${user.email}`);
+      logger.info(`✅ ${logSafe(label)} email sent successfully to ${logSafe(user.email)}`);
     } else {
-      logger.warn(`❌ Failed to send ${label} email to ${user.email}: ${emailResult.error}`);
+      logger.warn(`❌ Failed to send ${logSafe(label)} email to ${logSafe(user.email)}: ${logSafe(emailResult.error)}`);
     }
   } catch (emailError) {
-    logger.error(`💥 Error sending ${label} email to ${user.email}:`, emailError);
+    logger.error(`💥 Error sending ${logSafe(label)} email to ${logSafe(user.email)}:`, { message: emailError?.message });
   }
 }
 
@@ -1045,7 +1052,7 @@ async function closeAsNotEligible({ req, res, user, transaction, transactionId, 
     refundReason: refundResult.message
   });
 
-  logger.info(`Admin ${req.user.email} processed refund for ${transactionId} - NOT ELIGIBLE (Scenario ${refundResult.scenario})`);
+  logger.info(`Admin ${logSafe(req.user.email)} processed refund for ${logSafe(transactionId)} - NOT ELIGIBLE (Scenario ${Number(refundResult.scenario)})`);
 
   return res.json({
     success: true,
@@ -1143,7 +1150,7 @@ async function payEligibleRefund({ req, res, user, transaction, transactionId, r
     processedDate: formatDateIN()
   }));
 
-  logger.info(`Admin ${req.user.email} approved refund for transaction ${transactionId} - Scenario ${refundResult.scenario}, Amount: ₹${RefundCalculator.paiseToRupees(refundResult.refundAmount)}, Tokens deducted: ${tokensToDeduct} regular + ${bonusTokensToDeduct} bonus`);
+  logger.info(`Admin ${logSafe(req.user.email)} approved refund for transaction ${logSafe(transactionId)} - Scenario ${Number(refundResult.scenario)}, Amount: ₹${RefundCalculator.paiseToRupees(Number(refundResult.refundAmount))}, Tokens deducted: ${Number(tokensToDeduct)} regular + ${Number(bonusTokensToDeduct)} bonus`);
 
   return res.json({
     success: true,
@@ -1180,7 +1187,7 @@ async function approveRefund(ctx) {
     transaction.amount
   );
 
-  logger.info(`Refund calculation for ${transactionId}:`, {
+  logger.info(`Refund calculation for ${logSafe(transactionId)}:`, {
     scenario: refundResult.scenario,
     status: refundResult.status,
     refundAmount: refundResult.refundAmount,
@@ -1218,7 +1225,7 @@ async function rejectRefund({ req, res, user, transaction, transactionId, notes 
     rejectedDate: formatDateIN()
   }));
 
-  logger.info(`Admin ${req.user.email} rejected refund for transaction ${transactionId}`);
+  logger.info(`Admin ${logSafe(req.user.email)} rejected refund for transaction ${logSafe(transactionId)}`);
 
   return res.json({
     success: true,

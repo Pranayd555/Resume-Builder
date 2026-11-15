@@ -26,6 +26,7 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 const User = require('../models/User');
 const { toTokenBalance, creditTokens } = require('../utils/tokenCalculator');
+const { logSafe } = require('../utils/logSafe');
 
 const describe = (b) => `${b.total} total (${b.purchased} purchased + ${b.bonus} bonus)`;
 
@@ -38,9 +39,9 @@ const looksLikeEmail = (value) => {
 };
 
 const addTokens = async (email, tokenCount, { purchased, force }) => {
-  const user = await User.findOne({ email: email.toLowerCase() }).select('firstName lastName email tokens bonusTokens');
+  const user = await User.findOne({ email: { $eq: String(email).toLowerCase() } }).select('firstName lastName email tokens bonusTokens');
   if (!user) {
-    console.log(`❌ User with email "${email}" not found`);
+    console.log(`❌ User with email "${logSafe(email)}" not found`);
     return false;
   }
 
@@ -57,7 +58,7 @@ const addTokens = async (email, tokenCount, { purchased, force }) => {
 
   const after = await creditTokens(user._id, purchased ? { purchased: tokenCount } : { bonus: tokenCount });
   if (!after) {
-    console.log(`❌ Failed to add tokens for "${email}"`);
+    console.log(`❌ Failed to add tokens for "${logSafe(email)}"`);
     return false;
   }
   console.log(`\n✅ Tokens added. New balance: ${describe(after)}`);

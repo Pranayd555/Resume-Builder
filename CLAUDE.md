@@ -8,10 +8,11 @@ MERN AI resume builder. Frontend (CRA + craco) in `resume-builder/`, deployed on
 - Local stack: `docker compose up --build` at the repo root (throwaway MongoDB; settings from `backend/.env`, copied from `backend/env.template`).
 
 ## SonarCloud quality gate
-Every PR is analysed by SonarCloud. The gate requires **A** ratings on new code for security, reliability and maintainability. After opening or updating a PR, run `scripts/sonar-pr-issues.sh [PR]` and fix new findings, "failure" ones first. Write new code so these never appear:
+Every PR is analysed by SonarCloud (automatic analysis, configured by `.sonarcloud.properties`; `sonar-project.properties` is ignored by it). The gate requires **A** ratings on new code for security, reliability and maintainability, so even one minor vulnerability fails it. After opening or updating a PR, check findings with the SonarQube MCP tools when they're available (`search_sonar_issues_in_projects` with `pullRequest`, `get_project_quality_gate_status`, `show_rule` for the official fix), or with `scripts/sonar-pr-issues.sh [PR]`. Fix "failure"/blocker ones first. Write new code so these never appear:
 
-- **NoSQL injection (security, blocker):** never put request values straight into a Mongo query. Cast ids (`toObjectId()` in `backend/utils/tokenCalculator.js`, or `String()` / `Number()`), validate shapes (`typeof x === 'string'`, an id regex), and never spread a request object into a filter.
-- **Log injection:** wrap user-influenced values in log lines with `logSafe()` (`backend/utils/logSafe.js`), or `Number()` for numbers.
+- **What counts as user input:** `req.body`, `req.query`, `req.params`, and also `req.user` (it comes from the request's JWT) and any document found using request data.
+- **NoSQL injection (security, blocker):** never put request values straight into a Mongo query *or update document*. Convert to plain values first (`String(x)`, `Number(x)`, `toObjectId()` in `backend/utils/tokenCalculator.js`), use `{ field: { $eq: String(x) } }` for lookups, validate shapes (`typeof x === 'string'`, an id regex), and never spread a request object into a filter.
+- **Log injection:** every interpolated value in a log message that could come from a user goes through `logSafe()` (`backend/utils/logSafe.js`, which strips CR/LF with a regex literal; Sonar's recognised fix), or `Number()` for numbers. Pass errors as `{ message: err.message }` objects.
 - **Floating promises (reliability):** every promise is awaited, ends in `.catch()`, or is explicitly `void`ed.
 - **Cognitive complexity ≤ 15 per function:** split long route handlers into small helpers (see the refund helpers in `backend/routes/payment.js`).
 - Use optional chaining (`a?.b`) instead of `a && a.b`; no unused variables or assignments.

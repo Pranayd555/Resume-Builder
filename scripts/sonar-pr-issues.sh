@@ -16,7 +16,7 @@ sha=$(gh pr view "$pr" --json headRefOid -q .headRefOid)
 
 run=$(gh api "repos/$repo/commits/$sha/check-runs" \
   -q '.check_runs[] | select(.name | test("SonarCloud")) | "\(.id) \(.conclusion // .status)"' | head -n 1)
-if [ -z "$run" ]; then
+if [[ -z "$run" ]]; then
   echo "No SonarCloud check on PR #$pr ($sha) yet."
   exit 0
 fi

@@ -6,6 +6,7 @@ const Resume = require('../models/Resume');
 // Subscription model no longer needed
 const logger = require('../utils/logger');
 const { toTokenBalance, tokenPayload, getTokenBalance, creditTokens } = require('../utils/tokenCalculator');
+const { logSafe } = require('../utils/logSafe');
 
 const router = express.Router();
 
@@ -478,7 +479,7 @@ router.post('/add-tokens', protect, authorize('admin'), async (req, res) => {
       });
     }
 
-    logger.info(`Added ${tokens} purchased tokens to user ${req.user.email}. New balance: ${balance.purchased} purchased + ${balance.bonus} bonus`);
+    logger.info(`Added ${tokens} purchased tokens to user ${logSafe(req.user.email)}. New balance: ${balance.purchased} purchased + ${balance.bonus} bonus`);
 
     res.json({
       success: true,
