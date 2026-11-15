@@ -53,25 +53,25 @@ async function grantBonusTokens(user, tokens, rawReason, admin) {
   // Plain strings only in the update document (Sonar S5147)
   const reason = String(rawReason ?? '').slice(0, 200);
   const now = new Date();
-  const id = `admin_bonus_${now.getTime()}_${user._id}`;
+  const id = String(`admin_bonus_${now.getTime()}_${user._id}`);
   const before = toTokenBalance(user);
   const transactionData = {
     transactionId: id,
-    orderId: `admin_bonus_${now.getTime()}`,
+    orderId: String(`admin_bonus_${now.getTime()}`),
     amount: 0, // No monetary value for bonus tokens
     currency: 'INR',
     status: 'captured', // valid enum value for a completed transaction
-    paymentId: `admin_bonus_${now.getTime()}`,
+    paymentId: String(`admin_bonus_${now.getTime()}`),
     method: 'admin_bonus',
-    email: user.email,
+    email: String(user.email),
     contact: '',
     createdAt: now,
     capturedAt: now,
-    notes: `${tokens} Bonus Tokens - ${reason}`,
+    notes: String(`${Number(tokens)} Bonus Tokens - ${reason}`),
     metadata: {
-      tokensAdded: tokens,
-      bonusTokensAdded: tokens,
-      newTokenBalance: before.total + tokens,
+      tokensAdded: Number(tokens),
+      bonusTokensAdded: Number(tokens),
+      newTokenBalance: Number(before.total + tokens),
       type: 'admin_bonus',
       reason,
       givenBy: String(admin.email)

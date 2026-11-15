@@ -479,7 +479,7 @@ router.post('/add-tokens', protect, authorize('admin'), async (req, res) => {
       });
     }
 
-    logger.info(`Added ${tokens} purchased tokens to user ${logSafe(req.user.email)}. New balance: ${balance.purchased} purchased + ${balance.bonus} bonus`);
+    logger.info(`Added ${Number(tokens)} purchased tokens to user ${logSafe(req.user.email)}. New balance: ${Number(balance.purchased)} purchased + ${Number(balance.bonus)} bonus`);
 
     res.json({
       success: true,
