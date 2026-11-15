@@ -12,43 +12,15 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
   const [showAllKeywords, setShowAllKeywords] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingType, setProcessingType] = useState(null);
-  const [tokenBalance, setTokenBalance] = useState(0);
-  const [isTokenExhausted, setIsTokenExhausted] = useState(false);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  // Token balance and AI permission come from AuthContext
+  const { canUseAI } = useAuth();
+  const isTokenExhausted = !canUseAI;
   const { summary, projects, workExperience, skills, education, achievements } = resume;
   const { ats_warnings, missing_keywords, recommendations } = atsAnalysis;
 
-  // Get initial token balance
-  useEffect(() => {
-    if(!user.isOwnApiKey) {
-      const balance = apiHelpers.getTokenBalance();
-      setTokenBalance(balance);
-      setIsTokenExhausted( balance <= 0);
-    }
-  }, [user.isOwnApiKey]);
 
-  // Listen for token balance updates
-  useEffect(() => {
-    const handleTokenBalanceUpdate = (event) => {
-      if(!user.isOwnApiKey) {
-      const { balance } = event.detail;
-      setTokenBalance(balance);
-      setIsTokenExhausted(balance <= 0);
-    };
-  }
 
-    window.addEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
-    return () => window.removeEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
-  }, [user.isOwnApiKey]);
-
-  // Update token balance from user data if available
-  useEffect(() => {
-    if (user?.tokens !== undefined && !user.isOwnApiKey) {
-      setTokenBalance(user.tokens);
-      setIsTokenExhausted(user.tokens <= 0);
-    }
-  }, [user]);
 
 
   // Auto-open when new analysis is available
@@ -95,7 +67,7 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       return;
     }
 
-    if (!user.isOwnApiKey && (isTokenExhausted || tokenBalance <= 0)) {
+    if (!canUseAI) {
       toast.error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
       return;
     }
@@ -109,10 +81,6 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       }, {ats_warnings, missing_keywords, recommendations}, ["summary", "workExperience", "projects", "education", "achievements"]);
       
       if (response.success) {
-        // Update token balance after successful operation
-        const currentBalance = apiHelpers.getTokenBalance();
-        const newBalance = Math.max(0, currentBalance - 1);
-        apiHelpers.updateTokenBalance(newBalance);
         
         // Store the AI-enhanced data in localStorage with a flag
         const aiEnhancedData = {
@@ -151,7 +119,7 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       return;
     }
 
-    if (!user.isOwnApiKey && (isTokenExhausted || tokenBalance <= 0)) {
+    if (!canUseAI) {
       toast.error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
       return;
     }
@@ -165,10 +133,6 @@ const ATSSummary = ({ atsAnalysis, isGenerating = false, isNewAnalysis = false, 
       }, {ats_warnings, missing_keywords, recommendations}, ["workExperience", "projects", "education", "skills"]);
       
       if (response.success) {
-        // Update token balance after successful operation
-        const currentBalance = apiHelpers.getTokenBalance();
-        const newBalance = Math.max(0, currentBalance - 1);
-        apiHelpers.updateTokenBalance(newBalance);
         
         // Store the AI-enhanced data in localStorage with a flag
         const aiEnhancedData = {

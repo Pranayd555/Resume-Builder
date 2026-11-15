@@ -21,7 +21,7 @@ import {
 
 function Profile() {
   const navigate = useNavigate();
-  const { user, updateUser: updateAuthUser, logout, getEmailStatus } = useAuth();
+  const { user, updateUser: updateAuthUser, logout, getEmailStatus, balance, refreshBalance } = useAuth();
   const fileInputRef = useRef(null);
 
   const [profile, setProfile] = useState({
@@ -135,6 +135,11 @@ function Profile() {
 
   const { ref: profileFormRef } = useAutoScroll(false); // Can be triggered manually
   const { scrollToTop } = useScrollToTop(justSaved);
+
+  // Show the latest token balance on this page
+  useEffect(() => {
+    refreshBalance();
+  }, [refreshBalance]);
 
   // Scroll to top when edit mode is activated
   useEffect(() => {
@@ -1007,6 +1012,27 @@ function Profile() {
                 ) : (
                   <p className="text-gray-900 font-medium">{profile.location ||
                     <span className="text-gray-500 italic">No location provided</span>}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  AI Tokens
+                </label>
+                {user.isOwnApiKey ? (
+                  <p className="text-gray-900 font-medium" data-testid="profile-token-balance">
+                    Not used: AI actions run on your own Gemini API key
+                    <span className="block text-sm text-gray-500 font-normal">
+                      Balance kept for later: {balance.total} ({balance.purchased} purchased + {balance.bonus} bonus)
+                    </span>
+                  </p>
+                ) : (
+                  <p className="text-gray-900 font-medium" data-testid="profile-token-balance">
+                    {balance.total} {balance.total === 1 ? 'token' : 'tokens'}
+                    <span className="block text-sm text-gray-500 font-normal">
+                      {balance.purchased} purchased (refundable) + {balance.bonus} bonus
+                    </span>
+                  </p>
                 )}
               </div>
 

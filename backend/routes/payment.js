@@ -6,6 +6,100 @@ const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const emailService = require('../utils/emailService');
 const RefundCalculator = require('../utils/refundCalculator');
+const { toTokenBalance, tokenPayload, creditTokens, deductTokens } = require('../utils/tokenCalculator');
+
+// Token packages: price is in rupees. The server decides how many tokens a
+// payment buys from the verified amount; the token count sent by the client
+// is never trusted. Keep in sync with resume-builder/src/components/Payment.js.
+const TOKEN_PACKAGES = [
+  { amount: 5, price: 49, bonus: 0 },
+  { amount: 10, price: 89, bonus: 1 },
+  { amount: 25, price: 199, bonus: 5 },
+  { amount: 50, price: 349, bonus: 15 },
+  { amount: 100, price: 599, bonus: 40 }
+];
+
+const MAX_BONUS_GRANT = 10000;
+// Shown to users in the bonus email; never an individual admin's name.
+const BONUS_GIVEN_BY = 'The Presmistique Team';
+
+/**
+ * Grant bonus (non-refundable) tokens and record a zero-amount transaction,
+ * in one atomic update. Used by both admin grant routes (feedback, bug
+ * reports, promotions).
+ */
+async function grantBonusTokens(user, tokens, reason, admin) {
+  const now = new Date();
+  const id = `admin_bonus_${now.getTime()}_${user._id}`;
+  const before = toTokenBalance(user);
+  const transactionData = {
+    transactionId: id,
+    orderId: `admin_bonus_${now.getTime()}`,
+    amount: 0, // No monetary value for bonus tokens
+    currency: 'INR',
+    status: 'captured', // valid enum value for a completed transaction
+    paymentId: `admin_bonus_${now.getTime()}`,
+    method: 'admin_bonus',
+    email: user.email,
+    contact: '',
+    createdAt: now,
+    capturedAt: now,
+    notes: `${tokens} Bonus Tokens - ${reason}`,
+    metadata: {
+      tokensAdded: tokens,
+      bonusTokensAdded: tokens,
+      newTokenBalance: before.total + tokens,
+      type: 'admin_bonus',
+      reason,
+      givenBy: admin.email
+    }
+  };
+
+  const balance = await creditTokens(user._id, { bonus: tokens }, { push: transactionData });
+  if (!balance) {
+    const err = new Error('User not found');
+    err.statusCode = 404;
+    throw err;
+  }
+
+  logger.info(`Admin ${admin.email} gave ${tokens} bonus tokens to user ${user.email}. Reason: ${reason}. New balance: ${balance.purchased} purchased + ${balance.bonus} bonus`);
+
+  // Email is best-effort; never fail the grant because of it.
+  try {
+    const emailResult = await emailService.sendBonusTokensEmail({
+      email: user.email,
+      name: user.firstName || user.email.split('@')[0],
+      tokensAdded: tokens,
+      newTokenBalance: balance.total,
+      givenBy: BONUS_GIVEN_BY,
+      reason,
+      dateAdded: now.toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    });
+
+    if (emailResult.success) {
+      logger.info(`✅ Bonus tokens email sent successfully to ${user.email} - Message ID: ${emailResult.messageId || 'N/A'}`);
+    } else {
+      logger.warn(`❌ Failed to send bonus tokens email to ${user.email}: ${emailResult.error}`);
+    }
+  } catch (emailError) {
+    logger.error(`💥 Error sending bonus tokens email to ${user.email}:`, emailError);
+  }
+
+  return balance;
+}
+
+/** Parse and validate an admin bonus amount. Returns an error message or null. */
+function validateBonusAmount(tokens) {
+  if (!Number.isInteger(tokens) || tokens <= 0) return 'Valid token amount is required';
+  if (tokens > MAX_BONUS_GRANT) return 'Bonus tokens cannot exceed 10,000 per transaction';
+  return null;
+}
 
 const router = express.Router();
 
@@ -124,7 +218,8 @@ router.post('/complete-token-purchase', protect, async (req, res) => {
       });
     }
 
-    // Check if payment is already processed
+    // Fast path for an already processed payment (the credit below is also
+    // idempotent, so concurrent duplicates can't double-credit).
     const existingTransaction = user.getTransactionById(payment_id);
     if (existingTransaction) {
       return res.status(400).json({
@@ -158,28 +253,23 @@ router.post('/complete-token-purchase', protect, async (req, res) => {
       });
     }
 
-    // Calculate bonus tokens based on package
-    const tokenPackages = [
-      { amount: 5, price: 49, bonus: 0 },
-      { amount: 10, price: 89, bonus: 1 },
-      { amount: 25, price: 199, bonus: 5 },
-      { amount: 50, price: 349, bonus: 15 },
-      { amount: 100, price: 599, bonus: 40 }
-    ];
-
-    const selectedPackage = tokenPackages.find(pkg => pkg.amount === (tokens - pkg.bonus));
-    const regularTokens = selectedPackage ? selectedPackage.amount : tokens;
-    const bonusTokens = selectedPackage ? selectedPackage.bonus : 0;
-
-    // Add tokens to user account
-    await user.addTokens(regularTokens);
-    if (bonusTokens > 0) {
-      await user.addBonusTokens(bonusTokens);
+    // Decide what was bought from the verified amount, not the client's token count.
+    const selectedPackage = TOKEN_PACKAGES.find(pkg => pkg.price === Number(amount));
+    if (!selectedPackage) {
+      logger.error(`Captured payment ${payment_id} for user ${user.email}: amount ₹${amount} matches no token package; tokens not credited, needs manual review`);
+      return res.status(400).json({
+        success: false,
+        message: 'Payment amount does not match a token package. Please contact support.'
+      });
+    }
+    const regularTokens = selectedPackage.amount;
+    const bonusTokens = selectedPackage.bonus;
+    const totalAdded = regularTokens + bonusTokens;
+    if (Number(tokens) !== totalAdded) {
+      logger.warn(`Token count from client (${tokens}) differs from package for ₹${amount} (${totalAdded}); crediting the package`);
     }
 
-    const newTokenBalance = user.getTotalTokens();
-
-    // Add transaction record
+    const before = toTokenBalance(user);
     const transactionData = {
       transactionId: payment_id,
       orderId: order_id,
@@ -196,17 +286,29 @@ router.post('/complete-token-purchase', protect, async (req, res) => {
       metadata: {
         boughtTokens: regularTokens,  // CRITICAL: For refund calculations
         bonusTokensAdded: bonusTokens,  // CRITICAL: For refund calculations
-        tokensAdded: tokens,
+        tokensAdded: totalAdded,
         regularTokensAdded: regularTokens,
-        newTokenBalance: newTokenBalance,
+        newTokenBalance: before.total + totalAdded,
         type: 'token_purchase',
         razorpaySignature: signature
       }
     };
 
-    await user.addRazorpayTransaction(transactionData);
+    // One atomic write: credit both pools and record the transaction, only if
+    // this payment id has not been recorded yet.
+    const updatedBalance = await creditTokens(
+      user._id,
+      { purchased: regularTokens, bonus: bonusTokens },
+      { filter: { 'razorpayTransactions.transactionId': { $ne: payment_id } }, push: transactionData }
+    );
+    if (!updatedBalance) {
+      return res.status(400).json({
+        success: false,
+        message: 'Payment already processed'
+      });
+    }
 
-    logger.info(`Token purchase completed for user ${user.email}: ${tokens} tokens for ₹${amount}`);
+    logger.info(`Token purchase completed for user ${user.email}: ${regularTokens} + ${bonusTokens} bonus tokens for ₹${amount}`);
 
     // Send payment invoice email
     try {
@@ -218,7 +320,7 @@ router.post('/complete-token-purchase', protect, async (req, res) => {
         transactionId: order_id,
         paymentId: payment_id,
         amount: amount,
-        tokensAdded: tokens,
+        tokensAdded: totalAdded,
         paymentMethod: 'Razorpay',
         paymentDate: new Date()
       });
@@ -234,19 +336,13 @@ router.post('/complete-token-purchase', protect, async (req, res) => {
       // Don't fail the payment process if email fails
     }
 
-    // Get updated token data after purchase
-    const { calculateTotalTokens } = require('../utils/tokenCalculator');
-    const updatedTokenData = await calculateTotalTokens(user._id);
-
     res.json({
       success: true,
       message: 'Token purchase completed successfully',
       data: {
         tokens: {
-          balance: updatedTokenData.totalTokenBalance,
-          purchasedTokens: updatedTokenData.purchasedTokens,
-          bonusTokens: updatedTokenData.bonusTokens,
-          added: tokens,
+          ...tokenPayload(updatedBalance),
+          added: totalAdded,
           regularTokensAdded: regularTokens,
           bonusTokensAdded: bonusTokens
         },
@@ -474,25 +570,16 @@ router.post('/admin/give-bonus-tokens/:userId', protect, async (req, res) => {
     }
 
     const { userId } = req.params;
-    const { tokens, reason = 'Admin bonus' } = req.body;
+    const { reason = 'Admin bonus' } = req.body;
+    const tokens = Number(req.body.tokens);
 
-    if (!tokens || tokens <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Valid token amount is required'
-      });
-    }
-
-    // Validate token amount (reasonable limit for admin bonus)
-    if (tokens > 10000) {
-      return res.status(400).json({
-        success: false,
-        message: 'Bonus tokens cannot exceed 10,000 per transaction'
-      });
+    const amountError = validateBonusAmount(tokens);
+    if (amountError) {
+      return res.status(400).json({ success: false, message: amountError });
     }
 
     // Find user
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select('email firstName tokens bonusTokens');
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -500,72 +587,10 @@ router.post('/admin/give-bonus-tokens/:userId', protect, async (req, res) => {
       });
     }
 
-    // Add bonus tokens
-    await user.addBonusTokens(tokens);
+    const balance = await grantBonusTokens(user, tokens, reason, req.user);
 
-    // Get updated token data
-    const { calculateTotalTokens } = require('../utils/tokenCalculator');
-    const updatedTokenData = await calculateTotalTokens(user._id);
-
-    // Add transaction record for tracking
-    const transactionData = {
-      transactionId: `admin_bonus_${Date.now()}_${userId}`,
-      orderId: `admin_bonus_${Date.now()}`,
-      amount: 0, // No monetary value for bonus tokens
-      currency: 'INR',
-      status: 'captured', // Use 'captured' as it's the valid enum value for successful transactions
-      paymentId: `admin_bonus_${Date.now()}`,
-      method: 'admin_bonus',
-      email: user.email,
-      contact: '',
-      createdAt: new Date(),
-      capturedAt: new Date(),
-      notes: `${tokens} Bonus Tokens - ${reason}`,
-      metadata: {
-        tokensAdded: tokens,
-        bonusTokensAdded: tokens,
-        newTokenBalance: updatedTokenData.totalTokenBalance,
-        type: 'admin_bonus',
-        reason: reason,
-        givenBy: req.user.email
-      }
-    };
-
-    await user.addRazorpayTransaction(transactionData);
-
-    logger.info(`Admin ${req.user.email} gave ${tokens} bonus tokens to user ${user.email}. Reason: ${reason}`);
-
-    // Send bonus tokens email notification
-    try {
-      logger.info(`Attempting to send bonus tokens email to ${user.email} for ${tokens} tokens`);
-
-      const emailResult = await emailService.sendBonusTokensEmail({
-        email: user.email,
-        name: user.firstName || user.email.split('@')[0],
-        tokensAdded: tokens,
-        newTokenBalance: updatedTokenData.totalTokenBalance,
-        givenBy: req.user.firstName ? `${req.user.firstName} ${req.user.lastName || ''}`.trim() : req.user.email,
-        reason: reason,
-        dateAdded: new Date().toLocaleDateString('en-IN', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        })
-      });
-
-      if (emailResult.success) {
-        logger.info(`✅ Bonus tokens email sent successfully to ${user.email} - Message ID: ${emailResult.messageId || 'N/A'}`);
-      } else {
-        logger.warn(`❌ Failed to send bonus tokens email to ${user.email}: ${emailResult.error}`);
-        // Don't fail the bonus token process if email fails
-      }
-    } catch (emailError) {
-      logger.error(`💥 Error sending bonus tokens email to ${user.email}:`, emailError);
-      // Don't fail the bonus token process if email fails
-    }
-
+    // The balance here belongs to another user, so it is not sent as `tokens`
+    // (clients treat `tokens` as the caller's own balance).
     res.json({
       success: true,
       message: 'Bonus tokens added successfully',
@@ -573,7 +598,8 @@ router.post('/admin/give-bonus-tokens/:userId', protect, async (req, res) => {
         userId: user._id,
         userEmail: user.email,
         tokensAdded: tokens,
-        newTokenBalance: updatedTokenData.totalTokenBalance,
+        newTokenBalance: balance.total,
+        userTokenBalance: balance,
         reason: reason
       }
     });
@@ -600,24 +626,22 @@ router.post('/admin/give-bonus-tokens-by-email', protect, async (req, res) => {
       });
     }
 
-    const { email, tokens, reason = 'Admin bonus' } = req.body;
+    const { email, reason = 'Admin bonus' } = req.body;
+    const tokens = Number(req.body.tokens);
 
-    if (!email || !tokens || tokens <= 0) {
+    if (!email) {
       return res.status(400).json({
         success: false,
         message: 'Valid email and token amount are required'
       });
     }
-
-    if (tokens > 10000) {
-      return res.status(400).json({
-        success: false,
-        message: 'Bonus tokens cannot exceed 10,000 per transaction'
-      });
+    const amountError = validateBonusAmount(tokens);
+    if (amountError) {
+      return res.status(400).json({ success: false, message: amountError });
     }
 
     // Find user by email
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ email: String(email).toLowerCase() }).select('email firstName tokens bonusTokens');
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -625,67 +649,7 @@ router.post('/admin/give-bonus-tokens-by-email', protect, async (req, res) => {
       });
     }
 
-    // Add bonus tokens
-    await user.addBonusTokens(tokens);
-
-    // Get updated token data
-    const { calculateTotalTokens } = require('../utils/tokenCalculator');
-    const updatedTokenData = await calculateTotalTokens(user._id);
-
-    // Add transaction record
-    const transactionData = {
-      transactionId: `admin_bonus_${Date.now()}_${user._id}`,
-      orderId: `admin_bonus_${Date.now()}`,
-      amount: 0,
-      currency: 'INR',
-      status: 'captured',
-      paymentId: `admin_bonus_${Date.now()}`,
-      method: 'admin_bonus',
-      email: user.email,
-      contact: '',
-      createdAt: new Date(),
-      capturedAt: new Date(),
-      notes: `${tokens} Bonus Tokens - ${reason}`,
-      metadata: {
-        tokensAdded: tokens,
-        bonusTokensAdded: tokens,
-        newTokenBalance: updatedTokenData.totalTokenBalance,
-        type: 'admin_bonus',
-        reason: reason,
-        givenBy: req.user.email
-      }
-    };
-
-    await user.addRazorpayTransaction(transactionData);
-
-    logger.info(`Admin ${req.user.email} gave ${tokens} bonus tokens to user ${user.email}. Reason: ${reason}`);
-
-    // Send bonus tokens email notification
-    try {
-      const emailResult = await emailService.sendBonusTokensEmail({
-        email: user.email,
-        name: user.firstName || user.email.split('@')[0],
-        tokensAdded: tokens,
-        newTokenBalance: updatedTokenData.totalTokenBalance,
-        givenBy: req.user.firstName ? `${req.user.firstName} ${req.user.lastName || ''}`.trim() : req.user.email,
-        reason: reason,
-        dateAdded: new Date().toLocaleDateString('en-IN', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        })
-      });
-
-      if (emailResult.success) {
-        logger.info(`✅ Bonus tokens email sent successfully to ${user.email}`);
-      } else {
-        logger.warn(`❌ Failed to send bonus tokens email to ${user.email}: ${emailResult.error}`);
-      }
-    } catch (emailError) {
-      logger.error(`💥 Error sending bonus tokens email to ${user.email}:`, emailError);
-    }
+    const balance = await grantBonusTokens(user, tokens, reason, req.user);
 
     res.json({
       success: true,
@@ -694,7 +658,8 @@ router.post('/admin/give-bonus-tokens-by-email', protect, async (req, res) => {
         userId: user._id,
         userEmail: user.email,
         tokensAdded: tokens,
-        newTokenBalance: updatedTokenData.totalTokenBalance,
+        newTokenBalance: balance.total,
+        userTokenBalance: balance,
         reason: reason
       }
     });
@@ -744,6 +709,14 @@ router.post('/request-refund', protect, async (req, res) => {
       return res.status(404).json({
         success: false,
         message: 'Transaction not found'
+      });
+    }
+
+    // Only paid purchases are refundable; bonus grants never are.
+    if (!RefundCalculator.isPurchaseTransaction(transaction)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Bonus tokens are not refundable'
       });
     }
 
@@ -963,7 +936,7 @@ router.post('/calculate-refund/:transactionId', protect, async (req, res) => {
     // Calculate refund using RefundCalculator
     const refundResult = RefundCalculator.calculateRefund(
       transaction,
-      { tokens: user.tokens, bonusTokens: user.bonusTokens },
+      { tokens: toTokenBalance(user).purchased, bonusTokens: toTokenBalance(user).bonus },
       transaction.amount
     );
 
@@ -1056,7 +1029,7 @@ router.post('/admin/process-refund/:transactionId', protect, async (req, res) =>
       // Calculate refund using RefundCalculator
       const refundResult = RefundCalculator.calculateRefund(
         transaction,
-        { tokens: user.tokens, bonusTokens: user.bonusTokens },
+        { tokens: toTokenBalance(user).purchased, bonusTokens: toTokenBalance(user).bonus },
         transaction.amount
       );
 
@@ -1067,6 +1040,13 @@ router.post('/admin/process-refund/:transactionId', protect, async (req, res) =>
         refundPercentage: refundResult.refundPercentage,
         message: refundResult.message
       });
+
+      if (refundResult.status === 'error') {
+        return res.status(400).json({
+          success: false,
+          message: `Refund cannot be calculated for this transaction: ${refundResult.error}`
+        });
+      }
 
       // Check if refund is eligible
       if (refundResult.status === 'not_eligible') {
@@ -1173,52 +1153,16 @@ router.post('/admin/process-refund/:transactionId', protect, async (req, res) =>
         await user.updateTransactionStatus(transactionId, 'refunded', refundData);
 
         // ============ DEDUCT TOKENS FROM USER ACCOUNT ============
-        // Calculate tokens to deduct based on refund scenario
-        let tokensToDeduct = 0;
-        let bonusTokensToDeduct = 0;
-
-        if (refundResult.scenario === 1) {
-          // Scenario 1: No bonus, all tokens unused
-          // Deduct all purchased tokens
-          tokensToDeduct = refundResult.boughtTokens;
-        } else if (refundResult.scenario === 2) {
-          // Scenario 2: No bonus, partial tokens used
-          // Deduct remaining tokens (the ones being refunded for)
-          tokensToDeduct = refundResult.currentTokens;
-        } else if (refundResult.scenario === 3) {
-          // Scenario 3: With bonus, all tokens unused
-          // Deduct all purchased tokens + all bonus tokens
-          tokensToDeduct = refundResult.boughtTokens;
-          bonusTokensToDeduct = refundResult.bonusTokensAdded;
-        } else if (refundResult.scenario === 4) {
-          // Scenario 4: With bonus, bonus used but purchased tokens intact
-          // Deduct the purchased tokens (since they're the ones being paid for)
-          tokensToDeduct = refundResult.boughtTokens;
-          // Bonus tokens already used, so deduct what's remaining
-          bonusTokensToDeduct = refundResult.currentBonusTokens;
-        } else if (refundResult.scenario === 5) {
-          // Scenario 5B: Both used, effective tokens for refund
-          // Deduct current tokens (the ones available for refund)
-          const bonusUsed = refundResult.bonusTokensAdded - refundResult.currentBonusTokens;
-          tokensToDeduct = refundResult.currentTokens;
-          bonusTokensToDeduct = refundResult.currentBonusTokens;
-        }
-
-        // Apply token deductions to user account
-        if (tokensToDeduct > 0) {
-          user.tokens = Math.max(0, (user.tokens || 0) - tokensToDeduct);
-          logger.info(`Deducting ${tokensToDeduct} regular tokens from user ${user.email} (Refund Scenario ${refundResult.scenario})`);
-        }
-
-        if (bonusTokensToDeduct > 0) {
-          user.bonusTokens = Math.max(0, (user.bonusTokens || 0) - bonusTokensToDeduct);
-          logger.info(`Deducting ${bonusTokensToDeduct} bonus tokens from user ${user.email} (Refund Scenario ${refundResult.scenario})`);
-        }
-
-        // Save user with deducted tokens
+        // Per-scenario rules live in RefundCalculator.getTokenDeduction (see
+        // docs/REFUND_TOKEN_DEDUCTION_LOGIC.md). One atomic update, so AI
+        // actions running at the same moment can't be lost or overwritten.
+        const deduction = RefundCalculator.getTokenDeduction(refundResult);
+        const tokensToDeduct = deduction.purchased;
+        const bonusTokensToDeduct = deduction.bonus;
+        let newBalance = toTokenBalance(user);
         if (tokensToDeduct > 0 || bonusTokensToDeduct > 0) {
-          await user.save();
-          logger.info(`User ${user.email} tokens updated after refund: Regular: ${user.tokens}, Bonus: ${user.bonusTokens}`);
+          newBalance = await deductTokens(user._id, deduction);
+          logger.info(`User ${user.email} tokens updated after refund (Scenario ${refundResult.scenario}): -${tokensToDeduct} purchased, -${bonusTokensToDeduct} bonus. Now ${newBalance.purchased} purchased + ${newBalance.bonus} bonus`);
         }
         // ============ END TOKEN DEDUCTION ============
 
@@ -1271,10 +1215,11 @@ router.post('/admin/process-refund/:transactionId', protect, async (req, res) =>
               total: tokensToDeduct + bonusTokensToDeduct
             },
             newBalance: {
-              regular: user.tokens,
-              bonus: user.bonusTokens,
-              total: user.tokens + user.bonusTokens
-            }
+              regular: newBalance.purchased,
+              bonus: newBalance.bonus,
+              total: newBalance.total
+            },
+            userTokenBalance: newBalance
           }
         });
 

@@ -10,7 +10,7 @@ const Subscription = require('../models/Subscription');
 const { protect } = require('../middleware/auth');
 const logger = require('../utils/logger');
 const emailService = require('../utils/emailService');
-const { calculateTotalTokens } = require('../utils/tokenCalculator');
+const { toTokenBalance, tokenPayload } = require('../utils/tokenCalculator');
 const { encrypt, maskApiKey, decryptUserGeminiKey } = require('../utils/keyEncryption');
 
 const router = express.Router();
@@ -97,8 +97,8 @@ router.post('/register', [
     // Generate JWT token
     const token = user.getSignedJwtToken();
 
-    // Calculate total token data
-    const tokenData = await calculateTotalTokens(user._id);
+    // Token balance (purchased + bonus) from the loaded document
+    const balance = toTokenBalance(user);
 
     // Remove password and sensitive data from response
     const userResponse = user.toObject();
@@ -112,13 +112,9 @@ router.post('/register', [
       success: true,
       message: 'Registration successful! Please check your email for verification code.',
       data: {
-        user: {...userResponse, tokens: tokenData.totalTokenBalance},
+        user: { ...userResponse, tokens: balance.total, tokenBalance: balance },
         token,
-        tokens: {
-          balance: tokenData.totalTokenBalance,
-          purchasedTokens: tokenData.purchasedTokens,
-          bonusTokens: tokenData.bonusTokens
-        },
+        tokens: tokenPayload(balance),
         requiresEmailVerification: true
       }
     });
@@ -206,8 +202,8 @@ router.post('/login', [
     // Generate JWT token
     const token = user.getSignedJwtToken();
 
-    // Calculate total token data
-    const tokenData = await calculateTotalTokens(user._id);
+    // Token balance (purchased + bonus) from the loaded document
+    const balance = toTokenBalance(user);
 
     // Remove password from response
     const userResponse = user.toObject();
@@ -232,15 +228,12 @@ router.post('/login', [
       data: {
         user: {
           ...userResponse,
-          tokens: tokenData.totalTokenBalance,
+          tokens: balance.total,
+          tokenBalance: balance,
           geminiApiKey: maskedGeminiKey
         },
         token,
-        tokens: {
-          balance: tokenData.totalTokenBalance,
-          purchasedTokens: tokenData.purchasedTokens,
-          bonusTokens: tokenData.bonusTokens
-        }
+        tokens: tokenPayload(balance)
       }
     });
   } catch (error) {
@@ -433,8 +426,8 @@ router.get('/me', protect, async (req, res) => {
       });
     }
 
-    // Calculate total token data
-    const tokenData = await calculateTotalTokens(user._id);
+    // Token balance (purchased + bonus) from the loaded document
+    const balance = toTokenBalance(user);
 
     let maskedGeminiMe = null;
     if (user.isOwnApiKey) {
@@ -464,8 +457,9 @@ router.get('/me', protect, async (req, res) => {
           isActive: user.isActive,
           role: user.role,
           preferences: user.preferences,
-          tokens: (user.tokens + user.bonusTokens),
-          bonusTokens: user.bonusTokens,
+          tokens: balance.total,
+          tokenBalance: balance,
+          bonusTokens: balance.bonus,
           usage: user.usage,
           isOwnApiKey: user.isOwnApiKey,
           geminiApiKey: maskedGeminiMe,
@@ -473,11 +467,7 @@ router.get('/me', protect, async (req, res) => {
           createdAt: user.createdAt,
           updatedAt: user.updatedAt
         },
-        tokens: {
-          balance: tokenData.totalTokenBalance,
-          purchasedTokens: tokenData.purchasedTokens,
-          bonusTokens: tokenData.bonusTokens
-        }
+        tokens: tokenPayload(balance)
       }
     });
   } catch (error) {
@@ -653,6 +643,10 @@ router.put('/profile', [
     userResponse.geminiApiKey = plainGeminiProfile ? maskApiKey(plainGeminiProfile) : '';
     delete userResponse.password;
     delete userResponse.emailOtp;
+    // The raw `tokens` field is the purchased pool only; clients expect the total.
+    const balance = toTokenBalance(user);
+    userResponse.tokens = balance.total;
+
     delete userResponse.emailOtpExpire;
 
 
@@ -663,6 +657,7 @@ router.put('/profile', [
         'Profile updated successfully!',
       data: {
         user: userResponse,
+        tokens: tokenPayload(balance),
         requiresEmailVerification: email !== undefined && email !== user.email
       }
     });

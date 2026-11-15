@@ -1,62 +1,204 @@
-const User = require('../models/User');
+/**
+ * AI token balance: the single source of truth.
+ *
+ * A user has two pools on the User document. They stay separate because only
+ * purchased tokens can be refunded (see utils/refundCalculator.js):
+ *   tokens       -> purchased (bought through Razorpay, refundable)
+ *   bonusTokens  -> bonus (signup, feedback, admin grants, package bonus; not refundable)
+ *
+ * Every API response that reports a balance uses tokenPayload(), which returns
+ *   { purchased, bonus, total }
+ * plus the older names (balance, purchasedTokens, bonusTokens) so clients that
+ * still read them keep working.
+ *
+ * Spending order: bonus first, then purchased. This keeps refundable tokens as
+ * long as possible and matches the refund scenarios (scenario 4 = bonus used,
+ * purchased intact).
+ *
+ * All writes are single atomic MongoDB updates, so concurrent AI calls can
+ * never overspend or push a pool below zero.
+ */
+
+// Lazily required so models/User.js can import the pure helpers below
+// without a circular dependency.
+const getUserModel = () => require('../models/User');
+
+/** Coerce a stored value to a non-negative whole number of tokens. */
+function toCount(value) {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+}
 
 /**
- * Calculate total available tokens for a user
- * @param {string} userId - User ID
- * @returns {Promise<Object>} Token calculation result
+ * Read both pools from a user document (or any { tokens, bonusTokens } object).
+ * Missing, null, negative or non-numeric values count as 0.
  */
-async function calculateTotalTokens(userId) {
-  try {
-    const user = await User.findById(userId).select('tokens bonusTokens');
-    
-    if (!user) {
-      throw new Error('User not found');
+function toTokenBalance(source) {
+  const purchased = toCount(source && source.tokens);
+  const bonus = toCount(source && source.bonusTokens);
+  return { purchased, bonus, total: purchased + bonus };
+}
+
+/** The balance shape sent to clients. */
+function tokenPayload(balance) {
+  const { purchased, bonus, total } = balance && typeof balance.total === 'number'
+    ? balance
+    : toTokenBalance(balance);
+  return {
+    purchased,
+    bonus,
+    total,
+    // Deprecated aliases, kept for older clients.
+    balance: total,
+    purchasedTokens: purchased,
+    bonusTokens: bonus
+  };
+}
+
+/**
+ * How a spend of `amount` is split between the pools (bonus first).
+ * Returns null when the balance is too low.
+ */
+function splitSpend(balance, amount = 1) {
+  const need = toCount(amount);
+  if (need < 1) throw new Error('Spend amount must be a positive integer');
+  const { purchased, bonus, total } = toTokenBalance({ tokens: balance.purchased, bonusTokens: balance.bonus });
+  if (total < need) return null;
+  const fromBonus = Math.min(bonus, need);
+  return { fromBonus, fromPurchased: need - fromBonus };
+}
+
+// Pool values as aggregation expressions; missing/null/negative read as 0.
+const PURCHASED_EXPR = { $max: [0, { $ifNull: ['$tokens', 0] }] };
+const BONUS_EXPR = { $max: [0, { $ifNull: ['$bonusTokens', 0] }] };
+
+/** Query filter: user has at least `amount` tokens across both pools. */
+function hasAtLeastFilter(amount) {
+  return { $expr: { $gte: [{ $add: [PURCHASED_EXPR, BONUS_EXPR] }, amount] } };
+}
+
+/**
+ * Update pipeline that spends `amount` tokens, bonus first. Both fields in one
+ * $set stage read the document as it was before the stage, so the split is
+ * computed from the same snapshot. Only safe together with hasAtLeastFilter().
+ */
+function buildSpendPipeline(amount) {
+  return [{
+    $set: {
+      bonusTokens: { $max: [0, { $subtract: [BONUS_EXPR, amount] }] },
+      tokens: {
+        $subtract: [PURCHASED_EXPR, { $max: [0, { $subtract: [amount, BONUS_EXPR] }] }]
+      }
     }
-    
-    // Get purchased tokens and bonus tokens from user
-    const purchasedTokens = user.tokens || 0;
-    const bonusTokens = user.bonusTokens || 0;
-    const totalTokenBalance = purchasedTokens + bonusTokens;
-    
-    return {
-      totalTokenBalance: totalTokenBalance,
-      purchasedTokens: purchasedTokens,
-      bonusTokens: bonusTokens,
-      remainingFreeTokens: 0,
-      freeTokens: 0,
-      freeTokensUsed: 0,
-      subscription: {
-        plan: 'free',
-        planName: 'Free',
-        isTokenBased: true,
-        status: 'active',
-        isTrial: false,
-        remainingDays: 0,
-        trialRemainingDays: 0
-      }
-    };
-  } catch (error) {
-    console.error('Error calculating total tokens:', error);
-    return {
-      totalTokenBalance: 0,
-      purchasedTokens: 0,
-      bonusTokens: 0,
-      remainingFreeTokens: 0,
-      freeTokens: 0,
-      freeTokensUsed: 0,
-      subscription: {
-        plan: 'free',
-        planName: 'Free',
-        isTokenBased: true,
-        status: 'active',
-        isTrial: false,
-        remainingDays: 0,
-        trialRemainingDays: 0
-      }
-    };
+  }];
+}
+
+/** Update pipeline that removes up to the given amounts, never below zero. */
+function buildDeductPipeline({ purchased = 0, bonus = 0 }) {
+  return [{
+    $set: {
+      tokens: { $max: [0, { $subtract: [PURCHASED_EXPR, toCount(purchased)] }] },
+      bonusTokens: { $max: [0, { $subtract: [BONUS_EXPR, toCount(bonus)] }] }
+    }
+  }];
+}
+
+const BALANCE_PROJECTION = { tokens: 1, bonusTokens: 1 };
+
+function notFound() {
+  const err = new Error('User not found');
+  err.statusCode = 404;
+  return err;
+}
+
+/** Current balance from the database. Throws (404) if the user is missing. */
+async function getTokenBalance(userId) {
+  const user = await getUserModel().findById(userId).select(BALANCE_PROJECTION).lean();
+  if (!user) throw notFound();
+  return toTokenBalance(user);
+}
+
+/**
+ * Atomically spend `amount` tokens (bonus first).
+ * @returns {Promise<{ok: true, balance, spent: {fromBonus, fromPurchased}} | {ok: false, balance}>}
+ */
+async function spendTokens(userId, amount = 1) {
+  const need = toCount(amount);
+  if (need < 1) throw new Error('Spend amount must be a positive integer');
+
+  const before = await getUserModel().findOneAndUpdate(
+    { _id: userId, ...hasAtLeastFilter(need) },
+    buildSpendPipeline(need),
+    { new: false, projection: BALANCE_PROJECTION, lean: true }
+  );
+
+  if (!before) {
+    // Either not enough tokens or no such user; getTokenBalance throws for the latter.
+    return { ok: false, balance: await getTokenBalance(userId) };
   }
+
+  const prior = toTokenBalance(before);
+  const spent = splitSpend(prior, need);
+  const balance = {
+    purchased: prior.purchased - spent.fromPurchased,
+    bonus: prior.bonus - spent.fromBonus,
+    total: prior.total - need
+  };
+  return { ok: true, balance, spent };
+}
+
+/**
+ * Atomically add tokens to either pool. Optional `filter` is merged into the
+ * query (e.g. to make a purchase idempotent) and `push` adds a transaction to
+ * razorpayTransactions in the same write.
+ * @returns {Promise<{purchased, bonus, total} | null>} null if the filter did not match.
+ */
+async function creditTokens(userId, { purchased = 0, bonus = 0 } = {}, { filter = {}, push } = {}) {
+  const update = { $inc: { tokens: toCount(purchased), bonusTokens: toCount(bonus) } };
+  if (push) {
+    update.$push = { razorpayTransactions: { $each: [push], $position: 0, $slice: 50 } };
+  }
+  const user = await getUserModel().findOneAndUpdate(
+    { _id: userId, ...filter },
+    update,
+    { new: true, projection: BALANCE_PROJECTION, lean: true }
+  );
+  return user ? toTokenBalance(user) : null;
+}
+
+/** Put back tokens taken by spendTokens(), into the pools they came from. */
+async function refundSpend(userId, spent) {
+  const balance = await creditTokens(userId, {
+    purchased: spent.fromPurchased,
+    bonus: spent.fromBonus
+  });
+  if (!balance) throw notFound();
+  return balance;
+}
+
+/** Atomically remove tokens (e.g. after a refund), clamping each pool at zero. */
+async function deductTokens(userId, amounts) {
+  const user = await getUserModel().findOneAndUpdate(
+    { _id: userId },
+    buildDeductPipeline(amounts),
+    { new: true, projection: BALANCE_PROJECTION, lean: true }
+  );
+  if (!user) throw notFound();
+  return toTokenBalance(user);
 }
 
 module.exports = {
-  calculateTotalTokens
+  // pure helpers
+  toTokenBalance,
+  tokenPayload,
+  splitSpend,
+  hasAtLeastFilter,
+  buildSpendPipeline,
+  buildDeductPipeline,
+  // database operations
+  getTokenBalance,
+  spendTokens,
+  creditTokens,
+  refundSpend,
+  deductTokens
 };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { ChartBarIcon, XMarkIcon, DocumentTextIcon, DocumentArrowDownIcon, XCircleIcon, SparklesIcon } from '@heroicons/react/24/outline';
@@ -18,41 +18,9 @@ const ATSScoreModal = ({
   const [atsFile, setAtsFile] = useState(null);
   const [atsInputType, setAtsInputType] = useState('text'); // 'text' or 'file'
   const [atsGenerating, setAtsGenerating] = useState(false);
-  const [tokenBalance, setTokenBalance] = useState(0);
-  const [isTokenExhausted, setIsTokenExhausted] = useState(false);
-  const { user } = useAuth();
-
-  // Get initial token balance
-  useEffect(() => {
-    if(!user.isOwnApiKey) {
-      const balance = apiHelpers.getTokenBalance();
-      setTokenBalance(balance);
-      setIsTokenExhausted( balance <= 0);
-    }
-  }, [user.isOwnApiKey]);
-
-  // Listen for token balance updates
-  useEffect(() => {
-    const handleTokenBalanceUpdate = (event) => {
-      if(!user.isOwnApiKey) {
-      const { balance } = event.detail;
-      setTokenBalance(balance);
-      setIsTokenExhausted(balance <= 0);
-    };
-  }
-
-    window.addEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
-    return () => window.removeEventListener('tokenBalanceUpdated', handleTokenBalanceUpdate);
-  }, [user.isOwnApiKey]);
-
-  // Update token balance from user data if available
-  useEffect(() => {
-    if (user?.tokens !== undefined && !user.isOwnApiKey) {
-      setTokenBalance(user.tokens);
-      setIsTokenExhausted(user.tokens <= 0);
-    }
-  }, [user]);
-
+  // Token balance and AI permission come from AuthContext
+  const { canUseAI } = useAuth();
+  const isTokenExhausted = !canUseAI;
 
   // Helper function to strip HTML tags from CKEditor content
   const stripHtmlTags = (html) => {
@@ -100,7 +68,7 @@ const ATSScoreModal = ({
   // Handle form submission
   const handleSubmit = async () => {
     // Check if tokens are exhausted
-    if (!user.isOwnApiKey && (isTokenExhausted || tokenBalance <= 0)) {
+    if (!canUseAI) {
       toast.error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
       return;
     }
@@ -119,12 +87,6 @@ const ATSScoreModal = ({
         jobDescription,
         jobDescriptionFile
       );
-
-
-      // Update token balance after successful operation
-      const currentBalance = apiHelpers.getTokenBalance();
-      const newBalance = Math.max(0, currentBalance - 1);
-      apiHelpers.updateTokenBalance(newBalance);
 
       toast.success('ATS Score generated successfully! Check console for details.');
       handleSuccess();

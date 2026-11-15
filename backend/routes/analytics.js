@@ -6,7 +6,7 @@ const Template = require('../models/Template');
 const User = require('../models/User');
 // Subscription model no longer needed
 const logger = require('../utils/logger');
-const { calculateTotalTokens } = require('../utils/tokenCalculator');
+const { toTokenBalance, tokenPayload, spendTokens } = require('../utils/tokenCalculator');
 
 // @desc    Track resume view
 // @route   POST /api/analytics/resume/:id/view
@@ -143,17 +143,13 @@ router.get('/summary', protect, async (req, res) => {
   try {
     // Get user's resumes analytics
     const resumes = await Resume.find({ user: req.user.id });
-    
+
     const totalViews = resumes.reduce((sum, resume) => sum + (resume.analytics.views || 0), 0);
     const totalDownloads = resumes.reduce((sum, resume) => sum + (resume.analytics.downloads || 0), 0);
 
-    // Get user info for tokens
-    const User = require('../models/User');
     const user = await User.findById(req.user.id).select('tokens bonusTokens razorpayTransactions');
-    
-    // Calculate total available tokens using utility function
-    const tokenData = await calculateTotalTokens(req.user.id);
-    
+    const balance = toTokenBalance(user);
+
     // Get templates used by user
     const templatesUsed = await Template.find({
       'usage.uniqueUsers': req.user.id
@@ -177,10 +173,7 @@ router.get('/summary', protect, async (req, res) => {
         }))
       },
       tokens: {
-        balance: tokenData.totalTokenBalance,
-        purchasedTokens: tokenData.purchasedTokens,
-        bonusTokens: tokenData.bonusTokens,
-        remainingFreeTokens: tokenData.remainingFreeTokens,
+        ...tokenPayload(balance),
         recentTransactions: user?.razorpayTransactionsWithRefundStatus?.slice(0, 10) || []
       }
     };
@@ -203,21 +196,17 @@ router.get('/summary', protect, async (req, res) => {
 // @access  Private
 router.get('/ai-usage', protect, async (req, res) => {
   try {
-    // Get user info for tokens
-    const User = require('../models/User');
     const user = await User.findById(req.user.id).select('tokens bonusTokens razorpayTransactions');
-    
-    // Calculate total available tokens using utility function
-    const tokenData = await calculateTotalTokens(req.user.id);
-    
+    const balance = toTokenBalance(user);
+
     const aiUsageAnalytics = {
       currentUsage: {
-        tokenBalance: tokenData.totalTokenBalance,
-        purchasedTokens: tokenData.purchasedTokens,
-        bonusTokens: tokenData.bonusTokens,
-        remainingFreeTokens: tokenData.remainingFreeTokens,
+        tokenBalance: balance.total,
+        purchasedTokens: balance.purchased,
+        bonusTokens: balance.bonus,
         isTokenBased: true
       },
+      tokens: tokenPayload(balance),
       recentTransactions: user?.razorpayTransactionsWithRefundStatus?.slice(0, 5) || []
     };
 
@@ -240,23 +229,17 @@ router.get('/ai-usage', protect, async (req, res) => {
 // @access  Private
 router.get('/tokens', protect, async (req, res) => {
   try {
-    const User = require('../models/User');
     const user = await User.findById(req.user.id).select('tokens bonusTokens razorpayTransactions');
-    
-    // Calculate total available tokens using utility function
-    const tokenData = await calculateTotalTokens(req.user.id);
-    
-    const responseData = {
-      balance: tokenData.totalTokenBalance,
-      purchasedTokens: tokenData.purchasedTokens,
-      bonusTokens: tokenData.bonusTokens,
-        remainingFreeTokens: tokenData.remainingFreeTokens,
-        recentTransactions: user?.razorpayTransactionsWithRefundStatus?.slice(0, 5) || []
-    };
-    
+    const balance = toTokenBalance(user);
+
     res.json({
       success: true,
-      data: responseData
+      data: {
+        // Balance fields at the top level are kept for older clients.
+        ...tokenPayload(balance),
+        tokens: tokenPayload(balance),
+        recentTransactions: user?.razorpayTransactionsWithRefundStatus?.slice(0, 5) || []
+      }
     });
   } catch (error) {
     logger.error('Get token balance error:', error);
@@ -272,41 +255,34 @@ router.get('/tokens', protect, async (req, res) => {
 // @access  Private
 router.post('/ai-action', protect, async (req, res) => {
   try {
-    const { actionType, tokensUsed = 1 } = req.body;
-    
-    // Get user info for tokens
-    const User = require('../models/User');
-    const user = await User.findById(req.user.id).select('tokens bonusTokens');
-    
-    // Calculate total available tokens using utility function
-    const tokenData = await calculateTotalTokens(req.user.id);
-    
-    // Check if user has enough tokens
-    if (tokenData.totalTokenBalance < tokensUsed) {
-      return res.status(403).json({
+    const { actionType } = req.body;
+    const tokensUsed = Number(req.body.tokensUsed ?? 1);
+
+    if (!Number.isInteger(tokensUsed) || tokensUsed < 1) {
+      return res.status(400).json({
         success: false,
-        error: 'Insufficient tokens. Please purchase more tokens to use AI features.'
+        error: 'tokensUsed must be a positive integer'
       });
     }
-    
-    // Deduct tokens from user account (bonus first, then regular)
-    await user.consumeTokens(tokensUsed);
-    
+
+    // Atomic spend, bonus tokens first
+    const result = await spendTokens(req.user._id, tokensUsed);
+    if (!result.ok) {
+      return res.status(403).json({
+        success: false,
+        error: 'Insufficient tokens. Please purchase more tokens to use AI features.',
+        tokens: tokenPayload(result.balance)
+      });
+    }
+
     logger.info(`AI action tracked: ${actionType} (${tokensUsed} tokens) by user ${req.user.email}`);
-    
-    // Get updated token data after consumption
-    const updatedTokenData = await calculateTotalTokens(req.user.id);
-    
+
     res.json({
       success: true,
       data: {
         actionType,
         tokensUsed,
-        tokens: {
-          balance: updatedTokenData.totalTokenBalance,
-          purchasedTokens: updatedTokenData.purchasedTokens,
-          bonusTokens: updatedTokenData.bonusTokens
-        }
+        tokens: tokenPayload(result.balance)
       },
       message: 'AI action tracked successfully'
     });
@@ -415,8 +391,8 @@ router.get('/admin/dashboard', protect, authorize('admin'), async (req, res) => 
       {
         $group: {
           _id: null,
-          totalTokensSold: { $sum: { $add: ['$tokens', '$bonusTokens'] } },
-          totalUsersWithTokens: { $sum: { $cond: [{ $gt: [{ $add: ['$tokens', '$bonusTokens'] }, 0] }, 1, 0] } }
+          totalTokensSold: { $sum: { $add: [{ $ifNull: ['$tokens', 0] }, { $ifNull: ['$bonusTokens', 0] }] } },
+          totalUsersWithTokens: { $sum: { $cond: [{ $gt: [{ $add: [{ $ifNull: ['$tokens', 0] }, { $ifNull: ['$bonusTokens', 0] }] }, 0] }, 1, 0] } }
         }
       }
     ]).catch(err => {

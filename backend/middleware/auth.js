@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const logger = require('../utils/logger');
-const { calculateTotalTokens } = require('../utils/tokenCalculator');
+const { spendTokens, refundSpend, tokenPayload } = require('../utils/tokenCalculator');
 
 // Protect routes - require authentication
 const protect = async (req, res, next) => {
@@ -56,37 +56,6 @@ const authorize = (...roles) => {
   };
 };
 
-// Check AI action limits
-const checkAIActionLimit = async (req, res, next) => {
-  try {
-    const user = req.user || await User.findById(req.user.id);
-    
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
-    }
-
-    // Check if user has tokens available
-    if (user.tokens <= 0 && user.bonusTokens <= 0) {
-      return res.status(403).json({
-        success: false,
-        error: 'No tokens available. Please purchase more tokens to use AI features.',
-        limitReached: true
-      });
-    }
-    req.user = user;
-    next();
-  } catch (error) {
-    logger.error('Check AI action limit error:', error);
-    return res.status(500).json({
-      success: false,
-      error: 'Error checking AI action limits'
-    });
-  }
-};
-
 // Check template access
 const checkTemplateAccess = async (req, res, next) => {
   try {
@@ -134,57 +103,77 @@ const checkExportFormat = async (req, res, next) => {
   }
 };
 
-// Check and consume tokens for AI actions
-const checkTokenLimit = async (req, res, next) => {
+// Charge one AI token before an AI action (skip it for BYOK users with
+// skipIfBYOK). The spend is a single atomic update, bonus tokens first, so
+// concurrent requests can't overspend. If the action then fails (a JSON body
+// with success: false, or any 4xx/5xx status), the token goes back to the pool
+// it came from and the refreshed balance is attached to the error body as
+// `tokens`. Successful responses carry the new balance in req.tokens.
+const AI_ACTION_COST = 1;
+
+const chargeAIToken = async (req, res, next) => {
+  let result;
   try {
-    const user = req.user || await User.findById(req.user.id);
-    
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: 'User not found'
-      });
-    }
-
-    // Check if user has enough tokens (1 token for AI actions)
-    if (!user.hasTokens(1)) {
-      return res.status(403).json({
-        success: false,
-        error: 'Insufficient tokens. You need 1 token to use AI features. Please buy tokens to continue.',
-        tokensRequired: 1,
-        currentTokens: user.tokens,
-        action: 'buy_tokens'
-      });
-    }
-
-    // Consume 1 token for AI action
-    try {
-      await user.consumeTokens(1);
-      logger.info(`Token consumed: 1 token for user ${req.user.id}, remaining: ${user.tokens + user.bonusTokens}`);
-      const tokenData = await calculateTotalTokens(req.user.id);
-      // Store user object and token data in request for potential refund and response
-      req.userForRefund = user;
-      req.tokens = {
-        balance: tokenData.totalTokenBalance,
-        purchasedTokens: tokenData.purchasedTokens,
-        bonusTokens: tokenData.bonusTokens,
-      };
-    } catch (error) {
-      logger.error(`Error consuming tokens: ${error.message}`);
-      return res.status(500).json({
-        success: false,
-        error: 'Error processing token consumption'
-      });
-    }
-    
-    next();
+    result = await spendTokens(req.user._id, AI_ACTION_COST);
   } catch (error) {
-    logger.error('Check token limit error:', error);
-    return res.status(500).json({
+    logger.error(`Error charging AI token for user ${req.user && req.user._id}: ${error.message}`);
+    return res.status(error.statusCode === 404 ? 404 : 500).json({
       success: false,
-      error: 'Error checking token limits'
+      error: error.statusCode === 404 ? 'User not found' : 'Error checking token balance'
     });
   }
+
+  if (!result.ok) {
+    return res.status(403).json({
+      success: false,
+      error: 'Insufficient tokens. You need 1 token to use AI features. Please buy tokens to continue.',
+      limitReached: true,
+      tokensRequired: AI_ACTION_COST,
+      action: 'buy_tokens',
+      tokens: tokenPayload(result.balance)
+    });
+  }
+
+  req.tokens = tokenPayload(result.balance);
+  logger.info(`AI token charged for user ${req.user._id} (bonus: ${result.spent.fromBonus}, purchased: ${result.spent.fromPurchased}); remaining ${result.balance.total}`);
+
+  let settled = false;
+  const refund = async () => {
+    if (settled) return null;
+    settled = true;
+    try {
+      const balance = await refundSpend(req.user._id, result.spent);
+      logger.info(`AI token refunded to user ${req.user._id} after a failed AI action`);
+      return balance;
+    } catch (error) {
+      logger.error(`Error refunding AI token for user ${req.user._id}: ${error.message}`);
+      return null;
+    }
+  };
+
+  const originalJson = res.json.bind(res);
+  res.json = (body) => {
+    if (!settled && body && body.success === false) {
+      refund().then((balance) => {
+        if (balance && typeof body === 'object') {
+          body.tokens = tokenPayload(balance);
+          if (body.data && typeof body.data === 'object') delete body.data.tokens;
+        }
+        originalJson(body);
+      });
+      return res;
+    }
+    if (res.statusCode < 400) settled = true;
+    return originalJson(body);
+  };
+
+  // Non-JSON failures (res.send, error handler, etc.)
+  res.on('finish', () => {
+    if (!settled && res.statusCode >= 400) refund();
+    settled = true;
+  });
+
+  next();
 };
 
 // Track usage after successful operations
@@ -213,28 +202,6 @@ const trackUsage = async (req, res, next) => {
   next();
 };
 
-
-// Helper function to refund tokens on AI errors
-const refundTokenOnError = async (req, res, next) => {
-  const originalSend = res.json;
-  
-  res.json = function(data) {
-    // If the response indicates an error and we have a user for refund
-    if (!data.success && req.userForRefund) {
-      try {
-        // Refund the token back to the user
-        req.userForRefund.addTokens(1);
-        logger.info(`Token refunded: 1 token returned to user ${req.userForRefund._id} due to AI error`);
-      } catch (refundError) {
-        logger.error(`Error refunding token: ${refundError.message}`);
-      }
-    }
-    
-    originalSend.call(this, data);
-  };
-  
-  next();
-};
 
 // Check user status and handle cleanup
 const checkUserStatus = async (req, res, next) => {
@@ -273,12 +240,10 @@ const skipIfBYOK = (middleware) => {
 module.exports = {
   protect,
   authorize,
-  checkAIActionLimit,
   checkTemplateAccess,
   checkExportFormat,
-  checkTokenLimit,
+  chargeAIToken,
   trackUsage,
   checkUserStatus,
-  refundTokenOnError,
   skipIfBYOK
 }; 

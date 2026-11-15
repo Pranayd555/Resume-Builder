@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import AIService from "../services/aiService";
 
-import { apiHelpers } from "../services/api";
 import "./AIButton.css";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "../contexts/AuthContext";
@@ -18,39 +17,9 @@ const AIButton = ({
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [tokenBalance, setTokenBalance] = useState(0);
-  const [isTokenExhausted, setIsTokenExhausted] = useState(false);
-  const { user } = useAuth();
-
-
-  // Get initial token balance
-  useEffect(() => {
-    if(!user.isOwnApiKey) {
-      const balance = apiHelpers.getTokenBalance();
-      setTokenBalance(balance);
-      setIsTokenExhausted( balance <= 0);
-    }
-  }, [user.isOwnApiKey]);
-
-  // Listen for token balance updates
-  useEffect(() => {
-    const handleTokenBalanceUpdate = (event) => {
-      if(!user.isOwnApiKey) {
-      const { balance } = event.detail;
-      setTokenBalance(balance);
-      setIsTokenExhausted(balance <= 0);
-    };
-    }
-
-    window.addEventListener("tokenBalanceUpdated", handleTokenBalanceUpdate);
-    return () =>
-      window.removeEventListener(
-        "tokenBalanceUpdated",
-        handleTokenBalanceUpdate
-      );
-  }, [user.isOwnApiKey]);
-
-
+  // Token balance and AI permission come from AuthContext
+  const { canUseAI } = useAuth();
+  const isTokenExhausted = !canUseAI;
 
   const handleAIAction = async (action) => {
     if (!editorInstance) {
@@ -61,7 +30,7 @@ const AIButton = ({
       return;
     }
 
-    if (!user.isOwnApiKey && (isTokenExhausted || tokenBalance <= 0)) {
+    if (!canUseAI) {
       showNotification(
         "AI tokens exhausted! Please purchase more tokens to continue using AI features.",
         "error"

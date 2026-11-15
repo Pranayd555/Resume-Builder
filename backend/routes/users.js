@@ -5,6 +5,7 @@ const User = require('../models/User');
 const Resume = require('../models/Resume');
 // Subscription model no longer needed
 const logger = require('../utils/logger');
+const { toTokenBalance, tokenPayload, getTokenBalance, creditTokens } = require('../utils/tokenCalculator');
 
 const router = express.Router();
 
@@ -15,19 +16,13 @@ router.get('/profile', protect, async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     
-    // Calculate total token data
-    const { calculateTotalTokens } = require('../utils/tokenCalculator');
-    const tokenData = await calculateTotalTokens(user._id);
+    const balance = toTokenBalance(user);
     
     res.json({
       success: true,
       data: {
-        user: user.toObject(),
-        tokens: {
-          balance: tokenData.totalTokenBalance,
-          purchasedTokens: tokenData.purchasedTokens,
-          bonusTokens: tokenData.bonusTokens
-        }
+        user: { ...user.toObject(), tokens: balance.total },
+        tokens: tokenPayload(balance)
       }
     });
   } catch (error) {
@@ -35,6 +30,22 @@ router.get('/profile', protect, async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Server error'
+    });
+  }
+});
+
+// @desc    Get the current user's token balance
+// @route   GET /api/users/balance
+// @access  Private
+router.get('/balance', protect, async (req, res) => {
+  try {
+    const balance = await getTokenBalance(req.user._id);
+    res.json({ success: true, data: { tokens: tokenPayload(balance) } });
+  } catch (error) {
+    logger.error('Get token balance error:', error);
+    res.status(error.statusCode === 404 ? 404 : 500).json({
+      success: false,
+      error: error.statusCode === 404 ? 'User not found' : 'Error getting token balance'
     });
   }
 });
@@ -74,10 +85,12 @@ router.put('/profile', [
       { new: true, runValidators: true }
     );
 
+    const balance = toTokenBalance(user);
     res.json({
       success: true,
       data: {
-        user
+        user: { ...user.toObject(), tokens: balance.total },
+        tokens: tokenPayload(balance)
       }
     });
   } catch (error) {
@@ -117,9 +130,7 @@ router.get('/dashboard', protect, async (req, res) => {
       { $group: { _id: null, totalDownloads: { $sum: '$analytics.downloads' } } }
     ]);
 
-    // Calculate total token data
-    const { calculateTotalTokens } = require('../utils/tokenCalculator');
-    const tokenData = await calculateTotalTokens(user._id);
+    const balance = toTokenBalance(user);
 
     const stats = {
       resumeCount,
@@ -133,11 +144,7 @@ router.get('/dashboard', protect, async (req, res) => {
       data: {
         stats,
         recentResumes,
-        tokens: {
-          balance: tokenData.totalTokenBalance,
-          purchasedTokens: tokenData.purchasedTokens,
-          bonusTokens: tokenData.bonusTokens
-        }
+        tokens: tokenPayload(balance)
       }
     });
   } catch (error) {
@@ -437,15 +444,19 @@ router.put('/:id/status', [
   }
 });
 
-// @desc    Add tokens to user account
+// @desc    Add purchased tokens to the caller's account (manual payment reconciliation)
 // @route   POST /api/users/add-tokens
-// @access  Private
-router.post('/add-tokens', protect, async (req, res) => {
+// @access  Private/Admin
+// Purchased tokens are refundable, so this must never be open to regular
+// users (it used to be: any logged-in user could credit themselves). Real
+// purchases go through /api/payment/complete-token-purchase.
+router.post('/add-tokens', protect, authorize('admin'), async (req, res) => {
   try {
-    const { tokens, paymentId, orderId, amount, plan, source } = req.body;
+    const { paymentId, orderId, amount, plan, source } = req.body;
+    const tokens = Number(req.body.tokens);
 
     // Validate required fields
-    if (!tokens || tokens <= 0) {
+    if (!Number.isInteger(tokens) || tokens <= 0) {
       return res.status(400).json({
         success: false,
         error: 'Valid token amount is required'
@@ -459,32 +470,22 @@ router.post('/add-tokens', protect, async (req, res) => {
       });
     }
 
-    // Find user
-    const user = await User.findById(req.user.id);
-    if (!user) {
+    const balance = await creditTokens(req.user._id, { purchased: tokens });
+    if (!balance) {
       return res.status(404).json({
         success: false,
         error: 'User not found'
       });
     }
 
-    // Add tokens to user account
-    const previousTokens = user.tokens || 0;
-    user.tokens = (user.tokens || 0) + tokens;
-    await user.save();
-
-    // Log the transaction
-    logger.info(`Added ${tokens} tokens to user ${user.email}. Previous: ${previousTokens}, New total: ${user.tokens}`);
+    logger.info(`Added ${tokens} purchased tokens to user ${req.user.email}. New balance: ${balance.purchased} purchased + ${balance.bonus} bonus`);
 
     res.json({
       success: true,
       data: {
         message: `Successfully added ${tokens} tokens`,
-        tokens: {
-          added: tokens,
-          previous: previousTokens,
-          current: user.tokens
-        },
+        tokensAdded: tokens,
+        tokens: tokenPayload(balance),
         payment: {
           paymentId,
           orderId,

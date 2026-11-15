@@ -9,7 +9,11 @@ const logger = require('./logger');
  * 3. Token bought with bonus, balance >= bought + bonus → Full refund
  * 4. Token bought with bonus, balance >= bought but bonus < added → Partial refund
  * 5. Token bought with bonus, balance < bought and bonus < added → Partial refund with min check
- * 6. Token bought with bonus, balance < bought and bonus > added → Partial refund with min check
+ * 6. Token bought with bonus, balance < bought and bonus >= added → Partial refund for unused purchased tokens
+ *
+ * Only purchased tokens (user.tokens) are ever refunded; the bonus pool only
+ * reduces the refund when this purchase's bonus has been used. Tokens are
+ * spent bonus first (see utils/tokenCalculator.js).
  */
 
 class RefundCalculator {
@@ -124,6 +128,28 @@ class RefundCalculator {
               message: `Partial refund approved - ${regularTokensUsed} purchased tokens and ${bonusUsedAmount} bonus tokens have been used.`
             };
           }
+        } else {
+          // Scenario 6: some purchased tokens used, but the bonus pool still
+          // holds at least this purchase's bonus (e.g. a bonus was granted
+          // later). No bonus from this purchase counts as used, so refund the
+          // unused purchased tokens, as in scenario 2.
+          scenario = 6;
+          const regularTokensUsed = boughtTokens - currentTokens;
+
+          if (currentTokens < 1) {
+            refundData = {
+              refundAmount: 0,
+              refundPercentage: 0,
+              status: 'not_eligible',
+              message: 'Refund not possible as per policy - all purchased tokens have been used.'
+            };
+          } else {
+            refundData = {
+              refundAmount: Math.round((paidInPaise / boughtTokens) * currentTokens),
+              refundPercentage: (currentTokens / boughtTokens) * 100,
+              message: `Partial refund approved - ${regularTokensUsed} purchased tokens have been used. Refunding for ${currentTokens} unused tokens.`
+            };
+          }
         }
       }
 
@@ -147,6 +173,46 @@ class RefundCalculator {
         error: error.message,
         status: 'error'
       };
+    }
+  }
+
+  /**
+   * True for a paid token purchase. Bonus grants (admin, feedback, signup) are
+   * stored as zero-amount transactions and are never refundable.
+   * @param {Object} transaction
+   * @returns {boolean}
+   */
+  static isPurchaseTransaction(transaction) {
+    if (!transaction) return false;
+    const metadata = transaction.metadata || {};
+    return Number(transaction.amount) > 0 &&
+      Number(metadata.boughtTokens) >= 1 &&
+      metadata.type !== 'admin_bonus';
+  }
+
+  /**
+   * Tokens to remove from the user's pools once an eligible refund is paid.
+   * See docs/REFUND_TOKEN_DEDUCTION_LOGIC.md.
+   * @param {Object} refundResult - result of calculateRefund()
+   * @returns {{ purchased: number, bonus: number }}
+   */
+  static getTokenDeduction(refundResult) {
+    const { scenario, boughtTokens = 0, bonusTokensAdded = 0, currentTokens = 0, currentBonusTokens = 0 } = refundResult || {};
+    switch (scenario) {
+      case 1: // no bonus, nothing used: all purchased tokens
+        return { purchased: boughtTokens, bonus: 0 };
+      case 2: // no bonus, some used: the unused purchased tokens
+        return { purchased: currentTokens, bonus: 0 };
+      case 3: // with bonus, nothing used: purchased + this purchase's bonus
+        return { purchased: boughtTokens, bonus: bonusTokensAdded };
+      case 4: // bonus partly used, purchased intact: purchased + remaining bonus
+        return { purchased: boughtTokens, bonus: currentBonusTokens };
+      case 5: // both partly used: everything that is left
+        return { purchased: currentTokens, bonus: currentBonusTokens };
+      case 6: // purchased partly used, bonus covered: unused purchased + this purchase's bonus
+        return { purchased: currentTokens, bonus: bonusTokensAdded };
+      default:
+        return { purchased: 0, bonus: 0 };
     }
   }
 

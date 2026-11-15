@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { analyticsAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import AuthLoader from './annimations/AuthLoader';
 import { 
@@ -19,6 +20,8 @@ import {
 
 
 function AnalyticsDashboard() {
+  // Same balance as the header (AuthContext); /analytics/summary also refreshes it.
+  const { balance } = useAuth();
   const navigate = useNavigate();
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -154,7 +157,7 @@ function AnalyticsDashboard() {
   // Safely destructure with defaults to prevent rendering objects directly
   const resumes = analytics?.resumes || { total: 0, totalViews: 0, totalDownloads: 0, averageViews: 0, averageDownloads: 0 };
   const templates = analytics?.templates || { totalUsed: 0, templates: [] };
-  const tokens = analytics?.tokens || { balance: 0, purchasedTokens: 0, bonusTokens: 0, remainingFreeTokens: 0, recentTransactions: [] };
+  const tokens = analytics?.tokens || { recentTransactions: [] };
 
   return (
     <div className="min-h-screen pt-16">
@@ -237,10 +240,10 @@ function AnalyticsDashboard() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Token Balance</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {tokens?.balance || 0}
+                  {balance.total}
                 </p>
                 <p className="text-xs text-gray-500">
-                  {tokens?.purchasedTokens || 0} regular + {tokens?.bonusTokens || 0} bonus
+                  {balance.purchased} purchased + {balance.bonus} bonus
                 </p>
               </div>
             </div>
@@ -279,7 +282,7 @@ function AnalyticsDashboard() {
           <div className="bg-white/80 dark:bg-orange-50/95 backdrop-blur-sm p-6 rounded-lg shadow border border-gray-200 dark:border-orange-200/30">
             <div className="text-center">
               <div className="text-3xl font-bold text-gray-900 mb-2">
-                {tokens?.purchasedTokens || 0}
+                {balance.purchased}
               </div>
               <p className="text-sm font-medium text-gray-500">Tokens Purchased</p>
               <p className="text-xs text-gray-400 mt-1">
