@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const multer = require('multer');
@@ -5,465 +6,183 @@ const { protect, chargeAIToken, trackUsage, skipIfBYOK } = require('../middlewar
 const { getTokenBalance, tokenPayload } = require('../utils/tokenCalculator');
 const Resume = require('../models/Resume');
 const logger = require('../utils/logger');
+const { logSafe } = require('../utils/logSafe');
 const DocumentParser = require('../utils/documentParser');
-const { GoogleGenAI } = require("@google/genai");
-const { decryptUserGeminiKey } = require('../utils/keyEncryption');
-const { getPromt } = require('../utils/aiPrompts');
 const { sendAIError } = require('../utils/aiError');
-const { resolveGeminiModel, createGoogleGenAI } = require('../services/geminiservice');
-require('dotenv').config();
+const {
+  AI_TIMEOUTS,
+  AIOutputError,
+  generate,
+  generateJson,
+  parseJsonObject,
+  resolveGeminiModel,
+  createGoogleGenAI
+} = require('../services/geminiservice');
+const {
+  buildRewritePrompt,
+  ATS_SCHEMA,
+  ATS_SYSTEM_INSTRUCTION,
+  buildAtsContents,
+  ADJUST_TONE_SCHEMA,
+  buildAdjustToneInstruction,
+  KEYWORDS_SCHEMA,
+  buildKeywordsInstruction,
+  buildTemplatePrompt
+} = require('../utils/aiPrompts');
+const { budgetFor, finalizeRichText, htmlToPlainText, sanitizeRichText } = require('../utils/aiOutput');
+const {
+  buildAtsResumeText,
+  normalizeAtsAnalysis,
+  hasAtsScores,
+  trimJobDescription,
+  buildRewriteInput,
+  hasInput,
+  mergeToneResult,
+  mergeKeywordResult,
+  sanitizeTemplateHtml
+} = require('../utils/aiResults');
 
 const router = express.Router();
 
-// Utility function to strip HTML tags from text
-const stripHtmlTags = (text) => {
-  if (!text || typeof text !== 'string') return text;
-  return text.replace(/<[^>]*>/g, '').trim();
-};
+const MIN_TEXT_CHARS = 20;
+const MAX_INPUT_CHARS = 20000;
+const REWRITE_FIELDS = ['summary', 'workExperience', 'projects', 'education', 'achievements', 'general'];
+const TONE_SECTIONS = ['summary', 'workExperience', 'projects', 'education', 'achievements'];
+const KEYWORD_SECTIONS = ['workExperience', 'projects', 'education', 'skills'];
 
-
-const ATS_SCHEMA = {
-  "type": "OBJECT",
-  "properties": {
-    "overall_score": {
-      "type": "NUMBER",
-      "description": "Total score from 0 to 100"
-    },
-    "category_scores": {
-      "type": "OBJECT",
-      "properties": {
-        "keyword_skill_match": { "type": "NUMBER" },
-        "experience_alignment": { "type": "NUMBER" },
-        "section_completeness": { "type": "NUMBER" },
-        "project_impact": { "type": "NUMBER" },
-        "formatting": { "type": "NUMBER" },
-        "bonus_skills": { "type": "NUMBER" }
-      },
-      "required": [
-        "keyword_skill_match",
-        "experience_alignment",
-        "section_completeness",
-        "project_impact",
-        "formatting",
-        "bonus_skills"
-      ]
-    },
-    "missing_keywords": {
-      "type": "ARRAY",
-      "items": { "type": "STRING" }
-    },
-    "strengths": {
-      "type": "ARRAY",
-      "items": { "type": "STRING" }
-    },
-    "weaknesses": {
-      "type": "ARRAY",
-      "items": { "type": "STRING" }
-    },
-    "ats_warnings": {
-      "type": "ARRAY",
-      "items": { "type": "STRING" }
-    },
-    "recommendations": {
-      "type": "ARRAY",
-      "items": { "type": "STRING" }
-    }
-  },
-  "required": [
-    "overall_score",
-    "category_scores",
-    "missing_keywords",
-    "strengths",
-    "weaknesses",
-    "ats_warnings",
-    "recommendations"
-  ]
-};
-
-const ADJUST_TONE_SCHEMA = {
-  "type": "OBJECT",
-  "properties": {
-    "summary": {
-      "type": "STRING",
-      "description": "Updated resume summary text with improved tone."
-    },
-    "workExperience": {
-      "type": "ARRAY",
-      "items": {
-        "type": "OBJECT",
-        "properties": {
-          "jobTitle": { "type": "STRING" },
-          "company": { "type": "STRING" },
-          "location": { "type": "STRING" },
-          "startDate": { "type": "STRING" },
-          "endDate": { "type": "STRING", "nullable": true },
-          "isCurrentJob": { "type": "BOOLEAN" },
-          "description": { "type": "STRING" },
-          "achievements": {
-            "type": "ARRAY",
-            "items": { "type": "STRING" }
-          }
-        },
-        "required": ["jobTitle", "company", "isCurrentJob", "description", "achievements"]
-      }
-    },
-    "projects": {
-      "type": "ARRAY",
-      "items": {
-        "type": "OBJECT",
-        "properties": {
-          "name": { "type": "STRING" },
-          "description": { "type": "STRING" },
-          "technologies": {
-            "type": "ARRAY",
-            "items": { "type": "STRING" }
-          },
-          "url": { "type": "STRING" },
-          "githubUrl": { "type": "STRING" },
-          "startDate": { "type": "STRING", "nullable": true },
-          "endDate": { "type": "STRING", "nullable": true }
-        },
-        "required": ["name", "description", "technologies"]
-      }
-    }
-  },
-  "required": ["summary", "workExperience", "projects"]
-};
-
-const ENHANCE_KEYWORDS_SCHEMA = {
-  "type": "OBJECT",
-  "properties": {
-    "skills": {
-      "type": "ARRAY",
-      "items": {
-        "type": "OBJECT",
-        "properties": {
-          "category": { "type": "STRING" },
-          "items": {
-            "type": "ARRAY",
-            "items": {
-              "type": "OBJECT",
-              "properties": {
-                "name": { "type": "STRING" },
-                "level": { "type": "STRING" }
-              },
-              "required": ["name", "level"]
-            }
-          }
-        },
-        "required": ["category", "items"]
-      }
-    },
-    "workExperience": {
-      "type": "ARRAY",
-      "items": {
-        "type": "OBJECT",
-        "properties": {
-          "jobTitle": { "type": "STRING" },
-          "company": { "type": "STRING" },
-          "location": { "type": "STRING" },
-          "startDate": { "type": "STRING" },
-          "endDate": { "type": "STRING", "nullable": true },
-          "isCurrentJob": { "type": "BOOLEAN" },
-          "description": { "type": "STRING" },
-          "achievements": {
-            "type": "ARRAY",
-            "items": { "type": "STRING" }
-          }
-        },
-        "required": ["jobTitle", "company", "location", "startDate", "isCurrentJob", "description", "achievements"]
-      }
-    },
-    "projects": {
-      "type": "ARRAY",
-      "items": {
-        "type": "OBJECT",
-        "properties": {
-          "name": { "type": "STRING" },
-          "description": { "type": "STRING" },
-          "technologies": {
-            "type": "ARRAY",
-            "items": { "type": "STRING" }
-          },
-          "url": { "type": "STRING" },
-          "githubUrl": { "type": "STRING" },
-          "startDate": { "type": "STRING", "nullable": true },
-          "endDate": { "type": "STRING", "nullable": true }
-        },
-        "required": ["name", "description", "technologies", "url", "githubUrl"]
-      }
-    }
-  },
-  "required": ["skills", "workExperience", "projects"]
-}
-
-
-
-
-// Utility function to clean resume data by removing HTML tags
-const cleanResumeData = (resumeData) => {
-  const cleaned = { ...resumeData };
-
-  // Clean string fields
-  if (cleaned.title) cleaned.title = stripHtmlTags(cleaned.title);
-  if (cleaned.summary) cleaned.summary = stripHtmlTags(cleaned.summary);
-
-  // Clean personal info
-  if (cleaned.personalInfo) {
-    Object.keys(cleaned.personalInfo).forEach(key => {
-      if (typeof cleaned.personalInfo[key] === 'string') {
-        cleaned.personalInfo[key] = stripHtmlTags(cleaned.personalInfo[key]);
-      }
-    });
-  }
-
-  // Clean work experience
-  if (cleaned.workExperience && Array.isArray(cleaned.workExperience)) {
-    cleaned.workExperience = cleaned.workExperience.map(exp => ({
-      ...exp,
-      company: stripHtmlTags(exp.company),
-      position: stripHtmlTags(exp.position),
-      description: stripHtmlTags(exp.description),
-      location: stripHtmlTags(exp.location)
-    }));
-  }
-
-  // Clean education
-  if (cleaned.education && Array.isArray(cleaned.education)) {
-    cleaned.education = cleaned.education.map(edu => ({
-      ...edu,
-      institution: stripHtmlTags(edu.institution),
-      degree: stripHtmlTags(edu.degree),
-      field: stripHtmlTags(edu.field),
-      description: stripHtmlTags(edu.description),
-      location: stripHtmlTags(edu.location)
-    }));
-  }
-
-  // Clean skills array
-  if (cleaned.skills && Array.isArray(cleaned.skills)) {
-    cleaned.skills = cleaned.skills.map(skill => stripHtmlTags(skill));
-  }
-
-  // Clean projects
-  if (cleaned.projects && Array.isArray(cleaned.projects)) {
-    cleaned.projects = cleaned.projects.map(project => ({
-      ...project,
-      name: stripHtmlTags(project.name),
-      description: stripHtmlTags(project.description),
-      technologies: stripHtmlTags(project.technologies),
-      url: stripHtmlTags(project.url)
-    }));
-  }
-
-  // Clean achievements
-  if (cleaned.achievements && Array.isArray(cleaned.achievements)) {
-    cleaned.achievements = cleaned.achievements.map(achievement => stripHtmlTags(achievement));
-  }
-
-  // Clean certifications
-  if (cleaned.certifications && Array.isArray(cleaned.certifications)) {
-    cleaned.certifications = cleaned.certifications.map(cert => ({
-      ...cert,
-      name: stripHtmlTags(cert.name),
-      issuer: stripHtmlTags(cert.issuer),
-      description: stripHtmlTags(cert.description)
-    }));
-  }
-
-  // Clean languages
-  if (cleaned.languages && Array.isArray(cleaned.languages)) {
-    cleaned.languages = cleaned.languages.map(lang => ({
-      ...lang,
-      language: stripHtmlTags(lang.language),
-      proficiency: stripHtmlTags(lang.proficiency)
-    }));
-  }
-
-  // Clean custom fields
-  if (cleaned.customFields && Array.isArray(cleaned.customFields)) {
-    cleaned.customFields = cleaned.customFields.map(field => ({
-      ...field,
-      label: stripHtmlTags(field.label),
-      value: stripHtmlTags(field.value)
-    }));
-  }
-
-  return cleaned;
-};
-
-// Configure multer for file uploads (for job description files)
-const storage = multer.memoryStorage();
+// Job description files for the ATS check: PDF or DOCX.
 const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
-  },
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    // Allow PDF and Word documents for job descriptions
-    if (file.mimetype === 'application/pdf' ||
-      file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-      file.mimetype === 'application/msword') {
-      cb(null, true);
-    } else {
-      cb(new Error('Only PDF, DOC, and DOCX files are allowed for job description!'), false);
-    }
+    if (DocumentParser.isValidDocumentType(file.mimetype)) return cb(null, true);
+    return cb(new Error('Only PDF and Word (.docx) files are allowed for the job description.'), false);
   },
 });
 
-// @desc    Rewrite resume content with AI
-// @route   POST /api/ai/rewrite
-// @access  Private
-router.post('/rewrite', [
+const receiveJobDescriptionFile = (req, res, next) => {
+  upload.single('jobDescriptionFile')(req, res, (err) => {
+    if (!err) return next();
+    const tooLarge = err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE';
+    return res.status(400).json({ success: false, error: tooLarge ? 'File too large. Maximum size is 10MB.' : err.message });
+  });
+};
+
+// ---------------------------------------------------------------------------
+// Shared handler plumbing
+// ---------------------------------------------------------------------------
+
+const aiContext = (req) => ({ isOwnApiKey: req.user?.isOwnApiKey, model: resolveGeminiModel(req) });
+
+/** Mark errors from the model call so the handler maps them to AI error responses. */
+const callAI = async (promise) => {
+  try {
+    return await promise;
+  } catch (error) {
+    if (error && typeof error === 'object') error.fromAI = true;
+    throw error;
+  }
+};
+
+/** An unusable model answer, reported like any other AI failure (and refunded). */
+const aiFailure = (message, reason) => Object.assign(new AIOutputError(message, reason), { fromAI: true });
+
+const sendError = (res, status, error) => res.status(status).json({ success: false, error });
+
+/**
+ * Wrap an AI route: request validation, Gemini client (server key or BYOK),
+ * and error mapping. Every failure answers with success:false, which makes
+ * chargeAIToken refund the token.
+ */
+const aiHandler = (label, handler) => async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ success: false, error: errors.array()[0].msg, errors: errors.array() });
+  }
+  req.usageType = 'aiAction';
+  const client = createGoogleGenAI(req, res);
+  if (!client) return undefined; // response already sent
+  try {
+    return await handler(req, res, { client, model: resolveGeminiModel(req) });
+  } catch (error) {
+    if (res.headersSent) return undefined;
+    if (error?.fromAI) return sendAIError(res, error, aiContext(req));
+    logger.error(`${label} failed`, { message: error?.message });
+    return sendError(res, 500, 'Something went wrong. Please try again.');
+  }
+};
+
+const ownResumeQuery = (req, resumeId) => ({ _id: { $eq: String(resumeId) }, user: { $eq: req.user._id } });
+
+const findOwnResume = (req, resumeId, select) => Resume.findOne(ownResumeQuery(req, resumeId)).select(select).lean();
+
+// ---------------------------------------------------------------------------
+// Field rewrite: enhance / summarize one rich-text field
+// ---------------------------------------------------------------------------
+
+const rewriteRules = [
   protect,
   skipIfBYOK(chargeAIToken),
-  body('content').trim().isLength({ min: 10 }).withMessage('Content must be at least 10 characters'),
+  body('content').isString().withMessage('Content is required')
+    .isLength({ max: MAX_INPUT_CHARS }).withMessage(`Content is too long (maximum ${MAX_INPUT_CHARS} characters)`),
+  body('field').optional().isIn(REWRITE_FIELDS).withMessage('Invalid field'),
   body('tone').optional().isIn(['professional', 'casual', 'formal', 'creative']).withMessage('Invalid tone'),
   body('style').optional().isIn(['concise', 'detailed', 'action-oriented', 'achievement-focused']).withMessage('Invalid style')
-], trackUsage, async (req, res) => {
+];
+
+/** Rewrite one field and fit the answer to the field's budget. */
+const rewriteField = async ({ client, model }, { content, field, mode }) => {
+  const budget = budgetFor(field, content, { mode });
+  const prompt = buildRewritePrompt({ content: sanitizeRichText(content), field, mode, budget });
+  const text = await callAI(generate({ client, model, ...prompt, temperature: 0.4, maxOutputTokens: 2048, timeoutMs: AI_TIMEOUTS.rewrite }));
+  let answer = text;
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
-    }
-
-    // Set usage type for tracking
-    req.usageType = 'aiAction';
-
-    const { content, tone = 'professional', style = 'action-oriented' } = req.body;
-
-    // Initialize Gemini AI
-    const genAI = createGoogleGenAI(req, res);
-    if (!genAI) return;
-
-    // Create prompt for ATS-friendly professional enhancement
-    const prompt = getPromt('rewritePrompt', content);
-
-    try {
-      const response = await genAI.models.generateContent({
-        model: resolveGeminiModel(req),
-        contents: prompt,
-      });
-
-      let rewrittenContent = response.text;
-
-      // Clean the response to remove markdown formatting
-      rewrittenContent = rewrittenContent
-        .replace(/```html\n?/g, '')
-        .replace(/```\n?/g, '')
-        .trim();
-
-      logger.info(`AI rewrite request processed for user ${req.user.email}`);
-
-      res.json({
-        success: true,
-        data: {
-          originalContent: content,
-          rewrittenContent,
-          tone,
-          style,
-          message: 'Content enhanced successfully',
-          tokens: req.tokens
-        }
-      });
-
-    } catch (geminiError) {
-      return sendAIError(res, geminiError, {
-        isOwnApiKey: req.user?.isOwnApiKey,
-        model: resolveGeminiModel(req),
-      });
-    }
-  } catch (error) {
-    logger.error('AI rewrite error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error'
-    });
+    answer = String(parseJsonObject(text).content ?? '');
+  } catch {
+    // Some models ignore the schema and send the HTML directly; the clean-up below handles both.
   }
-});
+  const html = finalizeRichText(answer, budget);
+  if (!html) throw aiFailure('AI rewrite was empty after clean-up', 'empty');
+  return html;
+};
 
-// @desc    Summarize resume section with AI
+const tooShort = (content) => htmlToPlainText(content).length < MIN_TEXT_CHARS;
+
+// @desc    Rewrite resume content with AI (field-aware)
+// @route   POST /api/ai/rewrite
+// @access  Private
+router.post('/rewrite', rewriteRules, trackUsage, aiHandler('AI rewrite', async (req, res, ai) => {
+  const { content, field = 'general', tone = 'professional', style = 'action-oriented' } = req.body;
+  if (tooShort(content)) return sendError(res, 400, `Add at least ${MIN_TEXT_CHARS} characters of text before using AI.`);
+  const rewrittenContent = await rewriteField(ai, { content, field, mode: 'enhance' });
+  logger.info(`AI rewrite (${logSafe(field)}) for user ${logSafe(req.user.id)}`);
+  return res.json({
+    success: true,
+    data: { originalContent: content, rewrittenContent, field, tone, style, message: 'Content enhanced successfully', tokens: req.tokens }
+  });
+}));
+
+// @desc    Summarize (shorten) resume content with AI (field-aware)
 // @route   POST /api/ai/summarize
 // @access  Private
-router.post('/summarize', [
-  protect,
-  skipIfBYOK(chargeAIToken),
-  body('content').trim().isLength({ min: 20 }).withMessage('Content must be at least 20 characters')
-], trackUsage, async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
-    }
-
-    // Set usage type for tracking
-    req.usageType = 'aiAction';
-
-    const { content } = req.body;
-
-    // Initialize Gemini AI
-    const genAI = createGoogleGenAI(req, res);
-    if (!genAI) return;
-
-    // Create prompt for ATS-friendly text enhancement
-    const prompt = getPromt('summerize', content);
-
-    try {
-      const response = await genAI.models.generateContent({
-        model: resolveGeminiModel(req),
-        contents: prompt,
-      });
-
-      let enhancedText = response.text;
-
-      // Clean the response to remove markdown formatting
-      enhancedText = enhancedText
-        .replace(/```html\n?/g, '')
-        .replace(/```\n?/g, '')
-        .trim();
-
-      logger.info(`AI summarize request processed for user ${req.user.email}`);
-
-      res.json({
-        success: true,
-        data: {
-          originalContent: content,
-          summary: enhancedText,
-          message: 'Content enhanced successfully',
-          tokens: req.tokens
-        }
-      });
-
-    } catch (geminiError) {
-      return sendAIError(res, geminiError, {
-        isOwnApiKey: req.user?.isOwnApiKey,
-        model: resolveGeminiModel(req),
-      });
-    }
-  } catch (error) {
-    logger.error('AI summarize error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error'
-    });
-  }
-});
-
+router.post('/summarize', rewriteRules, trackUsage, aiHandler('AI summarize', async (req, res, ai) => {
+  const { content, field = 'general' } = req.body;
+  if (tooShort(content)) return sendError(res, 400, `Add at least ${MIN_TEXT_CHARS} characters of text before using AI.`);
+  const summary = await rewriteField(ai, { content, field, mode: 'summarize' });
+  logger.info(`AI summarize (${logSafe(field)}) for user ${logSafe(req.user.id)}`);
+  return res.json({
+    success: true,
+    data: { originalContent: content, summary, field, message: 'Content summarized successfully', tokens: req.tokens }
+  });
+}));
 
 // @desc    Get AI usage statistics
 // @route   GET /api/ai/usage
 // @access  Private
 router.get('/usage', protect, async (req, res) => {
   try {
-    // Both pools count (bonus + purchased). This used to report purchased only.
+    // Both pools count (bonus + purchased).
     const balance = await getTokenBalance(req.user._id);
-
     res.json({
       success: true,
       data: {
@@ -479,13 +198,36 @@ router.get('/usage', protect, async (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Get AI usage error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Error getting AI usage'
-    });
+    logger.error('Get AI usage error', { message: error.message });
+    res.status(500).json({ success: false, error: 'Error getting AI usage' });
   }
 });
+
+// ---------------------------------------------------------------------------
+// ATS score
+// ---------------------------------------------------------------------------
+
+/** Job description text from the form field or the uploaded file; null after sending a 400. */
+const readJobDescription = async (req, res) => {
+  if (req.body.inputType === 'text') {
+    const value = trimJobDescription(req.body.jobDescription);
+    if (value.length < 10) {
+      sendError(res, 400, 'Please paste the job description (at least 10 characters).');
+      return null;
+    }
+    return value;
+  }
+  if (!req.file) {
+    sendError(res, 400, 'Job description file is required');
+    return null;
+  }
+  try {
+    return trimJobDescription(await DocumentParser.parseDocument(req.file.buffer, req.file.mimetype));
+  } catch (error) {
+    sendError(res, 400, error.message);
+    return null;
+  }
+};
 
 // @desc    Generate ATS Score for resume against job description
 // @route   POST /api/ai/ats-score
@@ -493,205 +235,53 @@ router.get('/usage', protect, async (req, res) => {
 router.post('/ats-score', [
   protect,
   skipIfBYOK(chargeAIToken),
-  upload.single('jobDescriptionFile'), // Handle file upload for job description
+  receiveJobDescriptionFile,
   body('resumeId').isMongoId().withMessage('Valid resume ID is required'),
-  body('jobDescription').optional().trim().isLength({ min: 10 }).withMessage('Job description must be at least 10 characters'),
-  body('inputType').isIn(['text', 'file']).withMessage('Input type must be either text or file')
-], trackUsage, async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
+  body('inputType').isIn(['text', 'file']).withMessage('Input type must be either text or file'),
+  body('jobDescription').optional().isString().withMessage('Job description must be text')
+], trackUsage, aiHandler('ATS score', async (req, res, { client, model }) => {
+  const { resumeId, inputType } = req.body;
+  const resume = await Resume.findOne(ownResumeQuery(req, resumeId)).populate('template', 'name').lean();
+  if (!resume) return sendError(res, 404, 'Resume not found');
+
+  const jobDescriptionText = await readJobDescription(req, res);
+  if (jobDescriptionText === null) return undefined;
+
+  const raw = await callAI(generateJson({
+    client,
+    model,
+    systemInstruction: ATS_SYSTEM_INSTRUCTION,
+    contents: buildAtsContents(buildAtsResumeText(resume), jobDescriptionText),
+    schema: ATS_SCHEMA,
+    temperature: 0, // the same resume and job should get the same score
+    maxOutputTokens: 4096,
+    timeoutMs: AI_TIMEOUTS.atsScore
+  }));
+  if (!hasAtsScores(raw)) throw aiFailure('ATS answer had no scores', 'invalid');
+
+  const atsAnalysis = {
+    ...normalizeAtsAnalysis(raw),
+    job_description_hash: crypto.createHash('sha256').update(jobDescriptionText).digest('hex'),
+    analyzed_at: new Date()
+  };
+  // Only this field is written, so older resume data can't block saving the analysis.
+  await Resume.updateOne(ownResumeQuery(req, resumeId), { $set: { atsAnalysis } });
+  logger.info(`ATS score ${atsAnalysis.overall_score} saved for resume ${logSafe(resumeId)} (user ${logSafe(req.user.id)})`);
+
+  return res.json({
+    success: true,
+    data: {
+      resumeId,
+      resumeTitle: resume.title,
+      templateName: resume.template?.name || 'No template',
+      jobDescriptionLength: jobDescriptionText.length,
+      inputType,
+      atsAnalysis,
+      message: 'ATS score analysis completed and saved successfully',
+      tokens: req.tokens
     }
-
-    // Set usage type for tracking
-    req.usageType = 'aiAction';
-
-    const { resumeId, jobDescription, inputType } = req.body;
-
-    // Get resume data with template
-    const resume = await Resume.findOne({
-      _id: resumeId,
-      user: req.user.id
-    }).populate('template', 'name category styling templateCode');
-
-    if (!resume) {
-      return res.status(404).json({
-        success: false,
-        error: 'Resume not found'
-      });
-    }
-
-    let jobDescriptionText = '';
-
-    // Handle job description input
-    if (inputType === 'text') {
-      if (!jobDescription || jobDescription.trim().length === 0) {
-        return res.status(400).json({
-          success: false,
-          error: 'Job description text is required'
-        });
-      }
-      jobDescriptionText = jobDescription.trim();
-    } else if (inputType === 'file') {
-      // Handle file upload for job description
-      if (!req.file) {
-        return res.status(400).json({
-          success: false,
-          error: 'Job description file is required'
-        });
-      }
-
-      const { buffer, mimetype, originalname } = req.file;
-
-      // Validate file type
-      if (!DocumentParser.isValidDocumentType(mimetype)) {
-        return res.status(400).json({
-          success: false,
-          error: 'Only PDF, DOC, and DOCX files are allowed for job description'
-        });
-      }
-
-      try {
-        jobDescriptionText = await DocumentParser.parseDocument(buffer, mimetype, originalname);
-      } catch (parseError) {
-        return res.status(400).json({
-          success: false,
-          error: parseError.message
-        });
-      }
-    }
-
-
-    // Prepare resume data for ATS analysis
-    const rawResumeData = {
-      title: resume.title,
-      personalInfo: resume.personalInfo,
-      summary: resume.summary,
-      workExperience: resume.workExperience,
-      education: resume.education,
-      skills: resume.skills,
-      projects: resume.projects,
-      achievements: resume.achievements,
-      certifications: resume.certifications,
-      languages: resume.languages,
-      customFields: resume.customFields
-    };
-
-    // Clean HTML tags from resume data
-    const resumeData = cleanResumeData(rawResumeData);
-
-    // Generate ATS score using Gemini
-    const genAI = createGoogleGenAI(req, res);
-    if (!genAI) return;
-
-    const atsPrompt = `
-        You are an ATS (Applicant Tracking System) expert. Analyze the following resume against the job description and provide a comprehensive ATS compatibility score.
-
-        RESUME DATA:
-        ${JSON.stringify(resumeData, null, 2)}
-
-        JOB DESCRIPTION:
-        ${jobDescriptionText}
-
-        Please analyze and provide your response in the following EXACT JSON format. Return ONLY valid JSON without any additional text or explanations.
-
-        SCORING CRITERIA:
-        - keyword_skill_match (0-40): How well resume keywords match job requirements
-        - experience_alignment (0-20): Relevance of work experience to job role
-        - section_completeness (0-15): Completeness of resume sections (contact, summary, experience, education, skills)
-        - project_impact (0-10): Quality and impact of projects/achievements
-        - formatting (0-10): ATS-friendly formatting and structure
-        - bonus_skills (0-5): Additional valuable skills beyond requirements
-
-        IMPORTANT: Return ONLY the JSON object. Do not include any explanatory text, markdown formatting, or code blocks. Ignore the HTML tags in the fields those are intentional for template. Ignore any HTML related issue regarding ATS score.
-        `;
-
-    try {
-      const response = await genAI.models.generateContent({
-        model: resolveGeminiModel(req),
-        contents: atsPrompt,
-        config: {
-          responseMimeType: "application/json",
-          responseJsonSchema: ATS_SCHEMA
-        }
-      });
-
-      const rawResponse = response.text;
-
-      // Parse the JSON response from Gemini using robust parsing
-      const { parseAIResponse } = require('../utils/jsonParser');
-
-      let atsAnalysis = parseAIResponse(rawResponse, 'analyze-resume');
-
-      // Validate the response structure
-      if (!atsAnalysis.overall_score || !atsAnalysis.category_scores) {
-        logger.warn('ATS analysis structure validation failed, using fallback');
-        atsAnalysis = {
-          overall_score: 0,
-          category_scores: {
-            keyword_skill_match: 0,
-            experience_alignment: 0,
-            section_completeness: 0,
-            project_impact: 0,
-            formatting: 0,
-            bonus_skills: 0
-          },
-          missing_keywords: [],
-          strengths: [],
-          weaknesses: [],
-          ats_warnings: ['Failed to parse AI response'],
-          recommendations: ['Please try again or contact support'],
-          raw_response: rawResponse
-        };
-      }
-
-      // Save ATS analysis to resume
-      const crypto = require('crypto');
-      const jobDescriptionHash = crypto.createHash('md5').update(jobDescriptionText).digest('hex');
-
-      resume.atsAnalysis = {
-        ...atsAnalysis,
-        job_description_hash: jobDescriptionHash,
-        analyzed_at: new Date()
-      };
-
-      await resume.save();
-
-      logger.info(`ATS score generated and saved for resume ${resume.title} by user ${req.user.email}`);
-
-      res.json({
-        success: true,
-        data: {
-          resumeId: resumeId,
-          resumeTitle: resume.title,
-          templateName: resume.template?.name || 'No template',
-          jobDescriptionLength: jobDescriptionText.length,
-          inputType: inputType,
-          atsAnalysis: atsAnalysis,
-          message: 'ATS score analysis completed and saved successfully',
-          tokens: req.tokens
-        }
-      });
-
-    } catch (geminiError) {
-      return sendAIError(res, geminiError, {
-        isOwnApiKey: req.user?.isOwnApiKey,
-        model: resolveGeminiModel(req),
-      });
-    }
-
-  } catch (error) {
-    logger.error('ATS score error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error'
-    });
-  }
-});
+  });
+}));
 
 // @desc    Get saved ATS analysis for a resume
 // @route   GET /api/ai/ats-score/:resumeId
@@ -699,406 +289,162 @@ router.post('/ats-score', [
 router.get('/ats-score/:resumeId', protect, async (req, res) => {
   try {
     const { resumeId } = req.params;
-
-    // Get resume with ATS analysis
-    const resume = await Resume.findOne({
-      _id: resumeId,
-      user: req.user.id
-    }).select('title atsAnalysis template');
-
-    if (!resume) {
-      return res.status(404).json({
-        success: false,
-        error: 'Resume not found'
-      });
+    if (!/^[a-f0-9]{24}$/i.test(String(resumeId))) return sendError(res, 400, 'Valid resume ID is required');
+    const resume = await findOwnResume(req, resumeId, 'title atsAnalysis template');
+    if (!resume) return sendError(res, 404, 'Resume not found');
+    if (!resume.atsAnalysis?.analyzed_at && !resume.atsAnalysis?.overall_score) {
+      return sendError(res, 404, 'No ATS analysis found for this resume');
     }
-
-    if (!resume.atsAnalysis || !resume.atsAnalysis.overall_score) {
-      return res.status(404).json({
-        success: false,
-        error: 'No ATS analysis found for this resume'
-      });
-    }
-
-    res.json({
+    return res.json({
       success: true,
       data: {
-        resumeId: resumeId,
+        resumeId,
         resumeTitle: resume.title,
         templateName: resume.template?.name || 'No template',
         atsAnalysis: resume.atsAnalysis,
         message: 'ATS analysis retrieved successfully'
       }
     });
-
   } catch (error) {
-    logger.error('Get ATS analysis error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error'
-    });
+    logger.error('Get ATS analysis error', { message: error.message });
+    return sendError(res, 500, 'Server error');
   }
 });
 
-// @desc    Adjust resume tone based on ATS analysis
+// ---------------------------------------------------------------------------
+// ATS follow-ups
+// ---------------------------------------------------------------------------
+
+const atsFollowUpRules = (listField) => [
+  protect,
+  skipIfBYOK(chargeAIToken),
+  body('resumeId').isMongoId().withMessage('Valid resume ID is required'),
+  body('resume_json').isObject().withMessage('Resume JSON is required'),
+  body('ats_analysis').isObject().withMessage('ATS analysis is required'),
+  body(listField).isArray().withMessage(`${listField} must be an array`)
+];
+
+const reviewNotes = (analysis) => {
+  const list = (v) => (Array.isArray(v) ? v.filter((x) => typeof x === 'string').slice(0, 15).map((x) => x.slice(0, 240)) : []);
+  return {
+    weaknesses: list(analysis.weaknesses),
+    ats_warnings: list(analysis.ats_warnings),
+    recommendations: list(analysis.recommendations),
+    missing_keywords: list(analysis.missing_keywords)
+  };
+};
+
+const pickSections = (requested, allowed) => {
+  const list = (Array.isArray(requested) ? requested : []).filter((s) => allowed.includes(s));
+  return list.length ? list : allowed;
+};
+
+// @desc    Rewrite resume sections using the ATS review (tone, impact)
 // @route   POST /api/ai/adjust-tone
 // @access  Private
-router.post('/adjust-tone', [
-  protect,
-  skipIfBYOK(chargeAIToken),
-  body('resumeId').isMongoId().withMessage('Valid resume ID is required'),
-  body('resume_json').isObject().withMessage('Resume JSON is required'),
-  body('ats_analysis').isObject().withMessage('ATS analysis is required'),
-  body('focus').isArray().withMessage('Focus areas must be an array')
-], trackUsage, async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
-    }
+router.post('/adjust-tone', atsFollowUpRules('focus'), trackUsage, aiHandler('Adjust tone', async (req, res, { client, model }) => {
+  const { resumeId, resume_json: resumeJson, ats_analysis: analysis, focus } = req.body;
+  if (!(await findOwnResume(req, resumeId, '_id'))) return sendError(res, 404, 'Resume not found');
 
-    const { resumeId, resume_json, ats_analysis, focus } = req.body;
+  const sections = pickSections(focus, TONE_SECTIONS);
+  const { input, budgets } = buildRewriteInput(resumeJson, sections);
+  if (!hasInput(input)) return sendError(res, 400, 'Add a summary or some descriptions to your resume first, then try again.');
 
-    // Set usage type for tracking
-    req.usageType = 'aiAction';
+  const ai = await callAI(generateJson({
+    client,
+    model,
+    systemInstruction: buildAdjustToneInstruction(budgets),
+    contents: `<resume_sections>\n${JSON.stringify(input)}\n</resume_sections>\n\n<ats_review>\n${JSON.stringify(reviewNotes(analysis))}\n</ats_review>`,
+    schema: ADJUST_TONE_SCHEMA,
+    temperature: 0.4,
+    maxOutputTokens: 12288,
+    timeoutMs: AI_TIMEOUTS.resumeEdit
+  }));
+  const { data, changed } = mergeToneResult(resumeJson, ai, sections);
+  if (!changed) throw aiFailure('Adjust tone changed nothing', 'empty');
+  logger.info(`Adjust tone: ${changed} fields rewritten for resume ${logSafe(resumeId)}`);
+  return res.json({ success: true, data, message: 'Resume tone adjusted successfully', tokens: req.tokens });
+}));
 
-    // Verify resume ownership
-    const resume = await Resume.findOne({
-      _id: resumeId,
-      user: req.user.id
-    });
-
-    if (!resume) {
-      return res.status(404).json({
-        success: false,
-        error: 'Resume not found'
-      });
-    }
-
-    // Initialize Gemini AI
-    const genAI = createGoogleGenAI(req, res);
-    if (!genAI) return;
-
-    // Create prompt for tone adjustment
-    const prompt = `
-        - Resume JSON (with summary, workexperience, projects, education, achievements) : 
-        ${JSON.stringify(resume_json, null, 2)}
-        - ATS analysis (with weaknesses/recommendations) for guidance :
-        ${JSON.stringify(ats_analysis, null, 2)}
-        - Focus Areas: ${JSON.stringify(focus, null, 2)}
-
-        `;
-
-    const response = await genAI.models.generateContent({
-      model: resolveGeminiModel(req),
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseJsonSchema: ADJUST_TONE_SCHEMA,
-        systemInstruction: `
-          You are an expert ATS resume optimizer.
-
-          Rewrite provided resume sections to be concise, professional, and achievement-focused.
-
-          Rules:
-          - Use strong action verbs and quantify impact where possible.
-          - Replace generic responsibilities with measurable achievements.
-          - Maintain clarity, consistency, and technical relevance.
-          - Do not add new information.
-          - Return valid JSON only (no extra text).
-
-          Formatting:
-          - Use simple HTML (<ul><li>, <ol><li>, <strong>, <br>).
-          - Work experience → bullet points
-          - Projects → ordered or unordered lists`,
-      }
-    });
-
-    const text = response.text;
-
-    // Parse the response using robust JSON parsing utility
-    const { parseAIResponse, validateResumeJSON } = require('../utils/jsonParser');
-
-    const updatedResumeData = parseAIResponse(text, 'adjust-tone');
-
-    // Validate the parsed data
-    if (!validateResumeJSON(updatedResumeData, 'adjust-tone')) {
-      logger.warn('Parsed data failed validation, using fallback structure');
-      // The parseAIResponse function already provides a fallback structure
-    }
-
-    res.json({
-      success: true,
-      data: updatedResumeData,
-      message: 'Resume tone adjusted successfully',
-      tokens: req.tokens
-    });
-
-  } catch (error) {
-    return sendAIError(res, error, {
-      isOwnApiKey: req.user?.isOwnApiKey,
-      model: resolveGeminiModel(req),
-    });
-  }
-});
-
-// @desc    Enhance resume keywords based on ATS analysis
+// @desc    Work missing ATS keywords into the resume
 // @route   POST /api/ai/enhance-keywords
 // @access  Private
-router.post('/enhance-keywords', [
+router.post('/enhance-keywords', atsFollowUpRules('target_sections'), trackUsage, aiHandler('Enhance keywords', async (req, res, { client, model }) => {
+  const { resumeId, resume_json: resumeJson, ats_analysis: analysis, target_sections: targets } = req.body;
+  if (!(await findOwnResume(req, resumeId, '_id'))) return sendError(res, 404, 'Resume not found');
+
+  const notes = reviewNotes(analysis);
+  if (!notes.missing_keywords.length) return sendError(res, 400, 'The ATS check found no missing keywords to add.');
+
+  const sections = pickSections(targets, KEYWORD_SECTIONS);
+  const { input, budgets } = buildRewriteInput(resumeJson, sections.filter((s) => s !== 'skills'));
+  const skills = (Array.isArray(resumeJson.skills) ? resumeJson.skills : [])
+    .map((c) => ({ category: String(c?.category || ''), items: (Array.isArray(c?.items) ? c.items : []).map((i) => String(i?.name || '')) }));
+
+  const ai = await callAI(generateJson({
+    client,
+    model,
+    systemInstruction: buildKeywordsInstruction(budgets),
+    contents: `<resume_sections>\n${JSON.stringify(input)}\n</resume_sections>\n\n<existing_skills>\n${JSON.stringify(skills)}\n</existing_skills>\n\n<missing_keywords>\n${JSON.stringify(notes.missing_keywords)}\n</missing_keywords>`,
+    schema: KEYWORDS_SCHEMA,
+    temperature: 0.2,
+    maxOutputTokens: 12288,
+    timeoutMs: AI_TIMEOUTS.resumeEdit
+  }));
+  const { data, changed } = mergeKeywordResult(resumeJson, ai, sections);
+  if (!changed) return sendError(res, 422, "We couldn't find a truthful place for the missing keywords in your resume, so nothing was changed.");
+  logger.info(`Enhance keywords: ${changed} changes for resume ${logSafe(resumeId)}`);
+  return res.json({ success: true, data, message: 'Keywords enhanced successfully', tokens: req.tokens });
+}));
+
+// ---------------------------------------------------------------------------
+// Pro templates
+// ---------------------------------------------------------------------------
+
+const templateRules = (min) => [
   protect,
   skipIfBYOK(chargeAIToken),
-  body('resumeId').isMongoId().withMessage('Valid resume ID is required'),
-  body('resume_json').isObject().withMessage('Resume JSON is required'),
-  body('ats_analysis').isObject().withMessage('ATS analysis is required'),
-  body('target_sections').isArray().withMessage('Target sections must be an array')
-], trackUsage, async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
-    }
+  body('content').isString().withMessage('Content is required')
+    .isLength({ min }).withMessage(`Content must be at least ${min} characters`)
+    .isLength({ max: 30000 }).withMessage('Content is too long (maximum 30000 characters)')
+];
 
-    const { resumeId, resume_json, ats_analysis, target_sections } = req.body;
-
-    // Set usage type for tracking
-    req.usageType = 'aiAction';
-
-    // Verify resume ownership
-    const resume = await Resume.findOne({
-      _id: resumeId,
-      user: req.user.id
-    });
-
-    if (!resume) {
-      return res.status(404).json({
-        success: false,
-        error: 'Resume not found'
-      });
-    }
-
-    // Initialize Gemini AI
-    const genAI = createGoogleGenAI(req, res);
-    if (!genAI) return;
-
-    // Clean HTML tags from resume data
-    const cleanedResumeData = cleanResumeData(resume_json);
-
-    // Create prompt for keyword enhancement
-    const prompt = `
-        
-
-        Resume Data: ${JSON.stringify(cleanedResumeData, null, 2)}
-        ATS Analysis: ${JSON.stringify(ats_analysis, null, 2)}
-        Target Sections: ${JSON.stringify(target_sections, null, 2)}
-          `;
-
-    const response = await genAI.models.generateContent({
-      model: resolveGeminiModel(req),
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseJsonSchema: ENHANCE_KEYWORDS_SCHEMA,
-        systemInstruction: `
-        You are an ATS resume optimizer.
-
-        Enhance the resume by integrating missing ATS keywords into relevant sections (summary, skills, workExperience, projects, education).
-
-        Rules:
-        - Insert keywords naturally and contextually; do not force them.
-        - Do NOT change grammar, structure, tone, or existing content.
-        - Preserve exact formatting and HTML (paragraphs remain paragraphs, lists remain lists).
-        - Only add keywords where relevant.
-
-        Section-specific:
-        - Skills: add keywords to appropriate categories.
-        - WorkExperience: add to descriptions where relevant.
-        - Projects: add to descriptions and technologies.
-        - Education: add only if contextually relevant (mainly for freshers).
-
-        Prioritize the most relevant keywords from the job description.
-
-        Output:
-        Return full updated resume JSON only (no extra text).
-        `
-      }
-    });
-
-    const text = response.text;
-
-    // Parse the response using robust JSON parsing utility
-    const { parseAIResponse, validateResumeJSON } = require('../utils/jsonParser');
-
-    const updatedResumeData = parseAIResponse(text, 'enhance-keywords');
-
-    // Validate the parsed data
-    if (!validateResumeJSON(updatedResumeData, 'enhance-keywords')) {
-      logger.warn('Parsed data failed validation, using fallback structure');
-      // The parseAIResponse function already provides a fallback structure
-    }
-
-    res.json({
-      success: true,
-      data: updatedResumeData,
-      message: 'Keywords enhanced successfully',
-      tokens: req.tokens
-    });
-
-  } catch (error) {
-    return sendAIError(res, error, {
-      isOwnApiKey: req.user?.isOwnApiKey,
-      model: resolveGeminiModel(req),
-    });
-  }
-});
+const templateHandler = (kind) => async (req, res, { client, model }) => {
+  const { content } = req.body;
+  const prompt = buildTemplatePrompt(kind, content);
+  const text = await callAI(generate({ client, model, ...prompt, temperature: 0.5, maxOutputTokens: 12288, timeoutMs: AI_TIMEOUTS.template }));
+  const html = sanitizeTemplateHtml(text);
+  if (!html) throw aiFailure('Template answer had no HTML', 'empty');
+  return html;
+};
 
 // @desc    Generate PDF template from basic details using AI
 // @route   POST /api/ai/generate-pdf-template
 // @access  Private
-router.post('/generate-pdf-template', [
-  protect,
-  skipIfBYOK(chargeAIToken),
-  body('content').trim().isLength({ min: 20 }).withMessage('Content must be at least 20 characters')
-], trackUsage, async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
-    }
+router.post('/generate-pdf-template', templateRules(20), trackUsage, aiHandler('Generate template', async (req, res, ai) => {
+  const templateContent = await templateHandler('generate')(req, res, ai);
+  return res.json({
+    success: true,
+    data: { originalContent: req.body.content, templateContent, templateType: 'PDF Template', message: 'PDF template generated successfully', tokens: req.tokens }
+  });
+}));
 
-    // Set usage type for tracking
-    req.usageType = 'aiAction';
-
-    const { content } = req.body;
-
-    // Initialize Gemini AI
-    const genAI = createGoogleGenAI(req, res);
-    if (!genAI) return;
-
-    // Create prompt for PDF template generation
-    const prompt = getPromt('generatePdfTemplate', content);
-
-    try {
-      const response = await genAI.models.generateContent({
-        model: resolveGeminiModel(req),
-        contents: prompt,
-      });
-
-      let templateContent = response.text;
-
-      // Clean the response to remove markdown formatting
-      templateContent = templateContent
-        .replace(/```html\n?/g, '')
-        .replace(/```\n?/g, '')
-        .trim();
-
-      logger.info(`AI PDF template generation request processed for user ${req.user.email}`);
-
-      res.json({
-        success: true,
-        data: {
-          originalContent: content,
-          templateContent,
-          templateType: 'PDF Template',
-          message: 'PDF template generated successfully',
-          tokens: req.tokens
-        }
-      });
-
-    } catch (geminiError) {
-      return sendAIError(res, geminiError, {
-        isOwnApiKey: req.user?.isOwnApiKey,
-        model: resolveGeminiModel(req),
-      });
-    }
-  } catch (error) {
-    logger.error('AI PDF template generation error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error'
-    });
-  }
-});
-
-// @desc    Restructure current template using AI (structured template required)
+// @desc    Restructure current template using AI
 // @route   POST /api/ai/restructure-template
 // @access  Private
-router.post('/restructure-template', [
-  protect,
-  skipIfBYOK(chargeAIToken),
-  body('content').trim().isLength({ min: 50 }).withMessage('Content must be at least 50 characters for restructuring')
-], trackUsage, async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array()
-      });
+router.post('/restructure-template', templateRules(50), trackUsage, aiHandler('Restructure template', async (req, res, ai) => {
+  const restructuredContent = await templateHandler('restructure')(req, res, ai);
+  return res.json({
+    success: true,
+    data: {
+      originalContent: req.body.content,
+      restructuredContent,
+      structureType: 'Restructured Template',
+      improvements: ['Clearer section order', 'Consistent headings and spacing', 'ATS-friendly structure'],
+      message: 'Template restructured successfully',
+      tokens: req.tokens
     }
-
-    // Set usage type for tracking
-    req.usageType = 'aiAction';
-
-    const { content } = req.body;
-
-    // Initialize Gemini AI
-    const genAI = createGoogleGenAI(req, res);
-    if (!genAI) return;
-
-    // Create prompt for template restructuring
-    const prompt = getPromt('restructureTemplate', content);
-
-    try {
-      const response = await genAI.models.generateContent({
-        model: resolveGeminiModel(req),
-        contents: prompt,
-      });
-
-      let restructuredContent = response.text;
-
-      // Clean the response to remove markdown formatting
-      restructuredContent = restructuredContent
-        .replace(/```html\n?/g, '')
-        .replace(/```\n?/g, '')
-        .trim();
-
-      logger.info(`AI template restructuring request processed for user ${req.user.email}`);
-
-      res.json({
-        success: true,
-        data: {
-          originalContent: content,
-          restructuredContent,
-          structureType: 'Restructured Template',
-          improvements: ['Enhanced formatting', 'Improved ATS compatibility', 'Better visual hierarchy', 'Professional styling'],
-          message: 'Template restructured successfully',
-          tokens: req.tokens
-        }
-      });
-
-    } catch (geminiError) {
-      return sendAIError(res, geminiError, {
-        isOwnApiKey: req.user?.isOwnApiKey,
-        model: resolveGeminiModel(req),
-      });
-    }
-  } catch (error) {
-    logger.error('AI template restructuring error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error'
-    });
-  }
-});
+  });
+}));
 
 module.exports = router;

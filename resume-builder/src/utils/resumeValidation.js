@@ -303,7 +303,7 @@ const keepWithIndex = (list, section) =>
  * back to its form row so server errors land on the right input.
  */
 export const prepareResumePayload = (formData) => {
-  const { extractedText, parsedData, ...rest } = formData; // UI-only, can be large
+  const { extractedText, parsedData, importReport, ...rest } = formData; // UI-only, can be large
   // Shallow copy: every section below is rebuilt with new arrays and objects,
   // so the form state is never mutated.
   const payload = { ...rest };
@@ -399,20 +399,65 @@ export const prepareResumePayload = (formData) => {
   return { payload, indexMap };
 };
 
+const escapeHtml = (s) => String(s)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;');
+
+/**
+ * Rich-text value for an editor field. The server sends HTML already; plain
+ * text (older responses) becomes a paragraph, or a list when it has bullet
+ * lines, instead of collapsing into one run-on line in the editor.
+ */
+export const toEditorHtml = (value, extraBullets = []) => {
+  const text = typeof value === 'string' ? value.trim() : '';
+  const bullets = (Array.isArray(extraBullets) ? extraBullets : [])
+    .map((b) => (typeof b === 'string' ? b.trim() : ''))
+    .filter(Boolean);
+  if (/<\/?(p|ul|ol|li|br|strong|em)\b/i.test(text)) {
+    return bullets.length ? `${text}<ul>${bullets.map((b) => `<li>${escapeHtml(b)}</li>`).join('')}</ul>` : text;
+  }
+  const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+  const isBullet = (l) => /^([-*•▪●]|\d{1,2}[.)])\s+/.test(l);
+  const paragraphs = lines.filter((l) => !isBullet(l));
+  const items = [...lines.filter(isBullet).map((l) => l.replace(/^([-*•▪●]|\d{1,2}[.)])\s+/, '')), ...bullets];
+  const p = paragraphs.length ? `<p>${paragraphs.map(escapeHtml).join(' ')}</p>` : '';
+  const ul = items.length ? `<ul>${items.map((i) => `<li>${escapeHtml(i)}</li>`).join('')}</ul>` : '';
+  return p + ul;
+};
+
+const toStringList = (value) => {
+  if (Array.isArray(value)) return value.map((v) => (typeof v === 'string' ? v.trim() : '')).filter(Boolean);
+  if (typeof value === 'string') return value.split(',').map((v) => v.trim()).filter(Boolean);
+  return [];
+};
+
+const toSkillItem = (item) => {
+  const name = typeof item === 'string' ? item : item?.name || '';
+  const level = String(item?.level || '').toLowerCase();
+  return { name: name.trim(), level: SKILL_LEVELS.includes(level) ? level : 'intermediate' };
+};
+
 /**
  * Normalize data coming from the resume parser (upload) into form state:
  * dates as YYYY-MM-DD (so the date pickers show them), "Present" as the
- * current-job / currently-studying checkbox, lowercase enum values.
+ * current-job / currently-studying checkbox, lowercase enum values, editor
+ * fields as HTML, and every field the form reads present. Safe to run on
+ * data the server already normalised.
  */
 export const normalizeImportedResume = (parsed) => {
   if (!parsed || typeof parsed !== 'object') return parsed;
   const out = { ...parsed };
+  if (typeof out.summary === 'string') out.summary = toEditorHtml(out.summary);
   if (Array.isArray(out.workExperience)) {
     out.workExperience = out.workExperience.map((exp) => {
       const current = !!exp.isCurrentJob || isPresentToken(exp.endDate);
       return {
-        jobTitle: '', company: '', location: '', description: '', achievements: [],
+        jobTitle: '', company: '', location: '',
         ...exp,
+        // Per-job bullets are shown in the description; the form has no other place for them.
+        description: toEditorHtml(exp.description, exp.achievements),
+        achievements: [],
         isCurrentJob: current,
         startDate: toDateInputValue(exp.startDate),
         endDate: current ? '' : toDateInputValue(exp.endDate)
@@ -423,8 +468,9 @@ export const normalizeImportedResume = (parsed) => {
     out.education = out.education.map((edu) => {
       const studying = !!edu.isCurrentlyStudying || isPresentToken(edu.endDate);
       return {
-        degree: '', institution: '', location: '', description: '',
+        degree: '', institution: '', location: '',
         ...edu,
+        description: toEditorHtml(edu.description),
         isCurrentlyStudying: studying,
         startDate: toDateInputValue(edu.startDate),
         endDate: studying ? '' : toDateInputValue(edu.endDate),
@@ -435,19 +481,26 @@ export const normalizeImportedResume = (parsed) => {
   if (Array.isArray(out.skills)) {
     out.skills = out.skills.map((cat) => ({
       category: cat.category || '',
-      items: (cat.items || []).map((item) => {
-        const level = String(item.level || '').toLowerCase();
-        return { name: item.name || '', level: SKILL_LEVELS.includes(level) ? level : 'intermediate' };
-      })
+      items: (cat.items || []).map(toSkillItem).filter((item) => item.name)
     }));
   }
-  ['projects'].forEach((name) => {
-    if (Array.isArray(out[name])) {
-      out[name] = out[name].map((p) => ({ ...p, startDate: toDateInputValue(p.startDate), endDate: toDateInputValue(p.endDate) }));
-    }
-  });
+  if (Array.isArray(out.projects)) {
+    out.projects = out.projects.map((p) => ({
+      name: '', url: '', githubUrl: '',
+      ...p,
+      description: toEditorHtml(p.description),
+      technologies: toStringList(p.technologies),
+      startDate: toDateInputValue(p.startDate),
+      endDate: toDateInputValue(p.endDate)
+    }));
+  }
   if (Array.isArray(out.achievements)) {
-    out.achievements = out.achievements.map((a) => ({ ...a, date: toDateInputValue(a.date) }));
+    out.achievements = out.achievements.map((a) => ({
+      title: '', issuer: '',
+      ...a,
+      description: toEditorHtml(a.description),
+      date: toDateInputValue(a.date)
+    }));
   }
   if (Array.isArray(out.certifications)) {
     out.certifications = out.certifications.map((c) => ({ ...c, date: toDateInputValue(c.date), expiryDate: toDateInputValue(c.expiryDate) }));

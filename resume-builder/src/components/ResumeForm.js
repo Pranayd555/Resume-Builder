@@ -7,6 +7,7 @@ import {
   validateResumeEntries,
   prepareResumePayload,
   normalizeImportedResume,
+  toEditorHtml,
   mapServerErrors,
   stepForErrorKey,
   describeErrorKey,
@@ -23,6 +24,7 @@ import AILoader from './annimations/AILoader';
 import CustomDatePicker from './DatePicker';
 import CustomDropdown from './CustomDropdown';
 import Swal from 'sweetalert2';
+import ImportReviewPanel from './ImportReviewPanel';
 
 import {
   PlusIcon,
@@ -110,7 +112,8 @@ const TextAreaField = ({
   rows = 3,
   placeholder = "",
   className = "",
-  originalResumeData = null
+  originalResumeData = null,
+  aiField = "general"
 }) => (
   <div>
     <label className="block text-sm font-medium text-gray-900 dark:text-gray-900 mb-2">
@@ -123,6 +126,7 @@ const TextAreaField = ({
       showAIButton={true}
       className={className}
       originalText={originalResumeData}
+      aiField={aiField}
     />
   </div>
 );
@@ -331,81 +335,101 @@ function ResumeForm() {
       formData.append('type', 'resume');
 
       const response = await uploadAPI.uploadResume(formData);
-
-      if (response.success) {
-
-        // Store the extracted text data
-        const extractedText = response.data.originalText;
-        // Parser dates come as "Jan 2021" / "Present"; convert to what the date
-        // pickers and the server expect.
-        const parsedData = normalizeImportedResume(response.data.parsedData);
-
-        if (extractedText) {
-          // Store the extracted text in form data for reference
-          setFormData(prev => ({
-            ...prev,
-            extractedText: extractedText
-          }));
-
-          // If AI parsed data is available, auto-fill the form
-          if (parsedData) {
-            setFormData(prev => ({
-              ...prev,
-              extractedText: extractedText,
-              parsedData: parsedData, // Store the parsed data
-              personalInfo: {
-                ...prev.personalInfo,
-                ...parsedData.personalInfo
-              },
-              summary: parsedData.summary || prev.summary,
-              workExperience: parsedData.workExperience || prev.workExperience,
-              education: parsedData.education || prev.education,
-              skills: parsedData.skills || prev.skills,
-              projects: parsedData.projects || prev.projects,
-              achievements: parsedData.achievements || prev.achievements,
-              certifications: parsedData.certifications || prev.certifications,
-              languages: parsedData.languages || prev.languages,
-              customFields: parsedData.customFields || prev.customFields
-            }));
-
-            // Always load profile data to ensure name, email, phone are populated
-            loadProfileData();
-            setIsInitialLoad(true);
-
-            toast.success('Resume parsed and auto-filled successfully!');
-          } else {
-            // Even if no parsed data, still load profile data
-            loadProfileData();
-            toast.success('Resume text extracted successfully!');
-          }
-        } else {
-          // Even if no extracted text, still load profile data
-          loadProfileData();
-          toast.info('Resume processed successfully! Please fill in your resume details.');
-        }
-      } else {
-        throw new Error(response.error || 'Failed to upload resume');
-      }
+      if (!response.success) throw new Error(response.error || 'Failed to upload resume');
+      applyImportedResume(response.data);
+      toast.success('Resume imported. Review each step before saving.');
     } catch (error) {
       console.error('Resume upload error:', error);
-
-      // Handle token exhaustion specifically
-      if (!user.isOwnApiKey && error.message && error.message.includes('tokens') && error.message.includes('exhausted')) {
-        setIsTokenExhausted(true);
-        toast.error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
-      } else if (!user.isOwnApiKey && error.message && error.message.includes('insufficient tokens')) {
-        setIsTokenExhausted(true);
-        toast.error('Insufficient AI tokens! Please purchase more tokens to continue using AI features.');
+      const fallback = error?.response?.data?.data;
+      if (fallback?.parsedData) {
+        // The AI step failed (the token was refunded) but the server still read the file.
+        applyImportedResume(fallback);
+        toast.warning(`${apiHelpers.formatError(error)} We filled in what we could; the rest is listed under the summary.`);
       } else {
-        const errorMessage = apiHelpers.formatError(error);
-        toast.error(errorMessage);
+        if (error?.response?.status === 403 && error?.response?.data?.limitReached) setIsTokenExhausted(true);
+        toast.error(apiHelpers.formatError(error));
+        setUploadedFileName('');
       }
-
-      setUploadedFileName('');
     } finally {
       setUploadingResume(false);
       event.target.value = '';
     }
+  };
+
+  // Name, email and phone come from the profile. Point out when the file has different ones.
+  const profileDifferences = (imported) => {
+    const profile = apiHelpers.getCurrentUserData() || {};
+    const profileName = `${profile.firstName || ''} ${profile.lastName || ''}`.trim();
+    const checks = [
+      ['name', imported?.fullName, profileName],
+      ['email', imported?.email, profile.email],
+      ['phone number', imported?.phone, profile.phone]
+    ];
+    const digits = (v) => String(v || '').replace(/\D/g, '');
+    return checks
+      .filter(([label, fromFile, fromProfile]) => {
+        if (!fromFile) return false;
+        if (label === 'phone number') return digits(fromFile) !== digits(fromProfile);
+        return String(fromFile).trim().toLowerCase() !== String(fromProfile || '').trim().toLowerCase();
+      })
+      .map(([label, fromFile]) => `Your file lists the ${label} "${fromFile}". Name, email and phone come from your profile; update them on your profile page if needed.`);
+  };
+
+  /** Fill the form from an import response: { parsedData, importReport, originalText }. */
+  const applyImportedResume = (data) => {
+    const parsed = normalizeImportedResume(data?.parsedData) || {};
+    const report = data?.importReport || {};
+    const { fullName, email, phone, ...links } = parsed.personalInfo || {};
+    const importReport = {
+      ...report,
+      warnings: [...(report.warnings || []), ...profileDifferences({ fullName, email, phone })]
+    };
+    const has = (list) => Array.isArray(list) && list.length > 0;
+    setFormData(prev => ({
+      ...prev,
+      title: prev.title?.trim() ? prev.title : (parsed.title || prev.title),
+      extractedText: data?.originalText || '',
+      parsedData: null,
+      importReport,
+      personalInfo: { ...prev.personalInfo, ...links },
+      summary: parsed.summary || prev.summary,
+      workExperience: has(parsed.workExperience) ? parsed.workExperience : prev.workExperience,
+      isFresher: has(parsed.workExperience) ? false : prev.isFresher,
+      education: has(parsed.education) ? parsed.education : prev.education,
+      skills: has(parsed.skills) ? parsed.skills : prev.skills,
+      projects: has(parsed.projects) ? parsed.projects : prev.projects,
+      achievements: has(parsed.achievements) ? parsed.achievements : prev.achievements,
+      certifications: has(parsed.certifications) ? parsed.certifications : prev.certifications,
+      languages: has(parsed.languages) ? parsed.languages : prev.languages
+    }));
+    // The Technologies box edits its own text state; without this it showed
+    // empty and leaving it cleared the imported list.
+    if (has(parsed.projects)) {
+      const techState = {};
+      parsed.projects.forEach((project, index) => { techState[index] = (project.technologies || []).join(', '); });
+      setTechnologiesInput(techState);
+    }
+    // Name, email and phone always come from the profile.
+    loadProfileData();
+    setIsInitialLoad(true);
+  };
+
+  /** Move one leftover imported section into Achievements. */
+  const addImportedSectionAsAchievement = (sectionIndex) => {
+    setFormData(prev => {
+      const sections = prev.importReport?.additionalSections || [];
+      const section = sections[sectionIndex];
+      if (!section) return prev;
+      return {
+        ...prev,
+        achievements: [
+          ...prev.achievements,
+          { title: section.title.slice(0, 200), issuer: '', date: '', description: toEditorHtml('', section.items) }
+        ],
+        importReport: { ...prev.importReport, additionalSections: sections.filter((_, i) => i !== sectionIndex) }
+      };
+    });
+    toast.success('Added to Achievements (step 7).');
   };
 
   const triggerFileUpload = () => {
@@ -1102,16 +1126,20 @@ function ResumeForm() {
                       });
                     }
 
-                    // Update skills if provided
+                    // Education and achievement descriptions (adjust tone). The server
+                    // returns every row in its original position.
+                    ['education', 'achievements'].forEach((section) => {
+                      if (!Array.isArray(parsedAIData[section])) return;
+                      updatedData[section] = updatedData[section].map((row, index) => {
+                        const aiRow = parsedAIData[section][index];
+                        return aiRow?.description ? { ...row, description: ensureHtmlContent(aiRow.description) } : row;
+                      });
+                    });
+
+                    // Skills (enhance keywords): the server returns the existing skills
+                    // plus the suggested ones, never fewer.
                     if (parsedAIData.skills && Array.isArray(parsedAIData.skills)) {
-                      // For enhance keywords, replace the entire skills structure
-                      updatedData.skills = parsedAIData.skills.map(skillCategory => ({
-                        category: skillCategory.category || '',
-                        items: (skillCategory.items || []).map(item => ({
-                          name: item.name || '',
-                          level: item.level || 'intermediate'
-                        }))
-                      }));
+                      updatedData.skills = normalizeImportedResume({ skills: parsedAIData.skills }).skills;
                     }
 
                     return updatedData;
@@ -1674,61 +1702,17 @@ function ResumeForm() {
           rows={4}
           placeholder="Write a brief summary of your professional background and key achievements..."
           originalResumeData={originalResumeData?.summary}
+          aiField="summary"
         />
 
-        {/* Extracted Text Reference - Only show when parsedData is NOT available */}
-        {formData.extractedText && !formData.parsedData && (
-          <div className="bg-gray-50 dark:bg-gray-50/50 border border-gray-200 dark:border-gray-200/50 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-sm font-medium text-gray-900">Extracted Resume Content</h4>
-              <button
-                onClick={() => setFormData(prev => ({ ...prev, extractedText: '', parsedData: null }))}
-                className="text-gray-400 hover:text-gray-600"
-                title="Clear extracted text and parsed data"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="max-h-40 overflow-y-auto">
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                {formData.extractedText.length > 500
-                  ? `${formData.extractedText}`
-                  : formData.extractedText
-                }
-              </p>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Use this extracted content as reference while filling the form fields above.
-            </p>
-          </div>
-        )}
-
-        {/* Parsed Data Success Message - Show when parsedData is available */}
-        {formData.parsedData && (
-          <div className="bg-green-50 dark:bg-green-50/50 border border-green-200 dark:border-green-200/50 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <h4 className="text-sm font-medium text-green-900">AI Parsed Successfully</h4>
-              </div>
-              <button
-                onClick={() => setFormData(prev => ({ ...prev, parsedData: null }))}
-                className="text-green-400 hover:text-green-600"
-                title="Clear parsed data"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <p className="text-sm text-green-700">
-              Your resume has been automatically parsed and filled in above. Please review and edit the information as needed.
-            </p>
-          </div>
+        {/* What the import could not place, so nothing from the file is lost unseen */}
+        {(formData.importReport || formData.extractedText) && (
+          <ImportReviewPanel
+            report={formData.importReport}
+            extractedText={formData.extractedText}
+            onAddAsAchievement={addImportedSectionAsAchievement}
+            onDismiss={() => setFormData(prev => ({ ...prev, extractedText: '', parsedData: null, importReport: null }))}
+          />
         )}
 
       </div>
@@ -2016,6 +2000,7 @@ function ResumeForm() {
               placeholder="Describe your role and responsibilities..."
               showAIButton={true}
               originalText={originalResumeData?.workExperience[index]?.description}
+              aiField="workExperience"
             />
           </div>
         </div>
@@ -2240,6 +2225,7 @@ function ResumeForm() {
               placeholder="Relevant coursework, honors, activities..."
               showAIButton={true}
               originalText={originalResumeData?.education[index]?.description}
+              aiField="education"
             />
           </div>
         </div>
@@ -2684,6 +2670,7 @@ function ResumeForm() {
               placeholder="Describe the project, your role, and key features..."
               showAIButton={true}
               originalText={originalResumeData?.projects[index]?.description}
+              aiField="projects"
             />
           </div>
         </div>
@@ -2805,6 +2792,7 @@ function ResumeForm() {
               placeholder="Describe the achievement..."
               showAIButton={true}
               originalText={originalResumeData?.achievements[index]?.description}
+              aiField="achievements"
             />
           </div>
         </div>

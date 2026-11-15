@@ -88,7 +88,7 @@ const ATSScoreModal = ({
         jobDescriptionFile
       );
 
-      toast.success('ATS Score generated successfully! Check console for details.');
+      toast.success('Your ATS score is ready.');
       handleSuccess();
 
     } catch (error) {

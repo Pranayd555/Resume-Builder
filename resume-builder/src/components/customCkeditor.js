@@ -150,7 +150,8 @@ const CustomCKEditorComponent = ({
     onAIContentChange = null, // Callback for AI content changes
     onAILoading = null, // Callback for AI loading state
     aiLoading = false, // Prop for AI loading state
-    originalText = null // if original resumeData available
+    originalText = null, // if original resumeData available
+    aiField = "general" // resume field type, so AI output fits that field
 }) => {
     const [internalAILoading, setInternalAILoading] = useState(false);
     const [isLayoutReady, setIsLayoutReady] = useState(false);
@@ -652,6 +653,7 @@ const CustomCKEditorComponent = ({
                         onAIContentChange={onAIContentChange}
                         onAILoading={handleAILoading}
                         originalText={originalText === value ? null : originalText}
+                        aiField={aiField}
                         isMobile={isMobile}
                     />
                     {isProMode && (
