@@ -25,18 +25,19 @@ const getUserModel = () => require('../models/User');
 const mongoose = require('mongoose');
 
 /**
- * Validate and cast a user id before it goes into a query. Anything that is
- * not a valid ObjectId (e.g. an object such as { $ne: null } from a request
- * body) is rejected instead of being passed to MongoDB.
+ * Validate a user id and return it as a plain 24-hex-character string before
+ * it goes into a query (Mongoose casts it to an ObjectId). Anything else, e.g.
+ * an object such as { $ne: null } from a request body, is rejected. Queries
+ * get plain strings only, never objects (Sonar S5147).
  */
-function toObjectId(id) {
-  const value = id instanceof mongoose.Types.ObjectId ? id.toHexString() : String(id);
-  if (!mongoose.Types.ObjectId.isValid(value) || !/^[a-f0-9]{24}$/i.test(value)) {
+function toUserId(id) {
+  const value = String(id);
+  if (!/^[a-f0-9]{24}$/i.test(value) || !mongoose.Types.ObjectId.isValid(value)) {
     const err = new Error('Invalid user id');
     err.statusCode = 400;
     throw err;
   }
-  return new mongoose.Types.ObjectId(value);
+  return value;
 }
 
 /** Coerce a stored value to a non-negative whole number of tokens. */
@@ -129,7 +130,7 @@ function notFound() {
 
 /** Current balance from the database. Throws (404) if the user is missing. */
 async function getTokenBalance(userId) {
-  const user = await getUserModel().findById(toObjectId(userId)).select(BALANCE_PROJECTION).lean();
+  const user = await getUserModel().findById(toUserId(userId)).select(BALANCE_PROJECTION).lean();
   if (!user) throw notFound();
   return toTokenBalance(user);
 }
@@ -143,7 +144,7 @@ async function spendTokens(userId, amount = 1) {
   if (need < 1) throw new Error('Spend amount must be a positive integer');
 
   const before = await getUserModel().findOneAndUpdate(
-    { _id: toObjectId(userId), ...hasAtLeastFilter(need) },
+    { _id: toUserId(userId), ...hasAtLeastFilter(need) },
     buildSpendPipeline(need),
     { new: false, projection: BALANCE_PROJECTION, lean: true }
   );
@@ -175,7 +176,7 @@ async function creditTokens(userId, { purchased = 0, bonus = 0 } = {}, { unlessT
   if (push) {
     update.$push = { razorpayTransactions: { $each: [push], $position: 0, $slice: 50 } };
   }
-  const query = { _id: toObjectId(userId) };
+  const query = { _id: toUserId(userId) };
   if (unlessTransactionId !== undefined) {
     query['razorpayTransactions.transactionId'] = { $ne: String(unlessTransactionId) };
   }
@@ -200,7 +201,7 @@ async function refundSpend(userId, spent) {
 /** Atomically remove tokens (e.g. after a refund), clamping each pool at zero. */
 async function deductTokens(userId, amounts) {
   const user = await getUserModel().findOneAndUpdate(
-    { _id: toObjectId(userId) },
+    { _id: toUserId(userId) },
     buildDeductPipeline(amounts),
     { new: true, projection: BALANCE_PROJECTION, lean: true }
   );
@@ -210,7 +211,7 @@ async function deductTokens(userId, amounts) {
 
 module.exports = {
   // pure helpers
-  toObjectId,
+  toUserId,
   toTokenBalance,
   tokenPayload,
   splitSpend,

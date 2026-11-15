@@ -6,7 +6,6 @@ const Resume = require('../models/Resume');
 // Subscription model no longer needed
 const logger = require('../utils/logger');
 const { toTokenBalance, tokenPayload, getTokenBalance, creditTokens } = require('../utils/tokenCalculator');
-const { logSafe } = require('../utils/logSafe');
 
 const router = express.Router();
 
@@ -471,7 +470,7 @@ router.post('/add-tokens', protect, authorize('admin'), async (req, res) => {
       });
     }
 
-    const balance = await creditTokens(req.user._id, { purchased: tokens });
+    const balance = await creditTokens(String(req.user._id), { purchased: tokens });
     if (!balance) {
       return res.status(404).json({
         success: false,
@@ -479,7 +478,12 @@ router.post('/add-tokens', protect, authorize('admin'), async (req, res) => {
       });
     }
 
-    logger.info(`Added ${Number(tokens)} purchased tokens to user ${logSafe(req.user.email)}. New balance: ${Number(balance.purchased)} purchased + ${Number(balance.bonus)} bonus`);
+    // Structured log entry (an object, not a built string): Sonar S5145
+    logger.info('Admin added purchased tokens to own account', {
+      adminId: String(req.user._id),
+      tokensAdded: Number(tokens),
+      balance
+    });
 
     res.json({
       success: true,
