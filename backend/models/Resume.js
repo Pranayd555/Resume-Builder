@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { EMAIL_REGEX } = require('../utils/resumeValidation');
+const { EMAIL_MAX_LENGTH, isValidEmail } = require('../utils/resumeValidation');
 
 // End dates may equal the start date (e.g. a one-month role or a course that
 // starts and ends in the same month); only an end date *before* the start is invalid.
@@ -37,7 +37,14 @@ const resumeSchema = new mongoose.Schema({
       required: [true, 'Email is required'],
       trim: true,
       lowercase: true,
-      match: [EMAIL_REGEX, 'Please provide a valid email']
+      maxlength: [EMAIL_MAX_LENGTH, `Email cannot exceed ${EMAIL_MAX_LENGTH} characters`],
+      // isValidEmail checks the length before running the regex, so an
+      // oversized string never reaches the pattern whatever order Mongoose
+      // runs validators in.
+      validate: {
+        validator: (value) => value === undefined || value === null || value === '' || isValidEmail(value),
+        message: 'Please provide a valid email'
+      }
     },
     phone: {
       type: String,

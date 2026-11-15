@@ -1768,6 +1768,7 @@ function ResumeForm() {
           required
           readOnly={true}
           placeholder="john.doe@email.com"
+          maxLength={254}
           error={validationErrors.email}
         />
         <FormField

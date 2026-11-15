@@ -39,9 +39,19 @@ const LIMITS = {
   customFieldTitle: 100
 };
 
-// Deliberately permissive: one "@", no spaces, a dot in the domain, TLD of 2+ chars.
-// Allows plus-addressing and long TLDs (.info, .technology), which the old regex rejected.
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+// RFC 5321 caps a forward path at 254 characters. Check this BEFORE any regex
+// so a huge string never reaches the pattern.
+const EMAIL_MAX_LENGTH = 254;
+
+// Permissive: one "@", no spaces, dot-separated domain labels, TLD of 2+ chars.
+// Allows plus-addressing and long TLDs (.info, .technology).
+// Linear time: the domain labels exclude "." so they can't overlap with the
+// separators. The earlier pattern backtracked quadratically: about 1 s on
+// a 50 KB input, 16 s on 100 KB.
+const EMAIL_REGEX = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)*\.[^\s@.]{2,}$/;
+
+const isValidEmail = (value) =>
+  typeof value === 'string' && value.length <= EMAIL_MAX_LENGTH && EMAIL_REGEX.test(value);
 
 const SKILL_LEVELS = ['beginner', 'intermediate', 'advanced', 'expert'];
 const LANGUAGE_PROFICIENCIES = ['basic', 'conversational', 'fluent', 'native'];
@@ -87,6 +97,10 @@ const MONTHS = {
   jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, sept: 9, oct: 10, nov: 11, dec: 12
 };
 
+// Input length caps so the parsers below only ever see short strings.
+const MAX_DATE_INPUT = 40;
+const MAX_GPA_INPUT = 20;
+
 const pad = (n) => String(n).padStart(2, '0');
 const isoDate = (y, m, d) => `${y}-${pad(m)}-${pad(d)}`;
 
@@ -107,6 +121,8 @@ const normalizeDate = (value) => {
   if (typeof value !== 'string') return value;
 
   const v = value.trim();
+  // Real dates are short; leave anything long for the schema to reject as invalid.
+  if (v.length > MAX_DATE_INPUT) return value;
   let m;
   // 2021-03-15, 2021-03-15T00:00:00.000Z
   if ((m = v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:T.*)?$/))) return isoDate(m[1], +m[2], +m[3]);
@@ -140,6 +156,7 @@ const normalizeGpa = (value) => {
   if (isBlank(value)) return undefined;
   if (typeof value === 'number') return value;
   if (typeof value !== 'string') return value;
+  if (value.length > MAX_GPA_INPUT) return value;
   const m = value.trim().match(/^(\d+(?:\.\d+)?)\s*(?:%|\/\s*\d+(?:\.\d+)?)?$/);
   return m ? Number(m[1]) : value;
 };
@@ -294,6 +311,8 @@ const emailRule = (chain) => chain
   .trim()
   .notEmpty().withMessage('Email is required')
   .bail()
+  .isLength({ max: EMAIL_MAX_LENGTH }).withMessage(`Email cannot exceed ${EMAIL_MAX_LENGTH} characters`)
+  .bail()
   .matches(EMAIL_REGEX).withMessage('Please provide a valid email');
 
 // Create (and the form's first save): title, name and email are the only required fields.
@@ -401,6 +420,8 @@ const sendResumeValidationError = (error, res) => {
 module.exports = {
   LIMITS,
   EMAIL_REGEX,
+  EMAIL_MAX_LENGTH,
+  isValidEmail,
   SKILL_LEVELS,
   LANGUAGE_PROFICIENCIES,
   normalizeDate,

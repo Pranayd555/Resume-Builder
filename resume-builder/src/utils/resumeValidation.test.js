@@ -8,8 +8,13 @@ import {
   normalizeImportedResume,
   mapServerErrors,
   stepForErrorKey,
-  describeErrorKey
+  describeErrorKey,
+  isBlankRow,
+  isValidEmail,
+  EMAIL_REGEX,
+  EMAIL_MAX_LENGTH
 } from './resumeValidation';
+import { validators } from '../models/dataModels';
 
 // Form state for a fully filled-in resume, as ResumeForm holds it.
 const completeForm = () => ({
@@ -195,5 +200,58 @@ describe('mapServerErrors', () => {
     expect(stepForErrorKey('languages_0_name')).toBe(8);
     expect(describeErrorKey('education_2_endDate')).toBe('Education #3');
     expect(describeErrorKey('title')).toBeNull();
+  });
+});
+
+describe('ReDoS safety', () => {
+  const time = (fn) => {
+    const start = performance.now();
+    const result = fn();
+    return { result, ms: performance.now() - start };
+  };
+  const attacks = (n) => [
+    'a'.repeat(n) + '@' + 'a.'.repeat(n / 2) + ' ',
+    'a@' + 'a.'.repeat(n / 2) + 'a ',
+    'a@' + 'a'.repeat(n) + ' '
+  ];
+
+  test('email: accepts normal addresses, rejects malformed ones', () => {
+    ['a@b.co', 'first.last+cv@company.technology', 'x-y_z@mail.sub.example.co.in', 'name@my-company.io']
+      .forEach(email => expect(isValidEmail(email)).toBe(true));
+    ['a@b', 'a@b.c', 'a @b.com', 'a@@b.com', 'a@b..com', '@b.com', 'a@b.com.', '']
+      .forEach(email => expect(isValidEmail(email)).toBe(false));
+    expect(isValidEmail('a'.repeat(EMAIL_MAX_LENGTH) + '@example.com')).toBe(false);
+  });
+
+  test('email regex is linear: 100,000-character attack strings fail in < 50 ms', () => {
+    attacks(100000).forEach(input => {
+      const { result, ms } = time(() => EMAIL_REGEX.test(input));
+      expect(result).toBe(false);
+      expect(ms).toBeLessThan(50);
+    });
+  });
+
+  test('form validation and validators.email reject a 100,000-character email in < 50 ms', () => {
+    const email = attacks(100000)[0];
+    const { result, ms } = time(() => validateResumeEntries({ title: 'CV', personalInfo: { fullName: 'A', email } }));
+    expect(result.email).toMatch(/cannot exceed 254/);
+    expect(ms).toBeLessThan(50);
+    const check = time(() => validators.email(email));
+    expect(check.result).toBe(false);
+    expect(check.ms).toBeLessThan(50);
+  });
+
+  test('blank-row HTML stripping is linear on "<<<<…" input', () => {
+    const { result, ms } = time(() => isBlankRow('workExperience', { description: '<'.repeat(100000) }));
+    expect(result).toBe(true);
+    expect(ms).toBeLessThan(50);
+    expect(isBlankRow('workExperience', { description: '<p>&nbsp;</p>' })).toBe(true);
+    expect(isBlankRow('workExperience', { description: '<p>Built <b>it</b></p>' })).toBe(false);
+  });
+
+  test('date parsing ignores oversized input quickly', () => {
+    const { result, ms } = time(() => toDateInputValue('Jan' + ' '.repeat(100000) + 'x'));
+    expect(isValidDateValue(result)).toBe(false);
+    expect(ms).toBeLessThan(50);
   });
 });

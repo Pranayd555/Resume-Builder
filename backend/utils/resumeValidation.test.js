@@ -19,7 +19,10 @@ const {
   resumeCreateRules,
   resumeUpdateRules,
   rejectInvalidResume,
-  sendResumeValidationError
+  sendResumeValidationError,
+  EMAIL_REGEX,
+  EMAIL_MAX_LENGTH,
+  isValidEmail
 } = require('./resumeValidation');
 
 const userId = new mongoose.Types.ObjectId();
@@ -331,5 +334,95 @@ describe('route pipeline', () => {
     const { body } = await send('PUT', '/update', p);
     assert.equal(body.body.projects.length, 1);
     assert.equal(body.body.education[0].endDate, null);
+  });
+});
+
+// Email validation must stay linear-time: a quadratic pattern on an unbounded
+// string blocks the event loop (the previous regex took ~16 s on 100 KB).
+describe('email validation (ReDoS-safe)', () => {
+  const ms = (fn) => {
+    const start = process.hrtime.bigint();
+    const result = fn();
+    return { result, ms: Number(process.hrtime.bigint() - start) / 1e6 };
+  };
+  // Worst cases for the old pattern: long local part, many dot-separated
+  // labels, and a trailing space so the match must fail at the very end.
+  const attacks = (n) => [
+    'a'.repeat(n) + '@' + 'a.'.repeat(n / 2) + ' ',
+    'a@' + 'a.'.repeat(n / 2) + 'a ',
+    'a@' + 'a'.repeat(n) + ' ',
+    'a'.repeat(n) + '@'
+  ];
+
+  test('accepts normal addresses', () => {
+    for (const email of [
+      'a@b.co',
+      'first.last@example.com',
+      'first.last+cv@company.technology',
+      'x-y_z@mail.sub.example.co.in',
+      'name@my-company.io',
+      'user@xn--bcher-kva.ch'
+    ]) {
+      assert.equal(isValidEmail(email), true, email);
+    }
+  });
+
+  test('rejects malformed addresses', () => {
+    for (const email of ['a@b', 'a@b.c', 'a @b.com', 'a@@b.com', 'a@b..com', '@b.com', 'a@.com', 'a@b.com.', 'a@b.c om', '', null, undefined, 42]) {
+      assert.equal(isValidEmail(email), false, String(email));
+    }
+  });
+
+  test(`caps length at ${EMAIL_MAX_LENGTH} characters`, () => {
+    const domain = '@example.com';
+    assert.equal(isValidEmail('a'.repeat(EMAIL_MAX_LENGTH - domain.length) + domain), true);
+    assert.equal(isValidEmail('a'.repeat(EMAIL_MAX_LENGTH - domain.length + 1) + domain), false);
+  });
+
+  test('the regex itself is linear: 100,000-character attack strings fail in < 50 ms', () => {
+    for (const input of attacks(100000)) {
+      const { result, ms: took } = ms(() => EMAIL_REGEX.test(input));
+      assert.equal(result, false);
+      assert.ok(took < 50, `regex took ${took.toFixed(1)} ms on a ${input.length}-char input`);
+    }
+  });
+
+  test('isValidEmail rejects a 100,000-character email in < 50 ms', () => {
+    for (const input of attacks(100000)) {
+      const { result, ms: took } = ms(() => isValidEmail(input));
+      assert.equal(result, false);
+      assert.ok(took < 50, `took ${took.toFixed(1)} ms`);
+    }
+  });
+
+  test('schema rejects a 100,000-character email in < 50 ms with a length message', async () => {
+    const p = minimalResume();
+    p.personalInfo.email = attacks(100000)[0].trim();
+    const start = process.hrtime.bigint();
+    const errors = await fieldErrorsOf(p);
+    const took = Number(process.hrtime.bigint() - start) / 1e6;
+    assert.ok(took < 50, `schema validation took ${took.toFixed(1)} ms`);
+    const err = errors.find((e) => e.field === 'personalInfo.email');
+    assert.ok(err, JSON.stringify(errors));
+    assert.match(err.message, /cannot exceed 254/);
+  });
+
+  test('route rule rejects a 100,000-character email in < 50 ms', async () => {
+    const req = { body: normalizeResumePayload({ ...minimalResume(), personalInfo: { fullName: 'A B', email: attacks(100000)[0] } }) };
+    const start = process.hrtime.bigint();
+    for (const rule of resumeCreateRules) await rule.run(req);
+    const took = Number(process.hrtime.bigint() - start) / 1e6;
+    const { validationResult } = require('express-validator');
+    const errors = validationResult(req).array();
+    assert.ok(took < 50, `route rules took ${took.toFixed(1)} ms`);
+    assert.deepEqual(errors.map((e) => [e.path, e.msg]), [['personalInfo.email', `Email cannot exceed ${EMAIL_MAX_LENGTH} characters`]]);
+  });
+
+  test('date and GPA parsers ignore oversized input quickly', () => {
+    const big = '1'.repeat(100000) + 'x';
+    for (const fn of [() => normalizeDate(big), () => normalizeGpa(big), () => normalizeDate('Jan' + ' '.repeat(100000) + 'x')]) {
+      const { ms: took } = ms(fn);
+      assert.ok(took < 50, `took ${took.toFixed(1)} ms`);
+    }
   });
 });

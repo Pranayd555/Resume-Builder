@@ -38,8 +38,12 @@ export const LIMITS = {
 export const GPA_MIN = 0;
 export const GPA_MAX = 100;
 
-// Same as the server: one "@", no spaces, a dot in the domain, TLD of 2+ chars.
-export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+// Same as the server. Length is checked before the regex, and the domain
+// labels exclude "." so matching is linear (no catastrophic backtracking).
+export const EMAIL_MAX_LENGTH = 254;
+export const EMAIL_REGEX = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)*\.[^\s@.]{2,}$/;
+export const isValidEmail = (value) =>
+  typeof value === 'string' && value.length <= EMAIL_MAX_LENGTH && EMAIL_REGEX.test(value);
 
 export const SKILL_LEVELS = ['beginner', 'intermediate', 'advanced', 'expert'];
 export const LANGUAGE_PROFICIENCIES = ['basic', 'conversational', 'fluent', 'native'];
@@ -75,6 +79,7 @@ export const toDateInputValue = (value) => {
   }
   if (typeof value !== 'string') return value;
   const v = value.trim();
+  if (v.length > 40) return value; // real dates are short; flag anything long as invalid
   let m;
   if ((m = v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:T.*)?$/))) return isoDate(m[1], +m[2], +m[3]);
   if ((m = v.match(/^(\d{4})[-/](\d{1,2})$/))) return isoDate(m[1], +m[2], 1);
@@ -126,7 +131,20 @@ const CONTENT_FIELDS = {
 };
 
 // Rich-text fields hold HTML; "<p></p>" or "<p>&nbsp;</p>" is still empty.
-const stripHtml = (v) => (typeof v === 'string' ? v.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ') : v);
+// Linear scan instead of /<[^>]*>/g, which backtracks quadratically on input
+// with many "<" and no ">".
+const stripHtml = (v) => {
+  if (typeof v !== 'string') return v;
+  let out = '';
+  let inTag = false;
+  for (let i = 0; i < v.length; i += 1) {
+    const ch = v[i];
+    if (ch === '<') inTag = true;
+    else if (ch === '>' && inTag) inTag = false;
+    else if (!inTag) out += ch;
+  }
+  return out.split('&nbsp;').join(' ');
+};
 
 export const isBlankRow = (section, row) => {
   if (!row || typeof row !== 'object') return true;
@@ -156,7 +174,8 @@ export const validateResumeEntries = (formData) => {
   if (isBlank(pi.fullName)) set('fullName', 'Full name is required');
   max('fullName', pi.fullName, LIMITS.fullName, 'Full name');
   if (isBlank(pi.email)) set('email', 'Email is required');
-  else if (!EMAIL_REGEX.test(pi.email.trim())) set('email', 'Please provide a valid email');
+  else if (pi.email.trim().length > EMAIL_MAX_LENGTH) set('email', `Email cannot exceed ${EMAIL_MAX_LENGTH} characters`);
+  else if (!isValidEmail(pi.email.trim())) set('email', 'Please provide a valid email');
   max('phone', pi.phone, LIMITS.phone, 'Phone number');
   max('address', pi.address, LIMITS.address, 'Address');
   ['website', 'linkedin', 'github'].forEach((f) => max(f, pi[f], LIMITS.url, 'URL'));
