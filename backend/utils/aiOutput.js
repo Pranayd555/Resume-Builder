@@ -229,7 +229,10 @@ const fitBlocks = (blocks, { maxChars, maxItems = 0, maxItemChars = 0 }) => {
     const length = plainTextLength(block.html);
     const room = maxChars - used;
     if (length > room) {
-      if (room >= 60 || !out.length) out.push(shortenBlock(block, Math.max(room, 1)));
+      // A cut-off bullet reads badly, so a bullet that doesn't fit is left out.
+      // A paragraph (or the only block) is shortened at a sentence end instead.
+      const shorten = !out.length || (block.type === 'p' && room >= 60);
+      if (shorten) out.push(shortenBlock(block, Math.max(room, 1)));
       break;
     }
     out.push(block);
@@ -250,9 +253,15 @@ const budgetFor = (field, originalHtml = '', { mode = 'enhance' } = {}) => {
   const originalLength = plainTextLength(originalHtml);
   const originalItems = htmlToBlocks(sanitizeRichText(originalHtml)).filter((b) => b.type === 'li').length;
   let maxChars = Math.max(profile.maxChars, Math.round(originalLength * 1.1));
-  if (mode === 'summarize') maxChars = Math.min(profile.maxChars, Math.max(originalLength, 120));
+  // Summarize: a hard cap at the original size, and a target (told to the model) of about 70% of it.
+  let targetChars = 0;
+  if (mode === 'summarize') {
+    maxChars = Math.min(profile.maxChars, Math.max(originalLength, 120));
+    targetChars = Math.max(Math.round(maxChars * 0.7), 80);
+  }
   return {
     ...profile,
+    targetChars,
     maxChars: Math.min(maxChars, ABSOLUTE_MAX_CHARS),
     maxItems: profile.maxItems ? Math.max(profile.maxItems, mode === 'summarize' ? 0 : originalItems) : 0
   };

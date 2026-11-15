@@ -69,6 +69,12 @@ describe('length guards (fit the template)', () => {
     assert.equal(bullets(finalizeRichText(original, budget)), 9);
   });
 
+  test('a bullet that does not fit is left out, never cut mid-sentence', () => {
+    const html = '<ul><li>First point that is reasonably long and complete.</li><li>Second point that will not fit in the remaining space at all.</li></ul>';
+    const out = finalizeRichText(html, { format: 'bullets', maxChars: 80, maxItems: 6, maxItemChars: 220 });
+    assert.equal(out, '<ul><li>First point that is reasonably long and complete.</li></ul>');
+  });
+
   test('summarize never grows the text', () => {
     const budget = budgetFor('summary', '<p>Short summary of about one hundred and forty characters, give or take a few, that should not get longer when summarized.</p>', { mode: 'summarize' });
     assert.ok(budget.maxChars <= 140);

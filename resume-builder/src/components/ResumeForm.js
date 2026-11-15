@@ -294,11 +294,15 @@ function ResumeForm() {
 
   // Resume upload functions
   const validateResumeFile = (file) => {
-    const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword'];
+    const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
     const maxSize = 10 * 1024 * 1024; // 10MB
+    const name = (file.name || '').toLowerCase();
 
-    if (!allowedTypes.includes(file.type)) {
-      toast.error('Please upload a PDF or Word document');
+    // Some browsers report .docx without a type, so the extension counts too.
+    if (!allowedTypes.includes(file.type) && !name.endsWith('.pdf') && !name.endsWith('.docx')) {
+      toast.error(name.endsWith('.doc')
+        ? 'Old Word (.doc) files are not supported. Save the file as .docx or PDF and try again.'
+        : 'Please upload a PDF or Word (.docx) file');
       return false;
     }
 
@@ -1586,7 +1590,7 @@ function ResumeForm() {
         <input
           ref={fileInputRef}
           type="file"
-          accept=".pdf,.docx,.doc"
+          accept=".pdf,.docx"
           onChange={handleResumeUpload}
           className="hidden"
         />
@@ -1656,7 +1660,7 @@ function ResumeForm() {
         )}
 
         <p className="text-xs text-gray-500 text-center mt-2">
-          PDF, DOCX, DOC (Max 10MB)
+          PDF or DOCX (max 10MB)
         </p>
 
         {/* Token exhaustion message */}

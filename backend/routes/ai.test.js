@@ -192,6 +192,18 @@ describe('POST /api/ai/rewrite', () => {
     assert.equal(ledger.spends, 0);
   });
 
+  test('a retired model: BYOK users are told to pick another model, others get a generic message', async () => {
+    stub.queue.push(geminiError(404, 'This model models/gemini-old is no longer available.'));
+    let res = await post('/ai/rewrite', { content: JOB, field: 'workExperience' });
+    assert.equal(res.status, 503);
+    assert.doesNotMatch(res.body.error, /Profile/);
+    currentUser = { ...currentUser, isOwnApiKey: true, geminiApiKey: encrypt('users-own-key') };
+    stub.queue.push(geminiError(404, 'This model models/gemini-old is no longer available.'));
+    res = await post('/ai/rewrite', { content: JOB, field: 'workExperience' });
+    assert.equal(res.status, 400);
+    assert.match(res.body.error, /Choose another model in Profile/);
+  });
+
   test('BYOK with an undecryptable key -> 400, never charged', async () => {
     currentUser = { ...currentUser, isOwnApiKey: true, geminiApiKey: 'garbage' };
     const { status } = await post('/ai/rewrite', { content: JOB });

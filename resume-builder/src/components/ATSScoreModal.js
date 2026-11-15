@@ -188,7 +188,7 @@ const ATSScoreModal = ({
                       <p className={`text-xs mt-0.5 ${atsInputType === 'file'
                         ? 'text-green-600'
                         : 'text-gray-600 dark:text-gray-400'
-                        }`}>Upload PDF or DOC file</p>
+                        }`}>Upload a PDF or DOCX file</p>
                     </div>
                   </button>
                 </div>
@@ -250,19 +250,18 @@ const ATSScoreModal = ({
                           const file = files[0];
                           const allowedTypes = [
                             'application/pdf',
-                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                            'application/msword'
+                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
                           ];
 
                           // Check extension as fallback
                           const fileName = file.name.toLowerCase();
-                          const allowedExtensions = ['.pdf', '.doc', '.docx'];
+                          const allowedExtensions = ['.pdf', '.docx'];
                           const hasAllowedExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
 
                           if (allowedTypes.includes(file.type) || hasAllowedExtension) {
                             setAtsFile(file);
                           } else {
-                            toast.error('Please upload a PDF, DOC, or DOCX file only.');
+                            toast.error('Please upload a PDF or DOCX file. Save old .doc files as .docx first.');
                           }
                         }
                       }
@@ -270,7 +269,7 @@ const ATSScoreModal = ({
                   >
                     <input
                       type="file"
-                      accept=".pdf,.doc,.docx"
+                      accept=".pdf,.docx"
                       onChange={(e) => setAtsFile(e.target.files[0])}
                       className="hidden"
                       id="ats-file-input"
@@ -301,7 +300,7 @@ const ATSScoreModal = ({
                         )}
                       </div>
                       <span className="text-xs text-orange-500 dark:text-orange-400 mt-1">
-                        PDF, DOC, or DOCX files only
+                        PDF or DOCX files only
                       </span>
                     </label>
                   </div>

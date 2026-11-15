@@ -135,17 +135,26 @@ function normalizeGeminiError(err, context = {}) {
     }
   } else if (
     lowerMsg.includes('model') &&
-    (lowerMsg.includes('not found') ||
+    (numericCode === 404 ||
+      lowerMsg.includes('not found') ||
+      lowerMsg.includes('no longer available') ||
       lowerMsg.includes('unknown') ||
       lowerMsg.includes('unsupported') ||
       lowerMsg.includes('invalid'))
   ) {
-    httpStatus = 400;
     type = 'AI_MODEL';
     retryable = false;
-    userMessage = model
-      ? `The configured AI model "${model}" is invalid or unavailable. Update your model in Profile and try again.`
-      : 'The configured AI model is invalid or unavailable. Update your model in Profile and try again.';
+    if (isOwnApiKey) {
+      // BYOK users choose their model in Profile.
+      httpStatus = 400;
+      userMessage = model
+        ? `The AI model "${model}" is invalid or no longer available. Choose another model in Profile and try again.`
+        : 'The configured AI model is invalid or no longer available. Choose another model in Profile and try again.';
+    } else {
+      // Server model: nothing the user can change, so don't send them to Profile.
+      httpStatus = 503;
+      userMessage = 'The AI service is temporarily unavailable. Please try again later.';
+    }
   } else if (
     numericCode === 400 ||
     lowerMsg.includes('invalid argument') ||
