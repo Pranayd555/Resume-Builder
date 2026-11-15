@@ -6,8 +6,10 @@ const fs = require('fs').promises;
 const { protect, chargeAIToken, trackUsage, skipIfBYOK } = require('../middleware/auth');
 const User = require('../models/User');
 const logger = require('../utils/logger');
-const DocumentParser = require('../utils/documentParser');
+const { extractResumeText, isSupportedResumeType } = require('../utils/resumeTextExtractor');
+const { normalizeParsedResume, heuristicParse } = require('../utils/resumeImport');
 const { parseResumeText, resolveGeminiModel, createGoogleGenAI } = require('../services/geminiservice');
+const { logSafe } = require('../utils/logSafe');
 const { sendAIError } = require('../utils/aiError');
 
 const router = express.Router();
@@ -17,14 +19,14 @@ const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit for PDFs
+    fileSize: 10 * 1024 * 1024, // 10MB
   },
   fileFilter: (req, file, cb) => {
-    // Allow images and PDFs
-    if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf' || file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+    // Profile pictures (resume files use resumeUpload below)
+    if (file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
-      cb(new Error('Only image, PDF, and Word files are allowed!'), false);
+      cb(new Error('Only image files are allowed!'), false);
     }
   },
 });
@@ -65,115 +67,126 @@ const handleMulterError = (error, req, res, next) => {
     });
   }
   
-  if (error.message === 'Only image, PDF, and Word files are allowed!') {
+  if (error.message === 'Only image files are allowed!') {
     return res.status(400).json({
       success: false,
-      error: 'Only image, PDF, and Word files are allowed'
+      error: 'Only image files are allowed'
     });
   }
 
   next(error);
 };
 
-// @desc    Upload and parse resume (PDF/Word)
-// @route   POST /api/uploads/parse-resume
-// @access  Private
-router.post('/parse-resume', [
-  protect,
-  skipIfBYOK(chargeAIToken),
-  (req, res, next) => {
-    upload.single('file')(req, res, (err) => {
-      if (err) {
-        return handleMulterError(err, req, res, next);
-      }
-      next();
-    });
+// Resume files: PDF or DOCX only. Some browsers send DOCX as octet-stream, so
+// the extension is checked too.
+const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+const resumeMimeType = (file) => {
+  if (file.mimetype === 'application/pdf' || file.mimetype === DOCX_MIME) return file.mimetype;
+  const name = String(file.originalname || '').toLowerCase();
+  if (name.endsWith('.pdf')) return 'application/pdf';
+  if (name.endsWith('.docx')) return DOCX_MIME;
+  return file.mimetype;
+};
+
+const resumeUpload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (isSupportedResumeType(resumeMimeType(file))) return cb(null, true);
+    const legacyDoc = file.mimetype === 'application/msword' || String(file.originalname || '').toLowerCase().endsWith('.doc');
+    return cb(new Error(legacyDoc
+      ? 'Old Word (.doc) files are not supported. Save the file as .docx or PDF and try again.'
+      : 'Please upload a PDF or Word (.docx) file.'), false);
+  },
+});
+
+const receiveResumeFile = (req, res, next) => {
+  resumeUpload.single('file')(req, res, (err) => {
+    if (!err) return next();
+    if (err instanceof multer.MulterError) return handleMulterError(err, req, res, next);
+    return res.status(400).json({ success: false, error: err.message });
+  });
+};
+
+// Read the text before any token is charged: an unreadable file costs nothing.
+const extractUploadedResume = async (req, res, next) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, error: 'No file uploaded' });
   }
-], trackUsage, async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        error: 'No file uploaded'
-      });
-    }
+    req.resumeExtract = await extractResumeText(req.file.buffer, resumeMimeType(req.file));
+    return next();
+  } catch (error) {
+    logger.warn(`Resume text extraction failed for user ${logSafe(req.user?.id)}: ${logSafe(error.message)}`);
+    return res.status(400).json({ success: false, error: error.message });
+  }
+};
 
-    const { originalname, mimetype, buffer } = req.file;
-    logger.info(`Resume upload request: ${originalname} (${mimetype}) by user ${req.user.email}`);
+// No-AI result, so the user still gets contact details and every section's text.
+const fallbackImport = (text, links) => normalizeParsedResume(heuristicParse(text, links), { sourceText: text, links, parsedBy: 'fallback' });
 
-    // Validate file type using DocumentParser
-    if (!DocumentParser.isValidDocumentType(mimetype)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Unsupported file type. Please upload a PDF or Word document.'
-      });
-    }
+const importSummary = (formData, report) => [
+  `work=${formData.workExperience.length}`,
+  `edu=${formData.education.length}`,
+  `skills=${formData.skills.length}`,
+  `projects=${formData.projects.length}`,
+  `extra=${report.additionalSections.length}`,
+  `unplaced=${report.unplacedLines.length}`,
+].join(' ');
 
-    // Extract text using DocumentParser service
-    let extractedText = '';
-    try {
-      extractedText = await DocumentParser.parseDocument(buffer, mimetype, originalname);
-    } catch (parseError) {
-      return res.status(400).json({
-        success: false,
-        error: parseError.message
-      });
-    }
+const parseUploadedResume = async (req, res) => {
+  const { text, links } = req.resumeExtract;
+  const fileName = req.file.originalname;
+  const model = resolveGeminiModel(req);
+  const client = createGoogleGenAI(req, res);
+  if (!client) return undefined; // response already sent
 
-    // Parse the extracted text using Gemini AI service
-    let parsedData = null;
-    let aiError = null;
-    
-    try {
-      logger.info('Calling Gemini AI service to parse resume text');
-      const client = createGoogleGenAI(req,res);
-      parsedData = await parseResumeText(extractedText, client, resolveGeminiModel(req));
-      logger.info('Resume text parsed successfully with AI');
-      
-      // Set usage type for tracking AI action usage
-      req.usageType = 'aiAction';
-    } catch (error) {
-      aiError = error;
-      logger.error('AI parsing failed, returning original text only:', error);
-      // Continue with original text if AI parsing fails
-      // Don't set usageType since AI parsing failed
-    }
-    
-    // If AI parsing failed, return error response to trigger token refund
-    if (aiError) {
-      // Return a mapped AI error so frontend gets correct message/status.
-      return sendAIError(res, aiError, {
-        isOwnApiKey: req.user?.isOwnApiKey,
-        model: process.env.GEMINI_MODEL || "gemini-2.5-flash-lite",
-      }, {
-        extra: {
-          data: {
-            originalText: extractedText,
-            parsedData: null,
-            fileName: originalname,
-            message: 'Resume text extracted successfully (AI parsing failed)',
-          },
-        },
-      });
-    }
-    
-    res.json({
-      success: true,
-      data: {
-        originalText: extractedText,
-        parsedData: parsedData,
-        fileName: originalname,
-        message: 'Resume text extracted and parsed successfully',
-        tokens: req.tokens
+  let raw;
+  try {
+    raw = await parseResumeText(text, client, model);
+  } catch (error) {
+    // success:false refunds the token; the fallback result still fills what it can.
+    const fallback = fallbackImport(text, links);
+    return sendAIError(res, error, { isOwnApiKey: req.user?.isOwnApiKey, model }, {
+      extra: {
+        data: { originalText: text, parsedData: fallback.formData, importReport: fallback.report, fileName },
       },
     });
+  }
 
+  let result;
+  try {
+    result = normalizeParsedResume(raw, { sourceText: text, links, parsedBy: 'ai' });
   } catch (error) {
-    logger.error('Resume parsing error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error during resume parsing'
-    });
+    logger.error('Resume import normalisation failed', { message: error.message });
+    result = fallbackImport(text, links);
+  }
+  req.usageType = 'aiAction';
+  logger.info(`Resume parsed for user ${logSafe(req.user.id)}: ${importSummary(result.formData, result.report)}`);
+  return res.json({
+    success: true,
+    data: {
+      originalText: text,
+      parsedData: result.formData,
+      importReport: result.report,
+      fileName,
+      message: 'Resume text extracted and parsed successfully',
+      tokens: req.tokens,
+    },
+  });
+};
+
+// @desc    Upload and parse resume (PDF/DOCX)
+// @route   POST /api/uploads/parse-resume
+// @access  Private
+router.post('/parse-resume', protect, receiveResumeFile, extractUploadedResume, skipIfBYOK(chargeAIToken), trackUsage, async (req, res) => {
+  try {
+    await parseUploadedResume(req, res);
+  } catch (error) {
+    logger.error('Resume parsing error', { message: error.message });
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, error: 'Something went wrong while reading your resume. Please try again.' });
+    }
   }
 });
 

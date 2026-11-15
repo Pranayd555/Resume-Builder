@@ -1,67 +1,95 @@
 import { apiHelpers } from "./api";
 import { extractBalance } from "../utils/tokenBalance";
+import { API_TIMEOUTS } from "../config/timeouts";
+
+const INSUFFICIENT_TOKENS = 'You have no AI tokens left. Buy more tokens to keep using AI features.';
+const MIN_AI_TEXT_CHARS = 20;
+
+/** Visible text length of an HTML fragment (what the server checks). */
+export const plainTextLength = (html) => String(html || '')
+  .replace(/<[^>]*>/g, ' ')
+  .replace(/&nbsp;/g, ' ')
+  .replace(/\s+/g, ' ')
+  .trim().length;
+
+/** One readable message from an AI error response. */
+export const aiErrorMessage = (status, body) => {
+  if (status === 403 && body?.limitReached) return INSUFFICIENT_TOKENS;
+  if (body?.error) return body.error;
+  if (Array.isArray(body?.errors) && body.errors.length) return body.errors.map((e) => e.msg || e.message).join(', ');
+  if (status === 504) return 'The AI took too long to respond. Please try again.';
+  if (status === 429) return 'Too many AI requests right now. Please wait a moment and try again.';
+  return `AI request failed (${status}). Please try again.`;
+};
+
+/**
+ * fetch with a time limit. The server gives up on the model first and sends a
+ * clear error; this only catches a dropped connection or a hung request.
+ */
+const fetchWithTimeout = async (url, options, timeoutMs) => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } catch (error) {
+    if (error?.name === 'AbortError') throw new Error('The AI took too long to respond. Please try again.');
+    throw new Error('Could not reach the server. Check your connection and try again.');
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
+/** Parse an AI response; sync the token balance; throw a readable error on failure. */
+const readAIResponse = async (response) => {
+  const body = await response.json().catch(() => ({}));
+  // Success and error bodies can both carry the balance (a refunded token, or "not enough tokens").
+  apiHelpers.updateTokenData(extractBalance(body));
+  if (!response.ok || body?.success === false) {
+    const error = new Error(aiErrorMessage(response.status, body));
+    error.status = response.status;
+    error.data = body;
+    throw error;
+  }
+  return body;
+};
 
 class AIService {
   constructor() {
     this.baseURL = process.env.REACT_APP_API_URL;
   }
 
-  async _makeRequest(endpoint, data, method = 'POST') {
+  _token() {
     const token = localStorage.getItem('authToken');
-    
-    if (!token) {
-      throw new Error('Please log in to use AI features');
-    }
+    if (!token) throw new Error('Please log in to use AI features');
+    return token;
+  }
 
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
+  async _makeRequest(endpoint, data, method = 'POST', timeoutMs = API_TIMEOUTS.AI) {
+    const response = await fetchWithTimeout(`${this.baseURL}${endpoint}`, {
       method,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${this._token()}`
       },
       body: method !== 'GET' ? JSON.stringify(data) : undefined
-    });
+    }, timeoutMs);
+    return readAIResponse(response);
+  }
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      // Error bodies can carry the balance (refunded token, or "not enough tokens")
-      apiHelpers.updateTokenData(extractBalance(errorData));
-      
-      // Handle specific token exhaustion errors
-      if (response.status === 402 || (errorData.error && errorData.error.includes('tokens'))) {
-        throw new Error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
-      }
-      
-      throw new Error(errorData.error || `Request failed with status ${response.status}`);
+  _checkLength(content) {
+    if (plainTextLength(content) < MIN_AI_TEXT_CHARS) {
+      throw new Error(`Add at least ${MIN_AI_TEXT_CHARS} characters of text before using AI.`);
     }
-
-     const responseData = await response.json();
-     
-     // Keep the app-wide balance in sync (no balance is sent for BYOK users)
-     apiHelpers.updateTokenData(extractBalance(responseData));
-
-     return responseData;
   }
 
   /**
-   * Polish/rewrite content using AI
-   * @param {string} content - The content to polish
-   * @param {string} tone - The tone to use (professional, casual, formal, creative)
-   * @param {string} style - The style to use (concise, detailed, action-oriented, achievement-focused)
-   * @returns {Promise<Object>} - The polished content
+   * Rewrite one field for impact and ATS keywords.
+   * @param {string} content - HTML from the editor
+   * @param {string} field - summary | workExperience | projects | education | achievements | general
    */
-  async polishContent(content, tone = 'professional', style = 'action-oriented') {
-    if (!content || content.trim().length < 100) {
-      throw new Error('Content must be at least 100 characters long');
-    }
-
-    const response = await this._makeRequest('/ai/rewrite', {
-      content: content.trim(),
-      tone,
-      style
-    });
-
-    // Backend returns { success: true, data: { rewrittenContent, ... } }
+  async polishContent(content, field = 'general', tone = 'professional', style = 'achievement-focused') {
+    this._checkLength(content);
+    const response = await this._makeRequest('/ai/rewrite', { content: content.trim(), field, tone, style });
     return {
       success: true,
       data: {
@@ -75,22 +103,13 @@ class AIService {
   }
 
   /**
-   * Summarize content using AI
-   * @param {string} content - The content to summarize
-   * @param {number} maxLength - Maximum length of summary (optional)
-   * @returns {Promise<Object>} - The summarized content
+   * Shorten one field.
+   * @param {string} content - HTML from the editor
+   * @param {string} field - see polishContent
    */
-  async summarizeContent(content, maxLength = 150) {
-    if (!content || content.trim().length < 20) {
-      throw new Error('Content must be at least 20 characters long');
-    }
-
-    const response = await this._makeRequest('/ai/summarize', {
-      content: content.trim(),
-      maxLength
-    });
-
-    // Backend returns { success: true, data: { summary, ... } }
+  async summarizeContent(content, field = 'general') {
+    this._checkLength(content);
+    const response = await this._makeRequest('/ai/summarize', { content: content.trim(), field });
     return {
       success: true,
       data: {
@@ -140,36 +159,12 @@ class AIService {
       formData.append('jobDescriptionFile', jobDescriptionFile);
     }
 
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('Please log in to use AI features');
-    }
-
-    const response = await fetch(`${this.baseURL}/ai/ats-score`, {
+    const response = await fetchWithTimeout(`${this.baseURL}/ai/ats-score`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
+      headers: { 'Authorization': `Bearer ${this._token()}` },
       body: formData
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      // Error bodies can carry the balance (refunded token, or "not enough tokens")
-      apiHelpers.updateTokenData(extractBalance(errorData));
-      
-      // Handle specific token exhaustion errors
-      if (response.status === 402 || (errorData.error && errorData.error.includes('tokens'))) {
-        throw new Error('AI tokens exhausted! Please purchase more tokens to continue using AI features.');
-      }
-      
-      throw new Error(errorData.error || 'Failed to generate ATS score');
-    }
-
-     const result = await response.json();
-     
-     // Keep the app-wide balance in sync (no balance is sent for BYOK users)
-     apiHelpers.updateTokenData(extractBalance(result));
+    }, API_TIMEOUTS.AI_PARSING);
+    const result = await readAIResponse(response);
 
      // Backend returns { success: true, data: { atsAnalysis, ... } }
      return {

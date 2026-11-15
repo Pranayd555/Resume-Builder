@@ -6,6 +6,7 @@ import {
   validateResumeEntries,
   prepareResumePayload,
   normalizeImportedResume,
+  toEditorHtml,
   mapServerErrors,
   stepForErrorKey,
   describeErrorKey,
@@ -169,6 +170,35 @@ describe('normalizeImportedResume', () => {
     expect(out.education[0]).toMatchObject({ startDate: '2016-01-01', endDate: '2019-01-01', gpa: '3.8' });
     expect(out.skills[0].items[0].level).toBe('expert');
     expect(out.languages[0].proficiency).toBe('conversational');
+  });
+});
+
+describe('normalizeImportedResume: editor content', () => {
+  test('server HTML is kept; legacy per-job bullets move into the description', () => {
+    const out = normalizeImportedResume({
+      summary: 'Backend engineer.',
+      workExperience: [{ jobTitle: 'Dev', company: 'Acme', description: '<p>Payments team.</p>', achievements: ['Cut costs 30%', 'Led 4 engineers'] }],
+      projects: [{ name: 'RouteWise', description: 'Intro\n• Fast solver\n• 1K stars', technologies: 'Go, PostGIS' }]
+    });
+    expect(out.summary).toBe('<p>Backend engineer.</p>');
+    expect(out.workExperience[0].description).toBe('<p>Payments team.</p><ul><li>Cut costs 30%</li><li>Led 4 engineers</li></ul>');
+    expect(out.workExperience[0].achievements).toEqual([]);
+    expect(out.projects[0].description).toBe('<p>Intro</p><ul><li>Fast solver</li><li>1K stars</li></ul>');
+    expect(out.projects[0].technologies).toEqual(['Go', 'PostGIS']);
+  });
+
+  test('normalising twice changes nothing (safe on server-normalised data)', () => {
+    const once = normalizeImportedResume({
+      workExperience: [{ jobTitle: 'Dev', description: 'Line one\nLine two', startDate: 'Mar 2021', endDate: 'Present' }],
+      skills: [{ category: 'Tools', items: ['Git', { name: 'Docker', level: 'Advanced' }] }]
+    });
+    expect(normalizeImportedResume(once)).toEqual(once);
+    expect(once.skills[0].items).toEqual([{ name: 'Git', level: 'intermediate' }, { name: 'Docker', level: 'advanced' }]);
+  });
+
+  test('toEditorHtml escapes text', () => {
+    expect(toEditorHtml('a < b & c')).toBe('<p>a &lt; b &amp; c</p>');
+    expect(toEditorHtml('')).toBe('');
   });
 });
 

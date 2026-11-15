@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import AIService from "../services/aiService";
+import AIService, { plainTextLength } from "../services/aiService";
 
 import "./AIButton.css";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
@@ -14,6 +14,10 @@ const AIButton = ({
   onAILoading = null,
   isMobile = false,
   originalText = null,
+  // Which resume field this editor holds (summary, workExperience, projects,
+  // education, achievements). The server uses it to pick the right style and
+  // length limit so the result fits the template.
+  aiField = "general",
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -40,7 +44,8 @@ const AIButton = ({
 
     const editorContent = getEditorContent();
 
-    if (!editorContent || editorContent.trim().length === 0) {
+    const visibleLength = plainTextLength(editorContent);
+    if (visibleLength === 0) {
       showNotification(
         "Please add some content to the editor first.",
         "warning"
@@ -48,7 +53,7 @@ const AIButton = ({
       return;
     }
 
-    if (editorContent.length < 20) {
+    if (!isProMode && visibleLength < 20) {
       showNotification(
         "Content is too short. Please add at least 20 characters.",
         "warning"
@@ -69,14 +74,10 @@ const AIButton = ({
 
       switch (action) {
         case "summarize":
-          result = await AIService.summarizeContent(editorContent, 150);
+          result = await AIService.summarizeContent(editorContent, aiField);
           break;
         case "professional":
-          result = await AIService.polishContent(
-            editorContent,
-            "professional",
-            "achievement-focused"
-          );
+          result = await AIService.polishContent(editorContent, aiField);
           break;
         case "generatePDFTemplate":
           // For pro mode - generate PDF template from basic details
@@ -100,7 +101,6 @@ const AIButton = ({
         processedText = result.data.rewrittenContent || result.data.summary;
       }
       replaceEditorContent(processedText);
-      originalText = result.data.originalContent
 
       // Trigger content change event to update the editor
       if (onContentChange) {
@@ -150,7 +150,6 @@ const AIButton = ({
     try {
       // Use setData to properly update the editor and trigger change events
       editorInstance.setData(newText || "");
-      console.log("Editor content updated with:", newText);
     } catch (error) {
       console.error("Error updating editor content:", error);
       showNotification(
