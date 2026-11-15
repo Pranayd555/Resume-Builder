@@ -28,7 +28,7 @@ const mongoose = require('mongoose');
  * Validate a user id and return it as a plain 24-hex-character string before
  * it goes into a query (Mongoose casts it to an ObjectId). Anything else, e.g.
  * an object such as { $ne: null } from a request body, is rejected. Queries
- * get plain strings only, never objects (Sonar S5147).
+ * get plain strings only, never objects (prevents NoSQL injection).
  */
 function toUserId(id) {
   const value = String(id);

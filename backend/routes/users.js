@@ -478,7 +478,7 @@ router.post('/add-tokens', protect, authorize('admin'), async (req, res) => {
       });
     }
 
-    // Structured log entry (an object, not a built string): Sonar S5145
+    // Structured log entry (an object, not a built string) so request values cannot forge log lines
     logger.info('Admin added purchased tokens to own account', {
       adminId: String(req.user._id),
       tokensAdded: Number(tokens),

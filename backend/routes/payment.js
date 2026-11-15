@@ -26,7 +26,7 @@ function purchaseInputError({ order_id, payment_id, signature, tokens, amount })
   return null;
 }
 
-// Plain, bounded string for values stored from a request (Sonar S5147).
+// Plain, bounded string for values stored from a request (prevents NoSQL injection).
 const plainString = (value, max = 100) => String(value ?? '').slice(0, max);
 
 // Token packages: price is in rupees. The server decides how many tokens a
@@ -50,7 +50,7 @@ const BONUS_GIVEN_BY = 'The Presmistique Team';
  * reports, promotions).
  */
 async function grantBonusTokens(user, tokens, rawReason, admin) {
-  // Plain strings only in the update document (Sonar S5147)
+  // Plain strings only in the update document (prevents NoSQL injection)
   const reason = String(rawReason ?? '').slice(0, 200);
   const now = new Date();
   const id = String(`admin_bonus_${now.getTime()}_${user._id}`);
