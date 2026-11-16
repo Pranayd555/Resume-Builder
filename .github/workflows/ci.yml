@@ -42,6 +42,8 @@ jobs:
     needs: changes
     if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
+    # A hung test fails in minutes instead of holding a runner for 6 hours.
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: backend
@@ -107,6 +109,8 @@ jobs:
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
+    # A hung test fails in minutes instead of holding a runner for 6 hours.
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: resume-builder
