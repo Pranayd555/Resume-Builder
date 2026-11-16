@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import {
@@ -9,188 +9,121 @@ import {
   ShieldCheckIcon,
   EnvelopeIcon,
   KeyIcon,
-  // CreditCardIcon
+  CreditCardIcon
 } from '@heroicons/react/24/outline';
 import AnimatedBackground from './AnimatedBackground';
 import { useAuth } from '../contexts/AuthContext';
-// import { paymentAPI, apiHelpers } from '../services/api';
+import { paymentAPI } from '../services/api';
+import { PRODUCT_NAME } from '../constants/brand';
+
+const CHECKOUT_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
+
+/** Load Razorpay Checkout once; resolves false if it cannot be loaded. */
+function loadCheckout() {
+  if (window.Razorpay) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    const existing = document.querySelector(`script[src="${CHECKOUT_SCRIPT}"]`);
+    const script = existing || document.createElement('script');
+    script.addEventListener('load', () => resolve(true));
+    script.addEventListener('error', () => resolve(false));
+    if (!existing) {
+      script.src = CHECKOUT_SCRIPT;
+      document.body.appendChild(script);
+    }
+  });
+}
+
+const errorMessage = (error, fallback) => error?.response?.data?.message || error?.message || fallback;
 
 const Payment = () => {
   const navigate = useNavigate();
   const { user, balance, refreshBalance } = useAuth();
-  const [tokenAmount, setTokenAmount] = useState(5);
-  // const [loading, setLoading] = useState(false);
-  // const [razorpayLoaded, setRazorpayLoaded] = useState(false);
-
-  // Token packages
-  const tokenPackages = [
-    { amount: 5, price: 49, bonus: 0 },
-    { amount: 10, price: 89, bonus: 1 },
-    { amount: 25, price: 199, bonus: 5 },
-    { amount: 50, price: 349, bonus: 15 },
-    { amount: 100, price: 599, bonus: 40 }
-  ];
+  const [config, setConfig] = useState(null); // { enabled, keyId, packs }
+  const [selectedPackId, setSelectedPackId] = useState(null);
+  const [processing, setProcessing] = useState(false);
 
   // Show the latest balance (grants and refunds can change it server-side)
   useEffect(() => {
     refreshBalance();
   }, [refreshBalance]);
 
+  // Packs and prices come from the server, the only place they are defined
   useEffect(() => {
-    // Load Razorpay script
-    const loadRazorpay = () => {
-      if (window.Razorpay) {
-        // setRazorpayLoaded(true);
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      // script.onload = () => setRazorpayLoaded(true);
-      script.onerror = () => toast.error('Failed to load payment gateway');
-      document.body.appendChild(script);
-    };
-
-    loadRazorpay();
+    let cancelled = false;
+    paymentAPI.getConfig()
+      .then((res) => {
+        if (cancelled || !res?.success) return;
+        setConfig(res.data);
+        const packs = res.data.packs || [];
+        setSelectedPackId((current) => current || (packs.find((p) => p.popular) || packs[0])?.id || null);
+        if (res.data.enabled) loadCheckout();
+      })
+      .catch(() => {
+        if (!cancelled) setConfig({ enabled: false, packs: [] });
+      });
+    return () => { cancelled = true; };
   }, []);
 
-  /*
-  const handleTokenPurchase = async () => {
-    if (tokenAmount < 5 || tokenAmount % 5 !== 0) {
-      toast.error('Token amount must be in multiples of 5');
-      return;
-    }
+  const packs = config?.packs || [];
+  const selectedPack = packs.find((pack) => pack.id === selectedPackId) || null;
+  const paymentsEnabled = Boolean(config?.enabled);
 
-    const selectedPackage = tokenPackages.find(pkg => pkg.amount === tokenAmount);
-    if (!selectedPackage) {
-      toast.error('Invalid token amount');
-      return;
-    }
-
-    await initiatePayment({
-      type: 'tokens',
-      amount: selectedPackage.price,
-      tokens: tokenAmount + selectedPackage.bonus,
-      description: `${tokenAmount} AI Tokens${selectedPackage.bonus > 0 ? ` + ${selectedPackage.bonus} Bonus` : ''}`
-    });
-  };
-
-
-  const initiatePayment = async (paymentData) => {
-    if (!razorpayLoaded) {
-      toast.error('Payment gateway is loading, please wait...');
-      return;
-    }
-
-    setLoading(true);
+  const confirmPayment = useCallback(async (response) => {
     try {
-      // Create order on backend
-      const response = await paymentAPI.createOrder({
-        amount: paymentData.amount,
-        currency: 'INR',
-        receipt: `${paymentData.type}_${Date.now()}`,
-        metadata: {
-          type: paymentData.type,
-          tokens: paymentData.tokens,
-          planId: paymentData.planId
-        }
+      const result = await paymentAPI.verifyPayment({
+        orderId: response.razorpay_order_id,
+        paymentId: response.razorpay_payment_id,
+        signature: response.razorpay_signature
       });
+      // The API layer applies the new balance from data.tokens.
+      toast.success(result?.message || 'Payment successful. Tokens added to your account.');
+      navigate('/analytics');
+    } catch (error) {
+      // Razorpay's webhook (or the reconcile job) will still credit a real payment.
+      toast.info(errorMessage(error, 'We are confirming your payment. Your tokens will appear within a few minutes.'));
+      setTimeout(() => refreshBalance(), 15000);
+    } finally {
+      setProcessing(false);
+    }
+  }, [navigate, refreshBalance]);
 
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to create order');
+  const handlePurchase = async () => {
+    if (!selectedPack || processing) return;
+    setProcessing(true);
+    try {
+      if (!(await loadCheckout())) {
+        throw new Error('Could not load the payment window. Please check your connection and try again.');
       }
+      const res = await paymentAPI.createOrder(selectedPack.id);
+      const order = res?.data;
+      if (!order?.orderId) throw new Error(res?.message || 'Could not start the payment.');
 
-      const order = response.order;
-
-
-      // Get user data from localStorage
-      const userData = apiHelpers.getCurrentUserData();
-
-      // Configure Razorpay options
-      const options = {
-        key: process.env.REACT_APP_RAZORPAY_KEY_ID,
+      const checkout = new window.Razorpay({
+        key: order.keyId,
+        order_id: order.orderId,
         amount: order.amount,
         currency: order.currency,
-        name: 'Presmistique - AI Resume Builder Pro',
-        description: paymentData.description,
-        order_id: order.id,
-        // Explicitly set mode to test for development
-        mode: process.env.NODE_ENV === 'production' ? 'live' : 'test',
-        // Add debug logging
-        config: {
-          display: {
-            hide: []
-          }
-        },
-        handler: async (response) => {
-          try {
-            // Complete payment and add tokens in one call
-            const completeResponse = await paymentAPI.completeTokenPurchase({
-              order_id: response.razorpay_order_id,
-              payment_id: response.razorpay_payment_id,
-              signature: response.razorpay_signature,
-              tokens: paymentData.tokens,
-              amount: paymentData.amount,
-              currency: 'INR',
-              payment_method: 'razorpay',
-              email: userData?.email || 'user@example.com',
-              contact: userData?.phone || userData?.contact || '+919876543210'
-            });
-
-            if (completeResponse.success) {
-              toast.success('Payment successful!');
-              toast.success(`${paymentData.tokens} tokens added to your account!`);
-
-              // The API layer applies the new balance from data.tokens; make
-              // sure it is fresh even if that field was missing.
-              if (!completeResponse.data?.tokens) {
-                await refreshBalance();
-              }
-
-              navigate('/dashboard');
-            } else {
-              throw new Error(completeResponse.data.message || 'Payment completion failed');
-            }
-          } catch (error) {
-            console.error('Payment completion error:', error);
-            toast.error(error.response?.data?.message || 'Payment completion failed');
-          }
-        },
+        name: PRODUCT_NAME,
+        description: `${selectedPack.tokens} AI tokens${selectedPack.bonus > 0 ? ` + ${selectedPack.bonus} bonus` : ''}`,
         prefill: {
-          name: userData?.name || 'User Name',
-          email: userData?.email || 'user@example.com',
+          name: [user?.firstName, user?.lastName].filter(Boolean).join(' '),
+          email: user?.email || ''
         },
-        theme: {
-          color: '#3B82F6'
-        },
+        theme: { color: '#3B82F6' },
+        handler: confirmPayment,
         modal: {
-          ondismiss: () => {
-            setLoading(false);
-            toast.info('Payment cancelled');
-          },
-          closed: () => {
-            // Ensure loading is set to false if the modal is closed for any reason
-            setLoading(false);
-          }
+          ondismiss: () => setProcessing(false)
         }
-      };
-
-      const rzp1 = new window.Razorpay(options);
-
-      rzp1.on('payment.failed', function (response) {
-        console.error('Razorpay payment failed:', response.error);
-        toast.error(response.error.description || 'Payment failed. Please try again.');
-        setLoading(false);
       });
-
-      rzp1.open();
+      checkout.on('payment.failed', (response) => {
+        toast.error(response?.error?.description || 'Payment failed. You can try again.');
+      });
+      checkout.open();
     } catch (error) {
-      console.error('Payment initiation error:', error);
-      toast.error(error.message || 'Failed to initiate payment');
-      setLoading(false);
+      toast.error(errorMessage(error, 'Could not start the payment. Please try again.'));
+      setProcessing(false);
     }
   };
-  */
 
   const handleBack = () => {
     navigate('/dashboard');
@@ -200,7 +133,8 @@ const Payment = () => {
     <div className="min-h-screen relative">
       <AnimatedBackground />
 
-      {/* Disclaimer Marquee - Full width, sticks right below header */}
+      {/* While payments are off: how to get tokens instead */}
+      {config && !paymentsEnabled && (
       <div className="relative z-20 pt-[64px]">
         <div className="w-full overflow-hidden bg-yellow-500/10 border-b border-yellow-500/20 backdrop-blur-sm">
           <style>{`
@@ -228,9 +162,10 @@ const Payment = () => {
           </div>
         </div>
       </div>
+      )}
 
       {/* Main Content Container */}
-      <div className="relative z-10 container mx-auto px-4 pt-6 pb-8">
+      <div className={`relative z-10 container mx-auto px-4 pb-8 ${config && !paymentsEnabled ? 'pt-6' : 'pt-[88px]'}`}>
 
         {/* Header Section */}
         <div className="text-center mb-12">
@@ -278,26 +213,36 @@ const Payment = () => {
               Choose Your Token Package
             </h2>
             <p className="text-gray-600 dark:text-gray-300 text-lg">
-              Select a token package that fits your needs. Higher packages include bonus tokens.
+              Pick a pack. Bigger packs cost less per token, and tokens never expire.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {tokenPackages.map((pkg, index) => (
-              <div
-                key={index}
-                className={`bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer border-2 ${tokenAmount === pkg.amount
+            {!config && (
+              <div className="col-span-full text-center text-gray-500 dark:text-gray-400 py-8">Loading packs…</div>
+            )}
+            {packs.map((pkg) => (
+              <button
+                type="button"
+                key={pkg.id}
+                aria-pressed={selectedPackId === pkg.id}
+                className={`relative text-left bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer border-2 ${selectedPackId === pkg.id
                   ? 'border-blue-500 ring-2 ring-blue-200'
                   : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'
                   }`}
-                onClick={() => setTokenAmount(pkg.amount)}
+                onClick={() => setSelectedPackId(pkg.id)}
               >
+                {pkg.popular && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-xs font-semibold text-white bg-gradient-to-r from-blue-500 to-purple-600 shadow">
+                    Most popular
+                  </span>
+                )}
                 <div className="text-center">
                   <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
                     <CurrencyDollarIcon className="w-8 h-8 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                    {pkg.amount} Tokens
+                    {pkg.tokens} Tokens
                   </h3>
                   <div className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                     ₹{pkg.price}
@@ -308,53 +253,65 @@ const Payment = () => {
                     </div>
                   )}
                   <div className="text-gray-600 dark:text-gray-300 text-sm">
-                    ₹{Math.round(pkg.price / (pkg.amount + pkg.bonus))} per token
+                    ₹{(pkg.price / (pkg.tokens + pkg.bonus)).toFixed(1)} per token
                   </div>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
 
           <div className="text-center">
-            {/* Pay Now Button - Commented out for development phase */}
-            {/* 
-            <button
-              onClick={handleTokenPurchase}
-              disabled={loading}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2 mx-auto"
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <CreditCardIcon className="w-5 h-5" />
-                  Pay ₹{tokenPackages.find(pkg => pkg.amount === tokenAmount)?.price || 0}
-                </>
-              )}
-            </button>
-            */}
-
-            {/* Contact Us Button */}
-            <button
-              onClick={() => navigate('/profile')}
-              className="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2 mx-auto mb-2"
-            >
-              <KeyIcon className="w-6 h-6" />
-              Bring your own key
-            </button>
-            <button
-              onClick={() => navigate('/contact-us')}
-              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-orange-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2 mx-auto"
-            >
-              <EnvelopeIcon className="w-6 h-6" />
-              Contact Us to Earn Tokens
-            </button>
-            <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-              Payment system is currently under maintenance. Please use contact us to request tokens.
-            </p>
+            {paymentsEnabled ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handlePurchase}
+                  disabled={processing || !selectedPack}
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center gap-2 mx-auto"
+                >
+                  {processing ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      Processing…
+                    </>
+                  ) : (
+                    <>
+                      <CreditCardIcon className="w-5 h-5" />
+                      Pay ₹{selectedPack?.price ?? 0}
+                    </>
+                  )}
+                </button>
+                <p className="mt-4 text-sm text-gray-500 dark:text-gray-400 max-w-xl mx-auto">
+                  Secure payment by Razorpay (UPI, cards, net banking, wallets). Tokens are added instantly,
+                  never expire and are non-refundable. 1 token = 1 AI action; if an AI action fails, its token
+                  is returned automatically. Charged twice or didn&apos;t get your tokens? Contact us and we&apos;ll fix it.
+                </p>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => navigate('/profile')}
+                  className="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2 mx-auto mb-2"
+                >
+                  <KeyIcon className="w-6 h-6" />
+                  Bring your own key
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/contact-us')}
+                  className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-orange-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2 mx-auto"
+                >
+                  <EnvelopeIcon className="w-6 h-6" />
+                  Contact Us to Earn Tokens
+                </button>
+                {config && (
+                  <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+                    Payments are paused right now. Please use contact us to request tokens.
+                  </p>
+                )}
+              </>
+            )}
           </div>
         </div>
 

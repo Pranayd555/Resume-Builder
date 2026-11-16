@@ -39,7 +39,7 @@ const CancellationRefunds = () => {
             Cancellation & <span className="text-indigo-600 dark:text-indigo-400">Refunds</span>
           </h1>
           <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-            We aim for transparency. This policy outlines how we handle account cancellations and refund requests for our token-based services.
+            We aim for transparency. This policy explains how tokens, cancellations and payment problems are handled.
           </p>
         </div>
 
@@ -63,7 +63,7 @@ const CancellationRefunds = () => {
                   </div>
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
                     <h4 className="font-bold text-slate-900 dark:text-white mb-2">Token Usage</h4>
-                    <p className="text-sm text-slate-500">Unused tokens remain in your account until you choose to use them.</p>
+                    <p className="text-sm text-slate-500">Tokens never expire. Unused tokens stay in your account until you use them.</p>
                   </div>
                 </div>
               </div>
@@ -77,32 +77,32 @@ const CancellationRefunds = () => {
                 <CreditCardIcon className="w-8 h-8 text-emerald-500" />
               </div>
               <div className="flex-1">
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">2. Refund Policy</h2>
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">2. Purchases Are Non-Refundable</h2>
                 <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
-                  Refunds are eligible only for unused tokens and must meet the following conditions:
+                  AI tokens are a digital service delivered to your account instantly, so purchases are final:
                 </p>
                 <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                   <li className="flex items-center gap-2 text-sm text-slate-500">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    Request within 7 days of purchase
+                    Token purchases are non-refundable
                   </li>
                   <li className="flex items-center gap-2 text-sm text-slate-500">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    Tokens must be completely unused
+                    Tokens never expire, so nothing is lost
                   </li>
                   <li className="flex items-center gap-2 text-sm text-slate-500">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    Original payment method only
+                    1 token = 1 AI action
                   </li>
                   <li className="flex items-center gap-2 text-sm text-slate-500">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    Bonus tokens are non-refundable
+                    Free and bonus tokens have no cash value
                   </li>
                 </ul>
                 <div className="p-4 rounded-2xl bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/30">
                   <p className="text-sm text-amber-800 dark:text-amber-400 flex items-start gap-2">
                     <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0" />
-                    Used tokens cannot be refunded as digital services are delivered instantly upon request.
+                    Try AI with your free signup tokens before buying, and start with the smallest pack if you are unsure.
                   </p>
                 </div>
               </div>
@@ -130,10 +130,10 @@ const CancellationRefunds = () => {
               <div>
                 <h2 className="text-3xl font-bold mb-2 flex items-center gap-3">
                   <EnvelopeIcon className="w-8 h-8" />
-                  Need a Refund?
+                  Problem With a Payment?
                 </h2>
                 <p className="text-indigo-100">
-                  Contact our billing team with your Order ID and registered email address.
+                  If you were charged twice, charged without receiving tokens, or could not use the service because of a fault on our side, contact us with your receipt number and registered email. We investigate every claim and, where it is valid, refund the payment to the original method or add tokens to your account.
                 </p>
               </div>
               <div className="flex flex-col gap-3 w-full md:w-auto">
@@ -144,7 +144,7 @@ const CancellationRefunds = () => {
                   Contact Billing Team
                 </Link>
                 <p className="text-center text-xs text-indigo-200">
-                  Processing time: 5-7 business days
+                  Approved refunds reach your account in 5-7 business days
                 </p>
               </div>
             </div>

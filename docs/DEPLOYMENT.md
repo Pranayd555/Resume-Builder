@@ -34,7 +34,7 @@ Runs on every pull request to `main` or `dev`, on pushes to `dev`, and on manual
 1. **Detect changes** – `dorny/paths-filter` decides which areas changed:
    backend = `backend/**`, `deploy/**`, `.github/workflows/**`; frontend = `resume-builder/**`, `.github/workflows/**`.
 2. **Backend checks** (Node 22) – `npm ci`, `node --check` on every tracked `.js` file, `npm test`
-   (the refund calculator tests in `backend/utils/refundCalculator.test.js`) and `bash -n deploy/deploy.sh`.
+   (unit tests plus token and payment tests against a MongoDB service) and `bash -n deploy/deploy.sh`.
 3. **Backend image** – builds `backend/Dockerfile` and smoke-tests it: launches Chromium through
    `getLaunchOptions()` from `backend/utils/browserManager.js` and renders a PDF.
 4. **Frontend build** – `npm ci` + `npm run build` in `resume-builder/`, using the Node version in `resume-builder/.nvmrc`.
@@ -80,7 +80,7 @@ The Cloudflare Pages Git integration builds `resume-builder/` on every push; Git
 Build settings and environment variables live in the Cloudflare Pages project settings
 (root directory `resume-builder`, build command `npm run build`, output directory `build`).
 `REACT_APP_*` variables are baked in at build time, so they are public; production uses
-`REACT_APP_API_URL=https://api.presmistique.in/api` and a live `REACT_APP_RAZORPAY_KEY_ID`.
+`REACT_APP_API_URL=https://api.presmistique.in/api` (the Razorpay checkout key comes from the API; see `docs/PAYMENTS.md`).
 
 ## Rollback
 

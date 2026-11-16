@@ -54,13 +54,14 @@ const AdminDashboard = () => {
   }, []);
 
   // Format currency
-  const formatCurrency = (amount) => {
+  // Amounts from the API are in paise (Razorpay's unit)
+  const formatCurrency = (paise) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
+      maximumFractionDigits: 2,
+    }).format((Number(paise) || 0) / 100);
   };
 
   // Format relative time
@@ -339,7 +340,7 @@ const AdminDashboard = () => {
                             </div>
                             <div className="text-right text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
                               <p className="font-medium text-gray-900 dark:text-white">
-                                {formatCurrency(transaction.amount || 0)} {transaction.currency || 'INR'}
+                                {formatCurrency(transaction.amount || 0)}
                               </p>
                               <p>{formatRelativeTime(transaction.date)}</p>
                               <p className="text-xs text-green-600 dark:text-green-400 capitalize">
@@ -408,11 +409,11 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* Refund Requests */}
+        {/* Recent refunds (issued by admins after investigating a claim) */}
         {dashboardData?.refundRequests && dashboardData.refundRequests.length > 0 && (
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4">Refund Requests</h3>
+              <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4">Recent Refunds</h3>
               <div className="flow-root">
                 <ul className="-mb-8">
                   {dashboardData.refundRequests.map((request, index) => (
@@ -432,7 +433,7 @@ const AdminDashboard = () => {
                           <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
                             <div>
                               <p className="text-sm text-gray-500 dark:text-gray-400">
-                                <span className="font-medium text-gray-900 dark:text-white">{request.name || 'Unknown User'}</span> requested refund
+                                <span className="font-medium text-gray-900 dark:text-white">{request.name || 'Unknown User'}</span> was refunded
                               </p>
                               <p className="text-sm text-gray-500 dark:text-gray-400">
                                 {request.email}
@@ -445,7 +446,7 @@ const AdminDashboard = () => {
                             </div>
                             <div className="text-right text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
                               <p className="font-medium text-gray-900 dark:text-white">
-                                {formatCurrency(request.amount || 0)} {request.currency || 'INR'}
+                                {formatCurrency(request.amount || 0)}
                               </p>
                               <p className="text-xs text-yellow-600 dark:text-yellow-400 capitalize">
                                 {request.refundStatus}

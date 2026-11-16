@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { toTokenBalance } = require('../utils/tokenCalculator');
-const { isPurchaseTransaction } = require('../utils/refundCalculator');
 
 const userSchema = new mongoose.Schema({
   // Basic Info
@@ -156,61 +155,14 @@ const userSchema = new mongoose.Schema({
     min: 0
   },
   
-  // Razorpay Transaction History (last 20 transactions)
-  razorpayTransactions: [{
-    transactionId: {
-      type: String,
-      required: true
-    },
-    orderId: {
-      type: String,
-      required: true
-    },
-    amount: {
-      type: Number,
-      required: true
-    },
-    currency: {
-      type: String,
-      default: 'INR'
-    },
-    status: {
-      type: String,
-      enum: ['created', 'authorized', 'captured', 'refunded', 'refund_requested', 'refund_rejected', 'failed'],
-      required: true
-    },
-    paymentId: String,
-    signature: String,
-    method: String,
-    bank: String,
-    wallet: String,
-    vpa: String,
-    email: String,
-    contact: String,
-    fee: Number,
-    tax: Number,
-    errorCode: String,
-    errorDescription: String,
-    errorSource: String,
-    errorStep: String,
-    errorReason: String,
-    createdAt: {
-      type: Date,
-      default: Date.now
-    },
-    capturedAt: Date,
-    refundedAt: Date,
-    notes: String,
-    // Refund tracking fields
-    refundRequestedAt: Date,
-    refundReason: String,
-    refundStatus: {
-      type: String,
-      enum: ['pending', 'approved', 'rejected', 'not_eligible', 'processing', 'completed'],
-      sparse: true
-    },
-    metadata: mongoose.Schema.Types.Mixed
-  }],
+  // Ids of payment-related token operations already applied (e.g.
+  // "credit:<paymentId>"), so retries never apply one twice. Managed by
+  // utils/tokenCalculator.js; payment records live in models/Payment.js.
+  appliedTokenOps: {
+    type: [String],
+    select: false,
+    default: undefined
+  },
   
   // Security
   emailVerificationToken: String,
@@ -274,28 +226,6 @@ userSchema.virtual('tokenBalance').get(function() {
 // Virtual for gemini api key
 userSchema.virtual('isOwnApiKey').get(function() {
   return !!(this.geminiApiKey);
-});
-
-// Virtual for razorpay transactions with isRefundable field
-userSchema.virtual('razorpayTransactionsWithRefundStatus').get(function() {
-  if (!this.razorpayTransactions || !Array.isArray(this.razorpayTransactions)) {
-    return [];
-  }
-
-  return this.razorpayTransactions.map(transaction => {
-    const transactionDate = new Date(transaction.createdAt);
-    const currentDate = new Date();
-    const daysDifference = Math.floor((currentDate - transactionDate) / (1000 * 60 * 60 * 24));
-
-    return {
-      ...transaction.toObject(),
-      // Only paid purchases can be refunded; bonus grants never can.
-      isRefundable: isPurchaseTransaction(transaction) &&
-                   (transaction.status === 'captured' || transaction.status === 'refund_requested') &&
-                   !transaction.refundedAt &&
-                   daysDifference <= 7
-    };
-  });
 });
 
 // Pre-save middleware to hash password
@@ -427,74 +357,12 @@ userSchema.methods.clearEmailOtp = function() {
 // bonus-first). The old read-modify-save helpers (hasTokens, consumeTokens,
 // addTokens, addBonusTokens) were removed: concurrent requests could overspend.
 
-// Method to add Razorpay transaction (maintains last 20 transactions)
-userSchema.methods.addRazorpayTransaction = function(transactionData) {
-  // Add new transaction to the beginning of the array
-  this.razorpayTransactions.unshift(transactionData);
-  
-  // Keep only the last 20 transactions
-  if (this.razorpayTransactions.length > 50) {
-    this.razorpayTransactions = this.razorpayTransactions.slice(0, 50);
-  }
-  
-  return this.save();
-};
-
-// Method to update transaction status
-userSchema.methods.updateTransactionStatus = function(transactionId, status, additionalData = {}) {
-  const transaction = this.razorpayTransactions.find(t => t.transactionId === transactionId);
-  if (transaction) {
-    transaction.status = status;
-    
-    // Set refund-related fields directly on transaction
-    if (additionalData.refundReason) {
-      transaction.refundReason = additionalData.refundReason;
-    }
-    if (additionalData.refundRequestedAt) {
-      transaction.refundRequestedAt = additionalData.refundRequestedAt;
-    }
-    if (additionalData.refundStatus) {
-      transaction.refundStatus = additionalData.refundStatus;
-    }
-    
-    // Merge additionalData into metadata for structured data storage
-    if (Object.keys(additionalData).length > 0) {
-      if (!transaction.metadata) {
-        transaction.metadata = {};
-      }
-      Object.assign(transaction.metadata, additionalData);
-    }
-    
-    // Set timestamps based on status
-    if (status === 'captured') {
-      transaction.capturedAt = new Date();
-    } else if (status === 'refunded') {
-      transaction.refundedAt = new Date();
-    }
-    
-    return this.save();
-  }
-  return false;
-};
-
-// Method to get transaction history
-userSchema.methods.getTransactionHistory = function(limit = 20) {
-  return this.razorpayTransactions.slice(0, limit);
-};
-
-// Method to get transaction by ID
-userSchema.methods.getTransactionById = function(transactionId) {
-  return this.razorpayTransactions.find(t => t.transactionId === transactionId);
-};
-
 // Subscription methods moved to separate Subscription model
 
 // Index for performance
 userSchema.index({ email: 1 });
 userSchema.index({ googleId: 1 });
 userSchema.index({ linkedinId: 1 });
-userSchema.index({ 'razorpayTransactions.transactionId': 1 });
-userSchema.index({ 'razorpayTransactions.orderId': 1 });
 userSchema.index({ geminiApiKey: 1 });
 userSchema.index({ geminiModel: 1 });
 // Stripe indexes removed
