@@ -21,4 +21,4 @@ Write new code so these issues never appear; reviewers check for them.
 
 ## Product rules
 - User-facing text never shows a developer's name or personal contact; the only brand contact is presmistique@gmail.com (`resume-builder/src/constants/brand.js`). Write copy in the "we/our team" voice.
-- AI tokens: two pools, purchased (`tokens`, refundable) and bonus (`bonusTokens`, not refundable). Read and change them only through `backend/utils/tokenCalculator.js` (atomic updates, bonus spent first); the frontend reads `balance` / `canUseAI` from `AuthContext`. Refund rules: `docs/REFUND_SYSTEM_README.md`.
+- AI tokens: two pools, purchased (`tokens`, refundable) and bonus (`bonusTokens`, not refundable). Read and change them only through `backend/utils/tokenCalculator.js` (atomic updates, bonus spent first); the frontend reads `balance` / `canUseAI` from `AuthContext`. Payments and the refund rule (full refund of an unused pack within 7 days, nothing else): `docs/PAYMENTS.md`; prices only in `backend/config/tokenPacks.js`.

@@ -449,7 +449,7 @@ router.put('/:id/status', [
 // @access  Private/Admin
 // Purchased tokens are refundable, so this must never be open to regular
 // users (it used to be: any logged-in user could credit themselves). Real
-// purchases go through /api/payment/complete-token-purchase.
+// purchases go through the Razorpay checkout (/api/payment/orders + /verify).
 router.post('/add-tokens', protect, authorize('admin'), async (req, res) => {
   try {
     const { paymentId, orderId, amount, plan, source } = req.body;

@@ -1,264 +1,187 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { toast } from 'react-toastify';
-import { 
-  CreditCardIcon, 
+import {
   CheckCircleIcon,
-  XCircleIcon,
+  ArrowUturnLeftIcon,
+  GiftIcon,
   ClockIcon,
-  CurrencyDollarIcon,
-  ArrowUturnLeftIcon
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 import { paymentAPI } from '../services/api';
 
-const PaymentHistory = () => {
-  const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+const formatDate = (value) => (value
+  ? new Date(value).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+  : '');
+const rupees = (paise) => `₹${(Number(paise || 0) / 100).toFixed(2)}`;
 
-  useEffect(() => {
-    fetchPaymentHistory();
+function statusLabel(payment) {
+  if (payment.type === 'bonus') return { text: 'Bonus', tone: 'text-green-700 bg-green-100' };
+  if (payment.status === 'refunded') {
+    return payment.refund?.status === 'processed'
+      ? { text: 'Refunded', tone: 'text-gray-700 bg-gray-100' }
+      : { text: 'Refund in progress', tone: 'text-yellow-800 bg-yellow-100' };
+  }
+  if (payment.status === 'paid') return { text: 'Paid', tone: 'text-green-700 bg-green-100' };
+  return { text: payment.status, tone: 'text-gray-700 bg-gray-100' };
+}
+
+/**
+ * The user's token purchases and bonus grants, newest first, with a
+ * self-serve refund for packs that qualify (unused, within the window).
+ */
+const PaymentHistory = ({ onChange }) => {
+  const [payments, setPayments] = useState(null);
+  const [error, setError] = useState(null);
+  const [confirming, setConfirming] = useState(null); // payment being refunded
+  const [reason, setReason] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      const res = await paymentAPI.getPaymentHistory();
+      setPayments(res?.data?.payments || []);
+      setError(null);
+    } catch (err) {
+      setError('Could not load your payment history.');
+    }
   }, []);
 
-  const fetchPaymentHistory = async () => {
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const submitRefund = async () => {
+    if (!confirming) return;
+    setSubmitting(true);
     try {
-      setLoading(true);
-      const response = await paymentAPI.getPaymentHistory();
-      
-      if (response.success) {
-        setTransactions(response.data.transactions || []);
-      } else {
-        setError(response.message || 'Failed to fetch payment history');
-      }
+      const res = await paymentAPI.requestRefund(confirming.id, reason.trim() || undefined);
+      toast.success(res?.message || 'Refund issued.');
+      setConfirming(null);
+      setReason('');
+      await load();
+      onChange?.();
     } catch (err) {
-      setError('Failed to fetch payment history');
-      console.error('Payment history error:', err);
+      toast.error(err?.response?.data?.message || 'The refund could not be processed. Please try again.');
+      await load();
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-IN', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const formatAmount = (amount) => {
-    return `₹${(amount / 100).toFixed(2)}`;
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'captured':
-        return <CheckCircleIcon className="w-5 h-5 text-green-500" />;
-      case 'failed':
-        return <XCircleIcon className="w-5 h-5 text-red-500" />;
-      case 'created':
-      case 'authorized':
-        return <ClockIcon className="w-5 h-5 text-yellow-500" />;
-      default:
-        return <ClockIcon className="w-5 h-5 text-gray-500" />;
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'captured':
-        return 'bg-green-100 text-green-800';
-      case 'failed':
-        return 'bg-red-100 text-red-800';
-      case 'created':
-      case 'authorized':
-        return 'bg-yellow-100 text-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  // isRefundable is now provided by the backend API
-
-  const handleRefund = (transaction) => {
-    // Placeholder for refund functionality
-    toast.info('Refund functionality will be implemented soon');
-    console.log('Refund requested for transaction:', transaction.transactionId);
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-300">Loading payment history...</p>
-        </div>
-      </div>
-    );
-  }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <XCircleIcon className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            Error Loading Payment History
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
-          <button
-            onClick={fetchPaymentHistory}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
+      <div className="text-center py-6">
+        <p className="text-sm text-red-600 mb-3">{error}</p>
+        <button type="button" onClick={load} className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700">
+          Try again
+        </button>
       </div>
     );
   }
+  if (!payments) {
+    return <p className="text-center text-sm text-gray-500 py-6">Loading payment history…</p>;
+  }
+  if (payments.length === 0) {
+    return <p className="text-center text-sm text-gray-500 dark:text-gray-700 py-6">No payments yet.</p>;
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Payment History
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300">
-            View your transaction history and payment details
-          </p>
-        </div>
-
-        {/* Transactions List */}
-        {transactions.length === 0 ? (
-          <div className="text-center py-12">
-            <CreditCardIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              No Transactions Found
-            </h3>
-            <p className="text-gray-600 dark:text-gray-300">
-              You haven't made any payments yet.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {transactions.map((transaction, index) => (
-              <div
-                key={transaction.transactionId || index}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex-shrink-0">
-                      {getStatusIcon(transaction.status)}
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {transaction.notes || 'AI Tokens Purchase'}
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        Transaction ID: {transaction.transactionId}
+    <>
+      <ul className="space-y-3" data-testid="payment-history">
+        {payments.map((payment) => {
+          const status = statusLabel(payment);
+          const isBonus = payment.type === 'bonus';
+          return (
+            <li key={payment.id} className="border border-gray-200 dark:border-orange-700/30 rounded-lg p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3 min-w-0">
+                  {isBonus
+                    ? <GiftIcon className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
+                    : <CheckCircleIcon className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />}
+                  <div className="min-w-0">
+                    <h4 className="font-medium text-gray-900 dark:text-gray-700">
+                      {isBonus
+                        ? `${payment.bonusTokens} bonus tokens`
+                        : `${payment.tokens} tokens${payment.bonusTokens > 0 ? ` + ${payment.bonusTokens} bonus` : ''}`}
+                    </h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-700">
+                      {formatDate(payment.paidAt || payment.createdAt)}
+                      {payment.receiptNumber ? ` · Receipt ${payment.receiptNumber}` : ''}
+                      {isBonus && payment.reason ? ` · ${payment.reason}` : ''}
+                    </p>
+                    {payment.refundable && payment.refundableUntil && (
+                      <p className="text-xs text-blue-700 mt-1 flex items-center gap-1">
+                        <ClockIcon className="h-3.5 w-3.5" />
+                        Refundable until {formatDate(payment.refundableUntil)} while unused
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {formatDate(transaction.createdAt)}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="text-right">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <CurrencyDollarIcon className="w-5 h-5 text-gray-400" />
-                      <span className="text-xl font-bold text-gray-900 dark:text-white">
-                        {formatAmount(transaction.amount)}
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
-                        {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
-                      </span>
-                      {transaction.isRefundable && (
-                        <button
-                          onClick={() => handleRefund(transaction)}
-                          className="inline-flex items-center px-3 py-1.5 border border-red-300 text-red-700 text-xs font-medium rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
-                        >
-                          <ArrowUturnLeftIcon className="w-4 h-4 mr-1" />
-                          Refund
-                        </button>
-                      )}
-                    </div>
+                    )}
                   </div>
                 </div>
-
-                {/* Transaction Details */}
-                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div className="text-right shrink-0">
+                  {!isBonus && <p className="font-semibold text-gray-900 dark:text-gray-600">{rupees(payment.amount)}</p>}
+                  <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${status.tone}`}>{status.text}</span>
+                  {payment.refundable && (
                     <div>
-                      <span className="font-medium text-gray-700 dark:text-gray-300">Order ID:</span>
-                      <p className="text-gray-600 dark:text-gray-400">{transaction.orderId}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-700 dark:text-gray-300">Payment Method:</span>
-                      <p className="text-gray-600 dark:text-gray-400 capitalize">
-                        {transaction.method || 'Razorpay'}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-700 dark:text-gray-300">Currency:</span>
-                      <p className="text-gray-600 dark:text-gray-400">{transaction.currency}</p>
-                    </div>
-                  </div>
-
-                  {/* Tokens Added */}
-                  {transaction.metadata?.tokensAdded && (
-                    <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-blue-600 dark:text-blue-400 font-medium">
-                          Tokens Added:
-                        </span>
-                        <span className="text-blue-800 dark:text-blue-200 font-bold">
-                          {transaction.metadata.tokensAdded}
-                        </span>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setConfirming(payment)}
+                        className="mt-2 inline-flex items-center px-2 py-1 border border-red-300 text-red-700 text-xs font-medium rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500"
+                      >
+                        <ArrowUturnLeftIcon className="w-3 h-3 mr-1" />
+                        Refund
+                      </button>
                     </div>
                   )}
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+            </li>
+          );
+        })}
+      </ul>
 
-        {/* Summary */}
-        {transactions.length > 0 && (
-          <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Summary
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {transactions.length}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-300">Total Transactions</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-green-600">
-                  {transactions.filter(t => t.status === 'captured').length}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-300">Successful</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {formatAmount(transactions.reduce((sum, t) => sum + (t.amount || 0), 0))}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-300">Total Amount</p>
-              </div>
+      {confirming && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-labelledby="refund-title">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-start justify-between mb-4">
+              <h3 id="refund-title" className="text-lg font-semibold text-gray-900">Refund this pack?</h3>
+              <button type="button" onClick={() => setConfirming(null)} disabled={submitting} aria-label="Close" className="text-gray-400 hover:text-gray-600">
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            </div>
+            <p className="text-sm text-gray-700">
+              You will get <strong>{rupees(confirming.amount)}</strong> back to your original payment method
+              (usually within 5-7 business days), and{' '}
+              <strong>
+                {confirming.tokens} tokens{confirming.bonusTokens > 0 ? ` + ${confirming.bonusTokens} bonus tokens` : ''}
+              </strong>{' '}
+              will be removed from your balance. This cannot be undone.
+            </p>
+            <label htmlFor="refund-reason" className="block text-sm font-medium text-gray-700 mt-4 mb-1">
+              Reason (optional)
+            </label>
+            <textarea
+              id="refund-reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              maxLength={500}
+              rows={3}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Tell us what didn't work for you"
+            />
+            <div className="flex justify-end gap-3 mt-5">
+              <button type="button" onClick={() => setConfirming(null)} disabled={submitting} className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50">
+                Keep my tokens
+              </button>
+              <button type="button" onClick={submitRefund} disabled={submitting} className="px-4 py-2 text-sm text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50">
+                {submitting ? 'Refunding…' : `Refund ${rupees(confirming.amount)}`}
+              </button>
             </div>
           </div>
-        )}
-      </div>
-    </div>
+        </div>,
+        document.body
+      )}
+    </>
   );
 };
 

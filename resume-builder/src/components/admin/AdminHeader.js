@@ -42,7 +42,7 @@ const AdminHeader = () => {
     { name: 'Feedback', href: '/admin/feedback', icon: ChatBubbleLeftIcon, current: location.pathname === '/admin/feedback' },
     { name: 'Contacts', href: '/admin/contacts', icon: ChatBubbleLeftRightIcon, current: location.pathname === '/admin/contacts' },
     { name: 'Transactions', href: '/admin/transactions', icon: CreditCardIcon, current: location.pathname === '/admin/transactions' },
-    { name: 'Refunds', href: '/admin/refunds', icon: ArrowUturnLeftIcon, current: location.pathname === '/admin/refunds' },
+    { name: 'Payments', href: '/admin/payments', icon: ArrowUturnLeftIcon, current: location.pathname === '/admin/payments' },
     { name: 'Tokens', href: '/admin/tokens', icon: CurrencyDollarIcon, current: location.pathname === '/admin/tokens' },
   ];
 

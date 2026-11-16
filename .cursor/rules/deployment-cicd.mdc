@@ -26,7 +26,7 @@ Full guide: [docs/DEPLOYMENT.md](mdc:docs/DEPLOYMENT.md). Keep it in sync when c
 
 Runs on PRs to `main`/`dev`, pushes to `dev`, and manual runs. Never deploys.
 - `changes`: `dorny/paths-filter` → backend (`backend/**`, `deploy/**`, `.github/workflows/**`) / frontend (`resume-builder/**`, `.github/workflows/**`).
-- `backend` (Node 22): `npm ci`, `node --check` on every tracked JS file, `npm test` (refund calculator tests), `bash -n deploy/deploy.sh`.
+- `backend` (Node 22): `npm ci`, `node --check` on every tracked JS file, `npm test` (unit tests plus MongoDB-backed token and payment tests), `bash -n deploy/deploy.sh`.
 - `backend-image`: builds `backend/Dockerfile`, smoke-tests that Chromium launches via `getLaunchOptions()` and renders a PDF.
 - `frontend`: `npm ci` + `npm run build` with Node from `resume-builder/.nvmrc`.
 - `ci-passed`: the single check required by branch protection on `main` (skipped jobs count as passed).

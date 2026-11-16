@@ -79,30 +79,30 @@ const CancellationRefunds = () => {
               <div className="flex-1">
                 <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">2. Refund Policy</h2>
                 <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
-                  Refunds are eligible only for unused tokens and must meet the following conditions:
+                  A token pack gets a full refund when all of these are true:
                 </p>
                 <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                   <li className="flex items-center gap-2 text-sm text-slate-500">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    Request within 7 days of purchase
+                    Requested within 7 days of purchase
                   </li>
                   <li className="flex items-center gap-2 text-sm text-slate-500">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    Tokens must be completely unused
+                    The pack is completely unused, including its bonus tokens
                   </li>
                   <li className="flex items-center gap-2 text-sm text-slate-500">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    Original payment method only
+                    Refunded to the original payment method
                   </li>
                   <li className="flex items-center gap-2 text-sm text-slate-500">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    Bonus tokens are non-refundable
+                    Free and promotional bonus tokens are non-refundable
                   </li>
                 </ul>
                 <div className="p-4 rounded-2xl bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/30">
                   <p className="text-sm text-amber-800 dark:text-amber-400 flex items-start gap-2">
                     <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0" />
-                    Used tokens cannot be refunded as digital services are delivered instantly upon request.
+                    Tokens are spent bonus first, so once you use AI after buying a pack it can no longer be refunded: digital services are delivered instantly. Packs that are partly used are not refunded.
                   </p>
                 </div>
               </div>
@@ -133,7 +133,7 @@ const CancellationRefunds = () => {
                   Need a Refund?
                 </h2>
                 <p className="text-indigo-100">
-                  Contact our billing team with your Order ID and registered email address.
+                  Refund an unused pack yourself from Analytics &gt; Payment History; the refund starts immediately. For anything else, contact our billing team with your receipt number and registered email address.
                 </p>
               </div>
               <div className="flex flex-col gap-3 w-full md:w-auto">
@@ -144,7 +144,7 @@ const CancellationRefunds = () => {
                   Contact Billing Team
                 </Link>
                 <p className="text-center text-xs text-indigo-200">
-                  Processing time: 5-7 business days
+                  Money reaches your account in 5-7 business days
                 </p>
               </div>
             </div>

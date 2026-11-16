@@ -2,7 +2,7 @@
  * AI token balance: the single source of truth.
  *
  * A user has two pools on the User document. They stay separate because only
- * purchased tokens can be refunded (see utils/refundCalculator.js):
+ * purchased tokens can be refunded (see utils/refundPolicy.js):
  *   tokens       -> purchased (bought through Razorpay, refundable)
  *   bonusTokens  -> bonus (signup, feedback, admin grants, package bonus; not refundable)
  *
@@ -12,8 +12,8 @@
  * still read them keep working.
  *
  * Spending order: bonus first, then purchased. This keeps refundable tokens as
- * long as possible and matches the refund scenarios (scenario 4 = bonus used,
- * purchased intact).
+ * long as possible. A pack can be refunded only while all of its tokens,
+ * bonus included, are still in the balance (see utils/refundPolicy.js).
  *
  * All writes are single atomic MongoDB updates, so concurrent AI calls can
  * never overspend or push a pool below zero.
@@ -164,21 +164,25 @@ async function spendTokens(userId, amount = 1) {
   return { ok: true, balance, spent };
 }
 
+// Each credit or deduction tied to a payment carries an operation id, e.g.
+// "credit:<paymentId>". The id is recorded on the user in the same atomic
+// write, and a write whose id is already recorded does nothing, so retries
+// (browser callback + webhook + reconcile job) can never apply it twice.
+const MAX_APPLIED_OPS = 200;
+const pushOp = (opId) => ({ appliedTokenOps: { $each: [String(opId)], $slice: -MAX_APPLIED_OPS } });
+
 /**
- * Atomically add tokens to either pool. `push` adds a transaction to
- * razorpayTransactions in the same write. With `unlessTransactionId`, nothing
- * happens if that transaction is already recorded (makes a purchase idempotent).
+ * Atomically add tokens to either pool. With `opId`, nothing happens if that
+ * operation was already applied.
  * @returns {Promise<{purchased, bonus, total} | null>} null if the user is
- *   missing or the transaction was already recorded.
+ *   missing or the operation was already applied.
  */
-async function creditTokens(userId, { purchased = 0, bonus = 0 } = {}, { unlessTransactionId, push } = {}) {
+async function creditTokens(userId, { purchased = 0, bonus = 0 } = {}, { opId } = {}) {
   const update = { $inc: { tokens: toCount(purchased), bonusTokens: toCount(bonus) } };
-  if (push) {
-    update.$push = { razorpayTransactions: { $each: [push], $position: 0, $slice: 50 } };
-  }
   const query = { _id: toUserId(userId) };
-  if (unlessTransactionId !== undefined) {
-    query['razorpayTransactions.transactionId'] = { $ne: String(unlessTransactionId) };
+  if (opId !== undefined) {
+    query.appliedTokenOps = { $ne: String(opId) };
+    update.$push = pushOp(opId);
   }
   const user = await getUserModel().findOneAndUpdate(
     query,
@@ -198,15 +202,45 @@ async function refundSpend(userId, spent) {
   return balance;
 }
 
-/** Atomically remove tokens (e.g. after a refund), clamping each pool at zero. */
-async function deductTokens(userId, amounts) {
+/** Whether an operation id has already been applied to the user. */
+async function isOpApplied(userId, opId) {
+  const found = await getUserModel().exists({ _id: toUserId(userId), appliedTokenOps: String(opId) });
+  return Boolean(found);
+}
+
+/**
+ * Remove a refunded pack's tokens. By default only if the user still holds
+ * all of them (the pack is unused); otherwise nothing changes and null is
+ * returned. With `clamp: true` (admin goodwill refund) each pool is reduced
+ * as far as possible, never below zero. Also null if `opId` was already applied.
+ */
+async function deductForRefund(userId, { purchased = 0, bonus = 0 }, { opId, clamp = false }) {
+  const p = toCount(purchased);
+  const b = toCount(bonus);
+  const op = String(opId);
+  const query = { _id: toUserId(userId), appliedTokenOps: { $ne: op } };
+  let update;
+  if (clamp) {
+    update = [
+      ...buildDeductPipeline({ purchased: p, bonus: b }),
+      {
+        $set: {
+          appliedTokenOps: {
+            $slice: [{ $concatArrays: [{ $ifNull: ['$appliedTokenOps', []] }, [op]] }, -MAX_APPLIED_OPS]
+          }
+        }
+      }
+    ];
+  } else {
+    query.$expr = { $and: [{ $gte: [PURCHASED_EXPR, p] }, { $gte: [BONUS_EXPR, b] }] };
+    update = { $inc: { tokens: -p, bonusTokens: -b }, $push: pushOp(op) };
+  }
   const user = await getUserModel().findOneAndUpdate(
-    { _id: toUserId(userId) },
-    buildDeductPipeline(amounts),
+    query,
+    update,
     { new: true, projection: BALANCE_PROJECTION, lean: true }
   );
-  if (!user) throw notFound();
-  return toTokenBalance(user);
+  return user ? toTokenBalance(user) : null;
 }
 
 module.exports = {
@@ -223,5 +257,6 @@ module.exports = {
   spendTokens,
   creditTokens,
   refundSpend,
-  deductTokens
+  isOpApplied,
+  deductForRefund
 };

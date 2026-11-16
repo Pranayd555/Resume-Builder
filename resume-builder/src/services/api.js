@@ -371,14 +371,6 @@ export const analyticsAPI = {
     return response.data;
   },
 
-  requestRefund: async (transactionId, reason) => {
-    const config = createApiConfig('/payment/request-refund');
-    const response = await api.post('/payment/request-refund', {
-      transactionId,
-      reason
-    }, config);
-    return response.data;
-  },
 };
 
 // Template API calls
@@ -596,40 +588,40 @@ export const contactAPI = {
   }
 };
 
-// Payment API
+// Payment API (token packs through Razorpay; see backend/routes/payment.js)
 export const paymentAPI = {
-  // Create Razorpay order
-  createOrder: async (orderData) => {
-    const config = createApiConfig('/payment/create-order');
-    const response = await api.post('/payment/create-order', orderData, config);
+  // Packs, refund window, whether payments are enabled, checkout key
+  getConfig: async () => {
+    const config = createApiConfig('/payment/config');
+    const response = await api.get('/payment/config', config);
     return response.data;
   },
 
-  // Complete token purchase
-  completeTokenPurchase: async (paymentData) => {
-    const config = createApiConfig('/payment/complete-token-purchase');
-    const response = await api.post('/payment/complete-token-purchase', paymentData, config);
+  // Create a Razorpay order for a pack; the server sets the price
+  createOrder: async (packId) => {
+    const config = createApiConfig('/payment/orders');
+    const response = await api.post('/payment/orders', { packId }, config);
     return response.data;
   },
 
-  // Get payment history
+  // Confirm a completed checkout; credits the tokens
+  verifyPayment: async ({ orderId, paymentId, signature }) => {
+    const config = createApiConfig('/payment/verify');
+    const response = await api.post('/payment/verify', { orderId, paymentId, signature }, config);
+    return response.data;
+  },
+
+  // Purchases and bonus grants, each with whether it can be refunded now
   getPaymentHistory: async () => {
     const config = createApiConfig('/payment/history');
     const response = await api.get('/payment/history', config);
     return response.data;
   },
 
-  // Get Razorpay key
-  getRazorpayKey: async () => {
-    const config = createApiConfig('/payment/razorpay-key');
-    const response = await api.get('/payment/razorpay-key', config);
-    return response.data;
-  },
-
-  // Verify payment signature
-  verifySignature: async (signatureData) => {
-    const config = createApiConfig('/payment/verify-signature');
-    const response = await api.post('/payment/verify-signature', signatureData, config);
+  // Self-serve refund of an unused pack
+  requestRefund: async (paymentId, reason) => {
+    const config = createApiConfig('/payment/refund');
+    const response = await api.post(`/payment/${encodeURIComponent(paymentId)}/refund`, { reason }, config);
     return response.data;
   }
 };

@@ -24,10 +24,7 @@ Central index for the documentation in this repository. Paths are relative to `d
 
 ## 🧾 Payments & refunds
 
-- **Razorpay integration**: [RAZORPAY_IMPLEMENTATION.md](RAZORPAY_IMPLEMENTATION.md)
-- **Refund system overview**: [REFUND_SYSTEM_README.md](REFUND_SYSTEM_README.md)
-- **Refund token deduction rules**: [REFUND_TOKEN_DEDUCTION_LOGIC.md](REFUND_TOKEN_DEDUCTION_LOGIC.md)
-- **Refund visual guide**: [REFUND_VISUAL_GUIDE.md](REFUND_VISUAL_GUIDE.md)
+- **Payments and refunds (Razorpay)**: [PAYMENTS.md](PAYMENTS.md)
 
 ## 🎨 Templates
 

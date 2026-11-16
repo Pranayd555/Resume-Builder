@@ -8,6 +8,8 @@ const User = require('../models/User');
 const logger = require('../utils/logger');
 const { toTokenBalance, tokenPayload, spendTokens } = require('../utils/tokenCalculator');
 const { logSafe } = require('../utils/logSafe');
+const Payment = require('../models/Payment');
+const { listUserPayments } = require('../services/paymentService');
 
 // @desc    Track resume view
 // @route   POST /api/analytics/resume/:id/view
@@ -148,7 +150,7 @@ router.get('/summary', protect, async (req, res) => {
     const totalViews = resumes.reduce((sum, resume) => sum + (resume.analytics.views || 0), 0);
     const totalDownloads = resumes.reduce((sum, resume) => sum + (resume.analytics.downloads || 0), 0);
 
-    const user = await User.findById(req.user.id).select('tokens bonusTokens razorpayTransactions');
+    const user = await User.findById(req.user.id).select('tokens bonusTokens');
     const balance = toTokenBalance(user);
 
     // Get templates used by user
@@ -175,7 +177,7 @@ router.get('/summary', protect, async (req, res) => {
       },
       tokens: {
         ...tokenPayload(balance),
-        recentTransactions: user?.razorpayTransactionsWithRefundStatus?.slice(0, 10) || []
+        recentTransactions: await listUserPayments(req.user.id, { limit: 10 })
       }
     };
 
@@ -197,7 +199,7 @@ router.get('/summary', protect, async (req, res) => {
 // @access  Private
 router.get('/ai-usage', protect, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('tokens bonusTokens razorpayTransactions');
+    const user = await User.findById(req.user.id).select('tokens bonusTokens');
     const balance = toTokenBalance(user);
 
     const aiUsageAnalytics = {
@@ -208,7 +210,7 @@ router.get('/ai-usage', protect, async (req, res) => {
         isTokenBased: true
       },
       tokens: tokenPayload(balance),
-      recentTransactions: user?.razorpayTransactionsWithRefundStatus?.slice(0, 5) || []
+      recentTransactions: await listUserPayments(req.user.id, { limit: 5 })
     };
 
     res.json({
@@ -230,7 +232,7 @@ router.get('/ai-usage', protect, async (req, res) => {
 // @access  Private
 router.get('/tokens', protect, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('tokens bonusTokens razorpayTransactions');
+    const user = await User.findById(req.user.id).select('tokens bonusTokens');
     const balance = toTokenBalance(user);
 
     res.json({
@@ -239,7 +241,7 @@ router.get('/tokens', protect, async (req, res) => {
         // Balance fields at the top level are kept for older clients.
         ...tokenPayload(balance),
         tokens: tokenPayload(balance),
-        recentTransactions: user?.razorpayTransactionsWithRefundStatus?.slice(0, 5) || []
+        recentTransactions: await listUserPayments(req.user.id, { limit: 5 })
       }
     });
   } catch (error) {
@@ -361,27 +363,10 @@ router.get('/admin/dashboard', protect, authorize('admin'), async (req, res) => 
       return 0;
     });
     
-    // Get revenue data from payments with proper error handling
-    const revenueData = await User.aggregate([
-      {
-        $unwind: {
-          path: '$razorpayTransactions',
-          preserveNullAndEmptyArrays: true
-        }
-      },
-      {
-        $match: {
-          'razorpayTransactions.status': 'captured',
-          'razorpayTransactions.amount': { $exists: true, $type: 'number' }
-        }
-      },
-      {
-        $group: {
-          _id: null,
-          totalRevenue: { $sum: '$razorpayTransactions.amount' },
-          totalTransactions: { $sum: 1 }
-        }
-      }
+    // Revenue: paid token purchases (refunded ones are not revenue)
+    const revenueData = await Payment.aggregate([
+      { $match: { type: 'purchase', status: 'paid' } },
+      { $group: { _id: null, totalRevenue: { $sum: '$amount' }, totalTransactions: { $sum: 1 } } }
     ]).catch(err => {
       logger.error('Error aggregating revenue data:', err);
       return [{ totalRevenue: 0, totalTransactions: 0 }];
@@ -401,47 +386,25 @@ router.get('/admin/dashboard', protect, authorize('admin'), async (req, res) => 
       return [{ totalTokensSold: 0, totalUsersWithTokens: 0 }];
     });
 
-    // Get recent transactions with proper error handling
-    const recentTransactions = await User.aggregate([
-      {
-        $unwind: {
-          path: '$razorpayTransactions',
-          preserveNullAndEmptyArrays: false
-        }
-      },
-      {
-        $match: {
-          'razorpayTransactions.status': 'captured',
-          'razorpayTransactions.amount': { $exists: true, $type: 'number' }
-        }
-      },
-      {
-        $sort: { 'razorpayTransactions.createdAt': -1 }
-      },
-      {
-        $limit: 10
-      },
-      {
-        $project: {
-          name: { 
-            $concat: [
-              { $ifNull: ['$firstName', ''] }, 
-              ' ', 
-              { $ifNull: ['$lastName', ''] }
-            ]
-          },
-          email: '$email',
-          amount: '$razorpayTransactions.amount',
-          currency: { $ifNull: ['$razorpayTransactions.currency', 'INR'] },
-          date: '$razorpayTransactions.createdAt',
-          status: '$razorpayTransactions.status',
-          transactionId: '$razorpayTransactions.transactionId'
-        }
-      }
-    ]).catch(err => {
-      logger.error('Error getting recent transactions:', err);
-      return [];
-    });
+    // Recent token purchases
+    const recentTransactions = await Payment.find({ type: 'purchase', status: { $in: ['paid', 'refunded'] } })
+      .sort({ paidAt: -1 })
+      .limit(10)
+      .populate('user', 'firstName lastName email')
+      .lean()
+      .then(list => list.map(p => ({
+        name: [p.user?.firstName, p.user?.lastName].filter(Boolean).join(' '),
+        email: p.user?.email || '',
+        amount: p.amount,
+        currency: p.currency || 'INR',
+        date: p.paidAt || p.createdAt,
+        status: p.status,
+        transactionId: p.receiptNumber || p.paymentId
+      })))
+      .catch(err => {
+        logger.error('Error getting recent transactions:', err);
+        return [];
+      });
     // Get recent users with error handling
     const recentUsers = await User.find()
       .sort({ createdAt: -1 })
@@ -451,41 +414,27 @@ router.get('/admin/dashboard', protect, authorize('admin'), async (req, res) => 
         logger.error('Error getting recent users:', err);
         return [];
       });
-    // Get refund requests with proper error handling
-    const refundRequests = await User.aggregate([
-      {
-        $unwind: {
-          path: '$razorpayTransactions',
-          preserveNullAndEmptyArrays: false
-        }
-      },
-      {
-        $match: {
-          'razorpayTransactions.refundStatus': { $in: ['pending', 'requested'] }
-        }
-      },
-      {
-        $project: {
-          name: { 
-            $concat: [
-              { $ifNull: ['$firstName', ''] }, 
-              ' ', 
-              { $ifNull: ['$lastName', ''] }
-            ]
-          },
-          email: '$email',
-          amount: '$razorpayTransactions.amount',
-          currency: { $ifNull: ['$razorpayTransactions.currency', 'INR'] },
-          refundReason: '$razorpayTransactions.refundReason',
-          refundStatus: '$razorpayTransactions.refundStatus',
-          date: '$razorpayTransactions.createdAt',
-          transactionId: '$razorpayTransactions.transactionId'
-        }
-      }
-    ]).catch(err => {
-      logger.error('Error getting refund requests:', err);
-      return [];
-    });
+    // Recent refunds (refunds are self-serve; admins only need to watch them)
+    const refundRequests = await Payment.find({ type: 'purchase', 'refund.status': { $exists: true } })
+      .sort({ 'refund.requestedAt': -1 })
+      .limit(5)
+      .populate('user', 'firstName lastName email')
+      .lean()
+      .then(list => list.map(p => ({
+        name: [p.user?.firstName, p.user?.lastName].filter(Boolean).join(' '),
+        email: p.user?.email || '',
+        amount: p.amount,
+        currency: p.currency || 'INR',
+        refundReason: p.refund?.reason || '',
+        refundStatus: p.refund?.status,
+        refundBy: p.refund?.by,
+        date: p.refund?.requestedAt,
+        transactionId: p.receiptNumber || p.paymentId
+      })))
+      .catch(err => {
+        logger.error('Error getting refunds:', err);
+        return [];
+      });
 
     // Get activity feed (recent user registrations and transactions)
     const activityFeed = [
@@ -594,29 +543,12 @@ router.get('/admin/charts', protect, authorize('admin'), async (req, res) => {
     }
 
     // Get revenue chart data with error handling
-    const revenueChart = await User.aggregate([
-      {
-        $unwind: {
-          path: '$razorpayTransactions',
-          preserveNullAndEmptyArrays: false
-        }
-      },
-      {
-        $match: {
-          'razorpayTransactions.status': 'captured',
-          'razorpayTransactions.createdAt': { $gte: startDate },
-          'razorpayTransactions.amount': { $exists: true, $type: 'number' }
-        }
-      },
+    const revenueChart = await Payment.aggregate([
+      { $match: { type: 'purchase', status: 'paid', paidAt: { $gte: startDate } } },
       {
         $group: {
-          _id: {
-            $dateToString: {
-              format: '%Y-%m-%d',
-              date: '$razorpayTransactions.createdAt'
-            }
-          },
-          dailyRevenue: { $sum: '$razorpayTransactions.amount' },
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$paidAt' } },
+          dailyRevenue: { $sum: '$amount' },
           dailyTransactions: { $sum: 1 }
         }
       },

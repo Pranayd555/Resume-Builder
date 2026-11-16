@@ -19,7 +19,7 @@ const getAuthHeaders = () => {
 const handleApiResponse = async (response, errorMessage = 'An error occurred') => {
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || errorMessage);
+    throw new Error(errorData.error || errorData.message || errorMessage);
   }
   return response.json();
 };
@@ -389,45 +389,28 @@ export const tokensApi = {
   }
 };
 
-// Refund API calls
-export const refundApi = {
-  // Get all refund requests
-  getRefundRequests: async (params = {}) => {
+// Payments (admin): list purchases/bonus grants and issue refunds
+export const paymentsAdminApi = {
+  getPayments: async (params = {}) => {
     try {
-      const queryParams = new URLSearchParams(params);
-      const response = await fetch(`${API_BASE_URL}/payment/admin/refund-requests?${queryParams}`, {
+      const queryParams = new URLSearchParams(Object.entries(params).filter(([, v]) => v !== '' && v != null));
+      const response = await fetch(`${API_BASE_URL}/payment/admin/payments?${queryParams}`, {
         headers: getAuthHeaders()
       });
-      return await handleApiResponse(response, 'Failed to fetch refund requests');
+      return await handleApiResponse(response, 'Failed to fetch payments');
     } catch (error) {
-      handleError(error, 'Failed to fetch refund requests');
+      handleError(error, 'Failed to fetch payments');
     }
   },
 
-  // Process refund (approve or reject)
-  processRefund: async (transactionId, action, notes = '') => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/payment/admin/process-refund/${transactionId}`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ action, notes })
-      });
-      return await handleApiResponse(response, 'Failed to process refund');
-    } catch (error) {
-      handleError(error, 'Failed to process refund');
-    }
-  },
-
-  // Get refund statistics
-  getRefundStats: async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/payment/admin/refund-stats`, {
-        headers: getAuthHeaders()
-      });
-      return await handleApiResponse(response, 'Failed to fetch refund statistics');
-    } catch (error) {
-      handleError(error, 'Failed to fetch refund statistics');
-    }
+  // force: refund even if the pack's tokens were used (goodwill)
+  refundPayment: async (paymentId, { reason = '', force = false } = {}) => {
+    const response = await fetch(`${API_BASE_URL}/payment/admin/payments/${encodeURIComponent(paymentId)}/refund`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ reason, force })
+    });
+    return handleApiResponse(response, 'Failed to process refund');
   }
 };
 
@@ -464,7 +447,7 @@ const adminAPI = {
   analyticsApi,
   usersApi,
   tokensApi,
-  refundApi,
+  paymentsAdminApi,
   apiUtils
 };
 
