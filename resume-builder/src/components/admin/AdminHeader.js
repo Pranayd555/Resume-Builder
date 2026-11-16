@@ -10,7 +10,6 @@ import {
   UserCircleIcon,
   ChatBubbleLeftRightIcon,
   ChatBubbleLeftIcon,
-  CreditCardIcon,
   CurrencyDollarIcon,
   ArrowUturnLeftIcon,
   ArrowRightOnRectangleIcon,
@@ -41,7 +40,6 @@ const AdminHeader = () => {
     { name: 'Users', href: '/admin/users', icon: UsersIcon, current: location.pathname === '/admin/users' },
     { name: 'Feedback', href: '/admin/feedback', icon: ChatBubbleLeftIcon, current: location.pathname === '/admin/feedback' },
     { name: 'Contacts', href: '/admin/contacts', icon: ChatBubbleLeftRightIcon, current: location.pathname === '/admin/contacts' },
-    { name: 'Transactions', href: '/admin/transactions', icon: CreditCardIcon, current: location.pathname === '/admin/transactions' },
     { name: 'Payments', href: '/admin/payments', icon: ArrowUturnLeftIcon, current: location.pathname === '/admin/payments' },
     { name: 'Tokens', href: '/admin/tokens', icon: CurrencyDollarIcon, current: location.pathname === '/admin/tokens' },
   ];
