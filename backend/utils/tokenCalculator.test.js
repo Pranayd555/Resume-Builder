@@ -180,25 +180,34 @@ describe('database token operations', { skip: !MONGO_URI && 'TOKEN_TEST_MONGODB_
     assert.deepEqual(balance, { purchased: 3, bonus: 1, total: 4 });
   });
 
-  test('creditTokens with a filter is idempotent under concurrency (purchase)', async () => {
+  test('creditTokens with an opId is applied once under concurrency', async () => {
     const user = await makeUser(0, 0);
-    const txn = { transactionId: 'pay_123', orderId: 'order_1', amount: 19900, status: 'captured', metadata: { boughtTokens: 25, bonusTokensAdded: 5, type: 'token_purchase' } };
     const attempts = await Promise.all(Array.from({ length: 5 }, () =>
-      ledger.creditTokens(user._id, { purchased: 25, bonus: 5 }, {
-        unlessTransactionId: 'pay_123',
-        push: txn
-      })
+      ledger.creditTokens(user._id, { purchased: 25, bonus: 5 }, { opId: 'credit:abc' })
     ));
     assert.equal(attempts.filter(Boolean).length, 1);
     const fresh = await User.findById(user._id);
     assert.deepEqual(fresh.tokenBalance, { purchased: 25, bonus: 5, total: 30 });
-    assert.equal(fresh.razorpayTransactions.length, 1);
+    assert.equal(await ledger.isOpApplied(user._id, 'credit:abc'), true);
+    assert.equal(await ledger.isOpApplied(user._id, 'credit:other'), false);
   });
 
-  test('deductTokens clamps each pool at zero', async () => {
+  test('deductForRefund removes what is left of a pack and reports exactly what it removed', async () => {
+    const user = await makeUser(25, 6);
+    assert.deepEqual(
+      await ledger.deductForRefund(user._id, { purchased: 25, bonus: 5 }, { opId: 'refund:a:1' }),
+      { removed: { purchased: 25, bonus: 5 }, balance: { purchased: 0, bonus: 1, total: 1 } }
+    );
+    assert.equal(await ledger.deductForRefund(user._id, { purchased: 1, bonus: 0 }, { opId: 'refund:a:1' }), null, 'same op twice');
+  });
+
+  test('deductForRefund never goes below zero and is applied once under concurrency', async () => {
     const user = await makeUser(10, 2);
-    assert.deepEqual(await ledger.deductTokens(user._id, { purchased: 4, bonus: 5 }), { purchased: 6, bonus: 0, total: 6 });
-    assert.deepEqual(await ledger.deductTokens(user._id, { purchased: 50, bonus: 0 }), { purchased: 0, bonus: 0, total: 0 });
+    const results = await Promise.all([1, 2, 3].map(() =>
+      ledger.deductForRefund(user._id, { purchased: 25, bonus: 5 }, { opId: 'refund:b:1' })
+    ));
+    assert.equal(results.filter(Boolean).length, 1);
+    assert.deepEqual(results.find(Boolean), { removed: { purchased: 10, bonus: 2 }, balance: { purchased: 0, bonus: 0, total: 0 } });
   });
 
   test('getTokenBalance throws 404 for a missing user', async () => {
@@ -212,21 +221,21 @@ describe('database token operations', { skip: !MONGO_URI && 'TOKEN_TEST_MONGODB_
     assert.deepEqual(user.toObject().tokenBalance, { purchased: 0, bonus: 5, total: 5 });
   });
 
-  test('refundable transactions: bonus grants are never refundable', async () => {
+  test('appliedTokenOps is not returned with the user by default', async () => {
     const user = await makeUser(0, 0);
-    await User.updateOne({ _id: user._id }, {
-      $push: {
-        razorpayTransactions: {
-          $each: [
-            { transactionId: 'admin_bonus_1', orderId: 'admin_bonus_1', amount: 0, status: 'captured', createdAt: new Date(), metadata: { type: 'admin_bonus', bonusTokensAdded: 5 } },
-            { transactionId: 'pay_1', orderId: 'order_1', amount: 4900, status: 'captured', createdAt: new Date(), metadata: { type: 'token_purchase', boughtTokens: 5, bonusTokensAdded: 0 } }
-          ]
-        }
-      }
-    });
+    await ledger.creditTokens(user._id, { bonus: 1 }, { opId: 'bonus:x' });
     const fresh = await User.findById(user._id);
-    const byId = Object.fromEntries(fresh.razorpayTransactionsWithRefundStatus.map(t => [t.transactionId, t.isRefundable]));
-    assert.deepEqual(byId, { admin_bonus_1: false, pay_1: true });
+    assert.equal(fresh.appliedTokenOps, undefined);
+  });
+
+  test('User model keeps its auth behaviour (password hashing, OTP, JWT)', async () => {
+    const user = await makeUser(0, 0);
+    const withPassword = await User.findById(user._id).select('+password');
+    assert.notEqual(withPassword.password, 'Password123!');
+    assert.equal(await withPassword.matchPassword('Password123!'), true);
+    for (const method of ['getSignedJwtToken', 'generateEmailOtp', 'verifyEmailOtp', 'incLoginAttempts', 'resetLoginAttempts', 'clearEmailOtp']) {
+      assert.equal(typeof withPassword[method], 'function', method);
+    }
   });
 
   // ---- chargeAIToken middleware ----

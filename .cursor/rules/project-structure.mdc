@@ -52,7 +52,7 @@ Presmistique - AI Resume Builder (https://presmistique.in, API https://api.presm
 - **Deployment**: [docs/DEPLOYMENT.md](mdc:docs/DEPLOYMENT.md) - CI/CD, rollback, server setup
 - **Setup**: [docs/BACKEND_SETUP.md](mdc:docs/BACKEND_SETUP.md) - Quick setup guide
 - **Templates**: [docs/TEMPLATES_README.md](mdc:docs/TEMPLATES_README.md) - Template system documentation
-- **Payments**: [docs/RAZORPAY_IMPLEMENTATION.md](mdc:docs/RAZORPAY_IMPLEMENTATION.md) - Payment system
+- **Payments**: [docs/PAYMENTS.md](mdc:docs/PAYMENTS.md) - Razorpay purchases and refunds
 
 ### **Branding**
 - The only public contact is presmistique@gmail.com (frontend: `resume-builder/src/constants/brand.js`). Never add personal names, emails, phone numbers or GitHub usernames to user-facing code or docs.

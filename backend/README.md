@@ -238,7 +238,7 @@ See [docs/OAUTH_SETUP.md](../docs/OAUTH_SETUP.md) for details.
 ### Scripts
 - `npm start` - Start the server (`node server.js`)
 - `npm run dev` - Start development server with nodemon
-- `npm test` - Run the refund calculator tests
+- `npm test` - Run the unit tests (set `TOKEN_TEST_MONGODB_URI` to include the database tests)
 - `npm run seed:all-templates` - Seed all resume templates
 - `npm run generate-thumbnails` / `npm run update-thumbnails` - Generate template thumbnails with Puppeteer (see [scripts/README.md](scripts/README.md))
 - `npm run unlock-account -- <email>` - Unlock a locked user account
@@ -259,7 +259,7 @@ backend/
 ├── services/        # Service layer
 ├── templates/       # Email templates
 ├── thumbnails/      # Generated template thumbnails (served at /thumbnails)
-├── utils/           # Utilities (browserManager, refundCalculator, emailService, ...)
+├── utils/           # Utilities (browserManager, tokenCalculator, refundPolicy, emailService, ...)
 ├── Dockerfile       # Production image
 ├── env.template     # Environment variable reference
 ├── server.js        # Main server file

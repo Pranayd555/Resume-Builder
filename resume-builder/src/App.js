@@ -27,7 +27,7 @@ import AdminUsers from './components/admin/AdminUsers';
 import AdminFeedback from './components/admin/AdminFeedback';
 import AdminContacts from './components/admin/AdminContacts';
 import AdminTokens from './components/admin/AdminTokens';
-import AdminRefunds from './components/admin/AdminRefunds';
+import AdminPayments from './components/admin/AdminPayments';
 import AdminLayout from './components/admin/AdminLayout';
 
 // Public Pages
@@ -209,8 +209,8 @@ const router = createBrowserRouter([
     element: <AdminLayout><RoleProtectedRoute requiredRole={ROLES.ADMIN}><AdminTokens /></RoleProtectedRoute></AdminLayout>,
   },
   {
-    path: ADMIN_ROUTES.REFUNDS,
-    element: <AdminLayout><RoleProtectedRoute requiredRole={ROLES.ADMIN}><AdminRefunds /></RoleProtectedRoute></AdminLayout>,
+    path: ADMIN_ROUTES.PAYMENTS,
+    element: <AdminLayout><RoleProtectedRoute requiredRole={ROLES.ADMIN}><AdminPayments /></RoleProtectedRoute></AdminLayout>,
   },
   {
     path: ADMIN_ROUTES.PROFILE,

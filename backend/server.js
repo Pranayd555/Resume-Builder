@@ -30,6 +30,7 @@ const publicRoutes = require('./routes/public');
 
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./utils/logger');
+const { applyBodyParsers } = require('./middleware/bodyParsers');
 
 // Import passport configuration
 require('./config/passport');
@@ -107,8 +108,8 @@ const limiter = rateLimit({
 
 // Apply rate limiting to most API routes, but exclude OAuth routes
 app.use('/api/', (req, res, next) => {
-  // Skip rate limiting for OAuth routes
-  if (req.path.startsWith('/auth/google') || req.path.startsWith('/auth/linkedin')) {
+  // Skip rate limiting for OAuth routes and Razorpay webhooks (signed, retried by Razorpay)
+  if (req.path.startsWith('/auth/google') || req.path.startsWith('/auth/linkedin') || req.path === '/payment/webhook') {
     return next();
   }
   return limiter(req, res, next);
@@ -164,9 +165,8 @@ app.use(compression());
 // Logging
 app.use(morgan('combined', { stream: { write: message => logger.info(message.trim()) } }));
 
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Body parsing (raw Buffer for Razorpay webhooks, JSON elsewhere)
+applyBodyParsers(app);
 
 // Initialize passport
 app.use(passport.initialize());
@@ -185,7 +185,8 @@ app.use(mongoSanitize());
 
 // Data sanitization against XSS
 app.use((req, res, next) => {
-  if (req.body) {
+  // Raw webhook bodies (Buffers) must stay byte-for-byte for signature checks
+  if (req.body && !Buffer.isBuffer(req.body)) {
     // Recursive function to sanitize nested objects and arrays
     const sanitizeObject = (obj, isResumeRequest = false) => {
       if (typeof obj === 'string') {
@@ -267,7 +268,11 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/resumebui
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-  .then(() => logger.info('Connected to MongoDB'))
+  .then(() => {
+    logger.info('Connected to MongoDB');
+    // Credit payments the browser and webhooks missed (no-op without Razorpay keys)
+    if (process.env.NODE_ENV !== 'test') require('./services/paymentService').startReconcileJob();
+  })
   .catch(err => logger.error('MongoDB connection error:', err));
 
 // Health check endpoint

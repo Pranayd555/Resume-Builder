@@ -18,7 +18,6 @@ REACT_APP_API_URL=http://localhost:5000/api
 Optional:
 
 ```env
-REACT_APP_RAZORPAY_KEY_ID=rzp_test_your_key_id   # payments
 REACT_APP_SUPPORT_EMAIL=presmistique@gmail.com   # defaults to this value
 REACT_APP_CKEDITOR_LICENSE_KEY=...               # CKEditor license
 ```

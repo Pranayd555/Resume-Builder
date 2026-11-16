@@ -101,6 +101,6 @@ CLOUDINARY_CLOUD_NAME=cloud-storage
 ### **Testing and Development**
 - **Health Check**: `GET /health` - Server status endpoint
 - **Development**: `npm run dev` with nodemon
-- **Tests**: `npm test` (refund calculator tests; also run in CI)
+- **Tests**: `npm test` (token, payment/refund, validation, import and AI tests; also run in CI)
 - **Production**: Docker image (`node server.js`), see [docs/DEPLOYMENT.md](mdc:docs/DEPLOYMENT.md)
 - **Database**: MongoDB with Mongoose ODM
