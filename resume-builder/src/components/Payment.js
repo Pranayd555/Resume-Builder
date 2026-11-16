@@ -38,7 +38,7 @@ const errorMessage = (error, fallback) => error?.response?.data?.message || erro
 const Payment = () => {
   const navigate = useNavigate();
   const { user, balance, refreshBalance } = useAuth();
-  const [config, setConfig] = useState(null); // { enabled, packs, refundWindowDays }
+  const [config, setConfig] = useState(null); // { enabled, keyId, packs }
   const [selectedPackId, setSelectedPackId] = useState(null);
   const [processing, setProcessing] = useState(false);
 
@@ -54,11 +54,12 @@ const Payment = () => {
       .then((res) => {
         if (cancelled || !res?.success) return;
         setConfig(res.data);
-        setSelectedPackId((current) => current || res.data.packs?.[2]?.id || res.data.packs?.[0]?.id || null);
+        const packs = res.data.packs || [];
+        setSelectedPackId((current) => current || (packs.find((p) => p.popular) || packs[0])?.id || null);
         if (res.data.enabled) loadCheckout();
       })
       .catch(() => {
-        if (!cancelled) setConfig({ enabled: false, packs: [], refundWindowDays: 7 });
+        if (!cancelled) setConfig({ enabled: false, packs: [] });
       });
     return () => { cancelled = true; };
   }, []);
@@ -212,7 +213,7 @@ const Payment = () => {
               Choose Your Token Package
             </h2>
             <p className="text-gray-600 dark:text-gray-300 text-lg">
-              Select a token package that fits your needs. Higher packages include bonus tokens.
+              Pick a pack. Bigger packs cost less per token, and tokens never expire.
             </p>
           </div>
 
@@ -225,12 +226,17 @@ const Payment = () => {
                 type="button"
                 key={pkg.id}
                 aria-pressed={selectedPackId === pkg.id}
-                className={`text-left bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer border-2 ${selectedPackId === pkg.id
+                className={`relative text-left bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer border-2 ${selectedPackId === pkg.id
                   ? 'border-blue-500 ring-2 ring-blue-200'
                   : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'
                   }`}
                 onClick={() => setSelectedPackId(pkg.id)}
               >
+                {pkg.popular && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-xs font-semibold text-white bg-gradient-to-r from-blue-500 to-purple-600 shadow">
+                    Most popular
+                  </span>
+                )}
                 <div className="text-center">
                   <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
                     <CurrencyDollarIcon className="w-8 h-8 text-white" />
@@ -276,9 +282,9 @@ const Payment = () => {
                   )}
                 </button>
                 <p className="mt-4 text-sm text-gray-500 dark:text-gray-400 max-w-xl mx-auto">
-                  Secure payment by Razorpay (UPI, cards, net banking, wallets). Changed your mind? An unused pack
-                  can be refunded in full within {config.refundWindowDays} days from Analytics &gt; Payment History.
-                  Bonus tokens are not refundable.
+                  Secure payment by Razorpay (UPI, cards, net banking, wallets). Tokens are added instantly,
+                  never expire and are non-refundable. 1 token = 1 AI action; if an AI action fails, its token
+                  is returned automatically. Charged twice or didn&apos;t get your tokens? Contact us and we&apos;ll fix it.
                 </p>
               </>
             ) : (

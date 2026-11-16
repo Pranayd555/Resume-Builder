@@ -340,7 +340,7 @@ function AnalyticsDashboard() {
                   scrollbarColor: '#d1d5db #f3f4f6'
                 }}
               >
-                {isPaymentHistoryAccordionOpen && <PaymentHistory onChange={fetchAnalytics} />}
+                {isPaymentHistoryAccordionOpen && <PaymentHistory />}
               </div>
             </div>
           </div>

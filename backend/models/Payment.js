@@ -8,7 +8,7 @@ const mongoose = require('mongoose');
  * Purchase lifecycle (all transitions are single atomic updates):
  *   created  -> order created, waiting for payment
  *   paid     -> payment captured and tokens credited (credited: true)
- *   refunded -> refund issued to Razorpay; refund.status follows Razorpay
+ *   refunded -> refund issued by an admin; refund.status follows Razorpay
  *   expired  -> order never paid
  * Bonus grants are stored as status 'granted' with amount 0.
  */
@@ -18,11 +18,13 @@ const refundSchema = new mongoose.Schema({
   status: { type: String, enum: ['pending', 'processed', 'failed'] },
   razorpayRefundId: String,
   amount: Number, // paise
-  by: { type: String, enum: ['user', 'admin'] },
+  by: { type: String, enum: ['user', 'admin'] }, // 'user' only on legacy records
   adminEmail: String,
   reason: String,
   error: String,
   attempts: { type: Number, default: 0 },
+  // Tokens taken back from the customer when the refund was issued
+  tokensRemoved: { purchased: Number, bonus: Number },
   requestedAt: Date,
   processedAt: Date
 }, { _id: false });

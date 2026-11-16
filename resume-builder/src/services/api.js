@@ -611,17 +611,10 @@ export const paymentAPI = {
     return response.data;
   },
 
-  // Purchases and bonus grants, each with whether it can be refunded now
+  // Purchases and bonus grants (tokens are non-refundable)
   getPaymentHistory: async () => {
     const config = createApiConfig('/payment/history');
     const response = await api.get('/payment/history', config);
-    return response.data;
-  },
-
-  // Self-serve refund of an unused pack
-  requestRefund: async (paymentId, reason) => {
-    const config = createApiConfig('/payment/refund');
-    const response = await api.post(`/payment/${encodeURIComponent(paymentId)}/refund`, { reason }, config);
     return response.data;
   }
 };

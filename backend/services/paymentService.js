@@ -10,10 +10,11 @@
  *      credits the tokens; the others do nothing. Crediting carries an
  *      operation id, so it is applied exactly once even after a crash.
  *
- * Refunding (one rule, utils/refundPolicy.js): refundPayment() claims the
- * Payment atomically, removes the pack's tokens only if they are all still
- * there, then asks Razorpay for the refund. If Razorpay fails, the tokens are
- * put back and the payment can be refunded again later.
+ * Tokens are non-refundable. refundPayment() is admin-only, used after
+ * investigating a claim (duplicate charge, paid but not credited, service
+ * failure). It claims the Payment atomically, removes whatever is left of the
+ * pack's tokens (optional), then asks Razorpay for the refund. If Razorpay
+ * fails, exactly the removed tokens are put back and it can be retried.
  *
  * Everything that changes state is a single conditional update, so double
  * clicks, retries and concurrent webhooks are safe.
@@ -25,8 +26,7 @@ const User = require('../models/User');
 const logger = require('../utils/logger');
 const { logSafe } = require('../utils/logSafe');
 const emailService = require('../utils/emailService');
-const { TOKEN_PACKS, CURRENCY, REFUND_WINDOW_DAYS, findPack, pricePaise } = require('../config/tokenPacks');
-const { refundEligibility } = require('../utils/refundPolicy');
+const { TOKEN_PACKS, CURRENCY, findPack, pricePaise } = require('../config/tokenPacks');
 const { creditTokens, deductForRefund, getTokenBalance, isOpApplied, toUserId } = require('../utils/tokenCalculator');
 
 // ---- configuration ----------------------------------------------------------
@@ -60,8 +60,8 @@ function publicConfig() {
     enabled,
     keyId: enabled ? process.env.RAZORPAY_KEY_ID : null,
     currency: CURRENCY,
-    refundWindowDays: REFUND_WINDOW_DAYS,
-    packs: TOKEN_PACKS.map(({ id, tokens, bonus, price }) => ({ id, tokens, bonus, price }))
+    refundable: false,
+    packs: TOKEN_PACKS.map(({ id, tokens, bonus, price, popular }) => ({ id, tokens, bonus, price, popular: Boolean(popular) }))
   };
 }
 
@@ -314,25 +314,26 @@ async function releaseRefundClaim(payment, error) {
 }
 
 /**
- * Refund a token pack in full.
+ * Admin refund after investigating a customer's claim. Tokens are otherwise
+ * non-refundable, so there is no customer-facing refund.
  * @param {string} paymentDocId Payment _id
- * @param {{ by: 'user'|'admin', userId?: string, adminEmail?: string, reason?: string, force?: boolean }} options
- *   userId: the payment must belong to this user. force (admin only): skip the
- *   refund rule and remove whatever is left of the pack's tokens.
+ * @param {{ adminEmail: string, reason: string, amount?: number, removeTokens?: boolean }} options
+ *   amount: paise to refund (default: the full payment). removeTokens: take
+ *   back whatever is left of the pack's tokens (default true; turn off e.g.
+ *   when the customer never received them).
  */
-async function refundPayment(paymentDocId, { by, userId, adminEmail, reason, force = false }) {
+async function refundPayment(paymentDocId, { adminEmail, reason, amount, removeTokens = true }) {
   if (!getRazorpay()) throw new PaymentError('Refunds are not available right now.', 503, 'payments_disabled');
+  const note = typeof reason === 'string' ? reason.trim() : '';
+  if (note.length < 5) throw new PaymentError('Add a short reason for the refund (what was investigated).', 400, 'reason_required');
 
-  const filter = { _id: toPaymentId(paymentDocId), type: 'purchase' };
-  if (userId) filter.user = toUserId(userId);
-  const payment = await Payment.findOne(filter);
+  const payment = await Payment.findOne({ _id: toPaymentId(paymentDocId), type: 'purchase' });
   if (!payment) throw new PaymentError('Payment not found.', 404, 'not_found');
+  if (payment.status !== 'paid') throw new PaymentError('Only completed payments can be refunded.', 400, 'not_refundable');
 
-  if (!force) {
-    const eligibility = refundEligibility(payment, await getTokenBalance(payment.user));
-    if (!eligibility.refundable) throw new PaymentError(eligibility.reason, 400, 'not_refundable');
-  } else if (payment.status !== 'paid') {
-    throw new PaymentError('Only completed payments can be refunded.', 400, 'not_refundable');
+  const refundAmount = amount === undefined || amount === null ? payment.amount : Number(amount);
+  if (!Number.isInteger(refundAmount) || refundAmount < 100 || refundAmount > payment.amount) {
+    throw new PaymentError(`Refund amount must be between ₹1 and ₹${payment.amount / 100}.`, 400, 'invalid_amount');
   }
 
   // 1. Claim the refund: only one request can get past this point.
@@ -347,10 +348,10 @@ async function refundPayment(paymentDocId, { by, userId, adminEmail, reason, for
       $set: {
         refund: {
           status: 'pending',
-          amount: payment.amount,
-          by,
-          ...(adminEmail ? { adminEmail: String(adminEmail) } : {}),
-          ...(reason ? { reason: String(reason).slice(0, 500) } : {}),
+          amount: refundAmount,
+          by: 'admin',
+          adminEmail: String(adminEmail || ''),
+          reason: note.slice(0, 500),
           attempts: attempt,
           requestedAt: new Date()
         }
@@ -360,48 +361,49 @@ async function refundPayment(paymentDocId, { by, userId, adminEmail, reason, for
   );
   if (!claimed) throw new PaymentError('A refund for this payment is already in progress.', 409, 'refund_in_progress');
 
-  // 2. Take back the pack's tokens (all of them, or clamped for a goodwill refund).
-  const deducted = await deductForRefund(
-    claimed.user,
-    { purchased: claimed.tokens, bonus: claimed.bonusTokens },
-    { opId: refundOpId(claimed, attempt), clamp: force }
-  );
-  if (!deducted) {
-    await releaseRefundClaim(claimed, 'tokens already used');
-    throw new PaymentError('Tokens from this pack have been used, so it can no longer be refunded.', 400, 'not_refundable');
+  // 2. Take back whatever is left of the pack's tokens.
+  let removed = { purchased: 0, bonus: 0 };
+  let balance = null;
+  if (removeTokens) {
+    const result = await deductForRefund(
+      claimed.user,
+      { purchased: claimed.tokens, bonus: claimed.bonusTokens },
+      { opId: refundOpId(claimed, attempt) }
+    );
+    if (result) ({ removed, balance } = result);
   }
 
   // 3. Return the money.
   let refund;
   try {
     refund = await getRazorpay().payments.refund(claimed.paymentId, {
-      amount: claimed.amount,
+      amount: refundAmount,
       speed: 'normal',
-      notes: { paymentRecord: String(claimed._id), by }
+      notes: { paymentRecord: String(claimed._id) }
     });
   } catch (error) {
-    logger.error(`Razorpay refund failed for ${logSafe(claimed.paymentId)}`, { message: error?.error?.description || error?.message });
-    // Put the tokens back, exactly once.
-    await creditTokens(
-      claimed.user,
-      { purchased: claimed.tokens, bonus: claimed.bonusTokens },
-      { opId: restoreOpId(claimed, attempt) }
-    );
-    await releaseRefundClaim(claimed, error?.error?.description || error?.message || 'Razorpay error');
-    throw new PaymentError('The refund could not be processed. Please try again later or contact support.', 502, 'gateway_error');
+    const description = error?.error?.description || error?.message || 'Razorpay error';
+    logger.error(`Razorpay refund failed for ${logSafe(claimed.paymentId)}`, { message: description });
+    // Put back exactly what was removed, once.
+    if (removed.purchased || removed.bonus) {
+      await creditTokens(claimed.user, removed, { opId: restoreOpId(claimed, attempt) });
+    }
+    await releaseRefundClaim(claimed, description);
+    throw new PaymentError(`Razorpay could not process the refund (${description}). If the Razorpay balance is lower than the refund, add funds or retry after new payments.`, 502, 'gateway_error');
   }
 
   const processed = refund.status === 'processed';
   const done = {
     status: 'refunded',
     'refund.razorpayRefundId': String(refund.id),
-    'refund.status': processed ? 'processed' : 'pending'
+    'refund.status': processed ? 'processed' : 'pending',
+    'refund.tokensRemoved': removed
   };
   if (processed) done['refund.processedAt'] = new Date();
   const updated = await Payment.findOneAndUpdate({ _id: claimed._id }, { $set: done }, { new: true });
-  logger.info(`Refund ${logSafe(refund.id)} issued for ${logSafe(claimed.paymentId)} by ${logSafe(by)}`);
-  await sendRefundEmail(updated, claimed.amount);
-  return { payment: updated, balance: deducted };
+  logger.info(`Refund ${logSafe(refund.id)} of ${Number(refundAmount)} paise issued for ${logSafe(claimed.paymentId)} by ${logSafe(adminEmail)}`);
+  await sendRefundEmail(updated, refundAmount);
+  return { payment: updated, balance: balance || await getTokenBalance(claimed.user), removed };
 }
 
 // ---- webhooks -----------------------------------------------------------------
@@ -506,10 +508,9 @@ function startReconcileJob(intervalMs = 10 * MINUTE) {
 
 // ---- history ------------------------------------------------------------------
 
-/** A Payment as shown to its owner, with whether it can be refunded now. */
-function toClientPayment(payment, balance, now = new Date()) {
+/** A Payment as shown to its owner. */
+function toClientPayment(payment) {
   const p = typeof payment.toObject === 'function' ? payment.toObject() : payment;
-  const eligibility = p.type === 'purchase' ? refundEligibility(p, balance, now) : { refundable: false, reason: null, refundableUntil: null };
   return {
     id: String(p._id),
     type: p.type,
@@ -528,20 +529,15 @@ function toClientPayment(payment, balance, now = new Date()) {
     paidAt: p.paidAt || null,
     refund: p.refund?.status
       ? { status: p.refund.status, amount: p.refund.amount, requestedAt: p.refund.requestedAt, processedAt: p.refund.processedAt || null }
-      : null,
-    refundable: eligibility.refundable,
-    refundBlockedReason: p.status === 'paid' && !eligibility.refundable ? eligibility.reason : null,
-    refundableUntil: eligibility.refundableUntil
+      : null
   };
 }
 
 async function listUserPayments(userId, { limit = 50 } = {}) {
   const user = toUserId(userId);
-  const [payments, balance] = await Promise.all([
-    Payment.find({ user, status: { $ne: 'created' } }).sort({ createdAt: -1 }).limit(Math.min(Number(limit) || 50, 100)).lean(),
-    getTokenBalance(user)
-  ]);
-  return payments.map((p) => toClientPayment(p, balance));
+  const payments = await Payment.find({ user, status: { $nin: ['created', 'expired'] } })
+    .sort({ createdAt: -1 }).limit(Math.min(Number(limit) || 50, 100)).lean();
+  return payments.map((p) => toClientPayment(p));
 }
 
 /** Record an admin bonus grant in the payment history. */

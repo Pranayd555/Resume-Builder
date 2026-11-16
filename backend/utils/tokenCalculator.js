@@ -1,19 +1,19 @@
 /**
  * AI token balance: the single source of truth.
  *
- * A user has two pools on the User document. They stay separate because only
- * purchased tokens can be refunded (see utils/refundPolicy.js):
- *   tokens       -> purchased (bought through Razorpay, refundable)
- *   bonusTokens  -> bonus (signup, feedback, admin grants, package bonus; not refundable)
+ * A user has two pools on the User document, kept separate so purchases and
+ * free grants can be told apart (e.g. when an admin refunds a payment):
+ *   tokens       -> purchased (bought through Razorpay)
+ *   bonusTokens  -> bonus (signup, feedback, admin grants)
+ * Tokens never expire and are non-refundable (docs/PAYMENTS.md).
  *
  * Every API response that reports a balance uses tokenPayload(), which returns
  *   { purchased, bonus, total }
  * plus the older names (balance, purchasedTokens, bonusTokens) so clients that
  * still read them keep working.
  *
- * Spending order: bonus first, then purchased. This keeps refundable tokens as
- * long as possible. A pack can be refunded only while all of its tokens,
- * bonus included, are still in the balance (see utils/refundPolicy.js).
+ * Spending order: bonus first, then purchased, so free tokens are used before
+ * paid ones.
  *
  * All writes are single atomic MongoDB updates, so concurrent AI calls can
  * never overspend or push a pool below zero.
@@ -209,19 +209,18 @@ async function isOpApplied(userId, opId) {
 }
 
 /**
- * Remove a refunded pack's tokens. By default only if the user still holds
- * all of them (the pack is unused); otherwise nothing changes and null is
- * returned. With `clamp: true` (admin goodwill refund) each pool is reduced
- * as far as possible, never below zero. Also null if `opId` was already applied.
+ * Remove up to the given tokens after a money refund (whatever is left of the
+ * pack; each pool stops at zero). Applied once per `opId`.
+ * @returns {Promise<{ removed: {purchased, bonus}, balance: {purchased, bonus, total} } | null>}
+ *   null if `opId` was already applied.
  */
-async function deductForRefund(userId, { purchased = 0, bonus = 0 }, { opId, clamp = false }) {
+async function deductForRefund(userId, { purchased = 0, bonus = 0 }, { opId }) {
   const p = toCount(purchased);
   const b = toCount(bonus);
   const op = String(opId);
-  const query = { _id: toUserId(userId), appliedTokenOps: { $ne: op } };
-  let update;
-  if (clamp) {
-    update = [
+  const before = await getUserModel().findOneAndUpdate(
+    { _id: toUserId(userId), appliedTokenOps: { $ne: op } },
+    [
       ...buildDeductPipeline({ purchased: p, bonus: b }),
       {
         $set: {
@@ -230,17 +229,18 @@ async function deductForRefund(userId, { purchased = 0, bonus = 0 }, { opId, cla
           }
         }
       }
-    ];
-  } else {
-    query.$expr = { $and: [{ $gte: [PURCHASED_EXPR, p] }, { $gte: [BONUS_EXPR, b] }] };
-    update = { $inc: { tokens: -p, bonusTokens: -b }, $push: pushOp(op) };
-  }
-  const user = await getUserModel().findOneAndUpdate(
-    query,
-    update,
-    { new: true, projection: BALANCE_PROJECTION, lean: true }
+    ],
+    { new: false, projection: BALANCE_PROJECTION, lean: true }
   );
-  return user ? toTokenBalance(user) : null;
+  if (!before) return null;
+  const prior = toTokenBalance(before);
+  const removed = { purchased: Math.min(prior.purchased, p), bonus: Math.min(prior.bonus, b) };
+  const balance = {
+    purchased: prior.purchased - removed.purchased,
+    bonus: prior.bonus - removed.bonus,
+    total: prior.total - removed.purchased - removed.bonus
+  };
+  return { removed, balance };
 }
 
 module.exports = {

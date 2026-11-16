@@ -403,12 +403,13 @@ export const paymentsAdminApi = {
     }
   },
 
-  // force: refund even if the pack's tokens were used (goodwill)
-  refundPayment: async (paymentId, { reason = '', force = false } = {}) => {
+  // After investigating a claim. amount in rupees (optional, default full);
+  // removeTokens: take back what is left of the pack (default true)
+  refundPayment: async (paymentId, { reason, amount, removeTokens = true }) => {
     const response = await fetch(`${API_BASE_URL}/payment/admin/payments/${encodeURIComponent(paymentId)}/refund`, {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify({ reason, force })
+      body: JSON.stringify({ reason, amount, removeTokens })
     });
     return handleApiResponse(response, 'Failed to process refund');
   }

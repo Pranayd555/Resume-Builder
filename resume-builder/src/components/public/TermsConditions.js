@@ -85,12 +85,12 @@ const TermsConditions = () => {
       icon: CreditCardIcon,
       color: "text-rose-500",
       bg: "bg-rose-50/50 dark:bg-rose-900/10",
-      content: "New users receive 5 free AI tokens. Additional tokens can be purchased securely via Razorpay. Tokens never expire and are delivered instantly. Pricing is subject to change with 30 days notice.",
+      content: "New users receive 5 free AI tokens. Additional tokens can be purchased securely via Razorpay. Tokens are delivered instantly, never expire and are non-refundable; payment problems are handled as described in our Cancellation & Refunds policy. If an AI action fails, its token is returned automatically. Pricing is subject to change with 30 days notice.",
       list: [
-        "AI content suggestions: 1 token",
-        "ATS compatibility analysis: 1 token",
-        "Resume optimization: 1 token",
-        "Smart formatting: 1 token"
+        "Every AI action uses 1 token",
+        "Rewriting or summarizing a section, ATS analysis, importing a resume, adjusting tone, adding keywords, AI templates",
+        "Tokens have no cash value and cannot be transferred",
+        "Building, editing and downloading resumes is free"
       ]
     },
     {

@@ -414,7 +414,7 @@ router.get('/admin/dashboard', protect, authorize('admin'), async (req, res) => 
         logger.error('Error getting recent users:', err);
         return [];
       });
-    // Recent refunds (refunds are self-serve; admins only need to watch them)
+    // Recent refunds (issued by admins after investigating a claim)
     const refundRequests = await Payment.find({ type: 'purchase', 'refund.status': { $exists: true } })
       .sort({ 'refund.requestedAt': -1 })
       .limit(5)

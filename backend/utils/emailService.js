@@ -636,6 +636,7 @@ PAYMENT DETAILS:
 
 TOKENS ADDED:
 🎉 ${tokensAdded.toLocaleString('en-IN')} AI Tokens have been added to your account!
+Tokens never expire and are non-refundable (1 token = 1 AI action).
 
 You can now use these tokens for AI-powered resume features like:
 - Resume parsing and auto-population

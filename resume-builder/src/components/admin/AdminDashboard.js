@@ -409,7 +409,7 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* Recent refunds (customers refund unused packs themselves) */}
+        {/* Recent refunds (issued by admins after investigating a claim) */}
         {dashboardData?.refundRequests && dashboardData.refundRequests.length > 0 && (
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
@@ -433,7 +433,7 @@ const AdminDashboard = () => {
                           <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
                             <div>
                               <p className="text-sm text-gray-500 dark:text-gray-400">
-                                <span className="font-medium text-gray-900 dark:text-white">{request.name || 'Unknown User'}</span> {request.refundBy === 'admin' ? 'was refunded by an admin' : 'refunded a pack'}
+                                <span className="font-medium text-gray-900 dark:text-white">{request.name || 'Unknown User'}</span> was refunded
                               </p>
                               <p className="text-sm text-gray-500 dark:text-gray-400">
                                 {request.email}

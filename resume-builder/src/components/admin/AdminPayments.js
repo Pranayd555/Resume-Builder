@@ -19,13 +19,13 @@ function refundLabel(payment) {
   if (!payment.refund) return null;
   if (payment.refund.status === 'failed') return 'Refund failed';
   if (payment.refund.status === 'pending') return 'Refund in progress';
-  return `Refunded by ${payment.refundBy === 'admin' ? 'admin' : 'customer'}`;
+  return 'Refunded';
 }
 
 /**
- * Admin view of every purchase and bonus grant. Customers refund unused packs
- * themselves; admins can refund any paid pack here, including a goodwill
- * refund when its tokens were already used.
+ * Admin view of every purchase and bonus grant. Tokens are non-refundable for
+ * customers; an admin refunds here only after investigating a claim
+ * (duplicate charge, paid without receiving tokens, service failure).
  */
 const AdminPayments = () => {
   const [data, setData] = useState(null);
@@ -33,7 +33,16 @@ const AdminPayments = () => {
   const [filters, setFilters] = useState({ status: '', type: 'purchase', search: '', page: 1 });
   const [refunding, setRefunding] = useState(null);
   const [reason, setReason] = useState('');
+  const [amount, setAmount] = useState(''); // rupees; empty = full payment
+  const [removeTokens, setRemoveTokens] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+
+  const openRefund = (payment) => {
+    setRefunding(payment);
+    setReason('');
+    setAmount('');
+    setRemoveTokens(true);
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -57,8 +66,11 @@ const AdminPayments = () => {
     if (!refunding) return;
     setSubmitting(true);
     try {
-      // A goodwill refund is needed when the pack is no longer refundable by the rule.
-      await adminAPI.paymentsAdminApi.refundPayment(refunding.id, { reason: reason.trim(), force: !refunding.refundable });
+      await adminAPI.paymentsAdminApi.refundPayment(refunding.id, {
+        reason: reason.trim(),
+        amount: amount === '' ? undefined : Number(amount),
+        removeTokens
+      });
       toast.success('Refund issued');
       setRefunding(null);
       setReason('');
@@ -78,7 +90,7 @@ const AdminPayments = () => {
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Payments</h1>
         <p className="text-gray-600 dark:text-gray-400">
-          Token purchases and bonus grants. Customers refund unused packs themselves within the refund window.
+          Token purchases and bonus grants. Tokens are non-refundable; refund here only after investigating a customer&apos;s claim.
         </p>
       </div>
 
@@ -181,7 +193,7 @@ const AdminPayments = () => {
                   {p.type === 'purchase' && p.status === 'paid' && (
                     <button
                       type="button"
-                      onClick={() => { setRefunding(p); setReason(''); }}
+                      onClick={() => openRefund(p)}
                       className="px-3 py-1.5 text-xs font-medium rounded-md border border-red-300 text-red-700 hover:bg-red-50"
                     >
                       Refund
@@ -210,29 +222,44 @@ const AdminPayments = () => {
             <h3 id="admin-refund-title" className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
               Refund {rupees(refunding.amount)} to {refunding.user?.email}?
             </h3>
-            {refunding.refundable ? (
-              <p className="text-sm text-gray-700 dark:text-gray-300">
-                This pack is unused and within the refund window. The full amount is returned and{' '}
-                {refunding.tokens} + {refunding.bonusTokens} bonus tokens are removed.
-              </p>
-            ) : (
-              <p className="text-sm text-amber-700 dark:text-amber-400">
-                Goodwill refund: {refunding.refundBlockedReason} The full amount is returned and whatever is left of
-                the pack&apos;s tokens is removed (never below zero). Razorpay keeps its fee.
-              </p>
-            )}
-            <label htmlFor="admin-refund-reason" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mt-4 mb-1">Note (internal)</label>
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              Tokens are non-refundable, so refund only after investigating a claim: a duplicate charge, a
+              payment without tokens, or a failure on our side. Razorpay keeps its fee on refunds.
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              Pack: {refunding.tokens} tokens{refunding.bonusTokens > 0 ? ` + ${refunding.bonusTokens} bonus` : ''}.
+              Customer&apos;s balance now: {refunding.user?.tokens?.purchased ?? 0} purchased + {refunding.user?.tokens?.bonus ?? 0} bonus.
+            </p>
+            <label htmlFor="admin-refund-amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mt-4 mb-1">
+              Amount in ₹ (leave empty for the full {rupees(refunding.amount)})
+            </label>
+            <input
+              id="admin-refund-amount"
+              type="number"
+              min="1"
+              max={refunding.amount / 100}
+              step="1"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 text-sm"
+            />
+            <label className="flex items-start gap-2 mt-3 text-sm text-gray-700 dark:text-gray-300">
+              <input type="checkbox" checked={removeTokens} onChange={(e) => setRemoveTokens(e.target.checked)} className="mt-0.5" />
+              <span>Take back what is left of this pack&apos;s tokens (untick if the customer never received them)</span>
+            </label>
+            <label htmlFor="admin-refund-reason" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mt-4 mb-1">What did you investigate? (required)</label>
             <textarea
               id="admin-refund-reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               rows={3}
               maxLength={500}
+              placeholder="e.g. Charged twice for the same order; second payment refunded"
               className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 text-sm"
             />
             <div className="flex justify-end gap-3 mt-5">
               <button type="button" onClick={() => setRefunding(null)} disabled={submitting} className="px-4 py-2 text-sm border border-gray-300 rounded-md text-gray-700 dark:text-gray-300">Cancel</button>
-              <button type="button" onClick={submitRefund} disabled={submitting} className="px-4 py-2 text-sm text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50">
+              <button type="button" onClick={submitRefund} disabled={submitting || reason.trim().length < 5} className="px-4 py-2 text-sm text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50">
                 {submitting ? 'Refunding…' : 'Issue refund'}
               </button>
             </div>

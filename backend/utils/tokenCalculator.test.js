@@ -192,21 +192,22 @@ describe('database token operations', { skip: !MONGO_URI && 'TOKEN_TEST_MONGODB_
     assert.equal(await ledger.isOpApplied(user._id, 'credit:other'), false);
   });
 
-  test('deductForRefund removes a pack only while all of it is unused', async () => {
+  test('deductForRefund removes what is left of a pack and reports exactly what it removed', async () => {
     const user = await makeUser(25, 6);
-    assert.equal(await ledger.deductForRefund(user._id, { purchased: 25, bonus: 7 }, { opId: 'refund:a:1' }), null, 'bonus short by one');
-    assert.deepEqual(await raw(user._id), { _id: user._id, tokens: 25, bonusTokens: 6 });
-    assert.deepEqual(await ledger.deductForRefund(user._id, { purchased: 25, bonus: 5 }, { opId: 'refund:a:2' }), { purchased: 0, bonus: 1, total: 1 });
-    assert.equal(await ledger.deductForRefund(user._id, { purchased: 0, bonus: 0 }, { opId: 'refund:a:2' }), null, 'same op twice');
+    assert.deepEqual(
+      await ledger.deductForRefund(user._id, { purchased: 25, bonus: 5 }, { opId: 'refund:a:1' }),
+      { removed: { purchased: 25, bonus: 5 }, balance: { purchased: 0, bonus: 1, total: 1 } }
+    );
+    assert.equal(await ledger.deductForRefund(user._id, { purchased: 1, bonus: 0 }, { opId: 'refund:a:1' }), null, 'same op twice');
   });
 
-  test('deductForRefund with clamp never goes below zero and is applied once', async () => {
+  test('deductForRefund never goes below zero and is applied once under concurrency', async () => {
     const user = await makeUser(10, 2);
     const results = await Promise.all([1, 2, 3].map(() =>
-      ledger.deductForRefund(user._id, { purchased: 25, bonus: 5 }, { opId: 'refund:b:1', clamp: true })
+      ledger.deductForRefund(user._id, { purchased: 25, bonus: 5 }, { opId: 'refund:b:1' })
     ));
     assert.equal(results.filter(Boolean).length, 1);
-    assert.deepEqual(results.find(Boolean), { purchased: 0, bonus: 0, total: 0 });
+    assert.deepEqual(results.find(Boolean), { removed: { purchased: 10, bonus: 2 }, balance: { purchased: 0, bonus: 0, total: 0 } });
   });
 
   test('getTokenBalance throws 404 for a missing user', async () => {

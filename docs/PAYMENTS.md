@@ -1,31 +1,37 @@
-# Payments and refunds
+# Payments
 
-Users buy AI token packs with Razorpay (INR). The design follows Razorpay's recommended integration: the server creates the order and sets the price, webhooks confirm payments, and crediting is idempotent. Refunds follow one rule that customers apply themselves.
+Users buy AI token packs with Razorpay (INR). **1 token = 1 AI action. Tokens never expire and are non-refundable.** Money is refunded only by an admin, after investigating a customer's claim: a duplicate charge, a payment without tokens, or a failure on our side. This is the common model for prepaid AI credits, used by OpenAI, Anthropic and Naukri among others.
+
+The integration follows Razorpay's recommendations: the server creates the order and sets the price, webhooks confirm payments, and crediting is idempotent.
 
 | Piece | File |
 |---|---|
-| Packs, prices, refund window | `backend/config/tokenPacks.js` (the only place prices are defined) |
-| Refund rule | `backend/utils/refundPolicy.js` |
-| Orders, crediting, refunds, webhooks, reconcile job | `backend/services/paymentService.js` |
+| Packs and prices | `backend/config/tokenPacks.js` (the only place prices are defined) |
+| Orders, crediting, admin refunds, webhooks, reconcile job | `backend/services/paymentService.js` |
 | HTTP routes | `backend/routes/payment.js` |
 | Payment records | `backend/models/Payment.js` (collection `payments`) |
 | Token pools | `backend/utils/tokenCalculator.js` |
 | Checkout page | `resume-builder/src/components/Payment.js` |
-| History and self-serve refund | `resume-builder/src/components/PaymentHistory.js` (in Analytics) |
+| Payment history | `resume-builder/src/components/PaymentHistory.js` (in Analytics) |
 | Admin | `resume-builder/src/components/admin/AdminPayments.js` (`/admin/payments`) |
-| Tests | `backend/services/paymentService.test.js`, `backend/utils/refundPolicy.test.js` |
+| Tests | `backend/services/paymentService.test.js`, `backend/config/tokenPacks.test.js` |
 
 ## Packs
 
-| Pack | Tokens | Bonus | Price |
+| Pack | Tokens | Price | Per token |
 |---|---|---|---|
-| `pack_5` | 5 | 0 | ₹49 |
-| `pack_10` | 10 | 1 | ₹89 |
-| `pack_25` | 25 | 5 | ₹199 |
-| `pack_50` | 50 | 15 | ₹349 |
-| `pack_100` | 100 | 40 | ₹599 |
+| `pack_10` | 10 | ₹49 | ₹4.90 |
+| `pack_25` | 25 | ₹99 | ₹3.96 |
+| `pack_60` (most popular) | 60 | ₹199 | ₹3.32 |
+| `pack_200` | 200 | ₹499 | ₹2.50 |
 
-The frontend reads these from `GET /api/payment/config`. To change a price, edit `tokenPacks.js` only.
+**Why these prices (Nov 2026):**
+- **AI cost:** an AI action costs us about ₹0.10 (rewriting a field) to ₹1 (importing a resume, or a tone or keyword pass) on `gemini-3.5-flash-lite`, at $0.30 per 1M input tokens and $2.50 per 1M output tokens. The worst case is about ₹4.
+- **Gateway cost:** Razorpay takes about 2.36% (2% + GST) of each payment.
+- **Price points:** Indian AI resume tools charge about ₹2 per action, and Western tools $25–50 a month. The totals sit on familiar Indian price points (₹49, ₹99, ₹199, ₹499).
+- **Margin:** if a buyer uses the whole pack, the gross margin is still about 70–80%.
+
+The frontend reads the packs from `GET /api/payment/config`. To change a price, edit `tokenPacks.js` only. The Terms say price changes need 30 days' notice.
 
 ## Buying
 
@@ -49,30 +55,34 @@ browser                         API                                Razorpay
 3. It credits the tokens with the operation id `credit:<paymentId>`. The id is stored on the user in the same write, so the credit is applied exactly once, even after a retry or crash.
 4. It assigns a sequential receipt number (`PRS-2026-000001`) and emails the receipt.
 
-The browser path only fulfils orders that belong to the signed-in user. A payment cannot be credited to another account.
+The browser path only fulfils orders that belong to the signed-in user, so a payment cannot be credited to another account.
 
-**Reconcile job:** this runs every 10 minutes inside the API process.
-- It credits orders that were paid but never reported, for example because the tab was closed and the webhook was lost.
+**Reconcile job:** runs every 10 minutes inside the API process.
+- It credits orders that were paid but never reported (tab closed, webhook lost).
 - It finishes credits that stopped half way.
 - It marks orders that were never paid after 3 days as `expired`.
 
-## Refunds
+If an AI action fails, its token is returned automatically (`chargeAIToken` in `backend/middleware/auth.js`).
 
-**Rule (`refundPolicy.js`):** a pack gets a **full refund** if all of these are true:
-- it was paid for within the last **7 days**;
-- it hasn't been refunded already;
-- **every token it added, bonus included, is still in the balance**.
+## Refunds (admin only)
 
-Otherwise there is no refund. Bonus grants are never refundable. Tokens are spent bonus first, so using AI even once after buying a pack makes it non-refundable. This matches the public Cancellation & Refunds page.
+There is no customer refund button or refund window. Customers contact support with their receipt number. After investigating, an admin uses **Refund** on `/admin/payments`:
+- **Reason (required):** what was investigated. It is stored with the payment.
+- **Amount:** the full payment by default, or a partial amount.
+- **Take back the pack's tokens:** on by default, and removes whatever is left of the pack, never below zero. Untick it when the customer never received the tokens.
 
-**How customers get one:** Analytics > Payment History shows a Refund button on packs that qualify. `POST /api/payment/:id/refund` then:
-1. claims the payment (`refund.status: pending`) atomically, so a double click or second tab can't refund twice;
-2. removes the pack's tokens only if they are all still there (a single conditional update);
-3. calls the Razorpay Refunds API for the full amount (`speed: normal`, no extra fee).
-   - If Razorpay fails, the tokens are put back, `refund.status` becomes `failed`, and the refund can be retried.
-4. sets status `refunded`. The `refund.processed` / `refund.failed` webhooks update `refund.status`.
+`refundPayment()`:
+1. claims the payment atomically, so a double click or a second admin can't refund twice;
+2. removes the tokens;
+3. calls the Razorpay Refunds API (`speed: normal`, no extra fee).
+   - If Razorpay fails, exactly the removed tokens are put back, `refund.status` becomes `failed`, and the admin sees Razorpay's error and can retry.
+   - The `refund.processed` / `refund.failed` webhooks update the status.
 
-**Admins** can refund any paid pack from `/admin/payments`. When the rule no longer allows it (tokens used, or outside the window), the page offers a **goodwill refund**: the full amount is returned and whatever is left of the pack's tokens is removed, never below zero. Razorpay keeps its fee (about 2% + GST) on refunded payments.
+When a claim is valid but money isn't needed, grant bonus tokens instead (Admin > Tokens, or the bonus-grant endpoints). Those grants appear in the customer's Payment History.
+
+**Razorpay balance:** a refund is paid from your current Razorpay balance, which is swept to your bank about every 2 days. Razorpay also keeps its fee on refunded payments.
+- A full refund fails with "invalid request sent" when the balance is lower than the refund. This was confirmed in test mode on 17 Nov 2026: ₹199 failed against a ₹195.02 balance, while ₹190 succeeded.
+- **Keep a small reserve balance in live mode** (Account & Settings > Balances > Add Funds, e.g. ₹1,000), or retry after new payments come in.
 
 ## Configuration
 
@@ -80,31 +90,32 @@ Otherwise there is no refund. Bonus grants are never refundable. Tokens are spen
 |---|---|---|
 | `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` | `backend/.env`, VPS `api.env` | `rzp_test_…` for test mode, `rzp_live_…` for live |
 | `RAZORPAY_WEBHOOK_SECRET` | same | Required. Unsigned webhooks are rejected |
-| `PAYMENTS_ENABLED` | same | `true` to accept new purchases. Otherwise the Buy page shows "paused" and `POST /orders` returns 503. Refunds of existing payments still work |
+| `PAYMENTS_ENABLED` | same | `true` to accept new purchases. Otherwise the Buy page shows "paused" and `POST /orders` returns 503 |
 
-The checkout key comes from the API (`/config`, `/orders`), so the frontend needs no Razorpay variable. `REACT_APP_RAZORPAY_KEY_ID` is no longer used.
+The checkout key comes from the API (`/config`, `/orders`), so the frontend needs no Razorpay variable.
 
 ## Going live
 
-1. Complete Razorpay KYC and activate live mode.
-   - Razorpay checks the site for Terms, Privacy, Cancellation & Refunds, Contact and Shipping pages.
-   - For Shipping, "delivered instantly to your account" covers digital goods.
-2. Razorpay Dashboard > Settings > Payment capture: turn on **automatic capture**.
-3. Razorpay Dashboard > Webhooks: add `https://api.presmistique.in/api/payment/webhook` with the events `payment.captured`, `order.paid`, `refund.processed` and `refund.failed`, and set a secret.
-4. On the VPS, put the live keys and the webhook secret in `/opt/presmistique/api.env`, keep `PAYMENTS_ENABLED=false`, then run `docker compose up -d --force-recreate api`.
-5. Test the live keys before opening payments to users:
+1. **Razorpay account:** it is already activated for live mode. In live mode:
+   - Account & Settings > Customer support details: add presmistique@gmail.com and the Contact Us page link (no personal phone number).
+   - Capture and refund settings: keep **automatic capture**.
+   - Balances: add a reserve, e.g. ₹1,000.
+2. **Webhook:** Razorpay Dashboard (live mode) > Webhooks.
+   - URL: `https://api.presmistique.in/api/payment/webhook`
+   - Events: `payment.captured`, `order.paid`, `refund.processed`, `refund.failed`
+   - Set a secret.
+3. **Server:** put the live keys and the webhook secret in `/opt/presmistique/api.env`, keep `PAYMENTS_ENABLED=false`, then run `docker compose up -d --force-recreate api`.
+4. **Test, then open payments:**
    - Set `PAYMENTS_ENABLED=true` and recreate the container.
    - Buy the smallest pack with your own account.
-   - Check the tokens arrive, the receipt email arrives, and the Razorpay dashboard shows the webhook delivered (200).
-   - Refund the pack from Analytics > Payment History.
-   - If anything is wrong, set `PAYMENTS_ENABLED=false` again.
-6. Optional: copy old records from the user documents into the `payments` collection.
-   - Dry run: `node scripts/migrate-legacy-transactions.js`
-   - Then `--apply`.
+   - Check the tokens and the receipt email arrive, and the webhook shows as delivered (200) in Razorpay.
+   - Refund it from `/admin/payments` with the reason "go-live test".
+5. **Gemini key:** make sure the production `GEMINI_API_KEY` is from a project with billing enabled. Free-tier data may be used to train Google's models.
+6. **Old records (optional):** copy them from the user documents into `payments` with `node scripts/migrate-legacy-transactions.js` (dry run), then `--apply`.
 
 ## Testing locally
 
-- Use test keys and Razorpay's test cards or UPI (`success@razorpay`).
+- Use test keys and Razorpay's test cards. Test mode accepts any OTP.
 - To receive webhooks locally, expose the API with a tunnel and register that URL as a test-mode webhook.
 - Without webhooks, the browser callback and the reconcile job still credit payments.
 - Automated tests: `cd backend && TOKEN_TEST_MONGODB_URI=mongodb://127.0.0.1:27017/token-test npm test`. CI runs these against a MongoDB service.

@@ -2,14 +2,15 @@
  * Token payments (Razorpay). The logic lives in services/paymentService.js;
  * these handlers only validate input and shape responses.
  *
- *   GET  /config                     public: packs, refund window, checkout key, enabled
+ *   GET  /config                     public: packs, checkout key, enabled
  *   POST /orders                     { packId } -> Razorpay order
  *   POST /verify                     { orderId, paymentId, signature } -> tokens credited
  *   GET  /history                    the caller's purchases and bonus grants
- *   POST /:id/refund                 self-serve refund of an unused pack
  *   POST /webhook                    Razorpay webhooks (raw body, see server.js)
  *   GET  /admin/payments             admin: list payments
- *   POST /admin/payments/:id/refund  admin: refund (optionally a goodwill refund)
+ *   POST /admin/payments/:id/refund  admin: refund after investigating a claim
+ *
+ * Tokens are non-refundable for customers; there is no customer refund route.
  *   POST /admin/give-bonus-tokens/:userId, /admin/give-bonus-tokens-by-email
  */
 const express = require('express');
@@ -66,7 +67,7 @@ router.post('/verify', protect, async (req, res) => {
       message: 'Payment successful. Tokens added to your account.',
       data: {
         tokens: tokenPayload(balance),
-        payment: payments.toClientPayment(payment, balance)
+        payment: payments.toClientPayment(payment)
       }
     });
   } catch (error) {
@@ -80,23 +81,6 @@ router.get('/history', protect, async (req, res) => {
     res.json({ success: true, data: { payments: list } });
   } catch (error) {
     sendError(res, error, 'Failed to load payment history');
-  }
-});
-
-router.post('/:id/refund', protect, async (req, res) => {
-  try {
-    const { payment, balance } = await payments.refundPayment(req.params.id, {
-      by: 'user',
-      userId: req.user._id,
-      reason: typeof req.body?.reason === 'string' ? req.body.reason : undefined
-    });
-    res.json({
-      success: true,
-      message: 'Refund issued. The money will reach your original payment method in 5-7 business days.',
-      data: { tokens: tokenPayload(balance), payment: payments.toClientPayment(payment, balance) }
-    });
-  } catch (error) {
-    sendError(res, error, 'Failed to process the refund');
   }
 });
 
@@ -154,7 +138,8 @@ router.get('/admin/payments', protect, authorize('admin'), async (req, res) => {
       Payment.countDocuments(filter),
       Payment.aggregate([
         { $match: { type: 'purchase', status: { $in: ['paid', 'refunded'] } } },
-        { $group: { _id: '$status', count: { $sum: 1 }, amount: { $sum: '$amount' } } }
+        // Refunded: the amount actually returned (refunds can be partial)
+        { $group: { _id: '$status', count: { $sum: 1 }, amount: { $sum: { $cond: [{ $eq: ['$status', 'refunded'] }, { $ifNull: ['$refund.amount', '$amount'] }, '$amount'] } } } }
       ])
     ]);
 
@@ -163,13 +148,20 @@ router.get('/admin/payments', protect, authorize('admin'), async (req, res) => {
       success: true,
       data: {
         payments: items.map((p) => {
-          const balance = { purchased: p.user?.tokens || 0, bonus: p.user?.bonusTokens || 0 };
           return {
-            ...payments.toClientPayment(p, balance),
-            user: p.user ? { id: String(p.user._id), email: p.user.email, name: [p.user.firstName, p.user.lastName].filter(Boolean).join(' ') } : null,
+            ...payments.toClientPayment(p),
+            user: p.user ? {
+              id: String(p.user._id),
+              email: p.user.email,
+              name: [p.user.firstName, p.user.lastName].filter(Boolean).join(' '),
+              // Current balance, to judge how much of the pack is left
+              tokens: { purchased: p.user.tokens || 0, bonus: p.user.bonusTokens || 0 }
+            } : null,
             refundBy: p.refund?.by || null,
             refundReason: p.refund?.reason || null,
             refundError: p.refund?.status === 'failed' ? p.refund?.error || null : null,
+            refundAdmin: p.refund?.adminEmail || null,
+            tokensRemoved: p.refund?.tokensRemoved || null,
             grantedBy: p.grantedBy || null
           };
         }),
@@ -187,16 +179,19 @@ router.get('/admin/payments', protect, authorize('admin'), async (req, res) => {
 
 router.post('/admin/payments/:id/refund', protect, authorize('admin'), async (req, res) => {
   try {
-    const { payment, balance } = await payments.refundPayment(req.params.id, {
-      by: 'admin',
+    // amount is in rupees (optional, default: the full payment)
+    const rupees = req.body?.amount;
+    const amount = rupees === undefined || rupees === null || rupees === '' ? undefined : Math.round(Number(rupees) * 100);
+    const { payment, balance, removed } = await payments.refundPayment(req.params.id, {
       adminEmail: req.user.email,
-      reason: typeof req.body?.reason === 'string' ? req.body.reason : undefined,
-      force: req.body?.force === true
+      reason: typeof req.body?.reason === 'string' ? req.body.reason : '',
+      amount,
+      removeTokens: req.body?.removeTokens !== false
     });
     res.json({
       success: true,
       message: 'Refund issued.',
-      data: { payment: payments.toClientPayment(payment, balance), userBalance: balance }
+      data: { payment: payments.toClientPayment(payment), userBalance: balance, tokensRemoved: removed }
     });
   } catch (error) {
     sendError(res, error, 'Failed to process the refund');
