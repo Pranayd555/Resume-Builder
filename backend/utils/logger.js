@@ -1,5 +1,6 @@
 const winston = require('winston');
 const path = require('path');
+const { redactInfo } = require('./logRedaction');
 
 // Create the logs directory. recursive: true makes this safe when several
 // processes start at once (node --test runs test files in parallel).
@@ -7,10 +8,16 @@ const fs = require('fs');
 const logDir = 'logs';
 fs.mkdirSync(logDir, { recursive: true });
 
+// Strips request bodies, submitted values and email addresses from every
+// entry (see utils/logRedaction.js). Runs after errors() so error objects are
+// already flattened into the info object.
+const redact = winston.format((info) => redactInfo(info));
+
 // Define log format
 const logFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.errors({ stack: true }),
+  redact(),
   winston.format.json()
 );
 

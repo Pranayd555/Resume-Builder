@@ -33,7 +33,7 @@ router.post('/resume/:id/view', protect, async (req, res) => {
     resume.analytics.lastViewed = new Date();
     await resume.save();
 
-    logger.info(`Resume view tracked: ${resume.title} by user ${req.user.email}`);
+    logger.info(`Resume view tracked: ${resume._id} by user ${req.user.id}`);
 
     res.json({
       success: true,
@@ -86,7 +86,7 @@ router.post('/resume/:id/download', protect, async (req, res) => {
       );
     }
 
-    logger.info(`Resume download tracked: ${resume.title} (${format}) by user ${req.user.email}`);
+    logger.info(`Resume download tracked: ${resume._id} (${format}) by user ${req.user.id}`);
 
     res.json({
       success: true,
@@ -124,7 +124,7 @@ router.post('/template/:id/use', protect, async (req, res) => {
     // Increment template usage
     await template.incrementUsage(req.user.id);
 
-    logger.info(`Template usage tracked: ${template.name} by user ${req.user.email}`);
+    logger.info(`Template usage tracked: ${template.name} by user ${req.user.id}`);
 
     res.json({
       success: true,
@@ -278,7 +278,7 @@ router.post('/ai-action', protect, async (req, res) => {
       });
     }
 
-    logger.info(`AI action tracked: ${logSafe(actionType, 50)} (${tokensUsed} tokens) by user ${logSafe(req.user.email)}`);
+    logger.info(`AI action tracked: ${logSafe(actionType, 50)} (${tokensUsed} tokens) by user ${logSafe(req.user.id)}`);
 
     res.json({
       success: true,
@@ -308,7 +308,7 @@ router.post('/feature-usage', protect, async (req, res) => {
     
     // All features are now available to all users
     // Log feature usage
-    logger.info(`Feature usage tracked: ${feature} - ${action} by user ${req.user.email}`);
+    logger.info(`Feature usage tracked: ${feature} - ${action} by user ${req.user.id}`);
 
     res.json({
       success: true,
