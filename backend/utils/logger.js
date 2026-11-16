@@ -1,12 +1,11 @@
 const winston = require('winston');
 const path = require('path');
 
-// Create logs directory if it doesn't exist
+// Create the logs directory. recursive: true makes this safe when several
+// processes start at once (node --test runs test files in parallel).
 const fs = require('fs');
 const logDir = 'logs';
-if (!fs.existsSync(logDir)) {
-  fs.mkdirSync(logDir);
-}
+fs.mkdirSync(logDir, { recursive: true });
 
 // Define log format
 const logFormat = winston.format.combine(
