@@ -10,7 +10,7 @@ const logger = require('./logger');
 const Resume = require('../models/Resume');
 const errorHandler = require('../middleware/errorHandler');
 const { errorMeta, requestMeta } = require('./logSafe');
-const { redactCastValues, redactDuplicateKeys, maskEmails } = require('./logRedaction');
+const { redactCastValues, redactDuplicateKeys, maskEmails, redactSecrets } = require('./logRedaction');
 
 // Personal data planted in every fixture; none of it may reach a log line.
 const SECRETS = ['Alice Secretname', 'alice.secret@example.com', '+91 98765 43210', 'Present', 'Acme Hidden Corp'];
@@ -81,6 +81,40 @@ describe('string redaction', () => {
   });
 });
 
+describe('secret redaction', () => {
+  const jwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIn0.c2lnbmF0dXJlLXNlY3JldA';
+
+  test('OAuth redirect URL keeps the path, drops the session token', () => {
+    const out = redactSecrets(`Google OAuth redirect - Full URL: https://presmistique.in/auth/callback?token=${jwt}`);
+    assert.equal(out, 'Google OAuth redirect - Full URL: https://presmistique.in/auth/callback?token=[redacted-jwt]');
+  });
+
+  test('a bare JWT anywhere in a message is removed', () => {
+    assert.equal(redactSecrets(`issued ${jwt} for user 1`), 'issued [redacted-jwt] for user 1');
+  });
+
+  test('secret query parameters are redacted, others kept', () => {
+    const out = redactSecrets('GET /api/auth/google/callback?code=4/0Ab-xyz&scope=email&OTP=123456&page=2 HTTP/1.1');
+    assert.equal(out, 'GET /api/auth/google/callback?code=[redacted]&scope=email&OTP=[redacted]&page=2 HTTP/1.1');
+  });
+
+  test('reset, verify and share tokens in paths are redacted', () => {
+    assert.equal(redactSecrets('POST /api/auth/reset-password/abc123def?x=1 200'), 'POST /api/auth/reset-password/[redacted]?x=1 200');
+    assert.equal(redactSecrets('POST /api/auth/verify-email/tok-9 200'), 'POST /api/auth/verify-email/[redacted] 200');
+    assert.equal(redactSecrets('GET /api/resumes/shared/s3cr3t/ HTTP'), 'GET /api/resumes/shared/[redacted]/ HTTP');
+  });
+
+  test('Bearer values are redacted', () => {
+    assert.equal(redactSecrets('Authorization: Bearer abc.def-ghi'), 'Authorization: Bearer [redacted]');
+  });
+
+  test('long hostile input stays linear', () => {
+    const started = Date.now();
+    redactSecrets('&'.repeat(50000) + '?a'.repeat(50000) + 'eyJ'.repeat(30000) + '/shared/'.repeat(10000));
+    assert.ok(Date.now() - started < 1000);
+  });
+});
+
 describe('errorMeta / requestMeta', () => {
   test('validation error -> field paths and kinds, no values', async () => {
     const meta = errorMeta(await validationErrorWithPresent());
@@ -139,6 +173,18 @@ describe('logger output', () => {
     assertNoSecrets(out);
   });
 
+  test('tokens in messages and metadata never reach the output', () => {
+    const jwt = 'eyJhbGciOiJIUzI1NiJ9.eyJpZCI6ImFkbWluIn0.c2lnbmF0dXJl';
+    logger.info(`Google OAuth redirect - Full URL: https://presmistique.in/auth/callback?token=${jwt}`);
+    logger.info('::1 - - "GET /api/auth/google/callback?code=4/0AbSecretCode HTTP/1.1" 302');
+    logger.info('login', { token: jwt, authorization: `Bearer ${jwt}`, otp: '123456', note: `sent ${jwt}` });
+    const out = logged();
+    for (const secret of [jwt, 'c2lnbmF0dXJl', '4/0AbSecretCode', '123456']) {
+      assert.ok(!out.includes(secret), `log leaked "${secret}": ${out}`);
+    }
+    assert.match(out, /auth\/callback\?token=\[redacted-jwt\]/);
+  });
+
   test('global error handler logs request metadata, answers 400 for a bad body value', async () => {
     const castError = new mongoose.Error.CastError('date', 'Present', 'workExperience.0.endDate');
     const res = { statusCode: 0, json(payload) { this.payload = payload; return this; }, status(code) { this.statusCode = code; return this; } };
@@ -181,14 +227,15 @@ describe('source check', () => {
   };
   walk(root);
 
-  test('no logger/console call logs req.body, a whole resume or rendered HTML', () => {
+  test('no logger/console call logs req.body, a whole resume, rendered HTML or a token', () => {
     const offenders = [];
     const wholeBody = /req\.body(?![.[\w])/;
     for (const file of files) {
       fs.readFileSync(file, 'utf8').split(/\r?\n/).forEach((line, i) => {
         const isLog = /\b(logger|console)\.(log|info|warn|error|debug)\(/.test(line);
         const leaks = /body:\s*req\.body\b/.test(line)
-          || (isLog && (wholeBody.test(line) || /JSON\.stringify\(\s*(req|req\.body|resume|user)\s*[,)]/.test(line) || /htmlContent/.test(line)));
+          || (isLog && (wholeBody.test(line) || /JSON\.stringify\(\s*(req|req\.body|resume|user)\s*[,)]/.test(line) || /htmlContent/.test(line)
+            || /\$\{(redirectUrl|token|jwt|password|otp|secret)\}/i.test(line)));
         if (leaks) offenders.push(`${path.relative(root, file)}:${i + 1}: ${line.trim()}`);
       });
     }

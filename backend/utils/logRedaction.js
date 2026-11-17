@@ -9,6 +9,8 @@
  * - the submitted values Mongoose copies into errors (`value`, `stringValue`,
  *   `keyValue`, and the `for value "..."` part of cast error messages)
  * - MongoDB duplicate-key values (`dup key: { email: "..." }`)
+ * - session tokens (JWTs), OAuth codes, OTPs, passwords, API keys and the
+ *   reset/verify/share tokens in URLs (query parameters and path segments)
  * - email addresses in messages (kept as `a***@example.com`, so the domain
  *   still helps with delivery problems)
  *
@@ -21,7 +23,8 @@
 // Top-level keys that never belong in a log entry.
 const DROPPED_KEYS = new Set([
   'body', 'rawBody', 'requestBody', 'reqBody', 'headers', 'cookies',
-  'password', 'token', 'accessToken', 'refreshToken',
+  'password', 'token', 'accessToken', 'refreshToken', 'idToken', 'authorization',
+  'otp', 'secret', 'apiKey', 'jwt',
   'personalInfo', 'resume', 'resumeData', 'formData',
   // Mongoose / MongoDB error properties that hold the submitted value
   'value', 'stringValue', 'valueType', 'reason', 'keyValue', 'errorResponse', 'properties'
@@ -64,6 +67,89 @@ function redactDuplicateKeys(text) {
   return out + text.slice(from);
 }
 
+// Query parameters whose values are credentials (OAuth codes, session tokens, OTPs...).
+const SECRET_PARAMS = new Set([
+  'token', 'access_token', 'refresh_token', 'id_token', 'code', 'otp', 'password',
+  'secret', 'client_secret', 'key', 'api_key', 'apikey', 'signature', 'sig'
+]);
+// Routes that take a token as a path segment (see routes/auth.js, routes/resumes.js).
+const SECRET_PATH_MARKERS = ['/verify-email/', '/reset-password/', '/shared/'];
+
+const isValueEnd = (c) => c === '&' || c === '#' || c === '"' || c === "'" || c === '<' || c === '>' || c === ' ' || c === '\t' || c === '\n';
+const isSegmentEnd = (c) => isValueEnd(c) || c === '/' || c === '?';
+const isTokenChar = (c) => /[A-Za-z0-9._~+/=-]/.test(c);
+const isJwtChar = (c) => /[A-Za-z0-9_.-]/.test(c);
+
+// ?token=abc&x=1 -> ?token=[redacted]&x=1 (any SECRET_PARAMS name, case-insensitive)
+function redactSecretParams(text) {
+  let out = '';
+  let from = 0;
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] !== '?' && text[i] !== '&') continue;
+    // Parameter names are short; scanning at most 31 chars keeps this linear.
+    let eq = i + 1;
+    while (eq < text.length && eq - i <= 31 && text[eq] !== '=' && text[eq] !== '?' && !isValueEnd(text[eq])) eq++;
+    if (text[eq] !== '=') continue;
+    if (!SECRET_PARAMS.has(text.slice(i + 1, eq).toLowerCase())) continue;
+    if (text.startsWith('[redacted', eq + 1)) continue; // already masked (e.g. a JWT)
+    let end = eq + 1;
+    while (end < text.length && !isValueEnd(text[end])) end++;
+    if (end === eq + 1) continue;
+    out += text.slice(from, eq + 1) + REDACTED;
+    from = end;
+    i = end - 1;
+  }
+  return out + text.slice(from);
+}
+
+// Text after `marker` up to the end of a value/segment -> [redacted].
+function redactAfter(text, marker, isEnd, isChar = () => true) {
+  let out = '';
+  let from = 0;
+  let idx = text.indexOf(marker, from);
+  while (idx !== -1) {
+    const start = idx + marker.length;
+    let end = start;
+    while (end < text.length && !isEnd(text[end]) && isChar(text[end])) end++;
+    out += text.slice(from, start) + (end > start ? REDACTED : '');
+    from = end;
+    idx = text.indexOf(marker, from);
+  }
+  return out + text.slice(from);
+}
+
+// Any JWT-shaped string (eyJ<header>.<payload>.<signature>) -> [redacted-jwt]
+function redactJwts(text) {
+  let out = '';
+  let from = 0;
+  let idx = text.indexOf('eyJ', from);
+  while (idx !== -1) {
+    let end = idx;
+    let dots = 0;
+    while (end < text.length && isJwtChar(text[end])) {
+      if (text[end] === '.') dots++;
+      end++;
+    }
+    if (dots >= 2 && end - idx > 20) {
+      out += text.slice(from, idx) + '[redacted-jwt]';
+    } else {
+      out += text.slice(from, end);
+    }
+    from = end;
+    idx = text.indexOf('eyJ', from);
+  }
+  return out + text.slice(from);
+}
+
+// Session tokens, OAuth codes, OTPs, reset/verify/share tokens and API keys.
+function redactSecrets(text) {
+  let out = redactJwts(text);
+  out = redactSecretParams(out);
+  for (const marker of SECRET_PATH_MARKERS) out = redactAfter(out, marker, isSegmentEnd);
+  out = redactAfter(out, 'Bearer ', isValueEnd, isTokenChar);
+  return out;
+}
+
 const isLocalChar = (c) => /[A-Za-z0-9._%+-]/.test(c);
 const isDomainChar = (c) => /[A-Za-z0-9.-]/.test(c);
 
@@ -92,7 +178,7 @@ function maskEmails(text) {
 
 function redactText(text) {
   if (typeof text !== 'string' || text.length === 0) return text;
-  return maskEmails(redactDuplicateKeys(redactCastValues(text)));
+  return maskEmails(redactSecrets(redactDuplicateKeys(redactCastValues(text))));
 }
 
 // Mongoose ValidationError.errors ({ 'workExperience.0.endDate': CastError, ... })
@@ -127,6 +213,7 @@ module.exports = {
   redactCastValues,
   redactDuplicateKeys,
   maskEmails,
+  redactSecrets,
   redactText,
   redactInfo
 };
