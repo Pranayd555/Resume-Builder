@@ -30,7 +30,7 @@
   },
   "scripts": {
     "start": "craco start",
-    "prebuild": "node sitemap-generator.js",
+    "postbuild": "node marketing/build-static.js",
     "build": "craco build",
     "test": "craco test",
     "eject": "react-scripts eject"

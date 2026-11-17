@@ -1,0 +1,140 @@
+[
+  {
+    "name": "Modern Professional Minimal",
+    "category": "minimalist",
+    "description": "A clean, minimalist template focusing on content and readability",
+    "thumbnail": "/thumbnails/modern-professional-minimal-thumbnail.webp"
+  },
+  {
+    "name": "Classic two column",
+    "category": "classic",
+    "description": "A classic serif template with a two-column layout, white background, and serif font.",
+    "thumbnail": "/thumbnails/classic-two-column-thumbnail.webp"
+  },
+  {
+    "name": "Dark Mode Developer",
+    "category": "modern",
+    "description": "Bold dark-themed design with monospace accents and neon highlights.",
+    "thumbnail": "/thumbnails/dark-mode-developer-thumbnail.webp"
+  },
+  {
+    "name": "Creative Portfolio",
+    "category": "creative",
+    "description": "Vibrant single-column design with featured projects at the top.",
+    "thumbnail": "/thumbnails/creative-portfolio-thumbnail.webp"
+  },
+  {
+    "name": "Professional Academic Research",
+    "category": "academic",
+    "description": "A comprehensive template designed for academic and research positions",
+    "thumbnail": "/thumbnails/professional-academic-research-thumbnail.webp"
+  },
+  {
+    "name": "Fresh Gradient",
+    "category": "modern",
+    "description": "Modern design with gradient header bar and rounded section cards.",
+    "thumbnail": "/thumbnails/fresh-gradient-thumbnail.webp"
+  },
+  {
+    "name": "Sleek Professional",
+    "category": "professional",
+    "description": "Corporate-friendly two-column layout with clean lines and ATS-optimized formatting.",
+    "thumbnail": "/thumbnails/sleek-professional-thumbnail.webp"
+  },
+  {
+    "name": "Professional Executive pro",
+    "category": "professional",
+    "description": "An executive-level template with sophisticated styling and modern layout",
+    "thumbnail": "/thumbnails/professional-executive-pro-thumbnail.webp"
+  },
+  {
+    "name": "Creative Designer",
+    "category": "creative",
+    "description": "A vibrant template perfect for designers and creative professionals",
+    "thumbnail": "/thumbnails/creative-designer-thumbnail.webp"
+  },
+  {
+    "name": "Classic Serif",
+    "category": "classic",
+    "description": "Traditional serif design for academic or formal applications.",
+    "thumbnail": "/thumbnails/classic-serif-thumbnail.webp"
+  },
+  {
+    "name": "Bold Accent",
+    "category": "modern",
+    "description": "Single-column resume with strong header bar and bold accent color for headings.",
+    "thumbnail": "/thumbnails/bold-accent-thumbnail.webp"
+  },
+  {
+    "name": "Academic Research",
+    "category": "academic",
+    "description": "A comprehensive template designed for academic and research positions",
+    "thumbnail": "/thumbnails/academic-research-thumbnail.webp"
+  },
+  {
+    "name": "Professional Corporate",
+    "category": "professional",
+    "description": "A sophisticated template designed for corporate environments",
+    "thumbnail": "/thumbnails/professional-corporate-thumbnail.webp"
+  },
+  {
+    "name": "Minimalist Clean",
+    "category": "minimalist",
+    "description": "A clean, minimalist template focusing on content and readability",
+    "thumbnail": "/thumbnails/minimalist-clean-thumbnail.webp"
+  },
+  {
+    "name": "Minimalist Edge",
+    "category": "minimalist",
+    "description": "A sharp minimalist resume with a structured split layout, accent details, and plenty of white space.",
+    "thumbnail": "/thumbnails/minimalist-edge-thumbnail.webp"
+  },
+  {
+    "name": "Modern Glassmorphism",
+    "category": "modern",
+    "description": "A cutting-edge template featuring glassmorphism design with frosted glass effects and modern aesthetics",
+    "thumbnail": "/thumbnails/modern-glassmorphism-thumbnail.webp"
+  },
+  {
+    "name": "Elegant Minimal",
+    "category": "modern",
+    "description": "Minimalist single-column layout with soft colors and elegant typography.",
+    "thumbnail": "/thumbnails/elegant-minimal-thumbnail.webp"
+  },
+  {
+    "name": "Professional Executive",
+    "category": "professional",
+    "description": "Executive-level professional template with sophisticated design",
+    "thumbnail": "/thumbnails/professional-executive-thumbnail.webp"
+  },
+  {
+    "name": "Classic Traditional",
+    "category": "classic",
+    "description": "A timeless, traditional resume template perfect for conservative industries",
+    "thumbnail": "/thumbnails/classic-traditional-thumbnail.webp"
+  },
+  {
+    "name": "Classic Professional",
+    "category": "classic",
+    "description": "Traditional professional template with conservative styling",
+    "thumbnail": "/thumbnails/classic-professional-thumbnail.webp"
+  },
+  {
+    "name": "Modern Tech",
+    "category": "modern",
+    "description": "Tech-focused modern design with clean lines and bold accents",
+    "thumbnail": "/thumbnails/modern-tech-thumbnail.webp"
+  },
+  {
+    "name": "Modern Executive",
+    "category": "modern",
+    "description": "A sophisticated template for executives and senior professionals",
+    "thumbnail": "/thumbnails/modern-executive-thumbnail.webp"
+  },
+  {
+    "name": "Modern Professional",
+    "category": "modern",
+    "description": "A clean, modern template perfect for professionals in any field",
+    "thumbnail": "/thumbnails/modern-professional-thumbnail.webp"
+  }
+]
