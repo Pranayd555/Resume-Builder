@@ -10,6 +10,7 @@ import {
   EnvelopeIcon
 } from '@heroicons/react/24/outline';
 import AnimatedBackground from '../AnimatedBackground';
+import { LEGAL_LAST_UPDATED } from '../../constants/legal';
 
 const CancellationRefunds = () => {
   const navigate = useNavigate();
@@ -152,10 +153,10 @@ const CancellationRefunds = () => {
         </div>
 
         {/* Footer Note */}
-        <footer className="mt-16 text-center text-slate-400 dark:text-slate-600 text-sm">
+        <footer className="mt-16 text-center text-slate-600 dark:text-slate-400 text-sm">
           <p>© {new Date().getFullYear()} Presmistique - AI Resume Builder. All rights reserved.</p>
           <p className="mt-2 italic">
-            Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} • Compliant with Indian Consumer Protection Rules, 2020.
+            Last updated: {LEGAL_LAST_UPDATED}
           </p>
         </footer>
       </main>

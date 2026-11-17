@@ -393,11 +393,8 @@ const BYOKGuide = () => {
         </div>
 
         {/* Footer */}
-        <footer className="mt-16 text-center text-slate-400 dark:text-slate-600 text-sm">
+        <footer className="mt-16 text-center text-slate-600 dark:text-slate-400 text-sm">
           <p>© {new Date().getFullYear()} Presmistique - AI Resume Builder. All rights reserved.</p>
-          <p className="mt-2 italic">
-            Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-          </p>
         </footer>
       </main>
     </div>
