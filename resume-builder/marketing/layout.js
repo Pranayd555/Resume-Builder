@@ -183,6 +183,23 @@ function renderPage(page) {
   const url = `${SITE_URL}${page.path}`;
   const crumbs = [{ name: 'Home', href: '/' }, ...(page.parents || []), { name: page.crumb || page.h1, href: page.path }];
   const graph = [
+    // Repeated on every page so author/publisher references resolve here too.
+    {
+      '@type': 'Organization',
+      '@id': ORG_ID,
+      name: BRAND_NAME,
+      url: `${SITE_URL}/`,
+      logo: `${SITE_URL}/resume-builder-logo-512-light.png`,
+      email: SUPPORT_EMAIL,
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${SITE_URL}/#website`,
+      name: BRAND_NAME,
+      alternateName: PRODUCT_NAME,
+      url: `${SITE_URL}/`,
+      publisher: { '@id': ORG_ID },
+    },
     {
       '@type': 'WebPage',
       '@id': `${url}#webpage`,

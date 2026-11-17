@@ -3,6 +3,7 @@
 // carries the home-page values for crawlers that don't run JavaScript, so
 // keep DEFAULT_SEO in sync with it.
 import { PUBLIC_ROUTES } from './routes';
+import publicPages from './publicPages.json';
 
 export const SITE_URL = 'https://presmistique.in';
 const BRAND = 'Presmistique';
@@ -13,34 +14,12 @@ export const DEFAULT_SEO = {
     'Build an ATS-friendly resume for free with Presmistique. Free templates and PDF downloads, 5 free AI tokens on signup, and token packs from ₹49 with no subscription.',
 };
 
-// Public pages that search engines should index, keyed by path.
+// Public pages that search engines should index, keyed by path. Everything
+// except home comes from publicPages.json, which marketing/build-static.js also
+// reads to write per-route HTML for crawlers.
 const INDEXABLE_PAGES = {
   [PUBLIC_ROUTES.HOME]: DEFAULT_SEO,
-  [PUBLIC_ROUTES.BYOK]: {
-    title: 'Use Your Own Gemini API Key for AI Resume Writing | Presmistique',
-    description:
-      'Connect your own free Google Gemini API key to Presmistique and use AI resume writing, rewriting and ATS analysis without buying tokens.',
-  },
-  [PUBLIC_ROUTES.CONTACT_US]: {
-    title: `Contact Us | ${BRAND}`,
-    description: `Questions about your resume, tokens or payments? Contact the ${BRAND} AI Resume Builder support team.`,
-  },
-  [PUBLIC_ROUTES.PRIVACY_POLICY]: {
-    title: `Privacy Policy | ${BRAND}`,
-    description: `How ${BRAND} collects, uses and protects your account details and resume data.`,
-  },
-  [PUBLIC_ROUTES.TERMS_CONDITIONS]: {
-    title: `Terms and Conditions | ${BRAND}`,
-    description: `The terms that apply when you use the ${BRAND} AI Resume Builder, AI tokens and paid token packs.`,
-  },
-  [PUBLIC_ROUTES.CANCELLATION_REFUNDS]: {
-    title: `Cancellation and Refund Policy | ${BRAND}`,
-    description: `When ${BRAND} refunds token-pack payments, and how to raise a refund request.`,
-  },
-  [PUBLIC_ROUTES.SHIPPING]: {
-    title: `Shipping and Delivery Policy | ${BRAND}`,
-    description: `${BRAND} sells digital AI tokens. Here is how and when purchased tokens are delivered to your account.`,
-  },
+  ...Object.fromEntries(publicPages.pages.map((p) => [p.path, { title: p.title, description: p.description }])),
 };
 
 // Public pages that exist but should stay out of search results.

@@ -4,6 +4,7 @@ const { SITE_URL, BRAND_NAME } = require('../../facts');
 
 // Bump when a guide's content changes meaningfully.
 const GUIDES_UPDATED = '2026-11-17';
+const withTz = (date) => `${date}T00:00:00+05:30`;
 
 function guide(page) {
   const path = `/guides/${page.slug}`;
@@ -20,8 +21,8 @@ function guide(page) {
         '@id': `${SITE_URL}${path}#article`,
         headline: page.h1,
         description: page.description,
-        datePublished: page.published || GUIDES_UPDATED,
-        dateModified: GUIDES_UPDATED,
+        datePublished: withTz(page.published || GUIDES_UPDATED),
+        dateModified: withTz(GUIDES_UPDATED),
         inLanguage: 'en-IN',
         mainEntityOfPage: `${SITE_URL}${path}`,
         author: { '@id': `${SITE_URL}/#organization` },
