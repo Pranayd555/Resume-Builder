@@ -29,7 +29,6 @@ function Login({ isAdminLogin = false }) {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    rememberMe: false,
   });
 
   const [validationErrors, setValidationErrors] = useState({});
@@ -110,12 +109,12 @@ function Login({ isAdminLogin = false }) {
             <div className="text-center mb-8">
               <img
                 src={isDarkMode ? '/resume-builder-logo-512-dark.png' : '/resume-builder-logo-512-light.png'}
-                alt="Presmistique - AI Resume Builder Logo"
+                alt=""
                 className="mx-auto h-24 w-auto mb-6 drop-shadow-lg"
               />
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-700 to-purple-700 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent mb-2">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-700 to-purple-700 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent mb-2">
                 {isAdminLogin ? 'Admin Login' : 'Welcome Back'}
-              </h2>
+              </h1>
               <p className="text-gray-700 dark:text-gray-300 font-medium">
                 {isAdminLogin ? 'Sign in to access the admin dashboard' : 'Sign in to continue building your professional resume'}
               </p>
@@ -134,10 +133,11 @@ function Login({ isAdminLogin = false }) {
             <form noValidate onSubmit={handleLogin} className="space-y-6">
               {/* Email Field */}
               <div>
-                <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 ml-1">
+                <label htmlFor="login-email" className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 ml-1">
                   Email Address *
                 </label>
                 <input
+                  id="login-email"
                   type="email"
                   name="email"
                   value={formData.email}
@@ -156,11 +156,12 @@ function Login({ isAdminLogin = false }) {
 
               {/* Password Field */}
               <div>
-                <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 ml-1">
+                <label htmlFor="login-password" className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 ml-1">
                   Password *
                 </label>
                 <div className="relative">
                   <input
+                    id="login-password"
                     type={showPassword ? 'text' : 'password'}
                     name="password"
                     value={formData.password}
@@ -175,6 +176,7 @@ function Login({ isAdminLogin = false }) {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
                     className="absolute inset-y-0 right-0 pr-4 flex items-center transition-colors duration-200 hover:text-blue-600 dark:hover:text-blue-400"
                   >
                     {showPassword ? (
@@ -189,20 +191,8 @@ function Login({ isAdminLogin = false }) {
                 )}
               </div>
 
-              {/* Remember Me & Forgot Password */}
-              <div className="flex items-center justify-between px-1">
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="rememberMe"
-                    checked={formData.rememberMe}
-                    onChange={handleInputChange}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded bg-white/50"
-                  />
-                  <label className="ml-2 block text-sm font-medium text-gray-800 dark:text-gray-200">
-                    Remember me
-                  </label>
-                </div>
+              {/* Forgot Password */}
+              <div className="flex items-center justify-end px-1">
                 <button
                   type="button"
                   onClick={openForgotPasswordModal}

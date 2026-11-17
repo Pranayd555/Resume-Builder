@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useDarkMode } from "../contexts/DarkModeContext";
 import {
@@ -7,7 +7,7 @@ import {
   ArrowRightOnRectangleIcon,
   SunIcon,
   MoonIcon,
-  CurrencyDollarIcon,
+  SparklesIcon,
 } from "@heroicons/react/24/outline";
 import { apiHelpers } from "../services/api";
 import Swal from "sweetalert2";
@@ -120,16 +120,17 @@ function Header() {
   const handleLogout = async () => {
     try {
       Swal.fire({
-        title: "Are you sure?",
-        icon: "warning",
+        title: "Log out of Presmistique?",
+        text: "Your resumes are saved. You can log back in any time.",
+        icon: "question",
         showCancelButton: true,
-        confirmButtonText: "Logout",
+        confirmButtonText: "Log out",
         cancelButtonText: "Stay",
         customClass: {
           confirmButton:
-            "bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 cursor-not-allowed opacity-75",
+            "bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600",
           cancelButton:
-            "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 cursor-not-allowed",
+            "bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600",
         },
       }).then(async (result) => {
         if (result.isConfirmed) {
@@ -171,29 +172,29 @@ function Header() {
         <div className="flex justify-between items-center h-16">
           {/* Logo/Brand */}
           <div className="flex items-center min-w-0 flex-1">
-            <img
-              src={
-                isDarkMode
-                  ? "/resume-builder-logo-512-dark.png"
-                  : "/resume-builder-logo-512-light.png"
-              }
-              alt="Presmistique - AI Resume Builder logo featuring a stylized document icon with blue and purple gradient, representing a professional and modern resume creation tool. The logo is next to the text Presmistique - AI Resume Builder in bold gradient letters. The environment is a clean website header with a welcoming and professional tone."
-              className="h-8 mr-2"
-            />
-            <h1
-              className="text-base sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent cursor-pointer hover:from-blue-700 hover:to-purple-700 transition-all duration-200 truncate"
-              onClick={() => navigate("/")}
-            >
-              Presmistique - AI Resume Builder
-            </h1>
+            <Link to="/" className="flex items-center min-w-0 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600">
+              <img
+                src={
+                  isDarkMode
+                    ? "/resume-builder-logo-512-dark.png"
+                    : "/resume-builder-logo-512-light.png"
+                }
+                alt=""
+                className="h-8 w-8 mr-2 flex-shrink-0"
+              />
+              <span className="text-base sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent hover:from-blue-700 hover:to-purple-700 transition-all duration-200 truncate">
+                Presmistique<span className="hidden lg:inline"> - AI Resume Builder</span>
+              </span>
+            </Link>
           </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-4 lg:space-x-6">
             {/* User Info */}
             {user && (
-              <div
-                className="flex items-center space-x-2 lg:space-x-3 cursor-pointer hover:bg-white/30 dark:hover:bg-gray-800/30 rounded-lg px-2 py-1 transition-all duration-200"
+              <button
+                type="button"
+                className="flex items-center space-x-2 lg:space-x-3 hover:bg-white/30 dark:hover:bg-gray-800/30 rounded-lg px-2 py-1 transition-all duration-200"
                 onClick={handleDashboard}
                 title="Go to Dashboard"
               >
@@ -205,7 +206,7 @@ function Header() {
                           user
                         )}-${profilePictureVersion}`} // Force re-render when URL changes
                         src={getProfilePictureUrl(user)}
-                        alt="Profile"
+                        alt=""
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           e.target.style.display = "none";
@@ -235,17 +236,17 @@ function Header() {
                     ? `${user.firstName} ${user.lastName || ""}`.trim()
                     : user.email}
                 </span>
-              </div>
+              </button>
             )}
 
-            <div className="h-5 w-px bg-gray-300 dark:bg-gray-600"></div>
+            <div className="h-5 w-px bg-gray-300 dark:bg-gray-600" aria-hidden="true"></div>
 
             {/* Token Balance */}
-            {!user.isOwnApiKey && (<div className="flex items-center space-x-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-700/30 rounded-lg px-3 py-1.5">
-              <CurrencyDollarIcon className="w-4 h-4 text-green-600 dark:text-green-400" />
+            {!user.isOwnApiKey && (<div className="flex items-center space-x-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-700/30 rounded-lg px-3 py-1.5" title="AI token balance">
+              <SparklesIcon className="w-4 h-4 text-green-600 dark:text-green-400" aria-hidden="true" />
               <div className="flex flex-col">
                 <span className="text-green-700 dark:text-green-300 text-xs font-semibold">
-                  {balance.total}
+                  {balance.total}<span className="sr-only"> AI tokens</span>
                 </span>
                 {balance.bonus > 0 && (
                   <span className="text-green-600 dark:text-green-400 text-xs">
@@ -259,7 +260,9 @@ function Header() {
 
             {/* Dark Mode Toggle */}
             <button
+              type="button"
               onClick={toggleDarkMode}
+              aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
               className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 px-2 py-1 lg:px-3 lg:py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-200 hover:bg-white/50 dark:hover:bg-gray-800/50 hover:shadow-sm"
               title={
                 isDarkMode ? "Switch to light mode" : "Switch to dark mode"
@@ -295,30 +298,35 @@ function Header() {
               className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 px-2 py-1 lg:px-3 lg:py-2 rounded-lg text-xs lg:text-sm font-medium transition-all duration-200 hover:bg-red-50 dark:hover:bg-red-900/20 hover:shadow-sm flex items-center space-x-1 lg:space-x-2"
             >
               <ArrowRightOnRectangleIcon className="w-4 h-4" />
-              <span>Logout</span>
+              <span>Log out</span>
             </button>
           </nav>
 
           {/* Mobile menu button */}
           <div className="md:hidden flex-shrink-0">
             <button
+              type="button"
               ref={mobileMenuButtonRef}
               onClick={toggleMenu}
+              aria-label={showMenu ? "Close menu" : "Open menu"}
+              aria-expanded={showMenu}
+              aria-controls="mobile-menu"
               className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 focus:outline-none focus:text-gray-900 dark:focus:text-gray-100 p-1 sm:p-2 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-all duration-200"
             >
-              <Bars3Icon className="h-5 w-5 sm:h-6 sm:w-6" />
+              <Bars3Icon className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true" />
             </button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
         {showMenu && (
-          <div className="md:hidden" ref={mobileMenuRef}>
+          <div className="md:hidden" ref={mobileMenuRef} id="mobile-menu">
             <div className="px-2 pt-2 pb-3 space-y-1 border-t border-white/20 dark:border-gray-700/20 bg-white/95 dark:bg-transparent rounded-b-lg shadow-lg backdrop-blur-sm">
               {/* User Info - Mobile */}
               {user && (
-                <div
-                  className="flex items-center space-x-3 px-2 py-2 border-b border-gray-200/50 dark:border-gray-700/50 mb-2 cursor-pointer hover:bg-gray-100/80 dark:hover:bg-gray-800/80 rounded-lg transition-all duration-200"
+                <button
+                  type="button"
+                  className="w-full text-left flex items-center space-x-3 px-2 py-2 border-b border-gray-200/50 dark:border-gray-700/50 mb-2 hover:bg-gray-100/80 dark:hover:bg-gray-800/80 rounded-lg transition-all duration-200"
                   onClick={handleDashboard}
                   title="Go to Dashboard"
                 >
@@ -330,7 +338,7 @@ function Header() {
                             user
                           )}-${profilePictureVersion}`} // Force re-render when URL changes
                           src={getProfilePictureUrl(user)}
-                          alt="Profile"
+                          alt=""
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             e.target.style.display = "none";
@@ -365,12 +373,12 @@ function Header() {
                       {user.firstName ? user.email : "User"}
                     </div>
                   </div>
-                </div>
+                </button>
               )}
 
               {/* Token Balance - Mobile */}
               {!user.isOwnApiKey && <div className="flex items-center space-x-3 px-2 py-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-700/30 rounded-lg mb-2">
-                <CurrencyDollarIcon className="w-5 h-5 text-green-600 dark:text-green-400" />
+                <SparklesIcon className="w-5 h-5 text-green-600 dark:text-green-400" aria-hidden="true" />
                 <div>
                   <div className="text-green-700 dark:text-green-300 text-sm font-semibold">
                     {balance.total} Tokens
@@ -422,7 +430,7 @@ function Header() {
                 className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 block px-2 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-red-50/80 dark:hover:bg-red-900/30 w-full text-left flex items-center space-x-2"
               >
                 <ArrowRightOnRectangleIcon className="w-4 h-4" />
-                <span>Logout</span>
+                <span>Log out</span>
               </button>
             </div>
           </div>

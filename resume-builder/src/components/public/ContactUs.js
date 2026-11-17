@@ -216,8 +216,9 @@ const ContactUs = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Full Name *</label>
+                    <label htmlFor="contact-name" className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Full Name *</label>
                     <input
+                      id="contact-name"
                       type="text"
                       name="name"
                       value={formData.name}
@@ -229,8 +230,9 @@ const ContactUs = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Email Address *</label>
+                    <label htmlFor="contact-email" className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Email Address *</label>
                     <input
+                      id="contact-email"
                       type="email"
                       name="email"
                       value={formData.email}
@@ -254,8 +256,9 @@ const ContactUs = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Subject *</label>
+                  <label htmlFor="contact-subject" className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Subject *</label>
                   <input
+                    id="contact-subject"
                     type="text"
                     name="subject"
                     value={formData.subject}
@@ -267,8 +270,9 @@ const ContactUs = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Message *</label>
+                  <label htmlFor="contact-message" className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Message *</label>
                   <textarea
+                    id="contact-message"
                     name="message"
                     value={formData.message}
                     onChange={handleInputChange}
