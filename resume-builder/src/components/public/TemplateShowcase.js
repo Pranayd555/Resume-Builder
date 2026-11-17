@@ -29,13 +29,18 @@ const customPaginationStyles = `
     display: none;
   }
   
+  /* 10px dots spaced 26px apart, so each has a 24px tap target. */
+  .swiper-pagination {
+    --swiper-pagination-bullet-size: 10px;
+    --swiper-pagination-bullet-horizontal-gap: 8px;
+  }
+
   .swiper-pagination-bullet {
     background: rgba(59, 130, 246, 0.5);
     opacity: 0.5;
     transition: all 0.3s ease;
-    width: 8px;
-    height: 8px;
-    margin: 0 4px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
   }
   

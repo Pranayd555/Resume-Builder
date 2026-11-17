@@ -1,0 +1,97 @@
+{
+  "_comment": "Public pages rendered by the React app. Used by src/constants/seo.js (titles, canonicals at runtime) and by marketing/build-static.js (per-route HTML for crawlers that don't run JavaScript). Keep summaries factual: they must match the page.",
+  "pages": [
+    {
+      "path": "/byok",
+      "title": "Use Your Own Gemini API Key for AI Resume Writing | Presmistique",
+      "description": "Connect your own free Google Gemini API key to Presmistique and use AI resume writing, rewriting and ATS analysis without buying tokens.",
+      "h1": "Use your own Gemini API key",
+      "nav": "Use your own Gemini API key",
+      "summary": [
+        "Add your own Google Gemini API key to your Presmistique profile and the AI features run on your key instead of using Presmistique tokens.",
+        "Google offers a free tier for Gemini API keys. Its daily request limits comfortably cover normal resume work."
+      ],
+      "points": [
+        "Create a key in Google AI Studio.",
+        "In Presmistique, open your profile, paste the key and save.",
+        "Your key is stored encrypted and used only to call the Gemini API for you.",
+        "Remove the key from your profile at any time; your existing tokens are kept."
+      ]
+    },
+    {
+      "path": "/contact-us",
+      "title": "Contact Us | Presmistique",
+      "description": "Questions about your resume, tokens or payments? Contact the Presmistique AI Resume Builder support team.",
+      "h1": "Contact us",
+      "nav": "Contact us",
+      "summary": [
+        "Questions about your resume, AI tokens or a payment? Email the support address below or use the contact form on this page. We typically respond within 48 hours."
+      ],
+      "points": []
+    },
+    {
+      "path": "/privacy-policy",
+      "title": "Privacy Policy | Presmistique",
+      "description": "How Presmistique collects, uses and protects your account details and resume data.",
+      "h1": "Privacy policy",
+      "nav": "Privacy policy",
+      "summary": [
+        "How Presmistique collects, uses and protects your account details and resume data. The full policy loads on this page."
+      ],
+      "points": [
+        "We collect what you give us: account details, resume content and support messages. Payments are handled by Razorpay; we don't see card or bank details.",
+        "We don't sell personal information.",
+        "Text needed for an AI feature you use is sent to Google's Gemini API to produce the result.",
+        "Data is shared only with the providers needed to run the service: Google (Gemini, sign-in), LinkedIn (sign-in), Razorpay, Cloudflare and our email provider.",
+        "You can update your information and delete your account from your profile."
+      ]
+    },
+    {
+      "path": "/terms-conditions",
+      "title": "Terms and Conditions | Presmistique",
+      "description": "The terms that apply when you use the Presmistique AI Resume Builder, AI tokens and paid token packs.",
+      "h1": "Terms and conditions",
+      "nav": "Terms and conditions",
+      "summary": [
+        "The terms that apply when you use the Presmistique AI Resume Builder, AI tokens and paid token packs. The full terms load on this page."
+      ],
+      "points": [
+        "Building, editing and downloading resumes is free.",
+        "Every AI action uses 1 token. New users receive 5 free tokens; more can be bought through Razorpay. Tokens never expire.",
+        "You keep ownership of the content you create.",
+        "AI suggestions can be inaccurate; review everything before you use it."
+      ]
+    },
+    {
+      "path": "/cancellation-refunds",
+      "title": "Cancellation and Refund Policy | Presmistique",
+      "description": "When Presmistique refunds token-pack payments, and how to raise a refund request.",
+      "h1": "Cancellation and refund policy",
+      "nav": "Cancellation and refund policy",
+      "summary": [
+        "How tokens, cancellations and payment problems are handled. The full policy loads on this page."
+      ],
+      "points": [
+        "There are no subscriptions, so there is nothing recurring to cancel.",
+        "Token purchases are final and tokens never expire.",
+        "If an AI action fails because of a technical error, its token is re-credited automatically.",
+        "If you were charged twice, or charged without receiving tokens, contact us with your receipt number and registered email."
+      ]
+    },
+    {
+      "path": "/shipping",
+      "title": "Shipping and Delivery Policy | Presmistique",
+      "description": "Presmistique sells digital AI tokens. Here is how and when purchased tokens are delivered to your account.",
+      "h1": "Shipping and delivery policy",
+      "nav": "Shipping and delivery policy",
+      "summary": [
+        "Presmistique is a digital service. Nothing is shipped physically."
+      ],
+      "points": [
+        "Templates and tools are available as soon as you register.",
+        "Purchased AI tokens are added to your account instantly.",
+        "PDF exports are generated instantly and downloaded to your device."
+      ]
+    }
+  ]
+}

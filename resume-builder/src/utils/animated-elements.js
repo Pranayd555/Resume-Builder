@@ -12,7 +12,6 @@ const FlipText = ({ children, className = "" }) => {
       }}
       initial="initial"
       whileHover="hovered"
-      whileTap="hovered"
     >
       {/* {children.split("").map((char, index) => ( */}
       <div style={{ position: 'relative', zIndex: 1 }}>
