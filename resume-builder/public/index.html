@@ -8,45 +8,81 @@
   <link rel="icon" href="%PUBLIC_URL%/resume-builder-logo-dark.ico" media="(prefers-color-scheme: dark)" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#000000" />
+  <!-- Home-page values for crawlers that don't run JavaScript. components/RouteSeo.js
+       updates these per route; keep them in sync with DEFAULT_SEO in src/constants/seo.js. -->
   <meta name="description"
-    content="Build your professional resume in minutes with our easy-to-use online resume builder. Choose from a variety of templates and create a standout resume that lands you your dream job." />
+    content="Build an ATS-friendly resume for free with Presmistique. Free templates and PDF downloads, 5 free AI tokens on signup, and token packs from ₹49 with no subscription." />
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "Presmistique",
-      "url": "https://presmistique.in",
-      "logo": "https://presmistique.in/resume-builder-logo-light.ico",
-      "sameAs": [
-        "https://presmistique.in"
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://presmistique.in/#organization",
+          "name": "Presmistique",
+          "url": "https://presmistique.in/",
+          "logo": "https://presmistique.in/resume-builder-logo-512-light.png",
+          "email": "presmistique@gmail.com",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer support",
+            "email": "presmistique@gmail.com",
+            "availableLanguage": "English"
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://presmistique.in/#website",
+          "name": "Presmistique",
+          "alternateName": "Presmistique AI Resume Builder",
+          "url": "https://presmistique.in/",
+          "inLanguage": "en-IN",
+          "publisher": { "@id": "https://presmistique.in/#organization" }
+        },
+        {
+          "@type": "WebApplication",
+          "@id": "https://presmistique.in/#app",
+          "name": "Presmistique AI Resume Builder",
+          "url": "https://presmistique.in/",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web browser",
+          "description": "Online resume builder with ATS-friendly templates, free PDF downloads and pay-per-use AI writing tools. 1 token = 1 AI action; 5 free tokens on signup.",
+          "publisher": { "@id": "https://presmistique.in/#organization" },
+          "offers": [
+            { "@type": "Offer", "name": "Resume builder and PDF download", "price": "0", "priceCurrency": "INR" },
+            { "@type": "Offer", "name": "10 AI tokens", "price": "49", "priceCurrency": "INR" },
+            { "@type": "Offer", "name": "25 AI tokens", "price": "99", "priceCurrency": "INR" },
+            { "@type": "Offer", "name": "60 AI tokens", "price": "199", "priceCurrency": "INR" },
+            { "@type": "Offer", "name": "200 AI tokens", "price": "499", "priceCurrency": "INR" }
+          ]
+        }
       ]
     }
   </script>
-  <meta name="keywords"
-    content="Presmistique - AI Resume Builder, Presmistique, resume builder, online resume builder, free resume builder, free download resume builder, professional resume, resume templates, resume creator, curriculum vitae builder, cv maker, cv builder, resume, cv, ats, ats score" />
   <meta name="author" content="Presmistique" />
   <link rel="apple-touch-icon" href="%PUBLIC_URL%/resume-builder-logo-512-light.png" />
   <link rel="apple-touch-icon" href="%PUBLIC_URL%/resume-builder-logo-512-dark.png"
     media="(prefers-color-scheme: dark)" />
 
   <!-- Open Graph / Facebook / LinkedIn / WhatsApp -->
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://presmistique.in/">
-  <meta property="og:title" content="Presmistique - AI Resume Builder - Create Your Resume in Minutes">
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://presmistique.in/" />
+  <meta property="og:title" content="Free AI Resume Builder – ATS-Friendly Resumes | Presmistique" />
   <meta property="og:description"
-    content="Build your professional resume in minutes with our easy-to-use online resume builder. Choose from a variety of templates and create a standout resume that lands you your dream job.">
-  <meta property="og:image" content="https://presmistique.in/Build%20YouR%20Future.png">
-  <meta property="og:site_name" content="Presmistique - AI Resume Builder">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
+    content="Build an ATS-friendly resume for free with Presmistique. Free templates and PDF downloads, 5 free AI tokens on signup, and token packs from ₹49 with no subscription." />
+  <meta property="og:image" content="https://presmistique.in/og/presmistique-og.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Craft your story. Build your future. Presmistique AI Resume Builder" />
+  <meta property="og:site_name" content="Presmistique" />
+  <meta property="og:locale" content="en_IN" />
 
-  <!-- Twitter -->
-  <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="https://presmistique.in/">
-  <meta property="twitter:title" content="Presmistique - AI Resume Builder - Create Your Resume in Minutes">
-  <meta property="twitter:description"
-    content="Build your professional resume in minutes with our easy-to-use online resume builder. Choose from a variety of templates and create a standout resume that lands you your dream job.">
-  <meta property="twitter:image" content="https://presmistique.in/Build%20YouR%20Future.png">
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Free AI Resume Builder – ATS-Friendly Resumes | Presmistique" />
+  <meta name="twitter:description"
+    content="Build an ATS-friendly resume for free with Presmistique. Free templates and PDF downloads, 5 free AI tokens on signup, and token packs from ₹49 with no subscription." />
+  <meta name="twitter:image" content="https://presmistique.in/og/presmistique-og.jpg" />
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -54,7 +90,6 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Noto+Sans:wght@400;500;700;900&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" type="text/css" href="../src/ckeditor/ckeditor.css">
 
   <!--
       manifest.json provides metadata used when your web app is installed on a
@@ -71,11 +106,11 @@
       Learn how to configure a non-root public URL by running `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
-  <title>Presmistique - AI Resume Builder - Create Your Resume in Minutes</title>
+  <title>Free AI Resume Builder – ATS-Friendly Resumes | Presmistique</title>
 </head>
 
 <body>
-  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <noscript>Presmistique is a free AI resume builder with ATS-friendly templates and free PDF downloads. You need to enable JavaScript to use it.</noscript>
   <div id="root"></div>
   <!--
       This HTML file is a template.

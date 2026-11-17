@@ -1,29 +1,31 @@
+// Writes public/sitemap.xml before every build (npm "prebuild").
+// List only public pages that should be indexed; keep it in step with
+// INDEXABLE_PAGES in src/constants/seo.js.
 const { SitemapStream, streamToPromise } = require('sitemap');
 const { Readable } = require('stream');
 const fs = require('fs');
+const path = require('path');
 
-// List of your public routes
+const hostname = 'https://presmistique.in';
+
 const links = [
-  { url: '/', changefreq: 'daily', priority: 1.0 },
-  { url: '/privacy-policy', changefreq: 'monthly', priority: 0.7 },
-  { url: '/terms-conditions', changefreq: 'monthly', priority: 0.7 },
-  { url: '/cancellation-refunds', changefreq: 'monthly', priority: 0.7 },
-  { url: '/shipping', changefreq: 'monthly', priority: 0.7 },
-  { url: '/contact-us', changefreq: 'monthly', priority: 0.7 },
+  { url: '/' },
+  { url: '/byok' },
+  { url: '/contact-us' },
+  { url: '/privacy-policy' },
+  { url: '/terms-conditions' },
+  { url: '/cancellation-refunds' },
+  { url: '/shipping' },
 ];
 
-// Your website's base URL
-const hostname = 'https://presmistique.in'; // <-- IMPORTANT: Replace with your actual URL
+const out = path.join(__dirname, 'public', 'sitemap.xml');
 
-// Create a stream to write to
-const stream = new SitemapStream({ hostname });
-
-// Write the sitemap to a file
-streamToPromise(Readable.from(links).pipe(stream))
+streamToPromise(Readable.from(links).pipe(new SitemapStream({ hostname })))
   .then((data) => {
-    fs.writeFileSync('./public/sitemap.xml', data.toString());
-    console.log('Sitemap generated successfully at ./public/sitemap.xml');
+    fs.writeFileSync(out, data.toString());
+    console.log(`Sitemap written to ${out} (${links.length} URLs)`);
   })
   .catch((error) => {
     console.error('Error generating sitemap:', error);
+    process.exit(1);
   });

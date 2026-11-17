@@ -45,14 +45,9 @@ const HomePage = () => {
   const textY = useTransform(scrollY, [0, 300], [0, -20]);
   const textOpacity = useTransform(scrollY, [0, 300], [1, 0.8]);
 
+  // stats stay null until the API answers: no made-up numbers on the page.
   const [homeData, setHomeData] = useState({
-    stats: {
-      totalResumes: "10K+",
-      totalUsers: "5K+",
-      totalTemplates: "50+",
-      resumesCreatedToday: "100+",
-      averageAtsScore: "85%"
-    },
+    stats: null,
     testimonials: [],
     loading: true
   });
@@ -107,12 +102,12 @@ const HomePage = () => {
     }
   ];
 
-  const stats = [
+  const stats = homeData.stats ? [
     { number: homeData.stats.totalResumes, label: "Resumes Created" },
     { number: homeData.stats.averageAtsScore, label: "Avg. ATS Score" },
     { number: homeData.stats.totalTemplates, label: "Templates" },
     { number: homeData.stats.resumesCreatedToday, label: "Created Today" }
-  ];
+  ] : [];
 
   // Helper function to get the correct dashboard route
   const getDashboardRoute = () => {
@@ -185,12 +180,17 @@ const HomePage = () => {
               style={{ y: textY, opacity: textOpacity }}
               className="text-center"
             >
+              {/* FlipText splits words into per-letter spans (twice, for the hover flip),
+                  so the heading's real text lives in the sr-only span. */}
               <h1 className="text-3xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[0.9] tracking-tighter">
-                <FlipText className="block whitespace-nowrap">
-                  PRESMISTIQUE
-                </FlipText>
+                <span className="sr-only">Presmistique: Free AI Resume Builder</span>
+                <span aria-hidden="true" className="block">
+                  <FlipText className="block whitespace-nowrap">
+                    PRESMISTIQUE
+                  </FlipText>
+                </span>
               </h1>
-              <div className="mt-2 text-sm sm:text-lg font-bold text-blue-600 dark:text-blue-400 tracking-[0.3em] uppercase">
+              <div aria-hidden="true" className="mt-2 text-sm sm:text-lg font-bold text-blue-600 dark:text-blue-400 tracking-[0.3em] uppercase">
                 <FlipText className="block whitespace-nowrap">
                   AI Resume Builder
                 </FlipText>
@@ -310,7 +310,7 @@ const HomePage = () => {
                 step: "02",
                 icon: DocumentTextIcon,
                 title: "Choose Template",
-                desc: "Select from our 22+ ATS-friendly, professional templates."
+                desc: "Select from our ATS-friendly, professional templates."
               },
               {
                 step: "03",
@@ -353,7 +353,8 @@ const HomePage = () => {
       {/* Template Showcase Section */}
       <TemplateShowcase />
 
-      {/* Stats Section */}
+      {/* Stats Section: shown only once real numbers have loaded */}
+      {stats.length > 0 && (
       <section className="py-20 relative overflow-hidden" >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -386,6 +387,7 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+      )}
 
       <section className="py-24 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
