@@ -1,4 +1,4 @@
-const { packs, cheapestPack, SIGNUP_TOKENS, BRAND_NAME } = require('../facts');
+const { packs, cheapestPack, SIGNUP_TOKENS, MAX_RESUMES, BRAND_NAME } = require('../facts');
 
 const rows = packs.map((p) => `<tr><td>${p.tokens} tokens${p.popular ? ' <span class="badge">Most popular</span>' : ''}</td><td class="num">${p.priceLabel}</td><td class="num">${p.perToken}</td></tr>`).join('\n');
 
@@ -14,11 +14,11 @@ module.exports = {
     <span class="badge">Free</span>
     <p class="price">₹0</p>
     <ul class="ticks">
-      <li>Unlimited resumes</li>
+      <li>Up to ${MAX_RESUMES} resumes</li>
       <li>All public resume templates</li>
       <li>PDF download</li>
       <li>${SIGNUP_TOKENS} free AI tokens when you sign up</li>
-      <li>Unlimited AI with your own Gemini API key (<a href="/byok">how it works</a>)</li>
+      <li>AI without tokens using your own Gemini API key (<a href="/byok">how it works</a>; Google's free-tier limits apply)</li>
     </ul>
   </div>
   <div class="card">

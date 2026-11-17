@@ -12,7 +12,7 @@ const { renderPage, esc } = require('./layout');
 const facts = require('./facts');
 
 const BUILD = path.join(__dirname, '..', 'build');
-const { SITE_URL, BRAND_NAME, PRODUCT_NAME, SUPPORT_EMAIL, SIGNUP_TOKENS, cheapestPack, TEMPLATE_COUNT_FLOOR } = facts;
+const { SITE_URL, BRAND_NAME, PRODUCT_NAME, SUPPORT_EMAIL, SIGNUP_TOKENS, MAX_RESUMES, cheapestPack, TEMPLATE_COUNT_FLOOR } = facts;
 
 const pages = [
   require('./pages/features'),
@@ -52,7 +52,7 @@ const homeBlock = `<div id="static-home">
 <h1>${esc(BRAND_NAME)}: Free AI Resume Builder</h1>
 <p>${esc(PRODUCT_NAME)} is an online resume builder. Fill in a guided form, choose one of ${TEMPLATE_COUNT_FLOOR}+ free templates and download your resume as a PDF, free. Optional AI tools rewrite your content, score your resume against a job description and import an existing PDF or Word resume.</p>
 <ul>
-<li>Free: unlimited resumes, all public templates and PDF download.</li>
+<li>Free: up to ${MAX_RESUMES} resumes, all public templates and PDF download.</li>
 <li>${SIGNUP_TOKENS} free AI tokens on signup. 1 token = 1 AI action.</li>
 <li>Token packs from ${esc(cheapestPack.priceLabel)}, one-time payment, no subscription. Tokens never expire.</li>
 <li>Or use your own Google Gemini API key and AI actions don't use tokens.</li>

@@ -25,6 +25,9 @@ const SUPPORT_EMAIL = process.env.REACT_APP_SUPPORT_EMAIL || pick('SUPPORT_EMAIL
 // backend/routes/auth.js gives every new account bonusTokens: 5.
 const SIGNUP_TOKENS = 5;
 
+// src/components/resume-list.js canCreateNewResume(): the dashboard allows up to 3 resumes.
+const MAX_RESUMES = 3;
+
 // backend/routes/uploads.js and routes/ai.js: 10 MB, PDF or Word (.docx).
 const MAX_UPLOAD_MB = 10;
 
@@ -63,6 +66,7 @@ module.exports = {
   PRODUCT_NAME,
   SUPPORT_EMAIL,
   SIGNUP_TOKENS,
+  MAX_RESUMES,
   MAX_UPLOAD_MB,
   ATS_CATEGORIES,
   CURRENCY,

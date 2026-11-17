@@ -1,4 +1,4 @@
-const { SIGNUP_TOKENS, BRAND_NAME } = require('../facts');
+const { SIGNUP_TOKENS, MAX_RESUMES, BRAND_NAME } = require('../facts');
 
 module.exports = {
   path: '/resume-builder-for-freshers',
@@ -42,7 +42,7 @@ module.exports = {
   <li>Free <a href="/templates">resume templates</a> and free PDF download</li>
   <li>AI that rewrites a rough bullet point into a clear, professional one. ${SIGNUP_TOKENS} free AI tokens come with every new account</li>
   <li>An <a href="/ats-resume-checker">ATS check</a> that compares your resume with a job description and lists missing keywords</li>
-  <li>As many resumes as you want, so you can keep a version for each kind of job</li>
+  <li>Up to ${MAX_RESUMES} resumes, so you can keep separate versions for different kinds of jobs</li>
 </ul>
 `,
   faq: [

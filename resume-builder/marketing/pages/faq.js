@@ -1,4 +1,4 @@
-const { SIGNUP_TOKENS, cheapestPack, packs, MAX_UPLOAD_MB, TEMPLATE_COUNT_FLOOR, SUPPORT_EMAIL, BRAND_NAME } = require('../facts');
+const { SIGNUP_TOKENS, MAX_RESUMES, cheapestPack, packs, MAX_UPLOAD_MB, TEMPLATE_COUNT_FLOOR, SUPPORT_EMAIL, BRAND_NAME } = require('../facts');
 
 const packList = packs.map((p) => `${p.tokens} tokens for ${p.priceLabel}`).join(', ');
 
@@ -9,7 +9,7 @@ const groups = [
       { q: `What is ${BRAND_NAME}?`, a: `${BRAND_NAME} is an online resume builder. You fill in a guided form, pick one of ${TEMPLATE_COUNT_FLOOR}+ templates and download your resume as a PDF. Optional AI tools help you write, check your resume against a job description and import an existing resume.` },
       { q: `Is ${BRAND_NAME} free?`, a: `Yes. Building resumes, using the templates and downloading PDFs are free. The AI tools use tokens. You get ${SIGNUP_TOKENS} free tokens when you sign up, and after that packs start at ${cheapestPack.priceLabel}.` },
       { q: 'Do I need an account?', a: 'Yes. A free account lets us save your resumes so you can come back and edit them on any device.' },
-      { q: 'How many resumes can I make?', a: 'As many as you like. Many people keep one version per type of job.' },
+      { q: 'How many resumes can I make?', a: `Up to ${MAX_RESUMES} at a time. Delete one to make room for another.` },
       { q: 'Can I download my resume as a PDF?', a: 'Yes, for free, as many times as you need.' },
     ],
   },
