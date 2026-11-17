@@ -129,8 +129,8 @@ const BYOKGuide = () => {
       desc: (
         <>
           Head to your <strong className="text-slate-800 dark:text-slate-200">Profile → API Key</strong> section, paste
-          the key, and hit <strong className="text-slate-800 dark:text-slate-200">Save</strong>. That's it — unlimited AI
-          features, zero cost.
+          the key, and hit <strong className="text-slate-800 dark:text-slate-200">Save</strong>. That's it: AI features run on your key
+          and don't use Presmistique tokens.
         </>
       ),
     },
@@ -170,7 +170,7 @@ const BYOKGuide = () => {
   const faqItems = [
     {
       q: 'Is the free Gemini API tier enough?',
-      a: "Yes — Google's free tier (Gemini 1.5 Flash) is generous for resume-building workloads. Most users never hit the rate limits.",
+      a: "For most people, yes. Google's free tier has daily request limits that comfortably cover normal resume work. If you hit a limit, wait for it to reset or switch to a paid Google plan.",
     },
     {
       q: 'Can I remove my key later?',
@@ -182,7 +182,7 @@ const BYOKGuide = () => {
     },
     {
       q: 'Which Gemini model does Presmistique use?',
-      a: 'We use Gemini 2.5 Flash lite by default — fast, capable, and available on the free tier.',
+      a: 'A fast Gemini Flash-Lite model by default. With your own key you can choose a different Gemini model in your profile.',
     },
   ];
 
@@ -214,8 +214,8 @@ const BYOKGuide = () => {
             </span>
           </h1>
           <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-            Plug in your own Gemini API key and unlock unlimited AI-powered resume suggestions, ATS analysis,
-            and more — at zero cost to you.
+            Plug in your own Gemini API key and use AI resume suggestions, ATS analysis
+            and more without buying tokens. Google's free-tier limits apply.
           </p>
         </div>
 
@@ -378,7 +378,7 @@ const BYOKGuide = () => {
                   Ready to add your key?
                 </h2>
                 <p className="text-violet-200 text-sm">
-                  Go to your profile and paste your Gemini API key to unlock unlimited AI.
+                  Go to your profile and paste your Gemini API key to start using AI without tokens.
                 </p>
               </div>
               <Link

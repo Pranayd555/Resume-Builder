@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { templateAPI, apiHelpers } from '../../services/api';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, Autoplay, FreeMode, EffectCoverflow } from 'swiper/modules';
+import { A11y, Navigation, Pagination, Autoplay, FreeMode, EffectCoverflow } from 'swiper/modules';
 import { useAuth } from '../../contexts/AuthContext';
 import { AttentionSeeker, Fade, Flip } from 'react-awesome-reveal';
 
@@ -11,6 +11,12 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/free-mode';
+
+// Shown if a template thumbnail fails to load (no third-party placeholder service).
+const THUMBNAIL_FALLBACK = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="400" viewBox="0 0 300 400"><rect width="300" height="400" fill="#e2e8f0"/><text x="150" y="205" font-family="sans-serif" font-size="18" fill="#475569" text-anchor="middle">Template preview</text></svg>');
+
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Custom styles for pagination dots and navigation buttons matching TemplateSelection
 const customPaginationStyles = `
@@ -192,7 +198,8 @@ function TemplateShowcase() {
               scale: 0.95,
               slideShadows: false,
             }}
-            modules={[Navigation, Pagination, Autoplay, FreeMode, EffectCoverflow]}
+            modules={[A11y, Navigation, Pagination, Autoplay, FreeMode, EffectCoverflow]}
+            a11y={{ prevSlideMessage: 'Previous template', nextSlideMessage: 'Next template' }}
             spaceBetween={24}
             slidesPerView={1}
             centeredSlides={true}
@@ -206,9 +213,10 @@ function TemplateShowcase() {
               clickable: true,
               dynamicBullets: true,
             }}
-            autoplay={{
+            autoplay={prefersReducedMotion() ? false : {
               delay: 3000,
               disableOnInteraction: false,
+              pauseOnMouseEnter: true,
             }}
             breakpoints={{
               640: {
@@ -244,22 +252,14 @@ function TemplateShowcase() {
                   <div className="relative aspect-[3/4] overflow-hidden rounded-t-xl">
                     <img
                       src={template.preview.thumbnail.url}
-                      alt={template.name}
+                      alt={`${template.name} resume template preview`}
+                      loading="lazy"
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/300x400/64748b/ffffff?text=Template+Preview';
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = THUMBNAIL_FALLBACK;
                       }}
                     />
-
-                    {/* Template Badge */}
-                    <div className="absolute top-3 left-3">
-                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${template.availability.tier === 'free'
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                        : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                        }`}>
-                        {template.availability.tier === 'free' ? 'Free' : 'Pro'}
-                      </span>
-                    </div>
 
                     {/* Category Badge */}
                     <div className="absolute top-3 right-3">
@@ -278,17 +278,6 @@ function TemplateShowcase() {
                       {template.description}
                     </p>
 
-                    {/* Template Stats */}
-                    <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-600 mb-4">
-                      <span className="flex items-center">
-                        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                        {template.usage?.totalUses || 0} uses
-                      </span>
-                      <span className="capitalize">{template.category}</span>
-                    </div>
-
                     {/* View Template Button */}
                     <button
                       onClick={handleGetStarted}
@@ -304,12 +293,12 @@ function TemplateShowcase() {
 
           {/* Navigation Buttons */}
           <div className="swiper-button-prev !w-10 !h-10 !bg-white !rounded-full !shadow-lg !border !border-gray-200 !text-gray-600 hover:!text-blue-600 hover:!shadow-xl !transition-all !duration-200 !top-1/2 !-translate-y-1/2 !left-2 sm:!left-4">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </div>
           <div className="swiper-button-next !w-10 !h-10 !bg-white !rounded-full !shadow-lg !border !border-gray-200 !text-gray-600 hover:!text-blue-600 hover:!shadow-xl !transition-all !duration-200 !top-1/2 !-translate-y-1/2 !right-2 sm:!right-4">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </div>
@@ -325,13 +314,9 @@ function TemplateShowcase() {
               <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-500 mb-4">
                 Ready to Create Your Professional Resume?
               </h3>
-              <div className="text-lg text-gray-600 dark:text-gray-400 mb-8">
-                
-              <p className="font-bold mb-2 bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                Your key, your control, zero cost.
+              <p className="text-lg text-gray-600 dark:text-gray-700 mb-8">
+                Pick a template, fill in your details and download a PDF. Free, with no credit card needed.
               </p>
-              Join thousands of professionals who have already created stunning resumes with our templates.
-              </div>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <AttentionSeeker duration={3000}>
                   <button
@@ -341,12 +326,13 @@ function TemplateShowcase() {
                     {isAuthenticated ? 'Go to Dashboard' : 'Get Started Free'}
                   </button>
                 </AttentionSeeker>
-                <button
-                  onClick={() => navigate('/contact-us')}
-                  className="bg-transparent border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-700 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-400 font-semibold py-3 px-8 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                {/* /templates is a static page (marketing/build-static.js), so a full page load */}
+                <a
+                  href="/templates"
+                  className="bg-transparent border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-700 dark:text-gray-700 hover:text-gray-900 font-semibold py-3 px-8 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 text-center"
                 >
-                  Learn More
-                </button>
+                  Browse all templates
+                </a>
               </div>
             </div>
           </div>

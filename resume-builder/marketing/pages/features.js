@@ -1,4 +1,4 @@
-const { SIGNUP_TOKENS, TEMPLATE_COUNT_FLOOR, cheapestPack, MAX_UPLOAD_MB, BRAND_NAME } = require('../facts');
+const { SIGNUP_TOKENS, MAX_RESUMES, TEMPLATE_COUNT_FLOOR, cheapestPack, MAX_UPLOAD_MB, BRAND_NAME } = require('../facts');
 
 module.exports = {
   path: '/features',
@@ -13,7 +13,7 @@ module.exports = {
   <div class="card"><h3>Guided resume editor</h3><p>Fill in contact details, summary, work experience, education, skills, projects, certifications, achievements and languages. Your work saves as you go.</p></div>
   <div class="card"><h3>${TEMPLATE_COUNT_FLOOR}+ resume templates</h3><p>Classic, professional, minimalist, modern, creative and academic designs. Switch any time without retyping. <a href="/templates">Browse templates</a>.</p></div>
   <div class="card"><h3>Free PDF download</h3><p>Download your finished resume as a PDF at no cost.</p></div>
-  <div class="card"><h3>Unlimited resumes</h3><p>Keep a separate version for each kind of job you apply to.</p></div>
+  <div class="card"><h3>Up to ${MAX_RESUMES} resumes</h3><p>Keep separate versions for different kinds of jobs.</p></div>
   <div class="card"><h3>Light and dark mode</h3><p>Work the way that is easiest on your eyes.</p></div>
   <div class="card"><h3>${SIGNUP_TOKENS} free AI tokens</h3><p>Every new account can try the AI tools below at no cost.</p></div>
 </div>

@@ -55,12 +55,13 @@ router.get('/home-stats', async (req, res) => {
         res.json({
             success: true,
             data: {
+                // Real counts only. The homepage decides whether they are worth showing.
                 stats: {
-                    totalResumes: totalResumes + 1000, // Adding base offset for "attractive" numbers if needed, or just real ones
-                    totalUsers: totalUsers + 500,
+                    totalResumes,
+                    totalUsers,
                     totalTemplates,
-                    resumesCreatedToday: resumesCreatedToday + 50, // Base offset
-                    averageAtsScore: atsStats.length > 0 ? Math.round(atsStats[0].averageScore) : 85
+                    resumesCreatedToday,
+                    averageAtsScore: atsStats.length > 0 ? Math.round(atsStats[0].averageScore) : null
                 },
                 popularTemplates,
                 testimonials
