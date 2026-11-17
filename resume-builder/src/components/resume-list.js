@@ -1344,20 +1344,22 @@ function ResumeList() {
             <div className="col-span-full">
               <div className="backdrop-blur-md bg-white/70 rounded-2xl shadow-xl border border-white/20 text-center py-16">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <DocumentTextIcon className="w-8 h-8 text-gray-400" />
+                  <DocumentTextIcon className="w-8 h-8 text-gray-500" aria-hidden="true" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No resumes found</h3>
-                <p className="text-gray-600 mb-6">Get started by creating your first professional resume.</p>
+                <h2 className="text-lg font-semibold text-gray-900 mb-2">Create your first resume</h2>
+                <p className="text-gray-600 mb-6 max-w-md mx-auto px-4">
+                  Start from scratch, or import an existing PDF or Word resume in the editor. Pick a template and download a PDF when you're done.
+                </p>
                 {canCreateNewResume() && (
                   <button
                     onClick={handleCreateNew}
                     disabled={isEmailVerificationRequired()}
                     className={`px-6 py-3 rounded-lg transition-all duration-200 ${isEmailVerificationRequired()
-                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 cursor-not-allowed opacity-75'
+                      ? 'bg-gray-200 text-gray-600 cursor-not-allowed'
                       : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
                       }`}
                   >
-                    {isEmailVerificationRequired() ? 'Verify Email First' : 'Create Your First Resume'}
+                    {isEmailVerificationRequired() ? 'Verify your email to start' : 'Create your first resume'}
                   </button>
                 )}
               </div>
