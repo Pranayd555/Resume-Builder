@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDarkMode } from '../../contexts/DarkModeContext';
 import { useRouteScrollToTop } from '../../hooks/useAutoScroll';
-import TemplateShowcase from './TemplateShowcase';
 import { USER_ROUTES, ADMIN_ROUTES, PUBLIC_ROUTES } from '../../constants/routes';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import {
@@ -28,6 +27,10 @@ import { Slide, Roll, AttentionSeeker } from 'react-awesome-reveal';
 import { publicAPI } from '../../services/api';
 import { FlipText, WaveText } from '../../utils/animated-elements';
 import { SUPPORT_EMAIL } from '../../constants/brand';
+import lazyWithRetry from '../../utils/lazyWithRetry';
+
+// The template carousel (Swiper and its CSS) loads after the page renders.
+const TemplateShowcase = lazyWithRetry(() => import('./TemplateShowcase'));
 
 const footerLink = 'hover:text-gray-900 dark:hover:text-white transition-colors';
 
@@ -163,6 +166,7 @@ const HomePage = () => {
         </motion.div>
       )}
 
+      <main id="main">
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="text-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
@@ -171,8 +175,12 @@ const HomePage = () => {
               style={{ scale, opacity }}
               className="relative"
             >
+              {/* The page's largest paint: 192px file (shown at 96–128px) at high priority. */}
               <img
-                src={isDarkMode ? "/resume-builder-logo-512-dark.png" : "/resume-builder-logo-512-light.png"}
+                src={isDarkMode ? "/resume-builder-logo-192-dark.png" : "/resume-builder-logo-192-light.png"}
+                width="128"
+                height="128"
+                fetchPriority="high"
                 alt=""
                 className="w-24 h-24 sm:w-32 sm:h-32 rounded-3xl shadow-2xl mb-6 transform transition-transform hover:rotate-3"
               />
@@ -352,7 +360,9 @@ const HomePage = () => {
 
 
       {/* Template Showcase Section */}
-      <TemplateShowcase />
+      <Suspense fallback={<div className="min-h-[600px]" aria-hidden="true" />}>
+        <TemplateShowcase />
+      </Suspense>
 
       {/* Stats Section: shown only once real numbers have loaded */}
       {stats.length > 0 && (
@@ -701,6 +711,8 @@ const HomePage = () => {
           </motion.div>
         </div>
       </section>
+
+      </main>
 
       {/* Footer: real links so crawlers can follow them. Product pages are static HTML
           (marketing/build-static.js), so they use plain <a> for a full page load. */}

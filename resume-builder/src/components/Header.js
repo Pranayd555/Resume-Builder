@@ -10,7 +10,6 @@ import {
   SparklesIcon,
 } from "@heroicons/react/24/outline";
 import { apiHelpers } from "../services/api";
-import Swal from "sweetalert2";
 
 function Header() {
   const navigate = useNavigate();
@@ -119,6 +118,7 @@ function Header() {
 
   const handleLogout = async () => {
     try {
+      const { default: Swal } = await import("sweetalert2");
       Swal.fire({
         title: "Log out of Presmistique?",
         text: "Your resumes are saved. You can log back in any time.",

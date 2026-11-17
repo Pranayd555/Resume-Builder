@@ -27,15 +27,9 @@ const pages = [
   ...require('./pages/guides/index').GUIDES,
 ];
 
-// Public pages rendered by the React app (see INDEXABLE_PAGES in src/constants/seo.js).
-const SPA_PUBLIC_PAGES = [
-  { path: '/byok', title: 'Use your own Gemini API key', summary: 'Run the AI tools on your own free Google Gemini API key instead of tokens.' },
-  { path: '/contact-us', title: 'Contact us', summary: `Contact form and support email (${SUPPORT_EMAIL}).` },
-  { path: '/privacy-policy', title: 'Privacy policy' },
-  { path: '/terms-conditions', title: 'Terms and conditions' },
-  { path: '/cancellation-refunds', title: 'Cancellation and refund policy' },
-  { path: '/shipping', title: 'Shipping and delivery policy' },
-];
+// Public pages rendered by the React app. Same data the app uses for its
+// titles and canonicals (src/constants/seo.js), so the two can't drift.
+const SPA_PUBLIC_PAGES = require('../src/constants/publicPages.json').pages;
 
 const fail = (msg) => { console.error(`build-static: ${msg}`); process.exit(1); };
 
@@ -62,7 +56,7 @@ const homeBlock = `<div id="static-home">
 </ul>
 <nav aria-label="Site pages"><ul>
 ${pages.map((p) => `<li><a href="${p.path}">${esc(p.crumb || p.h1)}</a></li>`).join('\n')}
-${SPA_PUBLIC_PAGES.map((p) => `<li><a href="${p.path}">${esc(p.title)}</a></li>`).join('\n')}
+${SPA_PUBLIC_PAGES.map((p) => `<li><a href="${p.path}">${esc(p.nav)}</a></li>`).join('\n')}
 <li><a href="/register">Create a free account</a></li>
 <li><a href="/login">Log in</a></li>
 </ul></nav>
@@ -82,6 +76,43 @@ index = index
   .replace('<div id="root"></div>', `<div id="root"><!--static-home-->${homeBlock}<!--/static-home--></div>`);
 fs.writeFileSync(indexPath, index);
 
+// 2b. Per-route copies of index.html for the public pages the React app renders
+//     (/byok, /contact-us, legal pages). Pages serves build/byok.html at /byok, so
+//     crawlers that don't run JavaScript get that page's title, description,
+//     canonical and a short factual summary instead of a copy of the home page.
+//     The same scripts load, so visitors get the full React page as before.
+const setAttr = (html, re, value, label) => {
+  if (!re.test(html)) fail(`could not find ${label} in build/index.html`);
+  return html.replace(re, (m, before) => `${before}${esc(value)}"`);
+};
+for (const p of SPA_PUBLIC_PAGES) {
+  const url = `${SITE_URL}${p.path}`;
+  const points = p.points.length ? `<ul>\n${p.points.map((t) => `<li>${esc(t)}</li>`).join('\n')}\n</ul>` : '';
+  const block = `<div id="static-home">
+<p><a href="/">${esc(BRAND_NAME)}</a></p>
+<h1>${esc(p.h1)}</h1>
+${p.summary.map((t) => `<p>${esc(t)}</p>`).join('\n')}
+${points}
+<p>Contact: ${esc(SUPPORT_EMAIL)}</p>
+<nav aria-label="Site pages"><ul>
+<li><a href="/">Home</a></li>
+${pages.filter((x) => !x.path.startsWith('/guides/')).map((x) => `<li><a href="${x.path}">${esc(x.crumb || x.h1)}</a></li>`).join('\n')}
+${SPA_PUBLIC_PAGES.filter((x) => x.path !== p.path).map((x) => `<li><a href="${x.path}">${esc(x.nav)}</a></li>`).join('\n')}
+</ul></nav>
+</div>`;
+  let html = index.replace(/<div id="root"><!--static-home-->[\s\S]*?<!--\/static-home--><\/div>/, `<div id="root"><!--static-home-->${block}<!--/static-home--></div>`);
+  if (!/<title>[^<]*<\/title>/.test(html)) fail('could not find <title> in build/index.html');
+  html = html.replace(/<title>[^<]*<\/title>/, `<title>${esc(p.title)}</title>`);
+  html = setAttr(html, /(<meta name="description" content=")[^"]*"/, p.description, 'meta description');
+  html = setAttr(html, /(<meta property="og:url" content=")[^"]*"/, url, 'og:url');
+  html = setAttr(html, /(<meta property="og:title" content=")[^"]*"/, p.title, 'og:title');
+  html = setAttr(html, /(<meta property="og:description" content=")[^"]*"/, p.description, 'og:description');
+  html = setAttr(html, /(<meta name="twitter:title" content=")[^"]*"/, p.title, 'twitter:title');
+  html = setAttr(html, /(<meta name="twitter:description" content=")[^"]*"/, p.description, 'twitter:description');
+  html = html.replace('</head>', `<link rel="canonical" href="${url}"></head>`);
+  fs.writeFileSync(path.join(BUILD, `${p.path.replace(/^\//, '')}.html`), html);
+}
+
 // 3. sitemap.xml
 const urls = ['/', ...pages.map((p) => p.path), ...SPA_PUBLIC_PAGES.map((p) => p.path)];
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -98,7 +129,7 @@ const llms = `# ${PRODUCT_NAME}
 
 ## Product
 ${pages.filter((p) => !['/faq', '/about', '/resume-builder-for-freshers'].includes(p.path) && !p.path.startsWith('/guides')).map((p) => `- [${p.crumb || p.h1}](${SITE_URL}${p.path}): ${p.description}`).join('\n')}
-- [Use your own Gemini API key](${SITE_URL}/byok): ${SPA_PUBLIC_PAGES[0].summary}
+- [Use your own Gemini API key](${SITE_URL}/byok): ${SPA_PUBLIC_PAGES.find((p) => p.path === '/byok').description}
 
 ## Guides
 ${pages.filter((p) => p.path.startsWith('/guides/') || p.path === '/resume-builder-for-freshers').map((p) => `- [${p.crumb || p.h1}](${SITE_URL}${p.path}): ${p.description}`).join('\n')}
@@ -113,4 +144,4 @@ ${pages.filter((p) => p.path.startsWith('/guides/') || p.path === '/resume-build
 `;
 fs.writeFileSync(path.join(BUILD, 'llms.txt'), llms);
 
-console.log(`build-static: ${pages.length} pages, home content, sitemap.xml (${urls.length} URLs) and llms.txt written to build/`);
+console.log(`build-static: ${pages.length} pages, ${SPA_PUBLIC_PAGES.length} app-page shells, home content, sitemap.xml (${urls.length} URLs) and llms.txt written to build/`);
