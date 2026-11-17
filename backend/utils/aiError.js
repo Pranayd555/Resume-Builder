@@ -37,6 +37,9 @@ function getGeminiProviderError(err) {
   return null;
 }
 
+// Never use 502 or 504 here: the API sits behind Cloudflare, which replaces
+// 502/504 responses with its own HTML page, so the JSON message (and any
+// fallback data) would never reach the browser. Provider failures use 503.
 const errorResult = (httpStatus, type, retryable, userMessage, model, err) => ({
   httpStatus,
   payload: {
@@ -51,7 +54,7 @@ const errorResult = (httpStatus, type, retryable, userMessage, model, err) => ({
 function normalizeLocalAIError(err, model) {
   const name = err?.name;
   if (name === 'AITimeoutError' || name === 'AbortError' || name === 'TimeoutError') {
-    return errorResult(504, 'AI_TIMEOUT', true,
+    return errorResult(503, 'AI_TIMEOUT', true,
       'The AI took too long to respond. Please try again.', model, err);
   }
   if (name === 'AIOutputError' && err.reason === 'blocked') {
@@ -59,7 +62,7 @@ function normalizeLocalAIError(err, model) {
       "The AI couldn't process this content. Please edit the text and try again.", model, err);
   }
   if (name === 'AIOutputError') {
-    return errorResult(502, 'AI_BAD_OUTPUT', true,
+    return errorResult(503, 'AI_BAD_OUTPUT', true,
       "The AI returned an incomplete answer. Please try again.", model, err);
   }
   return null;
@@ -129,7 +132,7 @@ function normalizeGeminiError(err, context = {}) {
       userMessage =
         'Your Gemini API key is invalid or has insufficient permissions. Update it in Profile and try again.';
     } else {
-      httpStatus = 502;
+      httpStatus = 503;
       userMessage =
         'AI service authentication failed. Please contact support.';
     }
@@ -167,7 +170,7 @@ function normalizeGeminiError(err, context = {}) {
     retryable = false;
     userMessage = 'AI request was invalid. Please check your input and try again.';
   } else if (numericCode && numericCode >= 500) {
-    httpStatus = 502;
+    httpStatus = 503;
     type = 'AI_PROVIDER_ERROR';
     retryable = true;
     userMessage = 'AI provider error. Please try again.';

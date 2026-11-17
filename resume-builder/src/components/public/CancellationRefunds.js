@@ -133,7 +133,7 @@ const CancellationRefunds = () => {
                   Problem With a Payment?
                 </h2>
                 <p className="text-indigo-100">
-                  If you were charged twice, charged without receiving tokens, or could not use the service because of a fault on our side, contact us with your receipt number and registered email. We investigate every claim and, where it is valid, refund the payment to the original method or add tokens to your account.
+                  If you were charged twice, charged without receiving tokens, or could not use the service because of a fault on our side, contact us with your receipt number and registered email. We investigate every claim and, where it is valid, refund the payment in full to the original method or add tokens to your account. Any other refund we agree to as a goodwill gesture is made minus the payment processing charge (about 2.4% of the amount), which our payment provider does not return.
                 </p>
               </div>
               <div className="flex flex-col gap-3 w-full md:w-auto">
