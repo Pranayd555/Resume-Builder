@@ -5,6 +5,7 @@ const Resume = require('../models/Resume');
 const Template = require('../models/Template');
 const OptimizedTemplateRenderer = require('../utils/templateRenderer');
 const logger = require('../utils/logger');
+const { errorMeta, requestMeta } = require('../utils/logSafe');
 const puppeteer = require('puppeteer');
 const { withPage, getLaunchOptions } = require('../utils/browserManager');
 const sharp = require('sharp');
@@ -51,7 +52,7 @@ router.post('/draft-template', protect, async (req, res) => {
       message: 'Draft saved successfully'
     });
   } catch (error) {
-    logger.error('Save draft template error:', error);
+    logger.error('Save draft template error', { ...requestMeta(req), ...errorMeta(error) });
     res.status(500).json({
       success: false,
       error: 'Server error'
@@ -71,7 +72,7 @@ router.get('/draft-template', protect, async (req, res) => {
       data: draft
     });
   } catch (error) {
-    logger.error('Get draft template error:', error);
+    logger.error('Get draft template error', { ...requestMeta(req), ...errorMeta(error) });
     res.status(500).json({
       success: false,
       error: 'Server error'
@@ -130,7 +131,7 @@ router.post('/form-data', [
     const resume = new Resume(resumeData);
     await resume.save();
 
-    logger.info(`Resume form data saved: ${resume.title} by user ${req.user.email}`);
+    logger.info(`Resume form data saved: ${resume._id} by user ${req.user.id}`);
 
     res.status(201).json({
       success: true,
@@ -140,8 +141,7 @@ router.post('/form-data', [
       }
     });
   } catch (error) {
-    logger.error('Save resume form data error:', error);
-    logger.error('Error stack:', error.stack);
+    logger.error('Save resume form data error', { ...requestMeta(req), ...errorMeta(error) });
     return handleValidationError(error, res);
   }
 });
@@ -214,7 +214,7 @@ router.post('/auto-save', [
 
     await resume.save();
 
-    logger.info(`Resume auto-saved: ${resume.title} by user ${req.user.email}`);
+    logger.info(`Resume auto-saved: ${resume._id} by user ${req.user.id}`);
 
     res.json({
       success: true,
@@ -224,8 +224,7 @@ router.post('/auto-save', [
       }
     });
   } catch (error) {
-    logger.error('Auto-save resume error:', error);
-    logger.error('Error stack:', error.stack);
+    logger.error('Auto-save resume error', { ...requestMeta(req), ...errorMeta(error) });
     return handleValidationError(error, res);
   }
 });
@@ -264,9 +263,9 @@ router.put('/:id/complete', protect, async (req, res) => {
         }
       );
 
-      logger.info(`Resume created and published: ${resume.title} by user ${req.user.email} (resumesCreated: +1)`);
+      logger.info(`Resume created and published: ${resume._id} by user ${req.user.id} (resumesCreated: +1)`);
     } else {
-      logger.info(`Resume updated and republished: ${resume.title} by user ${req.user.email}`);
+      logger.info(`Resume updated and republished: ${resume._id} by user ${req.user.id}`);
     }
 
     res.json({
@@ -277,7 +276,7 @@ router.put('/:id/complete', protect, async (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Mark resume as completed error:', error);
+    logger.error('Mark resume as completed error', { ...requestMeta(req), ...errorMeta(error) });
     return handleValidationError(error, res);
   }
 });
@@ -362,7 +361,7 @@ router.put('/:id/template', [
 
     await resume.populate('template', 'name category preview styling templateCode');
 
-    logger.info(`Template selected for resume: ${resume.title} by user ${req.user.email}`);
+    logger.info(`Template selected for resume: ${resume._id} by user ${req.user.id}`);
 
     res.json({
       success: true,
@@ -372,7 +371,7 @@ router.put('/:id/template', [
       }
     });
   } catch (error) {
-    logger.error('Update resume template error:', error);
+    logger.error('Update resume template error', { ...requestMeta(req), ...errorMeta(error) });
     return handleValidationError(error, res);
   }
 });
@@ -435,7 +434,7 @@ router.put('/:id/template-styling', [
 
     await resume.save();
 
-    logger.info(`Template styling updated for resume: ${resume.title} by user ${req.user.email}`);
+    logger.info(`Template styling updated for resume: ${resume._id} by user ${req.user.id}`);
 
     res.json({
       success: true,
@@ -445,7 +444,7 @@ router.put('/:id/template-styling', [
       }
     });
   } catch (error) {
-    logger.error('Update template styling error:', error);
+    logger.error('Update template styling error', { ...requestMeta(req), ...errorMeta(error) });
     return handleValidationError(error, res);
   }
 });
@@ -601,7 +600,7 @@ router.get('/:id/preview', protect, async (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Generate preview error:', error);
+    logger.error('Generate preview error', { ...requestMeta(req), ...errorMeta(error) });
     res.status(500).json({
       success: false,
       error: 'Server error'
@@ -854,7 +853,7 @@ router.get('/:id/preview/pdf-images', protect, async (req, res) => {
 
     return res.json({ success: true, data: { pageCount: result.length, pages: result, meta } });
   } catch (error) {
-    logger.error('Generate PDF images error:', error);
+    logger.error('Generate PDF images error', { ...requestMeta(req), ...errorMeta(error) });
     return res.status(500).json({ success: false, error: 'Server error' });
   }
 });
@@ -959,7 +958,6 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
           const imageBuffer = await response.arrayBuffer();
           const base64 = Buffer.from(imageBuffer).toString('base64');
           const dataUri = `data:image/jpeg;base64,${base64}`;
-          logger.info('profile picture uri: ' + dataUri.substring(0, 100) + '...'); // Log first 100 chars
           resumeData.personalInfo.profilePicture = dataUri;
         } else {
           resumeData.personalInfo.profilePicture = null; // Clear the profile picture to prevent further issues
@@ -1079,8 +1077,6 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
       </html>
     `;
 
-    logger.info('HTML content generated for pdf', htmlContent)
-
     // Use shared browser
     const pdfBuffer = await withPage(async (page) => {
 
@@ -1104,14 +1100,12 @@ router.get('/:id/download/pdf', protect, async (req, res) => {
 
     res.send(pdfBuffer);
 
-    logger.info(`Resume downloaded as PDF: ${resume.title} by user ${req.user.email}`);
+    logger.info(`Resume downloaded as PDF: ${resume._id} by user ${req.user.id}`);
   } catch (error) {
-    logger.error('Download PDF error:', error);
-    logger.error('Error stack:', error.stack);
+    logger.error('Download PDF error', { ...requestMeta(req), ...errorMeta(error) });
     logger.error('Error details:', {
       resumeId: req.params.id,
       userId: req.user?.id,
-      userEmail: req.user?.email,
       errorName: error.name,
       errorMessage: error.message
     });
@@ -1336,9 +1330,9 @@ router.get('/:id/download/docx', protect, async (req, res) => {
 
     res.send(pdfBuffer);
 
-    logger.info(`Resume downloaded as PDF (DOCX conversion in progress): ${resume.title} by user ${req.user.email}`);
+    logger.info(`Resume downloaded as PDF (DOCX conversion in progress): ${resume._id} by user ${req.user.id}`);
   } catch (error) {
-    logger.error('Download DOCX error:', error);
+    logger.error('Download DOCX error', { ...requestMeta(req), ...errorMeta(error) });
     res.status(500).json({
       success: false,
       error: 'Server error'
@@ -1853,7 +1847,7 @@ router.get('/', protect, async (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Get resumes error:', error);
+    logger.error('Get resumes error', { ...requestMeta(req), ...errorMeta(error) });
     res.status(500).json({
       success: false,
       error: 'Server error'
@@ -1940,7 +1934,7 @@ router.get('/:id', protect, async (req, res) => {
       data: responseData
     });
   } catch (error) {
-    logger.error('Get resume error:', error);
+    logger.error('Get resume error', { ...requestMeta(req), ...errorMeta(error) });
     res.status(500).json({
       success: false,
       error: 'Server error'
@@ -1996,7 +1990,7 @@ router.post('/', [
 
     await resume.populate('template', 'name category preview');
 
-    logger.info(`Resume created: ${resume.title} by user ${req.user.email}`);
+    logger.info(`Resume created: ${resume._id} by user ${req.user.id}`);
 
     res.status(201).json({
       success: true,
@@ -2005,7 +1999,7 @@ router.post('/', [
       }
     });
   } catch (error) {
-    logger.error('Create resume error:', error);
+    logger.error('Create resume error', { ...requestMeta(req), ...errorMeta(error) });
     return handleValidationError(error, res);
   }
 });
@@ -2060,7 +2054,7 @@ router.put('/:id', [
       }
     });
   } catch (error) {
-    logger.error('Update resume error:', error);
+    logger.error('Update resume error', { ...requestMeta(req), ...errorMeta(error) });
     return handleValidationError(error, res);
   }
 });
@@ -2084,14 +2078,14 @@ router.delete('/:id', protect, async (req, res) => {
 
     await resume.deleteOne();
 
-    logger.info(`Resume deleted: ${resume.title} by user ${req.user.email}`);
+    logger.info(`Resume deleted: ${resume._id} by user ${req.user.id}`);
 
     res.json({
       success: true,
       message: 'Resume deleted successfully'
     });
   } catch (error) {
-    logger.error('Delete resume error:', error);
+    logger.error('Delete resume error', { ...requestMeta(req), ...errorMeta(error) });
     res.status(500).json({
       success: false,
       error: 'Server error'
@@ -2160,7 +2154,6 @@ router.post('/:id/duplicate', protect, async (req, res) => {
     const duplicateResume = new Resume(resumeData);
     logger.info('Creating duplicate resume:', {
       originalId: originalResume._id,
-      duplicateTitle: duplicateData.title,
       duplicateId: duplicateResume._id // This should be a new ObjectId
     });
 
@@ -2168,7 +2161,7 @@ router.post('/:id/duplicate', protect, async (req, res) => {
       await duplicateResume.save();
       logger.info('Duplicate resume saved successfully with ID:', duplicateResume._id);
     } catch (saveError) {
-      logger.error('Failed to save duplicate resume:', saveError);
+      logger.error('Failed to save duplicate resume', { ...requestMeta(req), ...errorMeta(saveError) });
       if (saveError.code === 11000) {
         return res.status(500).json({
           success: false,
@@ -2190,8 +2183,7 @@ router.post('/:id/duplicate', protect, async (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Duplicate resume error:', error);
-    logger.error('Error stack:', error.stack);
+    logger.error('Duplicate resume error', { ...requestMeta(req), ...errorMeta(error) });
     res.status(500).json({
       success: false,
       error: 'Server error',
@@ -2247,7 +2239,7 @@ router.post('/:id/export', [
       }
     });
   } catch (error) {
-    logger.error('Export resume error:', error);
+    logger.error('Export resume error', { ...requestMeta(req), ...errorMeta(error) });
     res.status(500).json({
       success: false,
       error: 'Server error'
@@ -2290,7 +2282,7 @@ router.post('/:id/share', protect, async (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Share resume error:', error);
+    logger.error('Share resume error', { ...requestMeta(req), ...errorMeta(error) });
     res.status(500).json({
       success: false,
       error: 'Server error'
@@ -2331,7 +2323,7 @@ router.get('/shared/:token', async (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Get shared resume error:', error);
+    logger.error('Get shared resume error', { ...requestMeta(req), ...errorMeta(error) });
     res.status(500).json({
       success: false,
       error: 'Server error'
@@ -2380,7 +2372,7 @@ router.get('/:id/analytics', protect, async (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Get resume analytics error:', error);
+    logger.error('Get resume analytics error', { ...requestMeta(req), ...errorMeta(error) });
     res.status(500).json({
       success: false,
       error: 'Server error'
@@ -2425,7 +2417,7 @@ router.put('/:id/toggle-active', protect, async (req, res) => {
     resume.isActive = !resume.isActive;
     await resume.save();
 
-    logger.info(`Resume active status toggled: ${resume.title} (${resume.isActive ? 'active' : 'inactive'}) by user ${req.user.email}`);
+    logger.info(`Resume active status toggled: ${resume._id} (${resume.isActive ? 'active' : 'inactive'}) by user ${req.user.id}`);
 
     res.json({
       success: true,
@@ -2435,7 +2427,7 @@ router.put('/:id/toggle-active', protect, async (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Toggle resume active status error:', error);
+    logger.error('Toggle resume active status error', { ...requestMeta(req), ...errorMeta(error) });
     res.status(500).json({
       success: false,
       error: 'Server error'
@@ -2526,7 +2518,7 @@ router.put('/:id/colors', [
     });
 
   } catch (error) {
-    logger.error('Error updating resume colors:', error);
+    logger.error('Error updating resume colors', { ...requestMeta(req), ...errorMeta(error) });
     res.status(500).json({
       success: false,
       error: 'Server error'
@@ -2600,7 +2592,7 @@ router.put('/:id/colors/individual', [
     });
 
   } catch (error) {
-    logger.error('Error updating individual resume color:', error);
+    logger.error('Error updating individual resume color', { ...requestMeta(req), ...errorMeta(error) });
     res.status(500).json({
       success: false,
       error: 'Server error'

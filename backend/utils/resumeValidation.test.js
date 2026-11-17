@@ -292,6 +292,19 @@ describe('route pipeline', () => {
     assert.equal(status, 201, JSON.stringify(body));
   });
 
+  // Production once logged 'Cast to date failed for value "Present"' as a 500.
+  test('"Present" end date saves as a current job on create and update', async () => {
+    const p = completeResume();
+    p.workExperience[0] = { ...p.workExperience[0], endDate: 'Present', isCurrentJob: false };
+    const created = await send('POST', '/form-data', p);
+    assert.equal(created.status, 201, JSON.stringify(created.body));
+
+    const updated = await send('PUT', '/update', { workExperience: p.workExperience });
+    assert.equal(updated.status, 200, JSON.stringify(updated.body));
+    assert.equal(updated.body.body.workExperience[0].endDate, null);
+    assert.equal(updated.body.body.workExperience[0].isCurrentJob, true);
+  });
+
   test('missing title, name and email -> one field-level error each', async () => {
     const { status, body } = await send('POST', '/form-data', { title: '  ', personalInfo: { fullName: '', email: 'nope' } });
     assert.equal(status, 400);

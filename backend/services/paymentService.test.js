@@ -70,7 +70,7 @@ function fakeRazorpay() {
   };
   /** Simulate the customer paying an order. */
   fake.pay = (order, { status = 'captured', amount = order.amount, currency = 'INR' } = {}) => {
-    const p = { id: `pay_${++fake.seq}`, order_id: order.id, amount, currency, status, method: 'upi', created_at: Math.floor(Date.now() / 1000) };
+    const p = { id: `pay_${++fake.seq}`, order_id: order.id, amount, currency, status, method: 'upi', fee: Math.round(amount * 0.0236), created_at: Math.floor(Date.now() / 1000) };
     fake.payments.set(p.id, p);
     return p;
   };
@@ -285,6 +285,42 @@ describe('payments (database)', { skip: !MONGO_URI && 'TOKEN_TEST_MONGODB_URI no
     assert.equal(fake.refundCalls[0].amount, 10000);
   });
 
+  test('keepFee refunds the payment minus the Razorpay fee (goodwill refunds)', async () => {
+    const user = await makeUser();
+    const payment = await paidPack60(user);
+    assert.equal(payment.fee, 470); // stored at capture
+    const { payment: refunded } = await payments.refundPayment(payment._id, admin({ keepFee: true }));
+    assert.equal(fake.refundCalls[0].amount, 19900 - 470);
+    assert.equal(refunded.refund.amount, 19430);
+    assert.equal(refunded.refund.feeKept, 470);
+    assert.equal(emails.find((e) => e.type === 'refund').feeKept, 4.7);
+  });
+
+  test('keepFee reads the fee from Razorpay for older payments, and an explicit amount wins', async () => {
+    const user = await makeUser();
+    const older = await paidPack60(user);
+    await Payment.updateOne({ _id: older._id }, { $unset: { fee: 1 } });
+    const { payment: refunded } = await payments.refundPayment(older._id, admin({ keepFee: true }));
+    assert.equal(refunded.refund.amount, 19430);
+    assert.equal((await Payment.findById(older._id)).fee, 470);
+
+    const other = await paidPack60(await makeUser());
+    const { payment: partial } = await payments.refundPayment(other._id, admin({ keepFee: true, amount: 10000 }));
+    assert.equal(partial.refund.amount, 10000);
+    assert.equal(partial.refund.feeKept, undefined);
+  });
+
+  test('keepFee without a known fee refuses before anything happens', async () => {
+    const user = await makeUser();
+    const payment = await paidPack60(user);
+    await Payment.updateOne({ _id: payment._id }, { $unset: { fee: 1 } });
+    delete fake.payments.get(payment.paymentId).fee;
+    await assert.rejects(payments.refundPayment(payment._id, admin({ keepFee: true })), (e) => e.code === 'fee_unknown' && e.statusCode === 422);
+    assert.equal(fake.refundCalls.length, 0);
+    assert.equal((await Payment.findById(payment._id)).refund, undefined);
+    assert.deepEqual(await balanceOf(user), PACK);
+  });
+
   test('double-clicking refund pays out once', async () => {
     const user = await makeUser();
     const payment = await paidPack60(user);
@@ -299,7 +335,7 @@ describe('payments (database)', { skip: !MONGO_URI && 'TOKEN_TEST_MONGODB_URI no
     const payment = await paidPack60(user);
     await require('../utils/tokenCalculator').spendTokens(user._id, 10);
     fake.refundError = { error: { description: 'insufficient balance' } };
-    await assert.rejects(payments.refundPayment(payment._id, admin()), (e) => e.code === 'gateway_error' && /insufficient balance/.test(e.message));
+    await assert.rejects(payments.refundPayment(payment._id, admin()), (e) => e.code === 'gateway_error' && e.statusCode === 422 && /insufficient balance/.test(e.message));
     assert.deepEqual(await balanceOf(user), { purchased: 50, bonus: 0, total: 50 });
     const failed = await Payment.findById(payment._id);
     assert.equal(failed.status, 'paid');

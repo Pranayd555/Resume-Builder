@@ -1,16 +1,19 @@
 const logger = require('../utils/logger');
+const { errorMeta, requestMeta } = require('../utils/logSafe');
 
 const errorHandler = (err, req, res, next) => {
   let error = { ...err };
   error.message = err.message;
 
-  // Log error
-  logger.error(err.stack);
+  // Log route, method, user id, error name and field paths only. err.stack and
+  // err.message can contain submitted values (Mongoose cast errors quote them).
+  logger.error('Unhandled request error', { ...requestMeta(req), ...errorMeta(err) });
 
-  // Mongoose bad ObjectId
+  // Mongoose bad ObjectId in the URL -> 404; a bad value in a body field -> 400
   if (err.name === 'CastError') {
-    const message = 'Resource not found';
-    error = { message, statusCode: 404 };
+    error = err.path === '_id'
+      ? { message: 'Resource not found', statusCode: 404 }
+      : { message: `Invalid value for ${err.path}`, statusCode: 400 };
   }
 
   // Mongoose duplicate key
