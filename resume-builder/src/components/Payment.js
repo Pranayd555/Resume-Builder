@@ -66,6 +66,13 @@ const Payment = () => {
 
   const packs = config?.packs || [];
   const selectedPack = packs.find((pack) => pack.id === selectedPackId) || null;
+  // Biggest pack first (price anchoring), with savings measured honestly against
+  // the per-token price of the smallest pack: real prices only, no made-up "was" prices.
+  const perToken = (pack) => pack.price / (pack.tokens + (pack.bonus || 0));
+  const displayPacks = [...packs].sort((a, b) => b.price - a.price);
+  const basePerToken = packs.length ? Math.max(...packs.map(perToken)) : 0;
+  const bestPerToken = packs.length ? Math.min(...packs.map(perToken)) : 0;
+  const savingPct = (pack) => (basePerToken ? Math.round((1 - perToken(pack) / basePerToken) * 100) : 0);
   const paymentsEnabled = Boolean(config?.enabled);
 
   const confirmPayment = useCallback(async (response) => {
@@ -207,21 +214,21 @@ const Payment = () => {
         </div>
 
         {/* Token Purchase Section */}
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
               Choose Your Token Package
             </h2>
             <p className="text-gray-600 dark:text-gray-300 text-lg">
-              Pick a pack. Bigger packs cost less per token, and tokens never expire.
+              1 token = 1 AI action. Bigger packs cost less per token, and tokens never expire.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {!config && (
               <div className="col-span-full text-center text-gray-500 dark:text-gray-400 py-8">Loading packs…</div>
             )}
-            {packs.map((pkg) => (
+            {displayPacks.map((pkg) => (
               <button
                 type="button"
                 key={pkg.id}
@@ -232,11 +239,15 @@ const Payment = () => {
                   }`}
                 onClick={() => setSelectedPackId(pkg.id)}
               >
-                {pkg.popular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-xs font-semibold text-white bg-gradient-to-r from-blue-500 to-purple-600 shadow">
-                    Most popular
+                {pkg.popular ? (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-xs font-semibold text-white bg-gradient-to-r from-blue-500 to-purple-600 shadow whitespace-nowrap">
+                    Recommended
                   </span>
-                )}
+                ) : packs.length > 1 && perToken(pkg) === bestPerToken ? (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-xs font-semibold text-white bg-green-600 shadow whitespace-nowrap">
+                    Best value
+                  </span>
+                ) : null}
                 <div className="text-center">
                   <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
                     <CurrencyDollarIcon className="w-8 h-8 text-white" />
@@ -253,8 +264,16 @@ const Payment = () => {
                     </div>
                   )}
                   <div className="text-gray-600 dark:text-gray-300 text-sm">
-                    ₹{(pkg.price / (pkg.tokens + pkg.bonus)).toFixed(1)} per token
+                    = {pkg.tokens + (pkg.bonus || 0)} AI actions
                   </div>
+                  <div className="text-gray-600 dark:text-gray-300 text-sm mt-1">
+                    ₹{perToken(pkg).toFixed(2)} per token
+                  </div>
+                  {savingPct(pkg) >= 5 && (
+                    <div className="inline-block mt-2 px-2 py-0.5 rounded-md text-sm font-semibold text-green-700 bg-green-50 dark:text-green-300 dark:bg-green-900/30">
+                      Save {savingPct(pkg)}%
+                    </div>
+                  )}
                 </div>
               </button>
             ))}
