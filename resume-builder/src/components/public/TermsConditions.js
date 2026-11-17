@@ -11,9 +11,11 @@ import {
   CpuChipIcon,
   CreditCardIcon,
   ScaleIcon,
-  EnvelopeIcon
+  EnvelopeIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 import AnimatedBackground from '../AnimatedBackground';
+import { LEGAL_LAST_UPDATED } from '../../constants/legal';
 
 const TermsConditions = () => {
   const navigate = useNavigate();
@@ -38,13 +40,13 @@ const TermsConditions = () => {
       icon: DocumentTextIcon,
       color: "text-blue-500",
       bg: "bg-blue-50/50 dark:bg-blue-900/10",
-      content: "Presmistique - AI Resume Builder is an online platform providing tools for professional resume creation. Our service includes templates, AI-powered content suggestions, ATS compatibility analysis, cloud storage, and professional guidance. Some features are token-based and require an active account.",
+      content: "Presmistique - AI Resume Builder is an online platform providing tools for professional resume creation. Our service includes templates, AI-powered content suggestions, ATS compatibility analysis, and cloud storage for your resumes. Some features are token-based and require an active account.",
       list: [
         "Resume templates and design tools",
         "AI-powered content suggestions (token-based)",
         "ATS compatibility analysis and export",
         "Secure cloud storage for resume data",
-        "Professional guidance and optimization tips"
+        "Tips for writing and improving your resume"
       ]
     },
     {
@@ -69,7 +71,7 @@ const TermsConditions = () => {
       icon: LockClosedIcon,
       color: "text-purple-500",
       bg: "bg-purple-50/50 dark:bg-purple-900/10",
-      content: "Your privacy is paramount. We implement robust security measures to protect your personal information and resume data. By using our Service, you agree to the collection and use of information in accordance with our Privacy Policy."
+      content: "We take reasonable measures to protect your personal information and resume data. By using the Service, you agree to the collection and use of information as described in our Privacy Policy."
     },
     {
       id: 6,
@@ -95,6 +97,14 @@ const TermsConditions = () => {
     },
     {
       id: 8,
+      title: "AI-Generated Content",
+      icon: SparklesIcon,
+      color: "text-violet-500",
+      bg: "bg-violet-50/50 dark:bg-violet-900/10",
+      content: "AI features produce suggestions automatically. They can be inaccurate, incomplete or unsuitable for your situation, and an ATS score is an estimate, not a guarantee of how any employer's system will rank you. Review everything before you use it. You are responsible for the content of your resume and for making sure it is truthful."
+    },
+    {
+      id: 9,
       title: "Limitation of Liability",
       icon: ScaleIcon,
       color: "text-slate-500",
@@ -188,10 +198,10 @@ const TermsConditions = () => {
         </div>
 
         {/* Footer Note */}
-        <footer className="mt-16 text-center text-slate-400 dark:text-slate-600 text-sm">
+        <footer className="mt-16 text-center text-slate-600 dark:text-slate-400 text-sm">
           <p>© {new Date().getFullYear()} Presmistique - AI Resume Builder. All rights reserved.</p>
           <p className="mt-2 italic">
-            Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} • Your continued use of the Service constitutes your acceptance of these Terms.
+            Last updated: {LEGAL_LAST_UPDATED} • Your continued use of the Service means you accept these Terms.
           </p>
         </footer>
       </main>

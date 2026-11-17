@@ -1,5 +1,18 @@
 # https://www.robotstxt.org/robotstxt.html
+# Cloudflare adds its own AI-crawler rules above this file when it serves it.
 User-agent: *
-Disallow:
+# App screens behind login: nothing for search engines here.
+Disallow: /admin/
+Disallow: /dashboard
+Disallow: /resumes
+Disallow: /resume-form
+Disallow: /resume-preview
+Disallow: /resume-templates
+Disallow: /template-selection
+Disallow: /create-template
+Disallow: /payment
+Disallow: /profile
+Disallow: /analytics
+Disallow: /feedback
 
 Sitemap: https://presmistique.in/sitemap.xml

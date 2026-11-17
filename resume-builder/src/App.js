@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import React, { Suspense, useEffect } from 'react';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -7,42 +7,50 @@ import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { DarkModeProvider, useDarkMode } from './contexts/DarkModeContext';
 
-// Components
+// Loaded up front: the shell and the landing page (what most visitors and crawlers open first)
 import AnimatedBackground from './components/AnimatedBackground';
 import Layout from './components/Layout';
-import Login from './components/public/login';
-import Register from './components/public/Register';
-import ResumeList from './components/resume-list';
-import CreateTemplate from './components/CreateTemplate';
-import ResumeTemplates from './components/resume-templates';
-import ResumeForm from './components/ResumeForm';
-import TemplateSelection from './components/TemplateSelection';
-import Feedback from './components/feedback';
-import Payment from './components/Payment';
-import Profile from './components/Profile';
-import PrivacyPolicy from './components/public/PrivacyPolicy';
-import AnalyticsDashboard from './components/AnalyticsDashboard';
-import AdminDashboard from './components/admin/AdminDashboard';
-import AdminUsers from './components/admin/AdminUsers';
-import AdminFeedback from './components/admin/AdminFeedback';
-import AdminContacts from './components/admin/AdminContacts';
-import AdminTokens from './components/admin/AdminTokens';
-import AdminPayments from './components/admin/AdminPayments';
 import AdminLayout from './components/admin/AdminLayout';
-
-// Public Pages
 import HomePage from './components/public/HomePage';
-import CancellationRefunds from './components/public/CancellationRefunds';
-import TermsConditions from './components/public/TermsConditions';
-import Shipping from './components/public/Shipping';
-import ContactUs from './components/public/ContactUs';
-
 import ProtectedRoute, { RoleProtectedRoute, UnauthorizedPage, ROLES } from './components/ProtectedRoute';
-import AuthCallback from './components/AuthCallback';
-import ResumePreviewEnhanced from './components/ResumePreviewEnhanced';
-import ErrorPage from './components/annimations/ErrorPage';
 import { PUBLIC_ROUTES, USER_ROUTES, ADMIN_ROUTES } from './constants/routes';
-import BYOKGuide from './components/public/BYOK';
+import lazyWithRetry from './utils/lazyWithRetry';
+
+// Every other page is its own chunk, so the home page doesn't download the
+// resume editor, CKEditor, pdf.js or the admin area.
+const Login = lazyWithRetry(() => import('./components/public/login'));
+const Register = lazyWithRetry(() => import('./components/public/Register'));
+const ResumeList = lazyWithRetry(() => import('./components/resume-list'));
+const CreateTemplate = lazyWithRetry(() => import('./components/CreateTemplate'));
+const ResumeTemplates = lazyWithRetry(() => import('./components/resume-templates'));
+const ResumeForm = lazyWithRetry(() => import('./components/ResumeForm'));
+const TemplateSelection = lazyWithRetry(() => import('./components/TemplateSelection'));
+const Feedback = lazyWithRetry(() => import('./components/feedback'));
+const Payment = lazyWithRetry(() => import('./components/Payment'));
+const Profile = lazyWithRetry(() => import('./components/Profile'));
+const PrivacyPolicy = lazyWithRetry(() => import('./components/public/PrivacyPolicy'));
+const AnalyticsDashboard = lazyWithRetry(() => import('./components/AnalyticsDashboard'));
+const AdminDashboard = lazyWithRetry(() => import('./components/admin/AdminDashboard'));
+const AdminUsers = lazyWithRetry(() => import('./components/admin/AdminUsers'));
+const AdminFeedback = lazyWithRetry(() => import('./components/admin/AdminFeedback'));
+const AdminContacts = lazyWithRetry(() => import('./components/admin/AdminContacts'));
+const AdminTokens = lazyWithRetry(() => import('./components/admin/AdminTokens'));
+const AdminPayments = lazyWithRetry(() => import('./components/admin/AdminPayments'));
+const CancellationRefunds = lazyWithRetry(() => import('./components/public/CancellationRefunds'));
+const TermsConditions = lazyWithRetry(() => import('./components/public/TermsConditions'));
+const Shipping = lazyWithRetry(() => import('./components/public/Shipping'));
+const ContactUs = lazyWithRetry(() => import('./components/public/ContactUs'));
+const AuthCallback = lazyWithRetry(() => import('./components/AuthCallback'));
+const ResumePreviewEnhanced = lazyWithRetry(() => import('./components/ResumePreviewEnhanced'));
+const ErrorPage = lazyWithRetry(() => import('./components/annimations/ErrorPage'));
+const BYOKGuide = lazyWithRetry(() => import('./components/public/BYOK'));
+
+const PageFallback = () => (
+  <div className="min-h-screen flex items-center justify-center" role="status" aria-live="polite">
+    <div className="h-10 w-10 rounded-full border-4 border-blue-600 border-t-transparent animate-spin" />
+    <span className="sr-only">Loading…</span>
+  </div>
+);
 
 const AppContent = () => {
   const { isDarkMode } = useDarkMode();
@@ -66,7 +74,9 @@ const AppContent = () => {
     <div className="App relative">
       <AnimatedBackground />
       <div className="relative z-10">
-        <RouterProvider router={router} />
+        <Suspense fallback={<PageFallback />}>
+          <RouterProvider router={router} />
+        </Suspense>
         {/* Toast Notifications */}
         <ToastContainer
           position="top-right"
@@ -218,7 +228,15 @@ const router = createBrowserRouter([
   },
   {
     path: "*",
-    element: <Layout><Navigate to="/" replace /></Layout>,
+    element: (
+      <Layout notFound>
+        <ErrorPage
+          title="Page not found"
+          subtitle="This page doesn't exist or has moved. Head back to the home page to build your resume."
+          showLoginButton={false}
+        />
+      </Layout>
+    ),
   },
 ]);
 

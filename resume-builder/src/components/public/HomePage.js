@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDarkMode } from '../../contexts/DarkModeContext';
 import { useRouteScrollToTop } from '../../hooks/useAutoScroll';
@@ -21,14 +21,19 @@ import {
   GiftIcon,
   CheckCircleIcon,
   ArrowDownTrayIcon,
-  HeartIcon,
   CloudArrowUpIcon,
-  CodeBracketIcon,
   KeyIcon
 } from '@heroicons/react/24/outline';
 import { Slide, Roll, AttentionSeeker } from 'react-awesome-reveal';
 import { publicAPI } from '../../services/api';
 import { FlipText, WaveText } from '../../utils/animated-elements';
+import { SUPPORT_EMAIL } from '../../constants/brand';
+
+const footerLink = 'hover:text-gray-900 dark:hover:text-white transition-colors';
+
+// The stats band only appears once there are enough real resumes to be worth showing.
+const MIN_RESUMES_FOR_STATS = 1000;
+const formatCount = (n) => (n >= 1000 ? `${(Math.floor(n / 100) / 10).toFixed(1)}K+` : n.toLocaleString('en-IN'));
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -36,8 +41,6 @@ const HomePage = () => {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   useRouteScrollToTop();
   const currentYear = new Date().getFullYear();
-  const githubRepoUrl =
-    process.env.REACT_APP_GITHUB_REPO_URL || '';
 
   const { scrollY } = useScroll();
   const scale = useTransform(scrollY, [0, 300], [1, 0.8]);
@@ -45,14 +48,9 @@ const HomePage = () => {
   const textY = useTransform(scrollY, [0, 300], [0, -20]);
   const textOpacity = useTransform(scrollY, [0, 300], [1, 0.8]);
 
+  // stats stay null until the API answers: no made-up numbers on the page.
   const [homeData, setHomeData] = useState({
-    stats: {
-      totalResumes: "10K+",
-      totalUsers: "5K+",
-      totalTemplates: "50+",
-      resumesCreatedToday: "100+",
-      averageAtsScore: "85%"
-    },
+    stats: null,
     testimonials: [],
     loading: true
   });
@@ -64,13 +62,7 @@ const HomePage = () => {
         if (data.success) {
           const { stats, testimonials } = data.data;
           setHomeData({
-            stats: {
-              totalResumes: `${(stats.totalResumes / 1000).toFixed(1)}K+`,
-              totalUsers: `${(stats.totalUsers / 1000).toFixed(1)}K+`,
-              totalTemplates: `${stats.totalTemplates}+`,
-              resumesCreatedToday: `${stats.resumesCreatedToday}+`,
-              averageAtsScore: `${stats.averageAtsScore}%`
-            },
+            stats: stats && stats.totalResumes >= MIN_RESUMES_FOR_STATS ? stats : null,
             testimonials,
             loading: false
           });
@@ -102,17 +94,17 @@ const HomePage = () => {
     },
     {
       icon: ShieldCheckIcon,
-      title: "Secure & Private",
-      description: "Your data is encrypted and secure. We never share your personal information with third parties."
+      title: "Your Data, Your Call",
+      description: "Your data travels over HTTPS and we never sell your personal information. You can delete your account at any time."
     }
   ];
 
-  const stats = [
-    { number: homeData.stats.totalResumes, label: "Resumes Created" },
-    { number: homeData.stats.averageAtsScore, label: "Avg. ATS Score" },
-    { number: homeData.stats.totalTemplates, label: "Templates" },
-    { number: homeData.stats.resumesCreatedToday, label: "Created Today" }
-  ];
+  const stats = homeData.stats ? [
+    { number: formatCount(homeData.stats.totalResumes), label: "Resumes Created" },
+    homeData.stats.averageAtsScore != null && { number: `${homeData.stats.averageAtsScore}%`, label: "Avg. ATS Score" },
+    homeData.stats.totalTemplates > 0 && { number: formatCount(homeData.stats.totalTemplates), label: "Templates" },
+    homeData.stats.resumesCreatedToday > 0 && { number: formatCount(homeData.stats.resumesCreatedToday), label: "Created Today" }
+  ].filter(Boolean) : [];
 
   // Helper function to get the correct dashboard route
   const getDashboardRoute = () => {
@@ -154,14 +146,18 @@ const HomePage = () => {
           animate={{ y: 0 }}
           className="bg-indigo-600 text-white py-2 px-4 text-center text-sm font-bold sticky top-0 z-[100] shadow-lg"
         >
-          <div className="max-w-7xl mx-auto flex items-center justify-center gap-3">
-            <SparklesIcon className="w-5 h-5 animate-spin-slow" />
-            <span>Limited Offer: Get 5 AI Tokens Free + 100% Free Resume Generation!</span>
+          <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+            <SparklesIcon className="w-5 h-5 hidden sm:block" aria-hidden="true" />
+            <span>
+              <span className="sm:hidden">5 free AI tokens on signup</span>
+              <span className="hidden sm:inline">Get 5 free AI tokens when you sign up. Templates and PDF downloads are always free.</span>
+            </span>
             <button
+              type="button"
               onClick={() => navigate(PUBLIC_ROUTES.REGISTER)}
-              className="bg-white text-indigo-600 px-3 py-1 rounded-full text-xs hover:bg-indigo-50 transition-colors"
+              className="bg-white text-indigo-700 px-3 py-1 rounded-full text-xs hover:bg-indigo-50 transition-colors"
             >
-              Claim Now
+              Sign up free
             </button>
           </div>
         </motion.div>
@@ -177,7 +173,7 @@ const HomePage = () => {
             >
               <img
                 src={isDarkMode ? "/resume-builder-logo-512-dark.png" : "/resume-builder-logo-512-light.png"}
-                alt="Presmistique Logo"
+                alt=""
                 className="w-24 h-24 sm:w-32 sm:h-32 rounded-3xl shadow-2xl mb-6 transform transition-transform hover:rotate-3"
               />
             </motion.div>
@@ -185,12 +181,17 @@ const HomePage = () => {
               style={{ y: textY, opacity: textOpacity }}
               className="text-center"
             >
+              {/* FlipText splits words into per-letter spans (twice, for the hover flip),
+                  so the heading's real text lives in the sr-only span. */}
               <h1 className="text-3xl sm:text-5xl font-black text-gray-900 dark:text-white leading-[0.9] tracking-tighter">
-                <FlipText className="block whitespace-nowrap">
-                  PRESMISTIQUE
-                </FlipText>
+                <span className="sr-only">Presmistique: Free AI Resume Builder</span>
+                <span aria-hidden="true" className="block">
+                  <FlipText className="block whitespace-nowrap">
+                    PRESMISTIQUE
+                  </FlipText>
+                </span>
               </h1>
-              <div className="mt-2 text-sm sm:text-lg font-bold text-blue-600 dark:text-blue-400 tracking-[0.3em] uppercase">
+              <div aria-hidden="true" className="mt-2 text-sm sm:text-lg font-bold text-blue-600 dark:text-blue-400 tracking-[0.3em] uppercase">
                 <FlipText className="block whitespace-nowrap">
                   AI Resume Builder
                 </FlipText>
@@ -204,13 +205,13 @@ const HomePage = () => {
             transition={{ delay: 0.4, type: "spring", stiffness: 100 }}
             className="mb-6 flex flex-wrap justify-center gap-4"
           >
-            <AttentionSeeker effect="pulse" duration={3000} iterations={Infinity}>
+            <AttentionSeeker effect="pulse" duration={3000}>
               <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 text-blue-700 dark:text-blue-300 font-bold shadow-sm">
                 <CheckCircleIcon className="w-6 h-6" />
                 <span>100% Free Downloads</span>
               </div>
             </AttentionSeeker>
-            <AttentionSeeker effect="pulse" duration={2000} iterations={Infinity}>
+            <AttentionSeeker effect="pulse" duration={2000}>
               <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 font-bold shadow-sm">
                 <DocumentTextIcon className="w-6 h-6" />
                 <span>100% Free Templates</span>
@@ -219,7 +220,7 @@ const HomePage = () => {
             <AttentionSeeker duration={3000}>
               <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-pink-50 dark:bg-pink-900/30 border border-pink-100 dark:border-pink-800 text-pink-700 dark:text-pink-300 font-bold shadow-sm">
                 <KeyIcon className="w-6 h-6" />
-                <span>Use Your Key — Always Free</span>
+                <span>Use Your Own AI Key</span>
               </div>
             </AttentionSeeker>
             <AttentionSeeker effect="pulse" duration={3000}>
@@ -237,7 +238,7 @@ const HomePage = () => {
             transition={{ delay: 0.4, type: "spring", stiffness: 100 }}
             className="text-xl sm:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 mb-10 max-w-3xl mx-auto font-medium"
           >
-            Stop getting lost in the shuffle. Our platform uses intelligent, ATS-first technology to strip away the clutter and rebuild your resume into a modern document engineered to get you noticed, interviewed, and hired.
+            Build a clean, ATS-friendly resume in minutes. Pick a template, fill in a guided form, and use AI to sharpen your wording or check your resume against a job description.
           </motion.p>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center mb-8">
@@ -310,7 +311,7 @@ const HomePage = () => {
                 step: "02",
                 icon: DocumentTextIcon,
                 title: "Choose Template",
-                desc: "Select from our 22+ ATS-friendly, professional templates."
+                desc: "Select from our ATS-friendly, professional templates."
               },
               {
                 step: "03",
@@ -353,7 +354,8 @@ const HomePage = () => {
       {/* Template Showcase Section */}
       <TemplateShowcase />
 
-      {/* Stats Section */}
+      {/* Stats Section: shown only once real numbers have loaded */}
+      {stats.length > 0 && (
       <section className="py-20 relative overflow-hidden" >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -386,6 +388,7 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+      )}
 
       <section className="py-24 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -404,23 +407,22 @@ const HomePage = () => {
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="bg-white dark:bg-gray-800/30 p-10 rounded-[2.5rem] border border-gray-200 dark:border-gray-700/50 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-700"
+              className="bg-white dark:bg-gray-800/30 p-6 sm:p-10 rounded-[2.5rem] border border-gray-200 dark:border-gray-700/50"
             >
               <div className="flex items-center gap-3 mb-8">
                 <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
                   <span className="text-red-500 font-black">X</span>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-500 dark:text-gray-400">Other Builders</h3>
+                <h3 className="text-2xl font-bold text-gray-700 dark:text-gray-300">Many Other Builders</h3>
               </div>
               <ul className="space-y-6">
                 {[
-                  "Expensive Monthly Subscriptions ($15-$40/mo)",
-                  "Sneaky Auto-Renewals",
-                  "Pay-to-Download Traps",
-                  "Limited Access to Shared Data",
-                  "Customer Support is non-existent"
+                  "Monthly subscriptions just to keep using the tool",
+                  "Plans that renew automatically",
+                  "Free to build, but pay to download",
+                  "Watermarks on free resumes"
                 ].map((item, idx) => (
-                  <li key={idx} className="flex items-start gap-4 text-gray-500 dark:text-gray-400 font-medium">
+                  <li key={idx} className="flex items-start gap-4 text-gray-600 dark:text-gray-300 font-medium">
                     <span className="mt-1 flex-shrink-0 w-2 h-2 rounded-full bg-red-400 dark:bg-red-600" />
                     {item}
                   </li>
@@ -433,10 +435,10 @@ const HomePage = () => {
               initial={{ opacity: 0, x: 50 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="bg-gradient-to-br from-blue-600 to-purple-700 p-10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(37,99,235,0.3)] relative transform hover:scale-[1.02] transition-all duration-500 group overflow-hidden"
+              className="bg-gradient-to-br from-blue-600 to-purple-700 p-6 sm:p-10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(37,99,235,0.3)] relative transform hover:scale-[1.02] transition-all duration-500 group overflow-hidden"
             >
               <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-colors" />
-              <div className="absolute top-6 right-6 bg-white/20 backdrop-blur-md text-white px-5 py-2 rounded-full text-sm font-black tracking-wider uppercase">
+              <div className="inline-block mb-6 sm:mb-0 sm:absolute sm:top-6 sm:right-6 bg-white/20 backdrop-blur-md text-white px-5 py-2 rounded-full text-sm font-black tracking-wider uppercase">
                 Best Choice
               </div>
 
@@ -449,14 +451,14 @@ const HomePage = () => {
 
               <ul className="space-y-6">
                 {[
-                  { text: "100% Free Forever", bold: "FREE NOW" },
-                  { text: "No Subscriptions, No Contracts", bold: "NO TRAPS" },
-                  { text: "Lifetime Personal Dashboard", bold: "ALWAYS YOURS" },
-                  { text: "5 Free Premium AI Tokens on Signup", bold: "BONUS" },
-                  { text: "Bring Your Own API Key — Use AI features completely free, forever", bold: "BYOK"},
-                  { text: "Earn More Tokens by Helping Us", bold: "REWARDS" }
+                  { text: "Templates, up to 3 resumes and PDF downloads, with no watermark", bold: "FREE" },
+                  { text: "No subscriptions and nothing that auto-renews", bold: "NO TRAPS" },
+                  { text: "AI token packs from ₹49 that never expire", bold: "PAY AS YOU GO" },
+                  { text: "5 free AI tokens when you sign up", bold: "BONUS" },
+                  { text: "Use your own Gemini API key and AI actions don't use tokens", bold: "BYOK" },
+                  { text: "Earn tokens for valid bug reports and ideas", bold: "REWARDS" }
                 ].map((item, idx) => (
-                  <li key={idx} className="flex items-center gap-4 text-white/90">
+                  <li key={idx} className="flex items-start gap-4 text-white/90">
                     <div className="flex-shrink-0 w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
                       <CheckCircleIcon className="w-4 h-4 text-white" />
                     </div>
@@ -490,7 +492,7 @@ const HomePage = () => {
                 Help Us Build The Best Tool & <span className="text-orange-500">Earn Free Tokens</span>
               </h2>
               <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 leading-relaxed font-medium">
-                Found a bug? Have a great idea for a new feature or template? Report it to us and get rewarded with <span className="text-orange-500 font-bold decoration-orange-500 underline decoration-2 underline-offset-4 text-2xl px-2">Free AI Tokens</span> for every valid submission.
+                Found a bug? Have an idea for a new feature or template? Tell us. Valid bug reports and good ideas can earn you <span className="text-orange-600 dark:text-orange-400 font-bold underline decoration-2 underline-offset-4">free AI tokens</span>.
               </p>
               {isAuthenticated ? <div className="flex flex-wrap justify-center md:justify-start gap-4">
                 <motion.button
@@ -511,19 +513,6 @@ const HomePage = () => {
                   <SparklesIcon className="w-6 h-6" />
                   Suggest Enhancement
                 </motion.button>
-                {githubRepoUrl && (
-                <motion.a
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  href={githubRepoUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="bg-transparent border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-900/30 px-8 py-4 rounded-2xl font-bold text-lg transition-all flex items-center gap-2"
-                >
-                  <CodeBracketIcon className="w-6 h-6" />
-                  GitHub Community
-                </motion.a>
-                )}
               </div>
                 : <div className="flex flex-wrap sm:flex-row gap-4 justify-center md:justify-start">
                   <AttentionSeeker duration={3000}>
@@ -535,24 +524,12 @@ const HomePage = () => {
                     </button>
                   </AttentionSeeker>
                   <button
+                    type="button"
                     onClick={() => navigate(PUBLIC_ROUTES.CONTACT_US)}
-                    className="bg-transparent border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-700 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-400 font-semibold py-3 px-8 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                    className="bg-transparent border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
                   >
-                    Learn More
+                    Contact us
                   </button>
-                  {githubRepoUrl && (
-                  <motion.a
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    href={githubRepoUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 py-3 px-8 rounded-lg font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 inline-flex items-center gap-2 justify-center"
-                  >
-                    <CodeBracketIcon className="w-5 h-5" />
-                    GitHub Community
-                  </motion.a>
-                  )}
                 </div>
               }
             </div>
@@ -570,8 +547,7 @@ const HomePage = () => {
                 className="relative"
               >
                 <div className="w-64 h-64 md:w-80 md:h-80 bg-gradient-to-br from-orange-400 to-pink-500 rounded-[3rem] flex items-center justify-center shadow-2xl relative z-10 overflow-hidden group">
-                  <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20" />
-                  <GiftIcon className="w-32 h-32 text-white drop-shadow-2xl group-hover:scale-110 transition-transform duration-500" />
+                  <GiftIcon aria-hidden="true" className="w-32 h-32 text-white drop-shadow-2xl group-hover:scale-110 transition-transform duration-500" />
                 </div>
                 {/* Background glow */}
                 <div className="absolute inset-0 bg-orange-500 blur-[80px] opacity-30 -z-10" />
@@ -656,12 +632,12 @@ const HomePage = () => {
               <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-gray-50 dark:from-gray-900 to-transparent z-10 pointer-events-none mt-4 mb-4" />
               <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-gray-50 dark:from-gray-900 to-transparent z-10 pointer-events-none mt-4 mb-4" />
 
-              <div className="flex animate-marquee py-4">
+              <div className="flex animate-marquee motion-reduce:animate-none motion-reduce:overflow-x-auto py-4">
                 {/* Duplicate the testimonials to create a seamless loop */}
                 {[...homeData.testimonials, ...homeData.testimonials].map((testimonial, index) => (
                   <div key={index} className="flex-shrink-0 w-80 sm:w-96 mx-4">
                     <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 h-full flex flex-col">
-                      <div className="flex mb-4">
+                      <div className="flex mb-4" role="img" aria-label={`Rated ${testimonial.rating} out of 5`}>
                         {[...Array(testimonial.rating)].map((_, i) => (
                           <StarIcon key={i} className="w-5 h-5 text-yellow-400 fill-current" />
                         ))}
@@ -673,7 +649,7 @@ const HomePage = () => {
                         {testimonial.profileImage ? (
                           <img
                             src={testimonial.profileImage}
-                            alt={testimonial.name}
+                            alt=""
                             className="w-10 h-10 rounded-full object-cover"
                           />
                         ) : (
@@ -681,10 +657,7 @@ const HomePage = () => {
                             {testimonial.name.charAt(0)}
                           </div>
                         )}
-                        <div>
-                          <h4 className="font-semibold text-gray-900 dark:text-white">{testimonial.name}</h4>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">Verified User</p>
-                        </div>
+                        <p className="font-semibold text-gray-900 dark:text-white">{testimonial.name}</p>
                       </div>
                     </div>
                   </div>
@@ -703,7 +676,7 @@ const HomePage = () => {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="p-12 md:p-20 rounded-[4rem] bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-[0_50px_100px_rgba(0,0,0,0.3)]"
+            className="p-6 sm:p-12 md:p-20 rounded-[2.5rem] sm:rounded-[4rem] bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-[0_50px_100px_rgba(0,0,0,0.3)]"
           >
             <h2 className="text-4xl md:text-6xl font-black mb-8">
               Start Your Journey <br />
@@ -711,7 +684,7 @@ const HomePage = () => {
             </h2>
             <div className="py-4 inline-block">
               <WaveText className="text-gray-300 dark:text-gray-600 mb-12">
-                Join hundreds of professionals building their future today. No credit cards, no subscriptions.
+                Free to start. No credit card, no subscription.
               </WaveText>
             </div>
 
@@ -719,93 +692,80 @@ const HomePage = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate(isAuthenticated ? getDashboardRoute() : PUBLIC_ROUTES.REGISTER)}
-              className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-12 py-5 rounded-2xl font-black text-xl hover:shadow-2xl transition-all flex items-center justify-center gap-3 mx-auto mt-8"
+              className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white px-8 sm:px-12 py-5 rounded-2xl font-black text-xl hover:shadow-2xl transition-all flex items-center justify-center gap-3 mx-auto mt-8"
             >
               {isAuthenticated ? 'Enter Dashboard' : 'Get Started Free'}
               <ArrowRightIcon className="w-6 h-6" />
             </motion.button>
 
-            <p className="mt-8 text-gray-400 dark:text-gray-500 font-medium flex items-center justify-center gap-2">
-              <HeartIcon className="w-5 h-5 text-red-500 animate-pulse" />
-              Loved by job seekers worldwide
-            </p>
           </motion.div>
         </div>
       </section>
 
-      {/* Footer */}
+      {/* Footer: real links so crawlers can follow them. Product pages are static HTML
+          (marketing/build-static.js), so they use plain <a> for a full page load. */}
       <footer className="backdrop-blur-md bg-white/70 dark:bg-transparent border-t border-white/20 dark:border-none py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <Slide direction="left">
-              <div>
-                <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Presmistique - AI Resume Builder</h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Professional resume building made simple and effective.
-                </p>
-              </div>
-            </Slide>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="col-span-2 md:col-span-1">
+              <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Presmistique - AI Resume Builder</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                Free resume templates and PDF downloads, with pay-per-use AI tools and no subscription.
+              </p>
+              <p className="text-gray-600 dark:text-gray-400">
+                <a href={`mailto:${SUPPORT_EMAIL}`} className="underline-offset-2 hover:underline hover:text-gray-900 dark:hover:text-white">{SUPPORT_EMAIL}</a>
+              </p>
+            </div>
 
-            <Slide direction="up">
-              <div>
-                <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Quick Links</h4>
-                <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                  {isAuthenticated ? (
-                    <li><button onClick={() => navigate(getDashboardRoute())} className="hover:text-gray-900 dark:hover:text-white transition-colors">Dashboard</button></li>
-                  ) : (
-                    <>
-                      <li><button onClick={() => navigate(PUBLIC_ROUTES.LOGIN)} className="hover:text-gray-900 dark:hover:text-white transition-colors">Login</button></li>
-                      <li><button onClick={() => navigate(PUBLIC_ROUTES.REGISTER)} className="hover:text-gray-900 dark:hover:text-white transition-colors">Register</button></li>
-                    </>
-                  )}
-                  <li>
-                    <button
-                      onClick={toggleDarkMode}
-                      className="flex items-center gap-2 hover:text-gray-900 dark:hover:text-white transition-colors"
-                    >
-                      {isDarkMode ? (
-                        <>
-                          <SunIcon className="w-4 h-4" />
-                          Light Mode
-                        </>
-                      ) : (
-                        <>
-                          <MoonIcon className="w-4 h-4" />
-                          Dark Mode
-                        </>
-                      )}
-                    </button>
-                  </li>
-                </ul>
-              </div>
-            </Slide>
+            <nav aria-labelledby="footer-product">
+              <h2 id="footer-product" className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Product</h2>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                <li><a href="/features" className={footerLink}>Features</a></li>
+                <li><a href="/templates" className={footerLink}>Resume templates</a></li>
+                <li><a href="/ats-resume-checker" className={footerLink}>ATS resume checker</a></li>
+                <li><a href="/import-resume" className={footerLink}>Import a resume</a></li>
+                <li><a href="/pricing" className={footerLink}>Pricing</a></li>
+                <li><Link to={PUBLIC_ROUTES.BYOK} className={footerLink}>Use your own AI key</Link></li>
+              </ul>
+            </nav>
 
+            <nav aria-labelledby="footer-help">
+              <h2 id="footer-help" className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Help</h2>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                <li><a href="/resume-builder-for-freshers" className={footerLink}>Resume for freshers</a></li>
+                <li><a href="/faq" className={footerLink}>FAQ</a></li>
+                <li><a href="/about" className={footerLink}>About</a></li>
+                <li><Link to={PUBLIC_ROUTES.CONTACT_US} className={footerLink}>Contact us</Link></li>
+                {isAuthenticated ? (
+                  <li><Link to={getDashboardRoute()} className={footerLink}>Dashboard</Link></li>
+                ) : (
+                  <li><Link to={PUBLIC_ROUTES.LOGIN} className={footerLink}>Log in</Link></li>
+                )}
+                <li>
+                  <button
+                    type="button"
+                    onClick={toggleDarkMode}
+                    className="flex items-center gap-2 hover:text-gray-900 dark:hover:text-white transition-colors"
+                  >
+                    {isDarkMode ? <SunIcon className="w-4 h-4" aria-hidden="true" /> : <MoonIcon className="w-4 h-4" aria-hidden="true" />}
+                    {isDarkMode ? 'Light mode' : 'Dark mode'}
+                  </button>
+                </li>
+              </ul>
+            </nav>
 
-            <Slide direction="up">
-              <div>
-                <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Legal</h4>
-                <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                  <li><button onClick={() => navigate(PUBLIC_ROUTES.PRIVACY_POLICY)} className="hover:text-gray-900 dark:hover:text-white transition-colors">Privacy Policy</button></li>
-                  <li><button onClick={() => navigate(PUBLIC_ROUTES.TERMS_CONDITIONS)} className="hover:text-gray-900 dark:hover:text-white transition-colors">Terms & Conditions</button></li>
-                  <li><button onClick={() => navigate(PUBLIC_ROUTES.CANCELLATION_REFUNDS)} className="hover:text-gray-900 dark:hover:text-white transition-colors text-align-left">Cancellation & Refunds</button></li>
-                </ul>
-              </div>
-            </Slide>
-
-
-            <Slide direction="right">
-              <div>
-                <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Support</h4>
-                <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                  <li><button onClick={() => navigate(PUBLIC_ROUTES.CONTACT_US)} className="hover:text-gray-900 dark:hover:text-white transition-colors">Contact Us</button></li>
-                  <li><button onClick={() => navigate(PUBLIC_ROUTES.SHIPPING)} className="hover:text-gray-900 dark:hover:text-white transition-colors">Shipping</button></li>
-                  <li><button onClick={() => navigate(USER_ROUTES.FEEDBACK)} className="hover:text-gray-900 dark:hover:text-white transition-colors">Feedback</button></li>
-                </ul>
-              </div>
-            </Slide>
+            <nav aria-labelledby="footer-legal">
+              <h2 id="footer-legal" className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Legal</h2>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                <li><Link to={PUBLIC_ROUTES.PRIVACY_POLICY} className={footerLink}>Privacy policy</Link></li>
+                <li><Link to={PUBLIC_ROUTES.TERMS_CONDITIONS} className={footerLink}>Terms and conditions</Link></li>
+                <li><Link to={PUBLIC_ROUTES.CANCELLATION_REFUNDS} className={footerLink}>Cancellation and refunds</Link></li>
+                <li><Link to={PUBLIC_ROUTES.SHIPPING} className={footerLink}>Shipping and delivery</Link></li>
+              </ul>
+            </nav>
           </div>
           <div className="border-t border-white/20 dark:border-orange-200/30 mt-8 pt-8 text-center text-gray-600 dark:text-gray-400">
-            <p>&copy; {currentYear} Presmistique - AI Resume Builder. All rights reserved.</p>
+            <p>&copy; {currentYear} Presmistique. All rights reserved.</p>
           </div>
         </div>
       </footer>

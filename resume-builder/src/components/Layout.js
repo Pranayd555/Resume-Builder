@@ -1,8 +1,10 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import Header from './Header';
+import RouteSeo from './RouteSeo';
 
-const Layout = ({ children }) => {
+// notFound: set on the catch-all route so unknown URLs get noindex.
+const Layout = ({ children, notFound = false }) => {
   const location = useLocation();
   
   // Routes that should not show the header
@@ -33,6 +35,7 @@ const Layout = ({ children }) => {
 
   return (
     <>
+      <RouteSeo notFound={notFound} />
       {shouldShowHeader && <Header />}
       {children}
     </>

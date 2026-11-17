@@ -142,12 +142,12 @@ function Register() {
             <div className="text-center mb-8">
               <img
                 src={isDarkMode ? '/resume-builder-logo-512-dark.png' : '/resume-builder-logo-512-light.png'}
-                alt="Presmistique - AI Resume Builder Logo"
+                alt=""
                 className="mx-auto h-24 w-auto mb-6 drop-shadow-lg"
               />
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-700 to-purple-700 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent mb-2">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-700 to-purple-700 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent mb-2">
                 Create Account
-              </h2>
+              </h1>
               <p className="text-gray-700 dark:text-gray-300 font-medium">Join us and start building your professional resume</p>
             </div>
 
@@ -165,10 +165,11 @@ function Register() {
               {/* Name Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 ml-1">
+                  <label htmlFor="register-firstName" className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 ml-1">
                     First Name *
                   </label>
                   <input
+                    id="register-firstName"
                     type="text"
                     name="firstName"
                     value={formData.firstName}
@@ -186,10 +187,11 @@ function Register() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 ml-1">
+                  <label htmlFor="register-lastName" className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 ml-1">
                     Last Name *
                   </label>
                   <input
+                    id="register-lastName"
                     type="text"
                     name="lastName"
                     value={formData.lastName}
@@ -209,10 +211,11 @@ function Register() {
 
               {/* Email Field */}
               <div>
-                <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 ml-1">
+                <label htmlFor="register-email" className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 ml-1">
                   Email Address *
                 </label>
                 <input
+                  id="register-email"
                   type="email"
                   name="email"
                   value={formData.email}
@@ -231,11 +234,12 @@ function Register() {
 
               {/* Password Field */}
               <div>
-                <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 ml-1">
+                <label htmlFor="register-password" className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 ml-1">
                   Password *
                 </label>
                 <div className="relative">
                   <input
+                    id="register-password"
                     type={showPassword ? 'text' : 'password'}
                     name="password"
                     value={formData.password}
@@ -250,6 +254,7 @@ function Register() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
                     className="absolute inset-y-0 right-0 pr-4 flex items-center transition-colors duration-200 hover:text-blue-600 dark:hover:text-blue-400"
                   >
                     {showPassword ? (
@@ -282,11 +287,12 @@ function Register() {
 
               {/* Confirm Password Field */}
               <div>
-                <label className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 ml-1">
+                <label htmlFor="register-confirmPassword" className="block text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 ml-1">
                   Confirm Password *
                 </label>
                 <div className="relative">
                   <input
+                    id="register-confirmPassword"
                     type={showConfirmPassword ? 'text' : 'password'}
                     name="confirmPassword"
                     value={formData.confirmPassword}
@@ -301,6 +307,7 @@ function Register() {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                     className="absolute inset-y-0 right-0 pr-4 flex items-center transition-colors duration-200 hover:text-blue-600 dark:hover:text-blue-400"
                   >
                     {showConfirmPassword ? (
@@ -318,6 +325,7 @@ function Register() {
               {/* Terms Agreement */}
               <div className="flex items-start space-x-3 px-1">
                 <input
+                  id="register-agreeToTerms"
                   type="checkbox"
                   name="agreeToTerms"
                   checked={formData.agreeToTerms}
@@ -325,13 +333,13 @@ function Register() {
                   className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded bg-white/50 cursor-pointer"
                 />
                 <div className="text-sm">
-                  <label className="text-gray-800 dark:text-gray-200 font-medium">
+                  <label htmlFor="register-agreeToTerms" className="text-gray-800 dark:text-gray-200 font-medium">
                     I agree to the{' '}
-                    <Link to="/terms-conditions" className="text-blue-700 dark:text-blue-400 hover:underline">
+                    <Link to="/terms-conditions" target="_blank" rel="noopener noreferrer" className="text-blue-700 dark:text-blue-400 hover:underline">
                       Terms of Service
                     </Link>
                     {' '}and{' '}
-                    <Link to="/privacy-policy" className="text-blue-700 dark:text-blue-400 hover:underline">
+                    <Link to="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-blue-700 dark:text-blue-400 hover:underline">
                       Privacy Policy
                     </Link>
                   </label>
