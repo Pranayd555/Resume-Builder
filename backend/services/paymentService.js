@@ -389,7 +389,7 @@ async function refundPayment(paymentDocId, { adminEmail, reason, amount, removeT
       await creditTokens(claimed.user, removed, { opId: restoreOpId(claimed, attempt) });
     }
     await releaseRefundClaim(claimed, description);
-    throw new PaymentError(`Razorpay could not process the refund (${description}). If the Razorpay balance is lower than the refund, add funds or retry after new payments.`, 502, 'gateway_error');
+    throw new PaymentError(`Razorpay could not process the refund (${description}). If the Razorpay balance is lower than the refund, add funds or retry after new payments.`, 422, 'gateway_error'); // not 502: Cloudflare replaces 502/504 bodies with its own page
   }
 
   const processed = refund.status === 'processed';

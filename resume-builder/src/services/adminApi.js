@@ -19,7 +19,7 @@ const getAuthHeaders = () => {
 const handleApiResponse = async (response, errorMessage = 'An error occurred') => {
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || errorData.message || errorMessage);
+    throw new Error(errorData.error || errorData.message || `${errorMessage} (HTTP ${response.status})`);
   }
   return response.json();
 };

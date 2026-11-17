@@ -169,14 +169,14 @@ describe('POST /api/ai/rewrite', () => {
     assert.equal(ledger.refunds.length, 0);
   });
 
-  test('timeout -> 504 and refund', async () => {
+  test('timeout -> 503 and refund', async () => {
     const saved = gemini.AI_TIMEOUTS.rewrite;
     gemini.AI_TIMEOUTS.rewrite = 150;
     stub.queue.push({ ...geminiReply('{"content":"<p>late</p>"}'), delayMs: 600 });
     try {
       const { status, body } = await post('/ai/rewrite', { content: JOB, field: 'workExperience' });
       await settle();
-      assert.equal(status, 504);
+      assert.equal(status, 503);
       assert.match(body.error, /took too long/);
       assert.equal(ledger.refunds.length, 1);
     } finally {
@@ -188,7 +188,7 @@ describe('POST /api/ai/rewrite', () => {
     stub.queue.push(geminiReply('```html\n```'));
     let res = await post('/ai/rewrite', { content: JOB, field: 'workExperience' });
     await settle();
-    assert.equal(res.status, 502);
+    assert.equal(res.status, 503);
     stub.queue.push(geminiReply('', 'SAFETY'));
     res = await post('/ai/rewrite', { content: JOB, field: 'workExperience' });
     await settle();
@@ -285,7 +285,7 @@ describe('POST /api/uploads/parse-resume', () => {
     stub.queue.push(geminiError(500, 'internal'), geminiError(500, 'internal'));
     const { status, body } = await upload(resumePdf());
     await settle();
-    assert.equal(status, 502);
+    assert.equal(status, 503);
     assert.equal(body.data.importReport.parsedBy, 'fallback');
     assert.equal(body.data.parsedData.personalInfo.email, 'jordan.patel@example.com');
     assert.ok(body.data.importReport.additionalSections.some((s) => s.title === 'Experience'));

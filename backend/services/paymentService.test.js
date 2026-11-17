@@ -299,7 +299,7 @@ describe('payments (database)', { skip: !MONGO_URI && 'TOKEN_TEST_MONGODB_URI no
     const payment = await paidPack60(user);
     await require('../utils/tokenCalculator').spendTokens(user._id, 10);
     fake.refundError = { error: { description: 'insufficient balance' } };
-    await assert.rejects(payments.refundPayment(payment._id, admin()), (e) => e.code === 'gateway_error' && /insufficient balance/.test(e.message));
+    await assert.rejects(payments.refundPayment(payment._id, admin()), (e) => e.code === 'gateway_error' && e.statusCode === 422 && /insufficient balance/.test(e.message));
     assert.deepEqual(await balanceOf(user), { purchased: 50, bonus: 0, total: 50 });
     const failed = await Payment.findById(payment._id);
     assert.equal(failed.status, 'paid');
