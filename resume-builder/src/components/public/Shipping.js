@@ -11,6 +11,7 @@ import {
   EnvelopeIcon
 } from '@heroicons/react/24/outline';
 import AnimatedBackground from '../AnimatedBackground';
+import { LEGAL_LAST_UPDATED } from '../../constants/legal';
 import { SUPPORT_EMAIL } from '../../constants/brand';
 
 const Shipping = () => {
@@ -113,7 +114,7 @@ const Shipping = () => {
                 <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Availability & Support</h2>
                 <div className="bg-slate-50/50 dark:bg-gray-700/50 rounded-2xl p-6 border border-slate-100 dark:border-gray-600">
                   <p className="text-slate-600 dark:text-gray-300 text-sm mb-6 leading-relaxed">
-                    Our services are available 24/7 globally. While we strive for 99.9% uptime, occasional maintenance may occur. We'll always notify you in advance.
+                    Our service is available online around the clock. Occasional maintenance or outages can happen, and we aim to announce planned maintenance in advance.
                   </p>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-6 border-t border-slate-200 dark:border-gray-600">
                     <div className="flex items-center text-slate-700 dark:text-gray-200">
@@ -128,8 +129,8 @@ const Shipping = () => {
               </section>
 
               <div className="text-center">
-                <p className="text-xs text-slate-400 dark:text-gray-500">
-                  Last updated: December 2025 • Presmistique - AI Resume Builder Digital Services
+                <p className="text-xs text-slate-600 dark:text-gray-400">
+                  Last updated: {LEGAL_LAST_UPDATED} • Presmistique - AI Resume Builder Digital Services
                 </p>
               </div>
             </div>

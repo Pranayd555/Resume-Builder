@@ -14,6 +14,8 @@ import {
   EyeIcon
 } from '@heroicons/react/24/outline';
 import AnimatedBackground from '../AnimatedBackground';
+import { LEGAL_LAST_UPDATED } from '../../constants/legal';
+import { SUPPORT_EMAIL } from '../../constants/brand';
 
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
@@ -30,13 +32,13 @@ const PrivacyPolicy = () => {
       icon: UserCircleIcon,
       color: "text-blue-500",
       bg: "bg-blue-50/50 dark:bg-blue-900/10",
-      content: "We collect information you provide directly to us when you create an account, build resumes, or contact support. This includes personal details, resume content, and payment information processed securely through Razorpay.",
+      content: "We collect what you give us when you create an account, build resumes or contact support. If you sign in with Google or LinkedIn, we receive your name, email address and profile picture from them. Payments are handled by Razorpay; we receive the payment status and reference, not your card or bank details.",
       list: [
-        "Name, email, and contact details",
-        "Resume content and personal info",
+        "Name, email and contact details",
+        "Resume content you enter or import",
         "Account settings and preferences",
-        "Token purchase and usage history",
-        "AI feature usage patterns"
+        "Token purchases and usage history",
+        "Which AI features you use and when"
       ]
     },
     {
@@ -45,7 +47,7 @@ const PrivacyPolicy = () => {
       icon: EyeIcon,
       color: "text-indigo-500",
       bg: "bg-indigo-50/50 dark:bg-indigo-900/10",
-      content: "Your data is used to provide and improve our services, process transactions, and deliver AI-powered features. We analyze usage patterns to enhance our AI models and ensure a seamless user experience.",
+      content: "We use your data to run the service: to save and display your resumes, create PDFs, run the AI features you ask for, process token purchases, and help you when you contact support. We look at aggregate usage to fix problems and improve the product.",
       list: [
         "Provide and maintain services",
         "Process resume creation/editing",
@@ -60,7 +62,14 @@ const PrivacyPolicy = () => {
       icon: ShareIcon,
       color: "text-emerald-500",
       bg: "bg-emerald-50/50 dark:bg-emerald-900/10",
-      content: "We do not sell your personal information. Sharing only occurs with your consent or with trusted partners like Razorpay for payments and AI providers for feature delivery (using anonymized data)."
+      content: "We do not sell your personal information. We share data only with the service providers we need to run Presmistique, and only for that purpose.",
+      list: [
+        "Google (Gemini API): the resume text and job description needed for an AI feature you use",
+        "Razorpay: payment processing for token packs",
+        "Google and LinkedIn: sign-in, if you choose those options",
+        "Cloudflare: website hosting, security and cookie-free traffic statistics",
+        "Our email provider: account and support emails"
+      ]
     },
     {
       id: 4,
@@ -68,12 +77,12 @@ const PrivacyPolicy = () => {
       icon: LockClosedIcon,
       color: "text-rose-500",
       bg: "bg-rose-50/50 dark:bg-rose-900/10",
-      content: "We implement industry-standard security measures, including end-to-end encryption and secure cloud storage, to protect your data against unauthorized access or disclosure.",
+      content: "We use reasonable technical and organisational measures to protect your data. No online service can guarantee complete security, but we work to keep your information safe.",
       list: [
-        "End-to-end data encryption",
-        "Secure Razorpay integration",
-        "Regular security audits",
-        "Strict access controls"
+        "HTTPS encryption for all data in transit",
+        "Passwords stored only as secure hashes",
+        "Your own AI API key encrypted at rest",
+        "Access to personal data limited to what is needed to run the service"
       ]
     },
     {
@@ -82,12 +91,11 @@ const PrivacyPolicy = () => {
       icon: FingerPrintIcon,
       color: "text-amber-500",
       bg: "bg-amber-50/50 dark:bg-amber-900/10",
-      content: "You have full control over your data. You can access, update, or delete your information at any time. You also have the right to opt-out of marketing and request a copy of your data.",
+      content: "You can see and update your information in your profile, and delete your account from your profile page at any time. To request a copy of your data, or for any other privacy request, email us at the address below.",
       list: [
-        "Access and update personal info",
-        "Delete account and data",
-        "Opt-out of communications",
-        "Request data portability"
+        "Access and update your information",
+        "Delete your account",
+        "Ask for a copy of your data"
       ]
     },
     {
@@ -96,7 +104,7 @@ const PrivacyPolicy = () => {
       icon: CpuChipIcon,
       color: "text-cyan-500",
       bg: "bg-cyan-50/50 dark:bg-cyan-900/10",
-      content: "When using AI features, your resume data is processed securely to provide suggestions and ATS analysis. We do not use your personal data to train public AI models."
+      content: "When you use an AI feature, the text it needs (for example a resume section, or your resume and a job description) is sent to Google's Gemini API to produce the result. We don't train AI models on your data. If you use your own Gemini API key, the request runs on your Google account under Google's terms; on Google's free tier those terms may allow Google to use the content to improve its products."
     },
     {
       id: 7,
@@ -104,7 +112,7 @@ const PrivacyPolicy = () => {
       icon: ShieldCheckIcon,
       color: "text-purple-500",
       bg: "bg-purple-50/50 dark:bg-purple-900/10",
-      content: "We use cookies to enhance your experience and analyze site traffic. You can manage your cookie preferences through your browser settings at any time."
+      content: "We use a session cookie while you sign in with Google or LinkedIn, and your browser's local storage to keep you logged in and remember settings such as dark mode. We don't use advertising or cross-site tracking cookies. Site traffic is measured with Cloudflare Web Analytics, which does not use cookies."
     },
     {
       id: 8,
@@ -182,7 +190,7 @@ const PrivacyPolicy = () => {
                   Privacy Concerns?
                 </h2>
                 <p className="text-indigo-100">
-                  If you have any questions about your data or our privacy practices, please reach out.
+                  Questions about your data or a privacy request? Email <a href={`mailto:${SUPPORT_EMAIL}`} className="underline font-semibold text-white">{SUPPORT_EMAIL}</a> or use the contact form.
                 </p>
               </div>
               <div className="flex flex-col gap-3 w-full md:w-auto">
@@ -190,7 +198,7 @@ const PrivacyPolicy = () => {
                   to="/contact-us"
                   className="px-8 py-3 bg-white text-indigo-600 rounded-2xl font-bold text-center hover:bg-indigo-50 transition-colors"
                 >
-                  Contact Privacy Team
+                  Contact us
                 </Link>
                 <p className="text-center text-xs text-indigo-200">
                   Typical response time: Within 48 hours
@@ -201,10 +209,10 @@ const PrivacyPolicy = () => {
         </div>
 
         {/* Footer Note */}
-        <footer className="mt-16 text-center text-slate-400 dark:text-slate-600 text-sm">
+        <footer className="mt-16 text-center text-slate-600 dark:text-slate-400 text-sm">
           <p>© {new Date().getFullYear()} Presmistique - AI Resume Builder. All rights reserved.</p>
           <p className="mt-2 italic">
-            Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} • We are committed to protecting your personal data and your right to privacy.
+            Last updated: {LEGAL_LAST_UPDATED}
           </p>
         </footer>
       </main>
