@@ -29,25 +29,11 @@ const customPaginationStyles = `
     display: none;
   }
   
-  /* 10px dots spaced 26px apart, so each has a 24px tap target. */
-  .swiper-pagination {
-    --swiper-pagination-bullet-size: 10px;
-    --swiper-pagination-bullet-horizontal-gap: 8px;
-  }
-
-  .swiper-pagination-bullet {
-    background: rgba(59, 130, 246, 0.5);
-    opacity: 0.5;
-    transition: all 0.3s ease;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-  }
-  
-  .swiper-pagination-bullet-active {
-    background: #3b82f6;
-    opacity: 1;
-    transform: scale(1.2);
+  /* "4 / 23" counter instead of dots: 23 full-size dots don't fit on a phone,
+     and Swiper's dynamic dots shrank every dot to about 3px. */
+  .template-showcase-pagination {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
   }
   
   @media (max-width: 640px) {
@@ -55,10 +41,6 @@ const customPaginationStyles = `
       padding: 10px 0;
     }
     
-    .swiper-button-prev,
-    .swiper-button-next {
-      display: none !important;
-    }
   }
 `;
 
@@ -215,8 +197,8 @@ function TemplateShowcase() {
               prevEl: '.swiper-button-prev',
             }}
             pagination={{
-              clickable: true,
-              dynamicBullets: true,
+              el: '.template-showcase-pagination',
+              type: 'fraction',
             }}
             autoplay={prefersReducedMotion() ? false : {
               delay: 3000,
@@ -308,8 +290,8 @@ function TemplateShowcase() {
             </svg>
           </div>
 
-          {/* Pagination */}
-          <div className="swiper-pagination !bottom-2 !static !mt-6"></div>
+          {/* Position counter, e.g. "4 / 23". The arrows above are the controls. */}
+          <div className="template-showcase-pagination text-center text-sm text-gray-600 dark:text-gray-300 mt-6" aria-hidden="true"></div>
         </div>
 
         {/* Call to Action */}
