@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-IN">
 
 <head>
   <meta charset="utf-8" />
@@ -7,7 +7,7 @@
   <link rel="icon" href="%PUBLIC_URL%/resume-builder-logo-light.ico" media="(prefers-color-scheme: light)" />
   <link rel="icon" href="%PUBLIC_URL%/resume-builder-logo-dark.ico" media="(prefers-color-scheme: dark)" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#000000" />
+  <meta name="theme-color" content="#4F46E5" />
   <!-- Home-page values for crawlers that don't run JavaScript. components/RouteSeo.js
        updates these per route; keep them in sync with DEFAULT_SEO in src/constants/seo.js. -->
   <meta name="description"
@@ -60,9 +60,8 @@
     }
   </script>
   <meta name="author" content="Presmistique" />
-  <link rel="apple-touch-icon" href="%PUBLIC_URL%/resume-builder-logo-512-light.png" />
-  <link rel="apple-touch-icon" href="%PUBLIC_URL%/resume-builder-logo-512-dark.png"
-    media="(prefers-color-scheme: dark)" />
+  <!-- iOS ignores media on apple-touch-icon, so there is one (light) icon. -->
+  <link rel="apple-touch-icon" href="%PUBLIC_URL%/resume-builder-logo-192-light.png" />
 
   <!-- Open Graph / Facebook / LinkedIn / WhatsApp -->
   <meta property="og:type" content="website" />

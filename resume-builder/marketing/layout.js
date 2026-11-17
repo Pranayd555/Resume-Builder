@@ -204,9 +204,9 @@ function renderPage(page) {
 <title>${esc(page.title)}</title>
 <meta name="description" content="${esc(page.description)}">
 <link rel="canonical" href="${url}">
-<meta name="theme-color" content="#2563eb">
+<meta name="theme-color" content="#4F46E5">
 <link rel="icon" href="/favicon.ico">
-<link rel="apple-touch-icon" href="/resume-builder-logo-512-light.png">
+<link rel="apple-touch-icon" href="/resume-builder-logo-192-light.png">
 <link rel="manifest" href="/manifest.json">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="${esc(BRAND_NAME)}">
