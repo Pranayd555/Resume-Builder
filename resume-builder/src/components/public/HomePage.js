@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDarkMode } from '../../contexts/DarkModeContext';
 import { useRouteScrollToTop } from '../../hooks/useAutoScroll';
@@ -29,6 +29,9 @@ import {
 import { Slide, Roll, AttentionSeeker } from 'react-awesome-reveal';
 import { publicAPI } from '../../services/api';
 import { FlipText, WaveText } from '../../utils/animated-elements';
+import { SUPPORT_EMAIL } from '../../constants/brand';
+
+const footerLink = 'hover:text-gray-900 dark:hover:text-white transition-colors';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -735,79 +738,70 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Footer */}
+      {/* Footer: real links so crawlers can follow them. Product pages are static HTML
+          (marketing/build-static.js), so they use plain <a> for a full page load. */}
       <footer className="backdrop-blur-md bg-white/70 dark:bg-transparent border-t border-white/20 dark:border-none py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <Slide direction="left">
-              <div>
-                <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Presmistique - AI Resume Builder</h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Professional resume building made simple and effective.
-                </p>
-              </div>
-            </Slide>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="col-span-2 md:col-span-1">
+              <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Presmistique - AI Resume Builder</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                Free resume templates and PDF downloads, with pay-per-use AI tools and no subscription.
+              </p>
+              <p className="text-gray-600 dark:text-gray-400">
+                <a href={`mailto:${SUPPORT_EMAIL}`} className="underline-offset-2 hover:underline hover:text-gray-900 dark:hover:text-white">{SUPPORT_EMAIL}</a>
+              </p>
+            </div>
 
-            <Slide direction="up">
-              <div>
-                <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Quick Links</h4>
-                <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                  {isAuthenticated ? (
-                    <li><button onClick={() => navigate(getDashboardRoute())} className="hover:text-gray-900 dark:hover:text-white transition-colors">Dashboard</button></li>
-                  ) : (
-                    <>
-                      <li><button onClick={() => navigate(PUBLIC_ROUTES.LOGIN)} className="hover:text-gray-900 dark:hover:text-white transition-colors">Login</button></li>
-                      <li><button onClick={() => navigate(PUBLIC_ROUTES.REGISTER)} className="hover:text-gray-900 dark:hover:text-white transition-colors">Register</button></li>
-                    </>
-                  )}
-                  <li>
-                    <button
-                      onClick={toggleDarkMode}
-                      className="flex items-center gap-2 hover:text-gray-900 dark:hover:text-white transition-colors"
-                    >
-                      {isDarkMode ? (
-                        <>
-                          <SunIcon className="w-4 h-4" />
-                          Light Mode
-                        </>
-                      ) : (
-                        <>
-                          <MoonIcon className="w-4 h-4" />
-                          Dark Mode
-                        </>
-                      )}
-                    </button>
-                  </li>
-                </ul>
-              </div>
-            </Slide>
+            <nav aria-labelledby="footer-product">
+              <h2 id="footer-product" className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Product</h2>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                <li><a href="/features" className={footerLink}>Features</a></li>
+                <li><a href="/templates" className={footerLink}>Resume templates</a></li>
+                <li><a href="/ats-resume-checker" className={footerLink}>ATS resume checker</a></li>
+                <li><a href="/import-resume" className={footerLink}>Import a resume</a></li>
+                <li><a href="/pricing" className={footerLink}>Pricing</a></li>
+                <li><Link to={PUBLIC_ROUTES.BYOK} className={footerLink}>Use your own AI key</Link></li>
+              </ul>
+            </nav>
 
+            <nav aria-labelledby="footer-help">
+              <h2 id="footer-help" className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Help</h2>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                <li><a href="/resume-builder-for-freshers" className={footerLink}>Resume for freshers</a></li>
+                <li><a href="/faq" className={footerLink}>FAQ</a></li>
+                <li><a href="/about" className={footerLink}>About</a></li>
+                <li><Link to={PUBLIC_ROUTES.CONTACT_US} className={footerLink}>Contact us</Link></li>
+                {isAuthenticated ? (
+                  <li><Link to={getDashboardRoute()} className={footerLink}>Dashboard</Link></li>
+                ) : (
+                  <li><Link to={PUBLIC_ROUTES.LOGIN} className={footerLink}>Log in</Link></li>
+                )}
+                <li>
+                  <button
+                    type="button"
+                    onClick={toggleDarkMode}
+                    className="flex items-center gap-2 hover:text-gray-900 dark:hover:text-white transition-colors"
+                  >
+                    {isDarkMode ? <SunIcon className="w-4 h-4" aria-hidden="true" /> : <MoonIcon className="w-4 h-4" aria-hidden="true" />}
+                    {isDarkMode ? 'Light mode' : 'Dark mode'}
+                  </button>
+                </li>
+              </ul>
+            </nav>
 
-            <Slide direction="up">
-              <div>
-                <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Legal</h4>
-                <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                  <li><button onClick={() => navigate(PUBLIC_ROUTES.PRIVACY_POLICY)} className="hover:text-gray-900 dark:hover:text-white transition-colors">Privacy Policy</button></li>
-                  <li><button onClick={() => navigate(PUBLIC_ROUTES.TERMS_CONDITIONS)} className="hover:text-gray-900 dark:hover:text-white transition-colors">Terms & Conditions</button></li>
-                  <li><button onClick={() => navigate(PUBLIC_ROUTES.CANCELLATION_REFUNDS)} className="hover:text-gray-900 dark:hover:text-white transition-colors text-align-left">Cancellation & Refunds</button></li>
-                </ul>
-              </div>
-            </Slide>
-
-
-            <Slide direction="right">
-              <div>
-                <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Support</h4>
-                <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-                  <li><button onClick={() => navigate(PUBLIC_ROUTES.CONTACT_US)} className="hover:text-gray-900 dark:hover:text-white transition-colors">Contact Us</button></li>
-                  <li><button onClick={() => navigate(PUBLIC_ROUTES.SHIPPING)} className="hover:text-gray-900 dark:hover:text-white transition-colors">Shipping</button></li>
-                  <li><button onClick={() => navigate(USER_ROUTES.FEEDBACK)} className="hover:text-gray-900 dark:hover:text-white transition-colors">Feedback</button></li>
-                </ul>
-              </div>
-            </Slide>
+            <nav aria-labelledby="footer-legal">
+              <h2 id="footer-legal" className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Legal</h2>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                <li><Link to={PUBLIC_ROUTES.PRIVACY_POLICY} className={footerLink}>Privacy policy</Link></li>
+                <li><Link to={PUBLIC_ROUTES.TERMS_CONDITIONS} className={footerLink}>Terms and conditions</Link></li>
+                <li><Link to={PUBLIC_ROUTES.CANCELLATION_REFUNDS} className={footerLink}>Cancellation and refunds</Link></li>
+                <li><Link to={PUBLIC_ROUTES.SHIPPING} className={footerLink}>Shipping and delivery</Link></li>
+              </ul>
+            </nav>
           </div>
           <div className="border-t border-white/20 dark:border-orange-200/30 mt-8 pt-8 text-center text-gray-600 dark:text-gray-400">
-            <p>&copy; {currentYear} Presmistique - AI Resume Builder. All rights reserved.</p>
+            <p>&copy; {currentYear} Presmistique. All rights reserved.</p>
           </div>
         </div>
       </footer>
