@@ -35,6 +35,8 @@ const AdminPayments = () => {
   const [reason, setReason] = useState('');
   const [amount, setAmount] = useState(''); // rupees; empty = full payment
   const [removeTokens, setRemoveTokens] = useState(true);
+  // Goodwill refunds keep Razorpay's fee; refunds for our own faults are in full.
+  const [keepFee, setKeepFee] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   const openRefund = (payment) => {
@@ -42,6 +44,14 @@ const AdminPayments = () => {
     setReason('');
     setAmount('');
     setRemoveTokens(true);
+    setKeepFee(true);
+  };
+
+  // What the customer gets back, in paise (null when the fee is not known yet).
+  const refundPreview = (p) => {
+    if (amount !== '') return Math.round(Number(amount) * 100);
+    if (!keepFee) return p.amount;
+    return Number.isInteger(p.fee) ? p.amount - p.fee : null;
   };
 
   const load = useCallback(async () => {
@@ -69,7 +79,8 @@ const AdminPayments = () => {
       await adminAPI.paymentsAdminApi.refundPayment(refunding.id, {
         reason: reason.trim(),
         amount: amount === '' ? undefined : Number(amount),
-        removeTokens
+        removeTokens,
+        keepFee: amount === '' && keepFee
       });
       toast.success('Refund issued');
       setRefunding(null);
@@ -220,25 +231,39 @@ const AdminPayments = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-labelledby="admin-refund-title">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
             <h3 id="admin-refund-title" className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-              Refund {rupees(refunding.amount)} to {refunding.user?.email}?
+              Refund {refundPreview(refunding) === null ? `${rupees(refunding.amount)} minus Razorpay's fee` : rupees(refundPreview(refunding))} to {refunding.user?.email}?
             </h3>
             <p className="text-sm text-gray-700 dark:text-gray-300">
               Tokens are non-refundable, so refund only after investigating a claim: a duplicate charge, a
-              payment without tokens, or a failure on our side. Razorpay keeps its fee on refunds.
+              payment without tokens, or a failure on our side.
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
               Pack: {refunding.tokens} tokens{refunding.bonusTokens > 0 ? ` + ${refunding.bonusTokens} bonus` : ''}.
               Customer&apos;s balance now: {refunding.user?.tokens?.purchased ?? 0} purchased + {refunding.user?.tokens?.bonus ?? 0} bonus.
             </p>
+            <fieldset className="mt-4">
+              <legend className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Whose side was the problem on?</legend>
+              <label className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+                <input type="radio" name="admin-refund-fee" checked={keepFee} onChange={() => setKeepFee(true)} className="mt-0.5" />
+                <span>
+                  Customer&apos;s own reason (goodwill): keep Razorpay&apos;s processing fee
+                  {Number.isInteger(refunding.fee) ? ` of ${rupees(refunding.fee)}` : ' (read from Razorpay when you refund)'}
+                </span>
+              </label>
+              <label className="flex items-start gap-2 mt-1 text-sm text-gray-700 dark:text-gray-300">
+                <input type="radio" name="admin-refund-fee" checked={!keepFee} onChange={() => setKeepFee(false)} className="mt-0.5" />
+                <span>Our side (duplicate charge, no tokens, our failure): refund in full, {rupees(refunding.amount)}</span>
+              </label>
+            </fieldset>
             <label htmlFor="admin-refund-amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mt-4 mb-1">
-              Amount in ₹ (leave empty for the full {rupees(refunding.amount)})
+              Different amount in ₹ (optional, replaces the choice above)
             </label>
             <input
               id="admin-refund-amount"
               type="number"
               min="1"
               max={refunding.amount / 100}
-              step="1"
+              step="0.01"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 text-sm"

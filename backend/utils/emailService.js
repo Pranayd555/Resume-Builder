@@ -682,8 +682,11 @@ The Presmistique - AI Resume Builder Team
    * @param {Object} params - Email parameters
    * @returns {Promise<Object>} - Result object
    */
-  async sendRefundCompletionEmail({ email, name, transactionId, orderId, refundAmount, refundId, processedDate }) {
+  async sendRefundCompletionEmail({ email, name, transactionId, orderId, refundAmount, refundId, processedDate, feeKept = 0 }) {
     try {
+      const feeNote = feeKept > 0
+        ? `The payment processing charge of ₹${feeKept.toLocaleString('en-IN')} charged by our payment provider is not refundable.`
+        : '';
       const htmlContent = await this.loadTemplate('refund-completion', {
         name,
         transactionId,
@@ -691,6 +694,7 @@ The Presmistique - AI Resume Builder Team
         refundAmount: refundAmount.toLocaleString('en-IN'),
         refundId,
         processedDate,
+        feeNote,
         appName: process.env.APP_NAME || 'Presmistique - AI Resume Builder',
         dashboardUrl: `${process.env.CLIENT_URL}/analytics`,
         supportEmail: process.env.SUPPORT_EMAIL || process.env.EMAIL_USER
@@ -707,7 +711,7 @@ REFUND DETAILS:
 - Refund Amount: ₹${refundAmount.toLocaleString('en-IN')}
 - Refund ID: ${refundId}
 - Processed Date: ${processedDate}
-
+${feeNote ? `\n${feeNote}\n` : ''}
 The refund amount will be credited to your original payment method within 5-7 business days. You will receive a confirmation from your bank/card provider once the amount is credited.
 
 If you have any questions about this refund, please contact our support team at ${process.env.SUPPORT_EMAIL || process.env.EMAIL_USER}

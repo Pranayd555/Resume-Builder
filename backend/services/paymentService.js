@@ -256,6 +256,7 @@ async function fulfilOrder(orderId, { paymentId, userId } = {}) {
         status: 'paid',
         paymentId: String(captured.id),
         method: String(captured.method || ''),
+        ...(Number.isInteger(captured.fee) ? { fee: captured.fee } : {}),
         paidAt: captured.created_at ? new Date(captured.created_at * 1000) : new Date(),
         credited: false
       }
@@ -287,7 +288,7 @@ async function verifyAndFulfil(userId, { orderId, paymentId, signature }) {
 
 // ---- refunds ------------------------------------------------------------------
 
-async function sendRefundEmail(payment, refundAmount) {
+async function sendRefundEmail(payment, refundAmount, feeKept = 0) {
   try {
     const user = await User.findById(payment.user).select('email firstName').lean();
     if (!user) return;
@@ -297,6 +298,7 @@ async function sendRefundEmail(payment, refundAmount) {
       transactionId: payment.receiptNumber || payment.paymentId,
       orderId: payment.orderId,
       refundAmount: refundAmount / 100,
+      feeKept: feeKept / 100,
       refundId: payment.refund?.razorpayRefundId || '',
       processedDate: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
     });
@@ -322,7 +324,28 @@ async function releaseRefundClaim(payment, error) {
  *   back whatever is left of the pack's tokens (default true; turn off e.g.
  *   when the customer never received them).
  */
-async function refundPayment(paymentDocId, { adminEmail, reason, amount, removeTokens = true }) {
+/** Razorpay's fee for a payment (paise): stored at capture, else fetched. */
+async function paymentFee(payment) {
+  if (Number.isInteger(payment.fee)) return payment.fee;
+  let fetched;
+  try {
+    fetched = await getRazorpay().payments.fetch(payment.paymentId);
+  } catch (error) {
+    throw new PaymentError(`Could not read Razorpay's fee for this payment (${error?.error?.description || error?.message || 'Razorpay error'}). Enter the amount instead.`, 422, 'fee_unknown');
+  }
+  if (!Number.isInteger(fetched?.fee)) {
+    throw new PaymentError("Razorpay hasn't reported the fee for this payment yet. Enter the amount instead.", 422, 'fee_unknown');
+  }
+  await Payment.updateOne({ _id: payment._id }, { $set: { fee: fetched.fee } });
+  return fetched.fee;
+}
+
+/**
+ * Admin refund after investigating a claim.
+ * keepFee: refund the payment minus Razorpay's processing fee (goodwill refunds,
+ * where the problem was not on our side). Ignored when an amount is given.
+ */
+async function refundPayment(paymentDocId, { adminEmail, reason, amount, removeTokens = true, keepFee = false }) {
   if (!getRazorpay()) throw new PaymentError('Refunds are not available right now.', 503, 'payments_disabled');
   const note = typeof reason === 'string' ? reason.trim() : '';
   if (note.length < 5) throw new PaymentError('Add a short reason for the refund (what was investigated).', 400, 'reason_required');
@@ -331,7 +354,9 @@ async function refundPayment(paymentDocId, { adminEmail, reason, amount, removeT
   if (!payment) throw new PaymentError('Payment not found.', 404, 'not_found');
   if (payment.status !== 'paid') throw new PaymentError('Only completed payments can be refunded.', 400, 'not_refundable');
 
-  const refundAmount = amount === undefined || amount === null ? payment.amount : Number(amount);
+  const fullRefund = amount === undefined || amount === null;
+  const feeKept = fullRefund && keepFee ? await paymentFee(payment) : 0;
+  const refundAmount = fullRefund ? payment.amount - feeKept : Number(amount);
   if (!Number.isInteger(refundAmount) || refundAmount < 100 || refundAmount > payment.amount) {
     throw new PaymentError(`Refund amount must be between ₹1 and ₹${payment.amount / 100}.`, 400, 'invalid_amount');
   }
@@ -352,6 +377,7 @@ async function refundPayment(paymentDocId, { adminEmail, reason, amount, removeT
           by: 'admin',
           adminEmail: String(adminEmail || ''),
           reason: note.slice(0, 500),
+          ...(feeKept ? { feeKept } : {}),
           attempts: attempt,
           requestedAt: new Date()
         }
@@ -402,7 +428,7 @@ async function refundPayment(paymentDocId, { adminEmail, reason, amount, removeT
   if (processed) done['refund.processedAt'] = new Date();
   const updated = await Payment.findOneAndUpdate({ _id: claimed._id }, { $set: done }, { new: true });
   logger.info(`Refund ${logSafe(refund.id)} of ${Number(refundAmount)} paise issued for ${logSafe(claimed.paymentId)} by ${logSafe(adminEmail)}`);
-  await sendRefundEmail(updated, refundAmount);
+  await sendRefundEmail(updated, refundAmount, feeKept);
   return { payment: updated, balance: balance || await getTokenBalance(claimed.user), removed };
 }
 

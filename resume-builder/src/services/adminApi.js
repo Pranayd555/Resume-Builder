@@ -404,12 +404,13 @@ export const paymentsAdminApi = {
   },
 
   // After investigating a claim. amount in rupees (optional, default full);
-  // removeTokens: take back what is left of the pack (default true)
-  refundPayment: async (paymentId, { reason, amount, removeTokens = true }) => {
+  // removeTokens: take back what is left of the pack (default true);
+  // keepFee: refund minus Razorpay's fee (goodwill refunds; ignored with amount)
+  refundPayment: async (paymentId, { reason, amount, removeTokens = true, keepFee = false }) => {
     const response = await fetch(`${API_BASE_URL}/payment/admin/payments/${encodeURIComponent(paymentId)}/refund`, {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify({ reason, amount, removeTokens })
+      body: JSON.stringify({ reason, amount, removeTokens, keepFee })
     });
     return handleApiResponse(response, 'Failed to process refund');
   }

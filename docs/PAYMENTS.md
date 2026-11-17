@@ -68,7 +68,11 @@ If an AI action fails, its token is returned automatically (`chargeAIToken` in `
 
 There is no customer refund button or refund window. Customers contact support with their receipt number. After investigating, an admin uses **Refund** on `/admin/payments`:
 - **Reason (required):** what was investigated. It is stored with the payment.
-- **Amount:** the full payment by default, or a partial amount.
+- **Whose side was the problem on?**
+  - **Customer's own reason (goodwill, the default):** refund the payment minus Razorpay's processing fee (about 2.36%), which Razorpay never returns. The fee is stored on the payment at capture; for older payments it is read from Razorpay at refund time.
+  - **Our side** (duplicate charge, no tokens, our failure): refund in full.
+  - The Refund policy and Terms tell customers this.
+- **Different amount (optional):** any amount up to the payment, replacing the choice above.
 - **Take back the pack's tokens:** on by default, and removes whatever is left of the pack, never below zero. Untick it when the customer never received the tokens.
 
 `refundPayment()`:

@@ -25,6 +25,8 @@ const refundSchema = new mongoose.Schema({
   attempts: { type: Number, default: 0 },
   // Tokens taken back from the customer when the refund was issued
   tokensRemoved: { purchased: Number, bonus: Number },
+  // Razorpay's processing fee kept back on a goodwill refund (paise)
+  feeKept: Number,
   requestedAt: Date,
   processedAt: Date
 }, { _id: false });
@@ -50,6 +52,8 @@ const paymentSchema = new mongoose.Schema({
   orderId: String,
   paymentId: String,
   method: String,
+  // Razorpay's fee for this payment incl. GST (paise); Razorpay keeps it even on refunds
+  fee: { type: Number, min: 0 },
   paidAt: Date,
   credited: { type: Boolean, default: false },
 

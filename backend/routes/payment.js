@@ -162,6 +162,8 @@ router.get('/admin/payments', protect, authorize('admin'), async (req, res) => {
             refundError: p.refund?.status === 'failed' ? p.refund?.error || null : null,
             refundAdmin: p.refund?.adminEmail || null,
             tokensRemoved: p.refund?.tokensRemoved || null,
+            fee: Number.isInteger(p.fee) ? p.fee : null,
+            feeKept: p.refund?.feeKept || null,
             grantedBy: p.grantedBy || null
           };
         }),
@@ -179,14 +181,16 @@ router.get('/admin/payments', protect, authorize('admin'), async (req, res) => {
 
 router.post('/admin/payments/:id/refund', protect, authorize('admin'), async (req, res) => {
   try {
-    // amount is in rupees (optional, default: the full payment)
+    // amount is in rupees (optional, default: the full payment, minus Razorpay's
+    // fee when keepFee is true)
     const rupees = req.body?.amount;
     const amount = rupees === undefined || rupees === null || rupees === '' ? undefined : Math.round(Number(rupees) * 100);
     const { payment, balance, removed } = await payments.refundPayment(req.params.id, {
       adminEmail: req.user.email,
       reason: typeof req.body?.reason === 'string' ? req.body.reason : '',
       amount,
-      removeTokens: req.body?.removeTokens !== false
+      removeTokens: req.body?.removeTokens !== false,
+      keepFee: req.body?.keepFee === true
     });
     res.json({
       success: true,
