@@ -23,6 +23,8 @@ const pages = [
   require('./pages/freshers'),
   require('./pages/faq'),
   require('./pages/about'),
+  require('./pages/guides/index'),
+  ...require('./pages/guides/index').GUIDES,
 ];
 
 // Public pages rendered by the React app (see INDEXABLE_PAGES in src/constants/seo.js).
@@ -42,6 +44,7 @@ if (!fs.existsSync(path.join(BUILD, 'index.html'))) fail('build/index.html not f
 // 1. Marketing pages
 for (const page of pages) {
   const file = path.join(BUILD, `${page.path.replace(/^\//, '')}.html`);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, renderPage(page));
 }
 
@@ -94,11 +97,11 @@ const llms = `# ${PRODUCT_NAME}
 > ${BRAND_NAME} is an online resume builder at ${SITE_URL}. Building resumes, ${TEMPLATE_COUNT_FLOOR}+ templates and PDF download are free. AI tools (rewriting, ATS score against a job description, resume import from PDF/Word) cost 1 token per action: ${SIGNUP_TOKENS} free tokens on signup, then one-time packs from ${cheapestPack.priceLabel} (INR). No subscription; tokens never expire. Users can also add their own Google Gemini API key so AI actions don't use tokens.
 
 ## Product
-${pages.filter((p) => !['/faq', '/about', '/resume-builder-for-freshers'].includes(p.path)).map((p) => `- [${p.crumb || p.h1}](${SITE_URL}${p.path}): ${p.description}`).join('\n')}
+${pages.filter((p) => !['/faq', '/about', '/resume-builder-for-freshers'].includes(p.path) && !p.path.startsWith('/guides')).map((p) => `- [${p.crumb || p.h1}](${SITE_URL}${p.path}): ${p.description}`).join('\n')}
 - [Use your own Gemini API key](${SITE_URL}/byok): ${SPA_PUBLIC_PAGES[0].summary}
 
 ## Guides
-- [Resume builder for freshers](${SITE_URL}/resume-builder-for-freshers): ${pages.find((p) => p.path === '/resume-builder-for-freshers').description}
+${pages.filter((p) => p.path.startsWith('/guides/') || p.path === '/resume-builder-for-freshers').map((p) => `- [${p.crumb || p.h1}](${SITE_URL}${p.path}): ${p.description}`).join('\n')}
 - [FAQ](${SITE_URL}/faq): ${pages.find((p) => p.path === '/faq').description}
 
 ## Company

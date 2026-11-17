@@ -33,7 +33,11 @@ const FOOTER_COLUMNS = [
   {
     heading: 'Guides',
     links: [
+      { href: '/guides/resume-format-for-freshers', label: 'Resume format for freshers' },
+      { href: '/guides/ats-friendly-resume', label: 'ATS-friendly resume' },
+      { href: '/guides/resume-vs-cv-vs-biodata', label: 'Resume vs CV vs biodata' },
       { href: '/resume-builder-for-freshers', label: 'Resume builder for freshers' },
+      { href: '/guides', label: 'All guides' },
       { href: '/faq', label: 'FAQ' },
     ],
   },
@@ -172,11 +176,12 @@ const ctaBand = (heading = 'Build your resume now', text = 'Free to start. No cr
  * @param {string} page.body      HTML for the main content
  * @param {Array}  [page.faq]     [{q, a}] rendered at the end and as FAQPage JSON-LD
  * @param {string} [page.crumb]   breadcrumb label (defaults to h1)
+ * @param {object[]} [page.parents] breadcrumb items between Home and this page, [{name, href}]
  * @param {object[]} [page.extraLd] more JSON-LD nodes
  */
 function renderPage(page) {
   const url = `${SITE_URL}${page.path}`;
-  const crumbs = [{ name: 'Home', href: '/' }, { name: page.crumb || page.h1, href: page.path }];
+  const crumbs = [{ name: 'Home', href: '/' }, ...(page.parents || []), { name: page.crumb || page.h1, href: page.path }];
   const graph = [
     {
       '@type': 'WebPage',
