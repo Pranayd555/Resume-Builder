@@ -1000,11 +1000,9 @@ router.get('/google/callback',
       
       const redirectUrl = `${clientUrl}/auth/callback?token=${token}`;
       
-      // Debug logging
-      logger.info(`Google OAuth redirect - Original CLIENT_URL: ${process.env.CLIENT_URL}`);
-      logger.info(`Google OAuth redirect - Using URL: ${clientUrl}`);
-      logger.info(`Google OAuth redirect - Full URL: ${redirectUrl}`);
-      
+      // Never log redirectUrl: it carries the user's session token.
+      logger.info(`Google OAuth sign-in for user ${user._id}: redirecting to ${clientUrl}/auth/callback`);
+
       res.redirect(redirectUrl);
     } catch (error) {
       logger.error('Google OAuth callback error:', error);
